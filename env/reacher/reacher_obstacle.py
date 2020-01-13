@@ -14,24 +14,26 @@ class ReacherObstacleEnv(BaseEnv):
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
         self._set_camera_rotation(0, [0, 0, 0])
-        self._reset_obstacles()
         qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
         while True:
             self.goal = np.random.uniform(low=-.5, high=.5, size=2)
-            if np.linalg.norm(self.goal) < 0.3 and np.linalg.norm(self.goal) > 0.15:
+            # not too close and far from the root
+            if np.linalg.norm(self.goal) < 0.4 and np.linalg.norm(self.goal) > 0.2:
                 break
         qpos[-2:] = self.goal
-        qvel = np.random.uniform(low=-.005, hig5=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+        qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
         qvel[-2:] = 0
-        print(self.goal)
         self.set_state(qpos, qvel)
+        self._reset_obstacles()
         return self._get_obs()
 
     def _reset_obstacles(self):
         for name in self.obstacle_names:
             while True:
                 pos = np.random.uniform(-0.3, 0.3, size=2)
-                if np.linalg.norm(pos) < 0.2 and np.linalg.norm(pos) > 0.1:
+                # not too close and far from the root, and not overlapped with a target
+                if np.linalg.norm(pos) < 0.25 and np.linalg.norm(pos) > 0.05 \
+                        and np.linalg.norm(pos-self.goal) > 0.05:
                     break
             self._set_pos(name, np.concatenate([pos, np.array([0.01])]))
             self._set_size(name, np.concatenate([np.random.uniform(low=0.015, high=0.035, size=2), np.array([0.05])]))
