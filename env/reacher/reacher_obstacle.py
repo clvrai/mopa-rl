@@ -17,24 +17,24 @@ class ReacherObstacleEnv(BaseEnv):
         self._reset_obstacles()
         qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
         while True:
-            self.goal = np.random.uniform(low=-.3, high=.3, size=2)
-            if np.linalg.norm(self.goal) < 0.2:
+            self.goal = np.random.uniform(low=-.5, high=.5, size=2)
+            if np.linalg.norm(self.goal) < 0.3 and np.linalg.norm(self.goal) > 0.15:
                 break
         qpos[-2:] = self.goal
-        qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+        qvel = np.random.uniform(low=-.005, hig5=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
         qvel[-2:] = 0
+        print(self.goal)
         self.set_state(qpos, qvel)
         return self._get_obs()
 
     def _reset_obstacles(self):
-        self._set_pos("obstacle1", np.concatenate([np.random.uniform(0.01, 0.2, 1), np.random.uniform(0.01, 0.2, 1), np.array([0.01])]))
-        self._set_pos("obstacle2", np.concatenate([np.random.uniform(0.01, 0.2, 1), np.random.uniform(0.01, 0.2, 1), np.array([0.01])]))
-        self._set_pos("obstacle3", np.concatenate([np.random.uniform(-0.2, -0.01, 1), np.random.uniform(0.01, 0.2, 1), np.array([0.01])]))
-        self._set_pos("obstacle4", np.concatenate([np.random.uniform(-0.2, -0.01, 1), np.random.uniform(0.01, 0.2, 1), np.array([0.01])]))
-        self._set_pos("obstacle5", np.concatenate([np.random.uniform(0.01, 0.2, 1), np.random.uniform(-0.2, -0.01, 1), np.array([0.01])]))
-        self._set_pos("obstacle6", np.concatenate([np.random.uniform(0.01, 0.2, 1), np.random.uniform(-0.2, -0.01, 1), np.array([0.01])]))
-        self._set_pos("obstacle7", np.concatenate([np.random.uniform(-0.2, -0.01, 1), np.random.uniform(-0.2, -0.01, 1), np.array([0.01])]))
-        self._set_pos("obstacle8", np.concatenate([np.random.uniform(-0.2, -0.01, 1), np.random.uniform(-0.2, -0.01, 1), np.array([0.01])]))
+        for name in self.obstacle_names:
+            while True:
+                pos = np.random.uniform(-0.3, 0.3, size=2)
+                if np.linalg.norm(pos) < 0.2 and np.linalg.norm(pos) > 0.1:
+                    break
+            self._set_pos(name, np.concatenate([pos, np.array([0.01])]))
+            self._set_size(name, np.concatenate([np.random.uniform(low=0.015, high=0.035, size=2), np.array([0.05])]))
 
     def _get_obstacle_states(self):
         obstacle_states = []

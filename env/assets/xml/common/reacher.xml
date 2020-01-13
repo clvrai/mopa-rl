@@ -15,14 +15,15 @@
 
     <worldbody>
         <!-- Arena -->
+        <light cutoff="100" diffuse="0.05 0.05 0.05" dir="0 -0.5 -2.0" directional="true" exponent="1" pos="0 0.5 2.0" specular=".1 .1 .1" />
         <geom name="ground" class="ground" pos="0 0 0" size="5 5 1"/>
         <camera name="cam0" pos="-0.1 0.1 0.0" quat="0.707 0.707 0 0" />
         <!--
         <geom conaffinity="0" contype="0" name="ground" pos="0 0 0" rgba="0.9 0.9 0.9 1" size="1 1 10" type="plane"/>
         -->
         <!-- Arm -->
-        <geom conaffinity="0" contype="0" fromto="0 0 0 0 0 0.02" name="root" rgba="0.9 0.4 0.6 1" size=".011" type="cylinder"/>
-        <body name="body0" pos="0 0 .01">
+        <geom conaffinity="0" contype="0" fromto="0 0 0 0 0 0.05" name="root" rgba="0.9 0.4 0.6 1" size=".011" type="cylinder"/>
+        <body name="body0" pos="0 0 .02">
             <geom contype="1" conaffinity="1" fromto="0 0 0 0.1 0 0" name="link0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
             <joint axis="0 0 1" limited="false" name="joint0" pos="0 0 0" type="hinge"/>
             <body name="body1" pos="0.1 0 0">
