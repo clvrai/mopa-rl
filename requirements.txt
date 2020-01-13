@@ -5,6 +5,7 @@ requests
 moviepy
 imageio
 colorlog
+pyquaternion
 tqdm
 h5py
 ipdb
