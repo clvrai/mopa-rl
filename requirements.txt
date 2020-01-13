@@ -1,0 +1,13 @@
+numpy
+torch
+wandb
+requests
+moviepy
+imageio
+colorlog
+tqdm
+h5py
+ipdb
+opencv-python
+gym==0.15.4
+mujoco-py==2.0.2.5

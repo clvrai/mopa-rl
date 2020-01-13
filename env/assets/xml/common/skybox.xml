@@ -1,0 +1,11 @@
+<mujoco>
+    <asset>
+        <!--
+        <texture name="skybox" type="skybox" builtin="gradient" rgb1=".4 .6 .8" rgb2="0 0 0"
+               width="800" height="800" mark="random" markrgb="1 1 1"/>
+        -->
+        <texture name="skybox" type="skybox" builtin="gradient" rgb1="0.556 0.705 0.960" rgb2="0.556 0.705 0.960"
+            width="800" height="800" mark="none"/>
+        <!-- <texture name="skybox" type="skybox" file="../textures/room1.png" gridsize="1 1" /> -->
+    </asset>
+</mujoco>

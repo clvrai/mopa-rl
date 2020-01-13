@@ -1,0 +1,5 @@
+<mujoco>
+  <worldbody>
+    <camera mode="fixed" name="cam0" pos="0 0 0" quat="0.56 0.43 0.43 0.56"/>
+</worldbody>
+</mujoco>
