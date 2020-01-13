@@ -1,5 +1,11 @@
 # hrl-planner
 
+## Prerequisites
+- Python 3.7
+- torch
+- gym 0.15.4
+- [MuJoCo 2.0.2.5 ](http://www.mujoco.org/)
+
 ## Usage
 ### Test environment
 ```
