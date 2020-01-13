@@ -10,7 +10,7 @@ def argparser():
     )
 
     # environment
-    parser.add_argument('--env', type=str, default='ant-easy',
+    parser.add_argument('--env', type=str, default='reacher-obstacle',
                         help='Environment name')
     parser.add_argument('--env_args', type=str, default=None)
     parser.add_argument('--init_qpos_dir', type=str, default=None)
