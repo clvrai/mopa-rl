@@ -7,4 +7,7 @@ env.reset()
 for i in range(200):
     env.render(mode='human')
     action = env.action_space.sample()
-    env.step(action)
+    obs, reward, done, _ = env.step(action)
+    if done:
+        print('done')
+        break

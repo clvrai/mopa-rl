@@ -31,6 +31,8 @@ class BaseEnv(gym.Env):
             "init_randomness": 1e-5,
             "max_episode_steps": 500,
             "unstable_penalty": 100,
+            "reward_type": 'dense',
+            "distance_threshold": 0.01
         }
 
         logger.setLevel(logging.INFO)
