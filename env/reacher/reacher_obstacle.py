@@ -1,5 +1,6 @@
 from env.base import BaseEnv
 import numpy as np
+import re
 
 
 class ReacherObstacleEnv(BaseEnv):
@@ -7,9 +8,7 @@ class ReacherObstacleEnv(BaseEnv):
 
     def __init__(self):
         super().__init__("reacher_obstacle.xml")
-        self.obstacle_names = ["obstacle1", "obstacle2", "obstacle3",
-                               "obstacle4", "obstacle5", "obstacle6",
-                               "obstacle7", "obstacle8"]
+        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
 
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
