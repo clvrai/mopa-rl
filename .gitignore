@@ -5,6 +5,7 @@
 
 # Log
 log
+logs
 
 # Vim
 .*.s[a-w][a-z]
