@@ -29,26 +29,13 @@ class ReacherObstacleEnv(BaseEnv):
         qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
         qvel[-2:] = 0
         self.set_state(qpos, qvel)
-        self._reset_obstacles()
         return self._get_obs()
-
-    def _reset_obstacles(self):
-        for name in self.obstacle_names:
-            while True:
-                pos = np.random.uniform(-0.3, 0.3, size=2)
-                # not too close and far from the root, and not overlapped with a target
-                if np.linalg.norm(pos) < 0.25 and np.linalg.norm(pos) > 0.05 \
-                        and np.linalg.norm(pos-self.goal) > 0.05:
-                    break
-            self._set_pos(name, np.concatenate([pos, np.array([0.01])]))
-            self._set_size(name, np.concatenate([np.random.uniform(low=0.015, high=0.035, size=2), np.array([0.05])]))
 
     def _get_obstacle_states(self):
         obstacle_states = []
         for name in self.obstacle_names:
             obstacle_states.extend(self._get_pos(name)[:2])
         return np.array(obstacle_states)
-
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[:2]

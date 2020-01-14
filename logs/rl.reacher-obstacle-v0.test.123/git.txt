@@ -1,0 +1,142 @@
+c6b71a8b69d1a739b6c07b20fd20e25c906e5a90
+diff --git a/env/__init__.py b/env/__init__.py
+index 3c4eca8..1bfbfc5 100644
+--- a/env/__init__.py
++++ b/env/__init__.py
+@@ -1,6 +1,7 @@
+ """ Define all environments. """
+ 
+ from gym.envs.registration import register
++from env.base import make_env
+ 
+ 
+ # register all environments to use
+diff --git a/env/base.py b/env/base.py
+index f1be261..d076fab 100644
+--- a/env/base.py
++++ b/env/base.py
+@@ -18,6 +18,42 @@ import env.transform_utils as T
+ from util.logger import logger
+ np.set_printoptions(suppress=True)
+ 
++def get_env(name):
++    """
++    Gets the environment class given @name.
++    """
++    if name not in REGISTERED_ENVS:
++        raise Exception("Unknown environment name: {}\nAvailable environments: {}".format(
++            name, ", ".join(REGISTERED_ENVS)))
++    return REGISTERED_ENVS[name]
++
++
++def make_env(name, config=None):
++    """
++    Creates a new environment instance with @name and @config.
++    """
++    env = get_env(name)
++
++    # get default config if not provided
++    if config is None:
++        import argparse
++        import config.furniture as furniture_config
++        from util import str2bool
++
++        parser = argparse.ArgumentParser()
++        furniture_config.add_argument(parser)
++        parser.add_argument('--seed', type=int, default=123)
++        parser.add_argument('--debug', type=str2bool, default=False)
++
++        config, unparsed = parser.parse_known_args()
++
++    return env(config)
++
++
++def get_gym_env(env_id, env_kwargs):
++    env = gym.make(env_id, **env_kwargs)
++    return env
++
+ 
+ class BaseEnv(gym.Env):
+     """ Base class for MuJoCo environments. """
+c6b71a8b69d1a739b6c07b20fd20e25c906e5a90
+diff --git a/env/__init__.py b/env/__init__.py
+index 3c4eca8..1bfbfc5 100644
+--- a/env/__init__.py
++++ b/env/__init__.py
+@@ -1,6 +1,7 @@
+ """ Define all environments. """
+ 
+ from gym.envs.registration import register
++from env.base import make_env
+ 
+ 
+ # register all environments to use
+diff --git a/env/base.py b/env/base.py
+index f1be261..34abff0 100644
+--- a/env/base.py
++++ b/env/base.py
+@@ -18,6 +18,47 @@ import env.transform_utils as T
+ from util.logger import logger
+ np.set_printoptions(suppress=True)
+ 
++REGISTERED_ENVS = {}
++
++def register_env(target_class):
++    REGISTERED_ENVS[target_class.__name__] = target_class
++
++def get_env(name):
++    """
++    Gets the environment class given @name.
++    """
++    if name not in REGISTERED_ENVS:
++        raise Exception("Unknown environment name: {}\nAvailable environments: {}".format(
++            name, ", ".join(REGISTERED_ENVS)))
++    return REGISTERED_ENVS[name]
++
++
++def make_env(name, config=None):
++    """
++    Creates a new environment instance with @name and @config.
++    """
++    env = get_env(name)
++
++    # get default config if not provided
++    if config is None:
++        import argparse
++        import config.furniture as furniture_config
++        from util import str2bool
++
++        parser = argparse.ArgumentParser()
++        furniture_config.add_argument(parser)
++        parser.add_argument('--seed', type=int, default=123)
++        parser.add_argument('--debug', type=str2bool, default=False)
++
++        config, unparsed = parser.parse_known_args()
++
++    return env(config)
++
++
++def get_gym_env(env_id, env_kwargs):
++    env = gym.make(env_id, **env_kwargs)
++    return env
++
+ 
+ class BaseEnv(gym.Env):
+     """ Base class for MuJoCo environments. """
+8a21bdaeb3999b3089850f9c0205e232a7d57602
+8a21bdaeb3999b3089850f9c0205e232a7d57602
+8a21bdaeb3999b3089850f9c0205e232a7d57602
+8a21bdaeb3999b3089850f9c0205e232a7d57602
+diff --git a/rl/trainer.py b/rl/trainer.py
+index c5f990b..f1733b6 100644
+--- a/rl/trainer.py
++++ b/rl/trainer.py
+@@ -71,7 +71,7 @@ class Trainer(object):
+                 project="hrl-planner",
+                 config={k: v for k, v in config.__dict__.items() if k not in exclude},
+                 dir=config.log_dir,
+-                entity="clvr",
++                entity="junyamada107",
+                 notes=config.notes
+             )
+ 

@@ -71,7 +71,7 @@ class Trainer(object):
                 project="hrl-planner",
                 config={k: v for k, v in config.__dict__.items() if k not in exclude},
                 dir=config.log_dir,
-                entity="clvr",
+                entity="junyamada107",
                 notes=config.notes
             )
 
