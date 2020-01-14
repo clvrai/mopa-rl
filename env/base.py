@@ -30,7 +30,7 @@ class BaseEnv(gym.Env):
             "ctrl_reward": 1e-3,
             "init_randomness": 1e-5,
             "max_episode_steps": 500,
-            "unstable_penalty": 100,
+            "unstable_penalty": 0,
             "reward_type": 'dense',
             "distance_threshold": 0.01
         }
