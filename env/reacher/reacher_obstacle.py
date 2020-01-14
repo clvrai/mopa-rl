@@ -6,9 +6,11 @@ import re
 class ReacherObstacleEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
-    def __init__(self):
+    def __init__(self, reward_type='dense', goal_threshold=0.01):
         super().__init__("reacher_obstacle.xml")
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        self._env_config['reward_type'] = reward_type
+        self._env_config['goal_threshold'] = goal_threshold
 
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
@@ -56,10 +58,15 @@ class ReacherObstacleEnv(BaseEnv):
         ])
 
     def _step(self, action):
-        reward_dist = -self._get_distance("fingertip", "target")
-        reward_ctrl = self._ctrl_reward(action)
-        reward = reward_dist + reward_ctrl
+        info = {}
+        if self._env_config['reward_type'] == 'dense':
+            reward_dist = -self._get_distance("fingertip", "target")
+            reward_ctrl = self._ctrl_reward(action)
+            reward = reward_dist + reward_ctrl
+            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+        else:
+            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
         self._do_simulation(action)
         obs = self._get_obs()
-        done = False
-        return obs, reward, done, dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+        done = self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']
+        return obs, reward, done, info
