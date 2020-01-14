@@ -1,12 +1,16 @@
-from env.base import BaseEnv
-import numpy as np
 import re
+from collections import OrderedDict
+
+import numpy as np
+from gym import spaces
+
+from env.base import BaseEnv
 
 
 class ReacherObstacleEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
-    def __init__(self, reward_type='dense', goal_threshold=0.01):
+    def __init__(self, reward_type='dense', goal_threshold=0.01, **kwarg):
         super().__init__("reacher_obstacle.xml")
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
         self._env_config['reward_type'] = reward_type
@@ -48,13 +52,21 @@ class ReacherObstacleEnv(BaseEnv):
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[:2]
-        return np.concatenate([
-            np.cos(theta),
-            np.sin(theta),
-            self.sim.data.qpos.flat[2:],
-            self.sim.data.qvel.flat[:2],
-            self._get_obstacle_states(),
-            self._get_pos("fingertip") - self._get_pos("target")
+        return OrderedDict([
+            ('default', np.concatenate([
+                np.cos(theta),
+                np.sin(theta),
+                self.sim.data.qpos.flat[2:],
+                self.sim.data.qvel.flat[:2],
+                self._get_obstacle_states(),
+                self._get_pos("fingertip") - self._get_pos("target")
+            ]))
+        ])
+
+    @property
+    def observation_space(self):
+        return spaces.Dict([
+            ('default', spaces.Box(shape=(32,), low=-1, high=1, dtype=np.float32))
         ])
 
     def _step(self, action):

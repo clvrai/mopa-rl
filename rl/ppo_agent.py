@@ -12,7 +12,6 @@ from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, \
     obs2tensor, to_tensor
-from env.action_spec import ActionSpec
 
 
 class PPOAgent(BaseAgent):
@@ -150,11 +149,6 @@ class PPOAgent(BaseAgent):
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
-
-        custom_loss = self._actor.custom_loss()
-        if custom_loss is not None:
-            actor_loss += custom_loss * self._config.custom_loss_weight
-            info['custom_loss'] = custom_loss.cpu().item()
 
         # the q loss
         value_pred = self._critic(o)

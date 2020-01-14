@@ -11,14 +11,13 @@ from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, \
     obs2tensor, to_tensor
-from env.action_spec import ActionSpec
 
 
 class MetaPPOAgent(BaseAgent):
     def __init__(self, config, ob_space):
         super().__init__(config, ob_space)
 
-        if config.meta is None:
+        if not config.hrl:
             logger.warn('Creating a dummy meta PPO agent')
             return
 
@@ -40,15 +39,10 @@ class MetaPPOAgent(BaseAgent):
         assert len(subdiv_skills) == len(clusters), \
             'subdiv_skills and clusters have different # subdivisions'
 
-        if config.meta == 'hard':
+        if config.hrl:
             ac_space = ActionSpec(size=0)
             for cluster, skills in zip(clusters, subdiv_skills):
                 ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
-            self.ac_space = ac_space
-        elif config.meta == 'soft':
-            ac_space = ActionSpec(size=0)
-            for cluster, skills in zip(clusters, subdiv_skills):
-                ac_space.add(','.join(cluster), 'continuous', len(skills), 0, 1)
             self.ac_space = ac_space
 
         if config.diayn:
@@ -111,7 +105,7 @@ class MetaPPOAgent(BaseAgent):
         rollouts['ret'] = ret.tolist()
 
     def state_dict(self):
-        if self._config.meta is None:
+        if not self._config.hrl:
             return {}
 
         return {
@@ -123,7 +117,7 @@ class MetaPPOAgent(BaseAgent):
         }
 
     def load_state_dict(self, ckpt):
-        if self._config.meta is None:
+        if not self._config.hrl:
             return
 
         self._actor.load_state_dict(ckpt['actor_state_dict'])
@@ -238,7 +232,7 @@ class MetaPPOAgent(BaseAgent):
         return mpi_average(info)
 
     def act(self, ob, is_train=True):
-        if self._config.meta:
+        if self._config.hrl:
             ob = self.normalize(ob)
             return self._actor.act(ob, is_train, return_log_prob=True)
         else:

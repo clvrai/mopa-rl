@@ -94,7 +94,7 @@ class BaseEnv(gym.Env):
 
     @property
     def observation_space(self):
-        return self.ob_shape
+        raise NotImplementedError
 
     @property
     def action_size(self):

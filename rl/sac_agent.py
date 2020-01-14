@@ -14,7 +14,7 @@ from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
-from env.action_spec import ActionSpec
+from util.gym import action_size
 
 
 class SACAgent(BaseAgent):
@@ -25,7 +25,7 @@ class SACAgent(BaseAgent):
         self._ob_space = ob_space
         self._ac_space = ac_space
 
-        self._target_entropy = -ac_space.size
+        self._target_entropy = -action_size(ac_space)
         self._log_alpha = torch.zeros(1, requires_grad=True, device=config.device)
         self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
 
@@ -161,7 +161,7 @@ class SACAgent(BaseAgent):
         o = _to_tensor(o)
         o_next = _to_tensor(o_next)
         ac = _to_tensor(transitions['ac'])
-        if self._config.meta:
+        if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
         else:
             meta_ac = None
@@ -180,22 +180,10 @@ class SACAgent(BaseAgent):
         entropy_loss = (alpha * log_pi).mean()
         actor_loss = -torch.min(self._critic1(o, actions_real),
                                 self._critic2(o, actions_real)).mean()
-        custom_loss = [[_actor.custom_loss() for _actor in _agent if _actor.custom_loss() is not None] for _agent in self._actors]
-        if len(custom_loss) > 0 and len(custom_loss[0]) > 0:
-            custom_loss = torch.sum(
-                torch.stack([torch.stack(x, -1) for x in custom_loss], -1)
-            )
-        else:
-            custom_loss = None
         info['entropy_alpha'] = alpha.cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
-
-        # add custom loss to actor loss
-        if custom_loss is not None:
-            info['custom_loss'] = custom_loss.cpu().item()
-            actor_loss += custom_loss * self._config.custom_loss_weight
 
         # calculate the target Q value function
         with torch.no_grad():
@@ -207,8 +195,8 @@ class SACAgent(BaseAgent):
                 (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
-            clip_return = 1 / (1 - self._config.discount_factor)
-            target_q_value = torch.clamp(target_q_value, -clip_return, clip_return)
+            #clip_return = 1 / (1 - self._config.discount_factor)
+            #target_q_value = torch.clamp(target_q_value, -clip_return, clip_return)
 
         # the q loss
         real_q_value1 = self._critic1(o, ac)

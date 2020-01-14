@@ -1,13 +1,16 @@
 from collections import OrderedDict
 
 import numpy as np
+from gym import spaces
 
 from util.mpi import mpi_average
 
 
 class SubNormalizer:
     def __init__(self, size, eps=1e-2, default_clip_range=np.inf, clip_obs=np.inf):
-        if isinstance(size, list):
+        if isinstance(size, spaces.Box):
+            self.size = list(size.shape)
+        elif isinstance(size, list):
             self.size = size
         else:
             self.size = [size]
@@ -88,7 +91,9 @@ class SubNormalizer:
 class Normalizer:
     def __init__(self, shape, eps=1e-2, default_clip_range=np.inf, clip_obs=np.inf):
         self._shape = shape
-        if not isinstance(shape, dict):
+        if isinstance(shape, spaces.Dict):
+            self._shape = shape.spaces
+        elif not isinstance(shape, dict):
             self._shape = {'': shape}
         print('New ob_norm with shape', self._shape)
 

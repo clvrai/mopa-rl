@@ -71,10 +71,6 @@ class RolloutRunner(object):
         ep_len = 0
         ep_rew = 0
         ob = self._env.reset()
-        if config.diayn and config.meta is None:
-            sampled_z = pi._actors[0][0]._sample_z()
-        else:
-            sampled_z = None
         self._record_frames = []
         if record: self._store_frame()
 
@@ -87,22 +83,8 @@ class RolloutRunner(object):
             curr_meta_ac, meta_ac_before_activation, meta_log_prob = \
                 meta_pi.act(ob, is_train=is_train)
 
-            if meta_ac is None or (not config.fix_embedding):
+            if meta_ac is None:
                 meta_ac = curr_meta_ac
-            else:
-                # logic for config.fix_embedding
-                # check if curr_meta_ac has different skills selections from meta_ac
-                # if so, then update meta_ac, else do not update
-                assert config.diayn == True
-                should_update_embedding = False
-                for key in curr_meta_ac.keys():
-                    if key.endswith('_diayn'):
-                        continue
-                    if curr_meta_ac[key] != meta_ac[key]:
-                        should_update_embedding = True
-                        break
-                if should_update_embedding:
-                    meta_ac = curr_meta_ac
 
             meta_rollout.add({
                 'meta_ob': ob, 'meta_ac':  meta_ac,
@@ -114,29 +96,15 @@ class RolloutRunner(object):
             meta_rew = 0
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
-                if config.meta:
+                if config.hrl:
                     ac, ac_before_activation = pi.act(ll_ob, meta_ac, is_train=is_train)
                 else:
-                    if sampled_z is not None:
-                        ll_ob.update(sampled_z)
                     ac, ac_before_activation = pi.act(ll_ob, is_train=is_train)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 saved_qpos.append(env.sim.get_state().qpos.copy())
 
                 ob, reward, done, info = env.step(ac)
-
-                # get discriminator output
-                if sampled_z is not None:
-                    diayn_rew = 0
-                    for _agent in pi._actors:
-                        for _actor in _agent:
-                            actor_custom_loss = _actor.custom_loss()
-                            if actor_custom_loss is not None:
-                                diayn_rew += -actor_custom_loss.detach().cpu().item()
-                    diayn_rew *= self._env._env_config['diayn_reward']
-                    reward += diayn_rew
-                    info['diayn_rew'] = diayn_rew
 
                 rollout.add({'done': done, 'rew': reward})
                 acs.append(ac)
@@ -149,9 +117,7 @@ class RolloutRunner(object):
                     reward_info[key].append(value)
                 if record:
                     frame_info = info.copy()
-                    if sampled_z is not None:
-                        frame_info['diayn_z'] = np.round(list(sampled_z.values())[0], 1).tolist()
-                    if config.meta:
+                    if config.hrl:
                         frame_info['meta_ac'] = []
                         for i, k in enumerate(meta_ac.keys()):
                             if not k.endswith('diayn'):
@@ -165,8 +131,6 @@ class RolloutRunner(object):
 
         # last frame
         ll_ob = ob.copy()
-        if sampled_z is not None:
-            ll_ob.update(sampled_z)
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())

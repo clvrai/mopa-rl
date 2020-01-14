@@ -8,7 +8,7 @@ import torch
 from six.moves import shlex_quote
 from mpi4py import MPI
 
-from rl.config import argparser
+from config import argparser
 from rl.trainer import Trainer
 from util.logger import logger
 
@@ -78,16 +78,15 @@ def make_log_files(config):
     logger.info('Create video directory: %s', config.record_dir)
     os.makedirs(config.record_dir, exist_ok=True)
 
-
-    if config.subdiv_skill_dir is None:
-        config.subdiv_skill_dir = config.log_root_dir
+    if config.primitive_dir is None:
+        config.primitive_dir = config.log_root_dir
 
     if config.is_train:
         # log git diff
         cmds = [
             "echo `git rev-parse HEAD` >> {}/git.txt".format(config.log_dir),
             "git diff >> {}/git.txt".format(config.log_dir),
-            "echo 'python -m rl {}' >> {}/cmd.sh".format(
+            "echo 'python -m rl.main {}' >> {}/cmd.sh".format(
                 ' '.join([shlex_quote(arg) for arg in sys.argv[1:]]),
                 config.log_dir),
         ]
@@ -101,7 +100,17 @@ def make_log_files(config):
 
 
 if __name__ == '__main__':
-    args, unparsed = argparser()
+    parser = argparser()
+    args, unparsed = parser.parse_known_args()
+
+    if 'reacher' in args.env:
+        from config.reacher import add_arguments
+    else:
+        raise ValueError('args.env (%s) is not supported' % args.env)
+
+    add_arguments(parser)
+    args, unparsed = parser.parse_known_args()
+
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)
     else:
