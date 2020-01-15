@@ -336,7 +336,7 @@ class Trainer(object):
             with open("saved_rollouts/{}.p".format(self._config.run_name), "wb") as f:
                 pickle.dump(rollouts, f)
 
-    def _save_video(self, fname, frames, fps=15.):
+    def _save_video(self, fname, frames, fps=8.):
         path = os.path.join(self._config.record_dir, fname)
 
         def f(t):
