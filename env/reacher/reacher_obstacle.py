@@ -10,11 +10,9 @@ from env.base import BaseEnv
 class ReacherObstacleEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
-    def __init__(self, reward_type='dense', goal_threshold=0.03, **kwarg):
-        super().__init__("reacher_obstacle.xml")
+    def __init__(self, **kwargs):
+        super().__init__("reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
-        self._env_config['reward_type'] = reward_type
-        self._env_config['distance_threshold'] = goal_threshold
 
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
@@ -71,5 +69,4 @@ class ReacherObstacleEnv(BaseEnv):
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
             done =True
             self._success = True
-        done, info, penalty = self._after_step(reward, done, info)
         return obs, reward, done, info
