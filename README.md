@@ -13,3 +13,8 @@ python -m env.test_env
 # or 
 sh ./scripts/test_env
 ```
+
+### Baseline
+```
+sh ./scripts/baseline.sh
+```
