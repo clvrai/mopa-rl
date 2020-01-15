@@ -22,25 +22,25 @@ np.set_printoptions(suppress=True)
 class BaseEnv(gym.Env):
     """ Base class for MuJoCo environments. """
 
-    def __init__(self, xml_path):
+    def __init__(self, xml_path, **kwargs):
         """ Initializes class with configuration. """
         # default env config
         self._env_config = {
             "frame_skip": 5,
             "ctrl_reward": 1e-3,
             "init_randomness": 1e-5,
-            "max_episode_steps": 500,
+            "max_episode_steps": kwargs['max_episode_steps'],
             "unstable_penalty": 0,
-            "reward_type": 'dense',
-            "distance_threshold": 0.01
+            "reward_type": kwargs['reward_type'],
+            "distance_threshold": kwargs['distance_threshold']
         }
 
         logger.setLevel(logging.INFO)
 
         self.render_mode = 'no' # ['no', 'human', 'rgb_array']
-        self._screen_width = 500
-        self._screen_height = 500
-        self._seed = 123
+        self._screen_width = kwargs['screen_width']
+        self._screen_height = kwargs['screen_height']
+        self._seed = kwargs['seed']
         self._gym_disable_underscore_compat = True
 
         # Load model
@@ -153,7 +153,7 @@ class BaseEnv(gym.Env):
             self._episode_reward += reward
             self._episode_length += 1
 
-        if self._episode_length == self._env_config["max_episode_steps"] or self._fail:
+        if self._episode_length == self.max_episode_steps or self._fail:
             self._terminal = True
             if self._fail:
                 self._fail = False
