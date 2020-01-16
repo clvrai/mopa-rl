@@ -1,7 +1,19 @@
 import env
 import gym
+from config import argparser
 
-env = gym.make('reacher-obstacle-v0')
+parser = argparser()
+args, unparsed = parser.parse_known_args()
+
+if 'reacher' in args.env:
+    from config.reacher import add_arguments
+else:
+    raise ValueError('args.env (%s) is not supported' % args.env)
+
+add_arguments(parser)
+args, unparsed = parser.parse_known_args()
+
+env = gym.make('reacher-obstacle-v0', **args.__dict__)
 env.reset()
 
 for i in range(200):
