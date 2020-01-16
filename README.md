@@ -18,3 +18,12 @@ sh ./scripts/test_env
 ```
 sh ./scripts/baseline.sh
 ```
+
+## Trouble shooting
+
+#### pybind11-dev not found
+```
+wget http://archive.ubuntu.com/ubuntu/pool/universe/p/pybind11/pybind11-dev_2.2.4-2_all.deb
+sudo apt install ./pybind11-dev_2.2.4-2_all.deb
+```
+
