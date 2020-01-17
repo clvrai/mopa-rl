@@ -9,3 +9,9 @@ register(
     entry_point='env.reacher:ReacherObstacleEnv',
     kwargs={},
 )
+
+register(
+    id='reacher-test-v0',
+    entry_point='env.reacher:ReacherTestEnv',
+    kwargs={},
+)

@@ -55,4 +55,6 @@ wandb/
 
 ## flake8
 .flake8
-rai-python
+z.vid
+z.log.global
+test_logs
