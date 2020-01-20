@@ -58,3 +58,4 @@ wandb/
 z.vid
 z.log.global
 test_logs
+tmp

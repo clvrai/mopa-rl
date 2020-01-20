@@ -3,7 +3,7 @@ import os, sys
 import env
 import gym
 from config import argparser
-from rl.motion_planner import MotionPlanner
+from motion_planners.komo import KOMO
 from env.inverse_kinematics import qpos_from_site_pose
 from copy import deepcopy
 import numpy as np
