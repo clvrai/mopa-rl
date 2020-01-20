@@ -1,4 +1,4 @@
-body joint0 {type=cylinder size=[0.011 0.011 0.11 0.011] pose=<T 0 0 0 0 1 0 0 > color=[0.9 0.4 0.6]}
+body joint0 {type=1 size=[0.011 0.011 0.11 0.011] pose=<T 0 0 0.01 0 0.70711 0 0.70711> color=[0.9 0.4 0.6]}
 body link0 { type=cylinder size=[0 0 0.1 .005] contact color=[0 0.4 0.6] pose=<T 0 0 0 1 0 0 0>}
 
 body joint1 { type=1 size=[1. 1. 0.1 .005] color=[0 0.4 0.6]}
@@ -23,7 +23,7 @@ body link6 { type=cylinder size=[0. 0. 0.1 .005] contact color=[0 0.4 0.6]}
 body endeff {type=1 size=[0. 0. 0. .005] color=[0 1 0.6]}
 body goal { type=cylinder size=[0.07 0.07 0.002 .02] X=<T t(0.02195 -0.195 0.01) > color=[0.9 0.2 0.2]}
 
-joint (joint0 link0) { type=hingeX,  limits=[ -3 3 ] from=<T 0.05 0 0 0.70711 0 0.70711 0> to=<T 0 0 0 1 0 0 0>  }
+joint (joint0 link0) { type=hingeX,  limits=[ -3 3 ] from=<T 0 0 0 1 0 0 0> to=<T 0 0 0.05 1 0 0 0>  }
 joint (link0 joint1) { type=rigid, from=<T t(0 0 0.05) > }
 joint (joint1 link1) { type=hingeX,  limits=[ -3 3 ] from=<T 0 0 0 1 0 0 0> to=<T t(0 0 0.05) >  }
 joint (link1 joint2) { type=rigid, from=<T t(0 0 0.05) > }
