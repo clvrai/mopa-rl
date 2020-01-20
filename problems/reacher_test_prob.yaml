@@ -1,0 +1,8 @@
+mujoco_config: '~/projects/hrl-planner/assets/xml/reacher_test.xml'
+
+planner: sst
+set_selection_radius: 0.005
+set_pruning_radius: 0.002
+
+start: []
+goal: []

@@ -2,8 +2,7 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces
-
+from gym import spaces 
 from env.base import BaseEnv
 
 
@@ -19,9 +18,9 @@ class ReacherObstacleEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
         while True:
-            self.goal = np.random.uniform(low=-.3, high=.3, size=2)
+            self.goal = np.random.uniform(low=-.35, high=.35, size=2)
             # not too close and far from the root
-            if np.linalg.norm(self.goal) > 0.15:
+            if np.linalg.norm(self.goal) > 0.2:
                 break
         qpos[-2:] = self.goal
         qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
