@@ -1,0 +1,6 @@
+cimport c_planner
+from c_planner cimport Planner as CPlanner
+
+cdef class Planner:
+    cdef c_planner.Planner *thisptr
+    cpdef planning(self, start_vec, goal_vec, timelimit)

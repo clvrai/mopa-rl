@@ -5,42 +5,18 @@ import shuntil
 import subprocess
 from threading import Lock, Thread
 import yaml
+from motion_planners.planner import PyPlanner
 
 lock = Lock()
 n = 0
 
 class SamplingBasedPlanner:
-    def __init__(self, config):
+    def __init__(self, config, xml_path):
         self.config
+        self.planner = PyPlanner(xml_path)
 
-    def plan(self):
-        shuntil.mkdir('./tmp/')
-        for _ in range(self.config.threads):
-            threads.append(Thread(
-                target=self._plan,
-                args=()))
-            threads[-1].start()
+    def plan(self, start, goal, planner='sst', timelimit=1.):
+       e traj = np.array(self.planner.planning(start, goal, timelimit))
+        return traj
 
-        for thread in threads:
-            thread.joint()
 
-    def _plan(self):
-        global n
-        lock.acquire()
-        next_n = n
-        n += 1
-        lock.release()
-
-        while (next_n < self.config.batch_size):
-            outfile = os.path.join('./tmp', str(next_n)+'.out')
-            if (not os.path.exists(outfiel)):
-                args = args + ['--output', outfile]
-                subprocess.run(args)
-
-            lock.acquire()
-            next_n = n
-            n+= 1
-            lock.release()
-
-    def get_trajectory(self):
-        raise NotImplementedError
