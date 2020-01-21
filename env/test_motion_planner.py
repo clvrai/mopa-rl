@@ -52,8 +52,6 @@ ik_env.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
 env.render(mode='human')
 result = qpos_from_site_pose(env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=1000)
 env.render(mode='human')
-import pdb
-pdb.set_trace()
 
 #result = qpos_from_site_pose(env, 'fingertip', target_pos=env._get_pos('target'), target_quat=None, joint_names=env.model.joint_names[:-2], max_steps=300)
 #env.step(result.qpos-env.sim.data.qpos.ravel()[:-2])

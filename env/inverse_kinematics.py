@@ -120,7 +120,7 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
                 print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
                       steps, err_norm)
 
-    return IKResult(qpos = env.sim.data.qpos[dof_indices], err_norm=err_norm, steps=steps, success=success)
+    return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
 
 
 
