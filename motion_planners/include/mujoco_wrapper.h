@@ -47,12 +47,12 @@ class MuJoCo {
       m(0), d(0) {
         // mj_activate and mj_deactivate should only be called
         // once per program
-        mj_instance_count_lock.lock();
-        if (mj_instance_count == 0) {
-           mj_activate(mjkey_filename.c_str());
-        }
-        mj_instance_count += 1;
-        mj_instance_count_lock.unlock();
+        // mj_instance_count_lock.lock();
+        //if (mj_instance_count == 0) {
+        mj_activate(mjkey_filename.c_str());
+        //}
+        //mj_instance_count += 1;
+        //mj_instance_count_lock.unlock();
     }
 
     ~MuJoCo() {
