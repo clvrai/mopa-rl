@@ -1,6 +1,6 @@
 // Plan for a MuJoCo environment with OMPL
 
-#include "Planner.h"
+#include "Plan.h"
 #include <cstdlib>
 #include <fstream>
 #include <iostream>

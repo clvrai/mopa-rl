@@ -6,7 +6,7 @@ import os
 import sys
 
 extensions = [
-    Extension('planner', ['planner.pyx', 'Planner.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
+    Extension('planner', ['planner.pyx', 'Plan.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
                           ],
               include_dirs=["./include/", '/usr/local/include/eigen3', './3rd_party/include/',
                             '/home/jun/.mujoco/mujoco200/include/', '/usr/local/include/ompl'],

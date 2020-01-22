@@ -1,10 +1,10 @@
 # distutils: language = c++
-# distutils: sources = Planner.cpp
+# distutils: sources = Plan.cpp
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-cdef extern from "Planner.h" namespace "MotionPlanner":
+cdef extern from "Plan.h" namespace "MotionPlanner":
   cdef cppclass Planner:
         Planner(string, string, int, double, double) except +
         string xml_filename
