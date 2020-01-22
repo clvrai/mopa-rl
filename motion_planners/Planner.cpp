@@ -39,7 +39,7 @@ Planner::~Planner(){
 // void Planner::hello(){
 //     cout << "hello";
 // }
-std::vector<std::vector<double>> Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
+std::vector<std::vector<double> > Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
 // double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     // Parse args with cxxargs
     std::string algo = "";
@@ -135,7 +135,7 @@ std::vector<std::vector<double>> Planner::planning(std::vector<double> start_vec
         og::PathGeometric p = ss.getSolutionPath().asGeometric();
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
-        std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));
+        std::vector<std::vector<double> > solutions(n, std::vector<double>(start_vec.size(), -1));
         for (unsigned int i=0; i < n; ++i)
         {
             // const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(0)->values;

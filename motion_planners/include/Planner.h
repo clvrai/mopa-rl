@@ -14,7 +14,7 @@ namespace MotionPlanner
             std::string xml_filename;
             Planner(std::string xml_filename);
             ~Planner();
-            std::vector<std::vector<double>> planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit);
+            std::vector<std::vector<double> > planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit);
 
     };
 }
