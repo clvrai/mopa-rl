@@ -10,14 +10,14 @@
             "-std=c++11"
         ],
         "extra_objects": [
-            "/usr/local/lib/libompl.so",
-            "/home/jun/.mujoco/mujoco200/bin/libmujoco200.so"
+            "/usr/local/lib/libompl.dylib",
+            "/Users/yamadajun/.mujoco/mujoco200/bin/libmujoco200.dylib"
         ],
         "include_dirs": [
             "./include/",
             "/usr/local/include/eigen3",
             "./3rd_party/include/",
-            "/home/jun/.mujoco/mujoco200/include/",
+            "/Users/yamadajun/.mujoco/mujoco200/include/",
             "/usr/local/include/ompl"
         ],
         "language": "c++",
@@ -863,12 +863,12 @@ static const char *__pyx_f[] = {
 /*--- Type declarations ---*/
 struct __pyx_obj_7planner_PyPlanner;
 
-/* "planner.pyx":15
+/* "planner.pyx":20
  *         vector[vector[double]] kinematic_planning(vector[double], vector[double], double, double)
  * 
  * cdef class PyPlanner:             # <<<<<<<<<<<<<<
  *     cdef Planner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius):
+ *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt):
  */
 struct __pyx_obj_7planner_PyPlanner {
   PyObject_HEAD
@@ -1232,6 +1232,7 @@ int __pyx_module_is_main_planner = 0;
 /* Implementation of 'planner' */
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_range;
+static const char __pyx_k_opt[] = "opt";
 static const char __pyx_k_algo[] = "algo";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
@@ -1270,6 +1271,7 @@ static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_num_actions;
+static PyObject *__pyx_n_s_opt;
 static PyObject *__pyx_n_s_planning;
 static PyObject *__pyx_n_s_planning_control;
 static PyObject *__pyx_n_s_pyx_vtable;
@@ -1286,7 +1288,7 @@ static PyObject *__pyx_n_s_start_vec;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_timelimit;
 static PyObject *__pyx_n_s_xml_filename;
-static int __pyx_pf_7planner_9PyPlanner___cinit__(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius); /* proto */
+static int __pyx_pf_7planner_9PyPlanner___cinit__(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt); /* proto */
 static void __pyx_pf_7planner_9PyPlanner_2__dealloc__(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7planner_9PyPlanner_4planning(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit); /* proto */
 static PyObject *__pyx_pf_7planner_9PyPlanner_6planning_control(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit); /* proto */
@@ -1298,11 +1300,11 @@ static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 /* Late includes */
 
-/* "planner.pyx":17
+/* "planner.pyx":22
  * cdef class PyPlanner:
  *     cdef Planner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius):             # <<<<<<<<<<<<<<
- *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius)
+ *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt):             # <<<<<<<<<<<<<<
+ *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt)
  * 
  */
 
@@ -1314,16 +1316,19 @@ static int __pyx_pw_7planner_9PyPlanner_1__cinit__(PyObject *__pyx_v_self, PyObj
   int __pyx_v_num_actions;
   double __pyx_v_sst_selection_radius;
   double __pyx_v_sst_pruning_radius;
+  std::string __pyx_v_opt;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_xml_filename,&__pyx_n_s_algo,&__pyx_n_s_num_actions,&__pyx_n_s_sst_selection_radius,&__pyx_n_s_sst_pruning_radius,0};
-    PyObject* values[5] = {0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_xml_filename,&__pyx_n_s_algo,&__pyx_n_s_num_actions,&__pyx_n_s_sst_selection_radius,&__pyx_n_s_sst_pruning_radius,&__pyx_n_s_opt,0};
+    PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
@@ -1346,31 +1351,37 @@ static int __pyx_pw_7planner_9PyPlanner_1__cinit__(PyObject *__pyx_v_self, PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_algo)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 5, 5, 1); __PYX_ERR(1, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 1); __PYX_ERR(1, 22, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_actions)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 5, 5, 2); __PYX_ERR(1, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 2); __PYX_ERR(1, 22, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sst_selection_radius)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 5, 5, 3); __PYX_ERR(1, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 3); __PYX_ERR(1, 22, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sst_pruning_radius)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 5, 5, 4); __PYX_ERR(1, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 4); __PYX_ERR(1, 22, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_opt)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, 5); __PYX_ERR(1, 22, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(1, 17, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(1, 22, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -1378,54 +1389,56 @@ static int __pyx_pw_7planner_9PyPlanner_1__cinit__(PyObject *__pyx_v_self, PyObj
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_xml_filename = __pyx_convert_string_from_py_std__in_string(values[0]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 17, __pyx_L3_error)
-    __pyx_v_algo = __pyx_convert_string_from_py_std__in_string(values[1]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 17, __pyx_L3_error)
-    __pyx_v_num_actions = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_num_actions == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 17, __pyx_L3_error)
-    __pyx_v_sst_selection_radius = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_sst_selection_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 17, __pyx_L3_error)
-    __pyx_v_sst_pruning_radius = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_sst_pruning_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 17, __pyx_L3_error)
+    __pyx_v_xml_filename = __pyx_convert_string_from_py_std__in_string(values[0]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 22, __pyx_L3_error)
+    __pyx_v_algo = __pyx_convert_string_from_py_std__in_string(values[1]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 22, __pyx_L3_error)
+    __pyx_v_num_actions = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_num_actions == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 22, __pyx_L3_error)
+    __pyx_v_sst_selection_radius = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_sst_selection_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 22, __pyx_L3_error)
+    __pyx_v_sst_pruning_radius = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_sst_pruning_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 22, __pyx_L3_error)
+    __pyx_v_opt = __pyx_convert_string_from_py_std__in_string(values[5]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 22, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 17, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 22, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("planner.PyPlanner.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7planner_9PyPlanner___cinit__(((struct __pyx_obj_7planner_PyPlanner *)__pyx_v_self), __pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius);
+  __pyx_r = __pyx_pf_7planner_9PyPlanner___cinit__(((struct __pyx_obj_7planner_PyPlanner *)__pyx_v_self), __pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius, __pyx_v_opt);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_7planner_9PyPlanner___cinit__(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius) {
+static int __pyx_pf_7planner_9PyPlanner___cinit__(struct __pyx_obj_7planner_PyPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   MotionPlanner::Planner *__pyx_t_1;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "planner.pyx":18
+  /* "planner.pyx":23
  *     cdef Planner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius):
- *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius)             # <<<<<<<<<<<<<<
+ *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt):
+ *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt)             # <<<<<<<<<<<<<<
  * 
  *     def __dealloc__(self):
  */
   try {
-    __pyx_t_1 = new MotionPlanner::Planner(__pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius);
+    __pyx_t_1 = new MotionPlanner::Planner(__pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius, __pyx_v_opt);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 18, __pyx_L1_error)
+    __PYX_ERR(1, 23, __pyx_L1_error)
   }
   __pyx_v_self->thisptr = __pyx_t_1;
 
-  /* "planner.pyx":17
+  /* "planner.pyx":22
  * cdef class PyPlanner:
  *     cdef Planner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius):             # <<<<<<<<<<<<<<
- *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius)
+ *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt):             # <<<<<<<<<<<<<<
+ *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt)
  * 
  */
 
@@ -1440,8 +1453,8 @@ static int __pyx_pf_7planner_9PyPlanner___cinit__(struct __pyx_obj_7planner_PyPl
   return __pyx_r;
 }
 
-/* "planner.pyx":20
- *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius)
+/* "planner.pyx":25
+ *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         del self.thisptr
@@ -1463,7 +1476,7 @@ static void __pyx_pf_7planner_9PyPlanner_2__dealloc__(struct __pyx_obj_7planner_
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "planner.pyx":21
+  /* "planner.pyx":26
  * 
  *     def __dealloc__(self):
  *         del self.thisptr             # <<<<<<<<<<<<<<
@@ -1472,8 +1485,8 @@ static void __pyx_pf_7planner_9PyPlanner_2__dealloc__(struct __pyx_obj_7planner_
  */
   delete __pyx_v_self->thisptr;
 
-  /* "planner.pyx":20
- *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius)
+  /* "planner.pyx":25
+ *         self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         del self.thisptr
@@ -1484,7 +1497,7 @@ static void __pyx_pf_7planner_9PyPlanner_2__dealloc__(struct __pyx_obj_7planner_
   __Pyx_RefNannyFinishContext();
 }
 
-/* "planner.pyx":23
+/* "planner.pyx":28
  *         del self.thisptr
  * 
  *     cpdef planning(self, start_vec, goal_vec, timelimit):             # <<<<<<<<<<<<<<
@@ -1515,7 +1528,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning(struct __pyx_obj_7planner_
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_planning); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 23, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_planning); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 28, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_7planner_9PyPlanner_5planning)) {
         __Pyx_XDECREF(__pyx_r);
@@ -1535,7 +1548,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning(struct __pyx_obj_7planner_
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 23, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 28, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
@@ -1543,13 +1556,13 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning(struct __pyx_obj_7planner_
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 23, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 28, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 23, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 28, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           if (__pyx_t_4) {
             __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -1563,7 +1576,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning(struct __pyx_obj_7planner_
           __Pyx_INCREF(__pyx_v_timelimit);
           __Pyx_GIVEREF(__pyx_v_timelimit);
           PyTuple_SET_ITEM(__pyx_t_6, 2+__pyx_t_5, __pyx_v_timelimit);
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 23, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 28, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
@@ -1586,7 +1599,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning(struct __pyx_obj_7planner_
     #endif
   }
 
-  /* "planner.pyx":24
+  /* "planner.pyx":29
  * 
  *     cpdef planning(self, start_vec, goal_vec, timelimit):
  *         return self.thisptr.planning(start_vec, goal_vec, timelimit)             # <<<<<<<<<<<<<<
@@ -1594,16 +1607,16 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning(struct __pyx_obj_7planner_
  *         return self.thisptr.planning_control(start_vec, goal_vec, timelimit)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_7 = __pyx_convert_vector_from_py_double(__pyx_v_start_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 24, __pyx_L1_error)
-  __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 24, __pyx_L1_error)
-  __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 24, __pyx_L1_error)
-  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->planning(__pyx_t_7, __pyx_t_8, __pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 24, __pyx_L1_error)
+  __pyx_t_7 = __pyx_convert_vector_from_py_double(__pyx_v_start_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 29, __pyx_L1_error)
+  __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 29, __pyx_L1_error)
+  __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 29, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->planning(__pyx_t_7, __pyx_t_8, __pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 29, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "planner.pyx":23
+  /* "planner.pyx":28
  *         del self.thisptr
  * 
  *     cpdef planning(self, start_vec, goal_vec, timelimit):             # <<<<<<<<<<<<<<
@@ -1660,17 +1673,17 @@ static PyObject *__pyx_pw_7planner_9PyPlanner_5planning(PyObject *__pyx_v_self, 
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_goal_vec)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("planning", 1, 3, 3, 1); __PYX_ERR(1, 23, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("planning", 1, 3, 3, 1); __PYX_ERR(1, 28, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_timelimit)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("planning", 1, 3, 3, 2); __PYX_ERR(1, 23, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("planning", 1, 3, 3, 2); __PYX_ERR(1, 28, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "planning") < 0)) __PYX_ERR(1, 23, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "planning") < 0)) __PYX_ERR(1, 28, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1685,7 +1698,7 @@ static PyObject *__pyx_pw_7planner_9PyPlanner_5planning(PyObject *__pyx_v_self, 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("planning", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 23, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("planning", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 28, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("planner.PyPlanner.planning", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1704,7 +1717,7 @@ static PyObject *__pyx_pf_7planner_9PyPlanner_4planning(struct __pyx_obj_7planne
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("planning", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7planner_9PyPlanner_planning(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 23, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7planner_9PyPlanner_planning(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 28, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1721,7 +1734,7 @@ static PyObject *__pyx_pf_7planner_9PyPlanner_4planning(struct __pyx_obj_7planne
   return __pyx_r;
 }
 
-/* "planner.pyx":25
+/* "planner.pyx":30
  *     cpdef planning(self, start_vec, goal_vec, timelimit):
  *         return self.thisptr.planning(start_vec, goal_vec, timelimit)
  *     cpdef planning_control(self, start_vec, goal_vec, timelimit):             # <<<<<<<<<<<<<<
@@ -1752,7 +1765,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning_control(struct __pyx_obj_7
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_planning_control); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 25, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_planning_control); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 30, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_7planner_9PyPlanner_7planning_control)) {
         __Pyx_XDECREF(__pyx_r);
@@ -1772,7 +1785,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning_control(struct __pyx_obj_7
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 25, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 30, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
@@ -1780,13 +1793,13 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning_control(struct __pyx_obj_7
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 25, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 30, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 25, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 30, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           if (__pyx_t_4) {
             __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -1800,7 +1813,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning_control(struct __pyx_obj_7
           __Pyx_INCREF(__pyx_v_timelimit);
           __Pyx_GIVEREF(__pyx_v_timelimit);
           PyTuple_SET_ITEM(__pyx_t_6, 2+__pyx_t_5, __pyx_v_timelimit);
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 25, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 30, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
@@ -1823,7 +1836,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning_control(struct __pyx_obj_7
     #endif
   }
 
-  /* "planner.pyx":26
+  /* "planner.pyx":31
  *         return self.thisptr.planning(start_vec, goal_vec, timelimit)
  *     cpdef planning_control(self, start_vec, goal_vec, timelimit):
  *         return self.thisptr.planning_control(start_vec, goal_vec, timelimit)             # <<<<<<<<<<<<<<
@@ -1831,16 +1844,16 @@ static PyObject *__pyx_f_7planner_9PyPlanner_planning_control(struct __pyx_obj_7
  *         return self.thisptr.kinematic_planning(start_vec, goal_vec, timelimit, _range)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_7 = __pyx_convert_vector_from_py_double(__pyx_v_start_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 26, __pyx_L1_error)
-  __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 26, __pyx_L1_error)
-  __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 26, __pyx_L1_error)
-  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->planning_control(__pyx_t_7, __pyx_t_8, __pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 26, __pyx_L1_error)
+  __pyx_t_7 = __pyx_convert_vector_from_py_double(__pyx_v_start_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 31, __pyx_L1_error)
+  __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 31, __pyx_L1_error)
+  __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 31, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->planning_control(__pyx_t_7, __pyx_t_8, __pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "planner.pyx":25
+  /* "planner.pyx":30
  *     cpdef planning(self, start_vec, goal_vec, timelimit):
  *         return self.thisptr.planning(start_vec, goal_vec, timelimit)
  *     cpdef planning_control(self, start_vec, goal_vec, timelimit):             # <<<<<<<<<<<<<<
@@ -1897,17 +1910,17 @@ static PyObject *__pyx_pw_7planner_9PyPlanner_7planning_control(PyObject *__pyx_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_goal_vec)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("planning_control", 1, 3, 3, 1); __PYX_ERR(1, 25, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("planning_control", 1, 3, 3, 1); __PYX_ERR(1, 30, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_timelimit)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("planning_control", 1, 3, 3, 2); __PYX_ERR(1, 25, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("planning_control", 1, 3, 3, 2); __PYX_ERR(1, 30, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "planning_control") < 0)) __PYX_ERR(1, 25, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "planning_control") < 0)) __PYX_ERR(1, 30, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1922,7 +1935,7 @@ static PyObject *__pyx_pw_7planner_9PyPlanner_7planning_control(PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("planning_control", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 25, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("planning_control", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 30, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("planner.PyPlanner.planning_control", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1941,7 +1954,7 @@ static PyObject *__pyx_pf_7planner_9PyPlanner_6planning_control(struct __pyx_obj
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("planning_control", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7planner_9PyPlanner_planning_control(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 25, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7planner_9PyPlanner_planning_control(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1958,7 +1971,7 @@ static PyObject *__pyx_pf_7planner_9PyPlanner_6planning_control(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "planner.pyx":27
+/* "planner.pyx":32
  *     cpdef planning_control(self, start_vec, goal_vec, timelimit):
  *         return self.thisptr.planning_control(start_vec, goal_vec, timelimit)
  *     cpdef kinematic_planning(self, start_vec, goal_vec, timelimit, _range):             # <<<<<<<<<<<<<<
@@ -1989,7 +2002,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_kinematic_planning(struct __pyx_obj
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_kinematic_planning); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 27, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_kinematic_planning); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 32, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_7planner_9PyPlanner_9kinematic_planning)) {
         __Pyx_XDECREF(__pyx_r);
@@ -2009,7 +2022,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_kinematic_planning(struct __pyx_obj
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v__range};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 4+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 27, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 4+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 32, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
@@ -2017,13 +2030,13 @@ static PyObject *__pyx_f_7planner_9PyPlanner_kinematic_planning(struct __pyx_obj
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v__range};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 4+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 27, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 4+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 32, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(4+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 27, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(4+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 32, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           if (__pyx_t_4) {
             __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -2040,7 +2053,7 @@ static PyObject *__pyx_f_7planner_9PyPlanner_kinematic_planning(struct __pyx_obj
           __Pyx_INCREF(__pyx_v__range);
           __Pyx_GIVEREF(__pyx_v__range);
           PyTuple_SET_ITEM(__pyx_t_6, 3+__pyx_t_5, __pyx_v__range);
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 27, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 32, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
@@ -2063,23 +2076,23 @@ static PyObject *__pyx_f_7planner_9PyPlanner_kinematic_planning(struct __pyx_obj
     #endif
   }
 
-  /* "planner.pyx":28
+  /* "planner.pyx":33
  *         return self.thisptr.planning_control(start_vec, goal_vec, timelimit)
  *     cpdef kinematic_planning(self, start_vec, goal_vec, timelimit, _range):
  *         return self.thisptr.kinematic_planning(start_vec, goal_vec, timelimit, _range)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_7 = __pyx_convert_vector_from_py_double(__pyx_v_start_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 28, __pyx_L1_error)
-  __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 28, __pyx_L1_error)
-  __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 28, __pyx_L1_error)
-  __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_v__range); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 28, __pyx_L1_error)
-  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->kinematic_planning(__pyx_t_7, __pyx_t_8, __pyx_t_9, __pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 28, __pyx_L1_error)
+  __pyx_t_7 = __pyx_convert_vector_from_py_double(__pyx_v_start_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 33, __pyx_L1_error)
+  __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 33, __pyx_L1_error)
+  __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 33, __pyx_L1_error)
+  __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_v__range); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 33, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->kinematic_planning(__pyx_t_7, __pyx_t_8, __pyx_t_9, __pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "planner.pyx":27
+  /* "planner.pyx":32
  *     cpdef planning_control(self, start_vec, goal_vec, timelimit):
  *         return self.thisptr.planning_control(start_vec, goal_vec, timelimit)
  *     cpdef kinematic_planning(self, start_vec, goal_vec, timelimit, _range):             # <<<<<<<<<<<<<<
@@ -2138,23 +2151,23 @@ static PyObject *__pyx_pw_7planner_9PyPlanner_9kinematic_planning(PyObject *__py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_goal_vec)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, 1); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, 1); __PYX_ERR(1, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_timelimit)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, 2); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, 2); __PYX_ERR(1, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_range)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, 3); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, 3); __PYX_ERR(1, 32, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "kinematic_planning") < 0)) __PYX_ERR(1, 27, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "kinematic_planning") < 0)) __PYX_ERR(1, 32, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2171,7 +2184,7 @@ static PyObject *__pyx_pw_7planner_9PyPlanner_9kinematic_planning(PyObject *__py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 27, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("kinematic_planning", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 32, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("planner.PyPlanner.kinematic_planning", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2190,7 +2203,7 @@ static PyObject *__pyx_pf_7planner_9PyPlanner_8kinematic_planning(struct __pyx_o
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("kinematic_planning", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7planner_9PyPlanner_kinematic_planning(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v__range, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 27, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7planner_9PyPlanner_kinematic_planning(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v__range, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2782,6 +2795,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_num_actions, __pyx_k_num_actions, sizeof(__pyx_k_num_actions), 0, 0, 1, 1},
+  {&__pyx_n_s_opt, __pyx_k_opt, sizeof(__pyx_k_opt), 0, 0, 1, 1},
   {&__pyx_n_s_planning, __pyx_k_planning, sizeof(__pyx_k_planning), 0, 0, 1, 1},
   {&__pyx_n_s_planning_control, __pyx_k_planning_control, sizeof(__pyx_k_planning_control), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
@@ -2884,16 +2898,16 @@ static int __Pyx_modinit_type_init_code(void) {
   __pyx_vtable_7planner_PyPlanner.planning = (PyObject *(*)(struct __pyx_obj_7planner_PyPlanner *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_7planner_9PyPlanner_planning;
   __pyx_vtable_7planner_PyPlanner.planning_control = (PyObject *(*)(struct __pyx_obj_7planner_PyPlanner *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_7planner_9PyPlanner_planning_control;
   __pyx_vtable_7planner_PyPlanner.kinematic_planning = (PyObject *(*)(struct __pyx_obj_7planner_PyPlanner *, PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_7planner_9PyPlanner_kinematic_planning;
-  if (PyType_Ready(&__pyx_type_7planner_PyPlanner) < 0) __PYX_ERR(1, 15, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_7planner_PyPlanner) < 0) __PYX_ERR(1, 20, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_7planner_PyPlanner.tp_print = 0;
   #endif
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_7planner_PyPlanner.tp_dictoffset && __pyx_type_7planner_PyPlanner.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_7planner_PyPlanner.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_7planner_PyPlanner.tp_dict, __pyx_vtabptr_7planner_PyPlanner) < 0) __PYX_ERR(1, 15, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_PyPlanner, (PyObject *)&__pyx_type_7planner_PyPlanner) < 0) __PYX_ERR(1, 15, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7planner_PyPlanner) < 0) __PYX_ERR(1, 15, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_7planner_PyPlanner.tp_dict, __pyx_vtabptr_7planner_PyPlanner) < 0) __PYX_ERR(1, 20, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_PyPlanner, (PyObject *)&__pyx_type_7planner_PyPlanner) < 0) __PYX_ERR(1, 20, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_7planner_PyPlanner) < 0) __PYX_ERR(1, 20, __pyx_L1_error)
   __pyx_ptype_7planner_PyPlanner = &__pyx_type_7planner_PyPlanner;
   __Pyx_RefNannyFinishContext();
   return 0;

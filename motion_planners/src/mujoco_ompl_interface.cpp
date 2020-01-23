@@ -659,5 +659,4 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state) const {
     mj_lock.unlock();
     return ncon==0;
 }
-
 } // MjOmpl namespace

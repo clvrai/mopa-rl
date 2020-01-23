@@ -100,7 +100,8 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
                 regularization_strength if err_norm > regularization_threshold else 0.0
             )
 
-            update_joints = nullspace_method(jac_joints, err, regularization_strength)
+            collision = env.sim.data.ncon
+            update_joints = nullspace_method(jac_joints, err, regularization_strength, collision)
             update_norm = np.linalg.norm(update_joints)
 
             progress_criterion = err_norm / update_norm
@@ -114,11 +115,12 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             update_nv[dof_indices] = update_joints
 
             env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
+            #env.step(update_nv[:-2])
             site_xpos = env._get_pos(site)
             site_xmat = env.data.get_body_xmat(site).ravel()
-            if steps % 10 == 0:
+            if steps % 1 == 0:
                 print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
-                      steps, err_norm)
+                      steps, err_norm, update_norm)
 
     return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
 
@@ -126,7 +128,7 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
 
 
-def nullspace_method(jac_joints, delta, regularization_strength=0.0):
+def nullspace_method(jac_joints, delta, regularization_strength=0.0, collision=0.0):
     hess_approx = jac_joints.T.dot(jac_joints)
     joint_delta = jac_joints.T.dot(delta)
     if regularization_strength > 0:

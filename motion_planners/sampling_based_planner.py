@@ -10,7 +10,7 @@ from motion_planners.planner import PyPlanner
 class SamplingBasedPlanner:
     def __init__(self, config, xml_path, num_actions):
         self.config = config
-        self.planner = PyPlanner(xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions, config.sst_selection_radius, config.sst_pruning_radius)
+        self.planner = PyPlanner(xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions, config.sst_selection_radius, config.sst_pruning_radius, config.planner_objective.encode('utf-8'))
 
     def plan(self, start, goal, planner='sst', timelimit=1.):
         traj = np.array(self.planner.planning(start, goal, timelimit))

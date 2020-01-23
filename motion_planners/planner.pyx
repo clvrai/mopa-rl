@@ -6,16 +6,21 @@ from libcpp.vector cimport vector
 
 cdef extern from "Plan.h" namespace "MotionPlanner":
   cdef cppclass Planner:
-        Planner(string, string, int, double, double) except +
+        Planner(string, string, int, double, double, string) except +
         string xml_filename
+        string opt
+        int num_actions
+        double sst_selection_radius
+        double sst_pruning_radius
+        string algo
         vector[vector[double]] planning(vector[double], vector[double], double)
         vector[vector[double]] planning_control(vector[double], vector[double], double)
         vector[vector[double]] kinematic_planning(vector[double], vector[double], double, double)
 
 cdef class PyPlanner:
     cdef Planner *thisptr
-    def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius):
-        self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius)
+    def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt):
+        self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt)
 
     def __dealloc__(self):
         del self.thisptr

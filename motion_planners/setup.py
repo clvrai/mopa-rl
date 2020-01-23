@@ -5,12 +5,13 @@ import glob
 import os
 import sys
 
+prefix_path = '/Users/yamadajun'
 extensions = [
     Extension('planner', ['planner.pyx', 'Plan.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
                           ],
               include_dirs=["./include/", '/usr/local/include/eigen3', './3rd_party/include/',
-                            '/home/jun/.mujoco/mujoco200/include/', '/usr/local/include/ompl'],
-              extra_objects=['/usr/local/lib/libompl.so', '/home/jun/.mujoco/mujoco200/bin/libmujoco200.so'],
+                            os.path.join(prefix_path, '.mujoco/mujoco200/include/'), '/usr/local/include/ompl'],
+              extra_objects=['/usr/local/lib/libompl.dylib', os.path.join(prefix_path, '.mujoco/mujoco200/bin/libmujoco200.dylib')],
               extra_compile_args=['-std=c++11'],
               language="c++")
 ]

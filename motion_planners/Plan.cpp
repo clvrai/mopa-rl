@@ -17,10 +17,18 @@
 #include <ompl/control/planners/pdst/PDST.h>
 #include <ompl/control/planners/sst/SST.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/geometric/planners/sst/SST.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
+
+#include <ompl/base/SpaceInformation.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+#include <ompl/base/objectives/StateCostIntegralObjective.h>
+#include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <yaml-cpp/yaml.h>
 
 #include <cxxopts.hpp>
@@ -31,9 +39,11 @@ namespace ob = ompl::base;
 namespace oc = ompl::control;
 namespace og = ompl::geometric;
 
+
 using namespace MotionPlanner;
 
-Planner::Planner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius)
+
+Planner::Planner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt)
 {
     // std::string xml_filename = XML_filename;
     xml_filename = XML_filename;
@@ -41,17 +51,13 @@ Planner::Planner(std::string XML_filename, std::string Algo, int NUM_actions, do
     sst_selection_radius = SST_selection_radius;
     sst_pruning_radius = SST_pruning_radius;
     num_actions = NUM_actions;
+    opt = Opt;
 
 }
 
 Planner::~Planner(){
 }
-//
-// void Planner::hello(){
-//     cout << "hello";
-// }
 std::vector<std::vector<double> > Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
-// double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     // Parse args with cxxargs
     std::string mjkey_filename = strcat(getenv("HOME"), "/.mujoco/mjkey.txt");
     auto mj(std::make_shared<MuJoCo>(mjkey_filename));
@@ -94,7 +100,7 @@ std::vector<std::vector<double> > Planner::planning(std::vector<double> start_ve
     auto kpiece_planner(std::make_shared<oc::KPIECE1>(si));
 
     // TODO: change the optimization objective?
-    // auto opt_obj(make_shared<ob::OptimizationObjective>(si));
+    // auto opt_obj(make_shared<ob::MaximizeMinClearanceObjective>(si));
     // ss.setOptimizationObjective(opt_obj);
 
     if (algo == "sst") {
@@ -127,7 +133,7 @@ std::vector<std::vector<double> > Planner::planning(std::vector<double> start_ve
     for(int i=0; i < goal_vec.size(); i++) {
         goal_ss[i] = goal_vec[i];
     }
-    double threshold = 0.1;
+    double threshold = 0.001;
     ss.setStartAndGoalStates(start_ss, goal_ss, threshold);
 
     // Call the planner
@@ -146,39 +152,16 @@ std::vector<std::vector<double> > Planner::planning(std::vector<double> start_ve
         {
             // const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(0)->values;
             const ob::CompoundState* cState = states[i]->as<ob::CompoundState>();
-
-
-            // for (unsigned int j=1; j<start_vec.size(); ++j){
-            //     if (i==0){
-            //         solutionControls[i][j] = 0.;
-            //     } else {
-            //         solutionControls[i-1][j] = controls[i-1] -> as<oc::RealVectorControlSpace::ControlType>() -> values[j];
-            //     }
-            // }
-            // for (unsigned int j=1; j<num_actions; ++j){
-            //     if (i==0){
-            //         solutionControls[i][j] = 0.;
-            //     } else {
-            //         solutionControls[i-1][j] = u[j];
-            //     }
-            // }
-
             solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
 
             for (unsigned int j=1; j < start_vec.size();  ++j){
                 solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
             }
-            // solutions[i][1] = cState -> as<ob::RealVectorStateSpace::StateType>(1)->values[0];
         }
-
-
-
         // Write solution to file
         return solutions;
     }
 
-    // return solutions;
-    //return 0;
     std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(1, -1));
     return failedSolutions;
 }
@@ -186,7 +169,6 @@ std::vector<std::vector<double> > Planner::planning(std::vector<double> start_ve
 
 
 std::vector<std::vector<double> > Planner::planning_control(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
-// double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     // Parse args with cxxargs
     std::string mjkey_filename = strcat(getenv("HOME"), "/.mujoco/mjkey.txt");
     auto mj(std::make_shared<MuJoCo>(mjkey_filename));
@@ -335,12 +317,25 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
     auto pdst_planner(std::make_shared<og::PDST>(si));
     auto est_planner(std::make_shared<og::EST>(si));
     auto kpiece_planner(std::make_shared<og::KPIECE1>(si));
+    auto rrt_connect_planner(std::make_shared<og::RRTConnect>(si));
+    auto prm_star_planner(std::make_shared<og::PRMstar>(si));
 
     // TODO: change the optimization objective?
-    // auto opt_obj(make_shared<ob::OptimizationObjective>(si));
-    // ss.setOptimizationObjective(opt_obj);
+
     si->setup();
     og::SimpleSetup ss(si);
+
+
+    if (opt == "maximize_min_clearance") {
+        auto opt_obj(std::make_shared<ob::MaximizeMinClearanceObjective>(si));
+        ss.setOptimizationObjective(opt_obj);
+    } else if (opt == "path_length") {
+        auto opt_obj(std::make_shared<ob::PathLengthOptimizationObjective>(si));
+        ss.setOptimizationObjective(opt_obj);
+    } else if (opt == "state_cost_integral") {
+        auto opt_obj(std::make_shared<ob::StateCostIntegralObjective>(si));
+        ss.setOptimizationObjective(opt_obj);
+    }
 
     if (algo == "sst") {
         sst_planner->setSelectionRadius(sst_selection_radius); // default 0.2
@@ -365,6 +360,11 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
     } else if (algo == "rrt"){
         rrt_planner->setRange(range);
         ss.setPlanner(rrt_planner);
+    } else if (algo == "rrt_connect"){
+        rrt_connect_planner->setRange(range);
+        ss.setPlanner(rrt_connect_planner);
+    } else if (algo == "prm_star"){
+        ss.setPlanner(prm_star_planner);
     }
 
 
@@ -383,8 +383,9 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
     ss.setStartAndGoalStates(start_ss, goal_ss, threshold);
 
     // Call the planner
-    ob::PlannerStatus solved = ss.solve(timelimit);
-
+    ob::PlannerStatus solved;
+    ss.clear();
+    solved = ss.solve(timelimit);
     if (solved) {
         std::cout << "Found Solution with status: " << solved.asString() << std::endl;
         ss.getSolutionPath().print(std::cout);
@@ -404,11 +405,7 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
             for (unsigned int j=1; j < start_vec.size();  ++j){
                 solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
             }
-            // solutions[i][1] = cState -> as<ob::RealVectorStateSpace::StateType>(1)->values[0];
         }
-
-
-
         // Write solution to file
         return solutions;
     }
