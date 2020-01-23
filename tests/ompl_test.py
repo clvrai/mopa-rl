@@ -1,3 +1,4 @@
+import os, sys
 import numpy as np
 
 from motion_planners.sampling_based_planner import SamplingBasedPlanner
@@ -7,6 +8,7 @@ from config import argparser
 from env.inverse_kinematics import qpos_from_site_pose
 from config.motion_planner import add_arguments as planner_add_arguments
 from math import pi
+from util.misc import save_video
 
 
 parser = argparser()
@@ -45,12 +47,13 @@ traj = planner.kinematic_plan(start, goal,  10., 0.1)
 
 
 goal = env.sim.data.qpos[-2:]
-print("Goal: ", goal)
-print(traj)
+frames = []
 for state in traj:
-    env.render(mode='human')
-    #env.step(state)
+    frame = env.render(mode='rgb_array')
     env.set_state(np.concatenate((state, goal)).ravel(), env.sim.data.qvel.ravel())
-env.render(mode='human')
-import pdb
-pdb.set_trace()
+    frames.append(frame*255.)
+frame = env.render(mode='rgb_array')
+frames.append(frame*255.)
+
+fpath = os.path.join('./tmp', '{}_{}.mp4'.format(args.planner_type, args.planner_objective))
+save_video(fpath, frames)
