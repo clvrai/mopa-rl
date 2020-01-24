@@ -19,7 +19,7 @@
     <worldbody>
         <!-- Arena -->
         <light cutoff="100" diffuse="0.05 0.05 0.05" dir="0 -0.5 -2.0" directional="true" exponent="1" pos="0 0.5 2.0" specular=".1 .1 .1" />
-        <geom name="ground" class="ground" pos="0 0 0" size="3 3 1"/>
+        <geom name="ground" class="ground" pos="0 0 0" size="4 4 1"/>
         <camera name="cam0" pos="-0.1 0.1 0.0" quat="0.707 0.707 0 0" />
         <!--
         <geom conaffinity="0" contype="0" name="ground" pos="0 0 0" rgba="0.9 0.9 0.9 1" size="1 1 10" type="plane"/>
@@ -49,6 +49,7 @@
                                     <geom class='link' name='link6'/>
                                     <body name="fingertip" pos="0.11 0 0">
                                             <geom contype="1" conaffinity="1" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> -->
+                                            <site name='fingertip' />
                                             <!--<geom fromto="0 -0.02 0 0 0.02 0" contype="1" conaffinity="1" name="fingertip0" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
                                             <geom fromto="0 -0.02 0 0.02 -0.02 0" contype="1" conaffinity="1" name="fingertip1" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
                                             <geom fromto="0 0.02 0 0.02 0.02 0" contype="1" conaffinity="1" name="fingertip2" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/> -->

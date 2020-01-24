@@ -42,7 +42,7 @@ qvel = env.sim.data.qvel
 
 goal = env.sim.data.qpos[-2:]
 
-mp = MotionPlanner('./env/assets/rai/reacher.g', False)
+mp = KOMO('./env/assets/rai/reacher.g', False)
 traj = mp.plan_motion(goal, qpos[:-2])
 
 ik_env = gym.make('reacher-test-v0', **args.__dict__)
@@ -52,6 +52,7 @@ ik_env.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
 env.render(mode='human')
 result = qpos_from_site_pose(env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=1000)
 env.render(mode='human')
+print(result)
 import pdb
 pdb.set_trace()
 

@@ -16,17 +16,25 @@ class ReacherObstacleEnv(BaseEnv):
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
         self._set_camera_rotation(0, [0, 0, 0])
-        qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
         while True:
-            self.goal = np.random.uniform(low=-.35, high=.35, size=2)
-            # not too close and far from the root
-            if np.linalg.norm(self.goal) > 0.2:
+            goal = np.random.uniform(low=-.4, high=.4, size=2)
+            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos[-2:] = goal
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel[-2:] = 0
+            self.set_state(qpos, qvel)
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+                self.goal = goal
                 break
-        qpos[-2:] = self.goal
-        qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
-        qvel[-2:] = 0
-        self.set_state(qpos, qvel)
         return self._get_obs()
+
+    def initalize_joints(self):
+        while True:
+            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos[-2:] = self.goal
+            self.set_state(qpos, self.sim.data.qvel.ravel())
+            if self.sim.data.ncon == 0:
+                break
 
     def _get_obstacle_states(self):
         obstacle_states = []

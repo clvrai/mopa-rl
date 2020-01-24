@@ -34,7 +34,7 @@ def get_default_config():
     parser = argparse.ArgumentParser("Default Configuration for Reacher Environment")
     add_argument(parser)
 
-    parser.add_argument("--seed", type=int, default=123)
+    parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--debug", type=str2bool, default=False)
 
     config = parser.parse_args([])

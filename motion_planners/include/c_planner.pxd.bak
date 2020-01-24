@@ -1,0 +1,8 @@
+from libcpp.string cimport string
+from libcpp.vector cimport vector
+
+cdef extern from "Planner.h" namespace "MotionPlanner":
+    cdef cppclass Planner:
+        Planner(string)
+        string xml_filename
+        int planning(vector[double], vector[double], double)

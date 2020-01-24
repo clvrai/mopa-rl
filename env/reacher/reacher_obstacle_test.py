@@ -2,16 +2,16 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces
-
+from gym import spaces 
 from env.base import BaseEnv
 
 
-class ReacherTestEnv(BaseEnv):
+class ReacherObstacleTestEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("reacher_test.xml", **kwargs)
+        super().__init__("reacher_obstacle_test.xml", **kwargs)
+        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
 
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
@@ -28,6 +28,11 @@ class ReacherTestEnv(BaseEnv):
                 break
         return self._get_obs()
 
+    def _get_obstacle_states(self):
+        obstacle_states = []
+        for name in self.obstacle_names:
+            obstacle_states.extend(self._get_pos(name)[:2])
+        return np.array(obstacle_states)
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[:2]
@@ -37,6 +42,7 @@ class ReacherTestEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qpos.flat[2:],
                 self.sim.data.qvel.flat[:2],
+                self._get_obstacle_states(),
                 self._get_pos("fingertip") - self._get_pos("target")
             ]))
         ])

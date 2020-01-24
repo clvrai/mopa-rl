@@ -15,3 +15,9 @@ register(
     entry_point='env.reacher:ReacherTestEnv',
     kwargs={},
 )
+
+register(
+    id='reacher-obstacle-test-v0',
+    entry_point='env.reacher:ReacherObstacleTestEnv',
+    kwargs={},
+)

@@ -59,3 +59,5 @@ z.vid
 z.log.global
 test_logs
 tmp
+
+motion_planners/*.so

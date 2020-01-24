@@ -60,6 +60,7 @@ class BaseEnv(gym.Env):
         self.model = self.sim.model
         self.data = self.sim.data
         self._viewer = None
+        self.xml_path = xml_path
 
         # State
         logger.info('initial qpos: {}'.format(self.sim.data.qpos.ravel()))
