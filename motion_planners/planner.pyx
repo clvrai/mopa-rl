@@ -1,12 +1,12 @@
 # distutils: language = c++
-# distutils: sources = Plan.cpp
+# distutils: sources = KinematicPlanner.cpp
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-cdef extern from "Plan.h" namespace "MotionPlanner":
-  cdef cppclass Planner:
-        Planner(string, string, int, double, double, string, double, double) except +
+cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
+  cdef cppclass KinematicPlanner:
+        KinematicPlanner(string, string, int, double, double, string, double, double) except +
         string xml_filename
         string opt
         int num_actions
@@ -16,21 +16,15 @@ cdef extern from "Plan.h" namespace "MotionPlanner":
         double _range
         double threshold
 
-        vector[vector[double]] planning(vector[double], vector[double], double)
-        vector[vector[double]] planning_control(vector[double], vector[double], double)
-        vector[vector[double]] kinematic_planning(vector[double], vector[double], double)
+        vector[vector[double]] plan(vector[double], vector[double], double, bool)
 
-cdef class PyPlanner:
-    cdef Planner *thisptr
+cdef class PyKinematicPlanner:
+    cdef KinematicPlanner *thisptr
     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range):
-        self.thisptr = new Planner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range)
+        self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range)
 
     def __dealloc__(self):
         del self.thisptr
 
-    cpdef planning(self, start_vec, goal_vec, timelimit):
-        return self.thisptr.planning(start_vec, goal_vec, timelimit)
-    cpdef planning_control(self, start_vec, goal_vec, timelimit):
-        return self.thisptr.planning_control(start_vec, goal_vec, timelimit)
-    cpdef kinematic_planning(self, start_vec, goal_vec, timelimit):
-        return self.thisptr.kinematic_planning(start_vec, goal_vec, timelimit)
+    cpdef plan(self, start_vec, goal_vec, timelimit, is_clear):
+        return self.thisptr.plan(start_vec, goal_vec, timelimit, is_clear)

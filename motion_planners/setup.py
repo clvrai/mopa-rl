@@ -7,7 +7,7 @@ import sys
 
 prefix_path = '/Users/yamadajun'
 extensions = [
-    Extension('planner', ['planner.pyx', 'Plan.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
+    Extension('planner', ['planner.pyx', 'KinematicPlanner.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
                           ],
               include_dirs=["./include/", '/usr/local/include/eigen3', './3rd_party/include/',
                             os.path.join(prefix_path, '.mujoco/mujoco200/include/'), '/usr/local/include/ompl'],

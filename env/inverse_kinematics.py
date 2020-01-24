@@ -237,7 +237,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
                           steps, err_norm, update_norm)
 
-        if env.sim.data.ncon == 0:
+        if env.sim.data.ncon == 0 or trials > 20:
             return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
         else:
             env.initalize_joints()
