@@ -12,6 +12,9 @@ def add_arguments(parser):
                         choices=["maximize_min_clearance", "path_length", "state_const_integral", "constraint"])
     parser.add_argument("--sst_selection_radius", type=float, default=0.01)
     parser.add_argument("--sst_pruning_radius", type=float, default=0.01)
+    parser.add_argument("--threshold", type=float, default=0.01)
+    parser.add_argument("--timelimit", type=float, default=20.)
+    parser.add_argument("--range", type=float, default=0.1)
 
 
 def get_default_config():

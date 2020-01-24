@@ -24,6 +24,8 @@
 #include <ompl/geometric/planners/sst/SST.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
 
+#include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
+
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/StateCostIntegralObjective.h>
@@ -43,7 +45,8 @@ namespace og = ompl::geometric;
 using namespace MotionPlanner;
 
 
-Planner::Planner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt)
+Planner::Planner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
+                 double Threshold, double _Range)
 {
     // std::string xml_filename = XML_filename;
     xml_filename = XML_filename;
@@ -52,6 +55,8 @@ Planner::Planner(std::string XML_filename, std::string Algo, int NUM_actions, do
     sst_pruning_radius = SST_pruning_radius;
     num_actions = NUM_actions;
     opt = Opt;
+    threshold = Threshold;
+    _range = _Range;
 
 }
 
@@ -133,7 +138,6 @@ std::vector<std::vector<double> > Planner::planning(std::vector<double> start_ve
     for(int i=0; i < goal_vec.size(); i++) {
         goal_ss[i] = goal_vec[i];
     }
-    double threshold = 0.001;
     ss.setStartAndGoalStates(start_ss, goal_ss, threshold);
 
     // Call the planner
@@ -244,7 +248,6 @@ std::vector<std::vector<double> > Planner::planning_control(std::vector<double> 
     for(int i=0; i < goal_vec.size(); i++) {
         goal_ss[i] = goal_vec[i];
     }
-    double threshold = 0.1;
     ss.setStartAndGoalStates(start_ss, goal_ss, threshold);
 
     // Call the planner
@@ -279,7 +282,7 @@ std::vector<std::vector<double> > Planner::planning_control(std::vector<double> 
 }
 
 
-std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double range){
+std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
 // double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     // Parse args with cxxargs
     std::string mjkey_filename = strcat(getenv("HOME"), "/.mujoco/mjkey.txt");
@@ -324,6 +327,10 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
 
     si->setup();
     og::SimpleSetup ss(si);
+    // ss.getSpaceInformation()->setValidStateSamplerAllocator(
+    //          [](const ob::SpaceInformation *si) -> ob::ValidStateSamplerPtr {
+    //              return std::make_shared<ob::ObstacleBasedValidStateSampler>(si);
+    //          });
 
 
     if (opt == "maximize_min_clearance") {
@@ -334,13 +341,15 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
         ss.setOptimizationObjective(opt_obj);
     } else if (opt == "state_cost_integral") {
         auto opt_obj(std::make_shared<ob::StateCostIntegralObjective>(si));
+        std::cout << "Cost: " << opt_obj->getCostThreshold().value() << std::endl;
         ss.setOptimizationObjective(opt_obj);
     }
+
 
     if (algo == "sst") {
         sst_planner->setSelectionRadius(sst_selection_radius); // default 0.2
         sst_planner->setPruningRadius(sst_pruning_radius); // default 0.1
-        sst_planner->setRange(range);
+        sst_planner->setRange(_range);
         ss.setPlanner(sst_planner);
 
         std::cout << "Using SST planner with selection radius ["
@@ -351,17 +360,17 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
     } else if (algo == "pdst") {
         ss.setPlanner(pdst_planner);
     } else if (algo == "est") {
-        est_planner->setRange(range);
+        est_planner->setRange(_range);
         ss.setPlanner(est_planner);
         est_planner->setup();
     } else if (algo == "kpiece") {
-        kpiece_planner->setRange(range);
+        kpiece_planner->setRange(_range);
         ss.setPlanner(kpiece_planner);
     } else if (algo == "rrt"){
-        rrt_planner->setRange(range);
+        rrt_planner->setRange(_range);
         ss.setPlanner(rrt_planner);
     } else if (algo == "rrt_connect"){
-        rrt_connect_planner->setRange(range);
+        rrt_connect_planner->setRange(_range);
         ss.setPlanner(rrt_connect_planner);
     } else if (algo == "prm_star"){
         ss.setPlanner(prm_star_planner);
@@ -379,7 +388,6 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
         goal_ss[i] = goal_vec[i];
     }
 
-    double threshold = 0.1;
     ss.setStartAndGoalStates(start_ss, goal_ss, threshold);
 
     // Call the planner
@@ -388,7 +396,11 @@ std::vector<std::vector<double> > Planner::kinematic_planning(std::vector<double
     solved = ss.solve(timelimit);
     if (solved) {
         std::cout << "Found Solution with status: " << solved.asString() << std::endl;
-        ss.getSolutionPath().print(std::cout);
+        if (algo == "prm_star"){
+            std::cout << prm_star_planner->milestoneCount() << std::endl;
+        }
+        std::cout << "Last Plan Computation Time" << ss.getLastPlanComputationTime() << std::endl;
+        // ss.getSolutionPath().print(std::cout);
         og::PathGeometric p = ss.getSolutionPath();
         p.interpolate();
         std::vector<ob::State*> &states =  p.getStates();
