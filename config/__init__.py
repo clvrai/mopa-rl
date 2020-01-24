@@ -29,6 +29,9 @@ def argparser():
                         help="path to primitive directory")
     parser.add_argument("--max_meta_len", type=int, default=25)
 
+    parser.add_argument("--low_level_controller", type=str, default="rl",
+                        help="low level controller choice", choices=["rl", "mp"])
+
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
     parser.add_argument("--rl_activation", type=str, default="relu",
