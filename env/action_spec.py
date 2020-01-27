@@ -30,6 +30,7 @@ class ActionSpec(object):
             self.dtype = OrderedDict([('default', "continuous")])
         shape = (size, )
 
+
         try:
             np.broadcast_to(minimum, shape=shape)
         except ValueError as numpy_exception:
@@ -61,6 +62,10 @@ class ActionSpec(object):
         Returns the maximum values of the action.
         """
         return self._maximum
+
+    @property
+    def spaces(self):
+        return self.shape
 
     def keys(self):
         """

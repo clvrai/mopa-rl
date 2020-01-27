@@ -11,25 +11,22 @@ from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, \
     obs2tensor, to_tensor
+from env.action_spec import ActionSpec
+from util.gym import action_size
+from gym import spaces
 
 
 class MetaPPOAgent(BaseAgent):
-    def __init__(self, config, ob_space):
-        super().__init__(config, ob_space)
+    def __init__(self, config, ob_space, env_ac_space=None):
+        super().__init__(config, ob_space, env_ac_space)
 
         if not config.hrl:
             logger.warn('Creating a dummy meta PPO agent')
             return
 
-        # parse body parts and skills
-        if config.subdiv:
-            # subdiv = ob1,ob2-ac1/ob3,ob4-ac2/...
-            clusters = config.subdiv.split('/')
-            clusters = [cluster.split('-')[1].split(',') for cluster in clusters]
-        else:
-            clusters = [ob_space.keys()]
+        clusters = [ob_space.spaces.keys()]
 
-        if config.subdiv_skills:
+        if config.primitive_skills:
             subdiv_skills = config.subdiv_skills.split('/')
             subdiv_skills = [skills.split(',') for skills in subdiv_skills]
         else:
@@ -41,15 +38,13 @@ class MetaPPOAgent(BaseAgent):
 
         if config.hrl:
             ac_space = ActionSpec(size=0)
-            for cluster, skills in zip(clusters, subdiv_skills):
-                ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
+            if config.hl_type == 'discrete':
+                for cluster, skills in zip(clusters, subdiv_skills):
+                    ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
+            elif config.hl_type == 'subgoal':
+                ac_space = env_ac_space
             self.ac_space = ac_space
 
-        if config.diayn:
-            ob_clusters = config.subdiv.split('/')
-            ob_clusters = [cluster.split('-')[0].split(',') for cluster in ob_clusters]
-            for cluster, skills in zip(ob_clusters, subdiv_skills):
-                self.ac_space.add(','.join(cluster) + '_diayn', 'continuous', config.z_dim, 0, 1)
 
         # build up networks
         self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
@@ -198,11 +193,6 @@ class MetaPPOAgent(BaseAgent):
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
-
-        custom_loss = self._actor.custom_loss()
-        if custom_loss is not None:
-            actor_loss += custom_loss * self._config.custom_loss_weight
-            info['custom_loss'] = custom_loss.cpu().item()
 
         # the q loss
         value_pred = self._critic(o)

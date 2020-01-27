@@ -14,10 +14,16 @@ class SamplingBasedPlanner:
                                  config.sst_selection_radius, config.sst_pruning_radius,
                                  config.planner_objective.encode('utf-8'),
                                  config.threshold,
-                                 config.range)
+                                 config.range,
+                                 config.construct_time)
 
     def plan(self, start, goal, timelimit=1., is_clear=False):
         states = np.array(self.planner.plan(start, goal, timelimit, is_clear))
-        return states
+        actions = []
+
+        # TODO more efficient way
+        for i, state in enumerate(states[1:]):
+            actions.append((state-states[i])[:-2])
+        return states, actions
 
 

@@ -9,6 +9,7 @@ from six.moves import shlex_quote
 from mpi4py import MPI
 
 from config import argparser
+from config.motion_planner import add_arguments as mp_add_arguments
 from rl.trainer import Trainer
 from util.logger import logger
 
@@ -108,7 +109,10 @@ if __name__ == '__main__':
     else:
         raise ValueError('args.env (%s) is not supported' % args.env)
 
+
+
     add_arguments(parser)
+    mp_add_arguments(parser)
     args, unparsed = parser.parse_known_args()
 
     if len(unparsed):

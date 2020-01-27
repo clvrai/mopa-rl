@@ -8,7 +8,10 @@ from rl.sac_agent import SACAgent
 from rl.normalizer import Normalizer
 from util.logger import logger
 from util.pytorch import to_tensor, get_ckpt_path
+from util.gym import action_size, observation_size
 from env.action_spec import ActionSpec
+
+from gym import spaces
 
 
 class LowLevelAgent(SACAgent):
@@ -31,22 +34,9 @@ class LowLevelAgent(SACAgent):
         config = self._config
 
         # parse body parts and skills
-        if config.subdiv:
-            # subdiv: 'ob1,ob2-ac1/ob3,ob4-ac2/...'
-            clusters = config.subdiv.split('/')
-            clusters = [
-                (cluster.split('-')[0].split(','), cluster.split('-')[1].split(',')) for cluster in clusters
-            ]
-        else:
-            clusters = [(ob_space.keys(), ac_space.shape.keys())]
+        clusters = [(self._ob_space.spaces.keys(), self._ac_space.spaces.keys())]
 
-        if config.subdiv_skills:
-            subdiv_skills = config.subdiv_skills.split('/')
-            subdiv_skills = [
-                skills.split(',') for skills in subdiv_skills
-            ]
-        else:
-            subdiv_skills = [['primitive']] * len(clusters)
+        subdiv_skills = [['primitive']] * len(clusters)
 
         assert len(subdiv_skills) == len(clusters), \
             'subdiv_skills and clusters have different # subdivisions'
@@ -59,11 +49,9 @@ class LowLevelAgent(SACAgent):
 
         # load networks
         for cluster, skills in zip(self._clusters, self._subdiv_skills):
-            ob_space = OrderedDict([(k, self._ob_space[k]) for k in cluster[0]])
-            if self._config.diayn:
-                ob_space[','.join(cluster[0]) + '_diayn'] = self._config.z_dim
-            ac_decomposition = OrderedDict([(k, self._ac_space.shape[k]) for k in cluster[1]])
-            ac_size = sum(self._ac_space.shape[k] for k in cluster[1])
+            ob_space = spaces.Dict([(k, self._ob_space[k]) for k in cluster[0]])
+            ac_decomposition = OrderedDict([(k, action_size(self._ac_space[k])) for k in cluster[1]])
+            ac_size = sum(action_size(self._ac_space[k]) for k in cluster[1])
             ac_space = ActionSpec(ac_size, -1, 1)
             ac_space.decompose(ac_decomposition)
 
@@ -76,7 +64,7 @@ class LowLevelAgent(SACAgent):
                                            clip_obs=config.clip_obs)
 
                 if self._config.meta_update_target == 'HL':
-                    path = os.path.join(config.subdiv_skill_dir, skill)
+                    path = os.path.join(config.primitive_dir, skill)
                     ckpt_path, ckpt_num = get_ckpt_path(path, None)
                     logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
                     ckpt = torch.load(ckpt_path)
@@ -98,16 +86,13 @@ class LowLevelAgent(SACAgent):
     def act(self, ob, meta_ac, is_train=True):
         ac = OrderedDict()
         activation = OrderedDict()
-        if self._config.meta == 'hard':
+        if self._config.hrl:
             for i, skill_idx in enumerate(meta_ac.values()):
                 if [k for k in meta_ac.keys()][i].endswith('_diayn'):
                     # skip diayn outputs from meta-policy
                     continue
                 skill_idx = skill_idx[0]
                 ob_ = ob.copy()
-                if self._config.diayn:
-                    z_name = self._actors[i][skill_idx].z_name
-                    ob_[z_name] = meta_ac[self._actors[i][skill_idx].z_name]
                 ob_ = self._ob_norms[i][skill_idx].normalize(ob_)
                 ob_ = to_tensor(ob_, self._config.device)
                 if self._config.meta_update_target == 'HL':
@@ -154,9 +139,6 @@ class LowLevelAgent(SACAgent):
             skill_idx = 0
 
             ob_ = ob_detached.copy()
-            if self._config.diayn:
-                z_name = self._actors[i][skill_idx].z_name
-                ob_[z_name] = meta_ac[z_name].detach().cpu().numpy()
             ob_ = self._ob_norms[i][skill_idx].normalize(ob_)
             ob_ = to_tensor(ob_, self._config.device)
             ac_, log_probs_ = self._actors[i][skill_idx].act_log(ob_)

@@ -1,0 +1,1 @@
+python -m rl.main --log_root_dir ./logs --wandb True --prefix baseline.subgoal_mp_prm_star_timelimit_5_v4 --max_global_step 6000000 --meta_update_target both --hrl True --hl_type subgoal --hl_type subgoal --ll_type mp --planner_type prm_star --planner_objective state_const_integral --range 4.0 --threshold 0.05 --timelimit 5. --grow_time 200

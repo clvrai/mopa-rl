@@ -19,6 +19,8 @@ def argparser():
                         choices=["sac", "ppo"])
     parser.add_argument("--policy", type=str, default="mlp",
                         choices=["mlp"])
+    parser.add_argument("--meta_update_target", type=str, default="HL",
+                        choices=['HL', 'LL', 'both'])
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -29,8 +31,11 @@ def argparser():
                         help="path to primitive directory")
     parser.add_argument("--max_meta_len", type=int, default=25)
 
-    parser.add_argument("--low_level_controller", type=str, default="rl",
+    parser.add_argument("--ll_type", type=str, default="rl",
                         help="low level controller choice", choices=["rl", "mp"])
+    parser.add_argument("--primitive_skills", type=str, default=None)
+    parser.add_argument("--hl_type", type=str, default='discrete',
+                        choices=['discrete', 'subgoal'])
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)

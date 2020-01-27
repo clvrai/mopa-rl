@@ -20,7 +20,8 @@ class ReacherTestEnv(BaseEnv):
             goal = np.random.uniform(low=-.35, high=.35, size=2)
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = goal
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            #qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel = np.ones(self.model.nv)
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
