@@ -2,7 +2,7 @@ import os, sys
 import numpy as np
 import shutil
 
-from motion_planners.sampling_based_planner import SamplingBasedPlanner
+from motion_planners.sampling_based_planner import SamplingBasedPlanner, SamplingBasedKinodynamicPlanner
 import env
 import gym
 from config import argparser
@@ -31,7 +31,7 @@ is_save_video = False
 env = gym.make(args.env, **args.__dict__)
 env_prime = gym.make(args.env, **args.__dict__)
 ik_env = gym.make(args.env, **args.__dict__)
-planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space))
+planner = SamplingBasedKinodynamicPlanner(args, env.xml_path, action_size(env.action_space))
 
 start_time = time.time()
 env.reset()
@@ -43,6 +43,9 @@ qvel = env.sim.data.qvel.ravel()
 # qvel[:-2] = [ 0.00293847, 0.00158573, 0.0018593, 0.00122192, -0.0016253, 0.00225007, 0.00001702]
 #env.set_state(qpos, qvel)
 goal = env.goal
+print("Initial Joint pos: ", qpos)
+print("Initial Vel: ", qvel)
+print("Goal: ", goal)
 
 ik_env.reset()
 ik_env.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
@@ -56,54 +59,54 @@ start = env.sim.data.qpos.ravel()
 goal = result.qpos
 
 
-traj, actions = planner.plan(start, goal,  args.timelimit)
+actions = planner.plan(np.concatenate((start, env.sim.data.qvel.ravel())), np.concatenate((goal, env.sim.data.qvel.ravel())),  args.timelimit)
 
 
 goal = env.sim.data.qpos[-2:]
 frames = []
-from mujoco_py import MjSim, MjViewer, functions
 action_frames = []
-for state in traj[1:]:
-    if is_save_video:
-        frame = env.render(mode='rgb_array')
-        frames.append(frame*255.)
-    else:
-        env.render(mode='human')
-    #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-    #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
-    env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
-    #env.step((state[:-2]-env.sim.data.qpos[:-2])/3.14)
-    print("qpos: ", env.sim.data.qpos[:-2])
-    print("state: ", state[:-2])
-
-if is_save_video:
-    frame = env.render(mode='rgb_array')
-    frames.append(frame*255.)
-    prefix_path = os.path.join('./tmp', args.planner_type)
-    if not os.path.exists(prefix_path):
-        os.mkdir(prefix_path)
-    fpath = os.path.join(prefix_path, 'action_{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
-    save_video(fpath, frames)
-else:
-    env.render(mode='human')
-
-# for action in actions:
+# for state in traj:
 #     if is_save_video:
-#         frame = env_prime.render(mode='rgb_array')
-#         action_frames.append(frame*255.)
+#         frame = env.render(mode='rgb_array')
+#         frames.append(frame*255.)
 #     else:
-#         env_prime.render(mode='human')
-#     env_prime.step(action)
+#         env.render(mode='human')
+#     env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
 #
 # if is_save_video:
-#     frame = env_prime.render(mode='rgb_array')
-#     action_frames.append(frame*255.)
+#     frame = env.render(mode='rgb_array')
+#     frames.append(frame*255.)
 #     prefix_path = os.path.join('./tmp', args.planner_type)
 #     if not os.path.exists(prefix_path):
 #         os.mkdir(prefix_path)
 #     fpath = os.path.join(prefix_path, 'action_{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
-#     save_video(fpath, action_frames)
+#     save_video(fpath, frames)
 # else:
-#     env_prime.render(mode='human')
+#     env.render(mode='human')
 #
-#
+print(actions)
+
+for action in actions:
+    if is_save_video:
+        frame = env_prime.render(mode='rgb_array')
+        action_frames.append(frame*255.)
+    else:
+        env_prime.render(mode='human')
+    import pdb
+    pdb.set_trace()
+    env_prime.step(action)
+
+if is_save_video:
+    frame = env_prime.render(mode='rgb_array')
+    action_frames.append(frame*255.)
+    prefix_path = os.path.join('./tmp', args.planner_type)
+    if not os.path.exists(prefix_path):
+        os.mkdir(prefix_path)
+    fpath = os.path.join(prefix_path, 'action_{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
+    save_video(fpath, action_frames)
+else:
+    env_prime.render(mode='human')
+import pdb
+pdb.set_trace()
+
+
