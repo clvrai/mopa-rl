@@ -223,6 +223,8 @@ class MetaPPOAgent(BaseAgent):
 
     def act(self, ob, is_train=True):
         if self._config.hrl:
+            import pdb
+            pdb.set_trace()
             ob = self.normalize(ob)
             return self._actor.act(ob, is_train, return_log_prob=True)
         else:

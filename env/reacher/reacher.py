@@ -7,11 +7,11 @@ from gym import spaces
 from env.base import BaseEnv
 
 
-class ReacherTestEnv(BaseEnv):
+class ReacherEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("reacher_test.xml", **kwargs)
+        super().__init__("reacher.xml", **kwargs)
 
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
@@ -45,7 +45,7 @@ class ReacherTestEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(32,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32))
         ])
 
     def _step(self, action):

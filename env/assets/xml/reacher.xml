@@ -70,22 +70,6 @@
     </worldbody>
 
     <actuator>
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint0"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint1"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint2"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint3"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint4"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint5"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint6"/> -->
-
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.4" joint="joint0"/> -->
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.14" joint="joint1"/> -->
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.14" joint="joint2"/> -->
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.14" joint="joint3"/> -->
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.14" joint="joint4"/> -->
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.14" joint="joint5"/> -->
-        <!-- <position ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="3.14" joint="joint6"/> -->
-
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint0"/>
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint1"/>
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint2"/>
