@@ -17,8 +17,8 @@ from gym import spaces
 
 
 class MetaPPOAgent(BaseAgent):
-    def __init__(self, config, ob_space, env_ac_space=None):
-        super().__init__(config, ob_space, env_ac_space)
+    def __init__(self, config, ob_space, joint_space=None):
+        super().__init__(config, ob_space, joint_space)
 
         if not config.hrl:
             logger.warn('Creating a dummy meta PPO agent')
@@ -42,7 +42,7 @@ class MetaPPOAgent(BaseAgent):
                 for cluster, skills in zip(clusters, subdiv_skills):
                     ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
             elif config.hl_type == 'subgoal':
-                ac_space = env_ac_space
+                ac_space = joint_space
             self.ac_space = ac_space
 
 

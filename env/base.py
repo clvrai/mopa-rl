@@ -81,6 +81,10 @@ class BaseEnv(gym.Env):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
+        self.joint_sapce = spaces.Dict([
+            ('default', spaces.Box(low=-3, high=-3, shape=(self.model.nq,), dtype=np.float32))
+        ])
+
         # Camera
         self._camera_name = 'cam0'
         self._camera_id = self.sim.model.camera_names.index(self._camera_name)

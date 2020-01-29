@@ -54,7 +54,8 @@ ik_env.close()
 
 start = env.sim.data.qpos.ravel()
 goal = result.qpos
-
+import pdb
+pdb.set_trace()
 
 traj, actions = planner.plan(start, goal,  args.timelimit)
 

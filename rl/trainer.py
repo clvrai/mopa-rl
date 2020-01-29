@@ -42,12 +42,13 @@ class Trainer(object):
 
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
+        joint_space = self._env.joint_sapce
 
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy)
 
         # build up networks
-        self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
+        self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
         self._mp = None
 
         if config.hl_type == 'subgoal':

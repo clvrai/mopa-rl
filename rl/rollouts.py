@@ -194,7 +194,7 @@ class RolloutRunner(object):
 
             curr_qpos = env.sim.data.qpos
             target_qpos = np.array(curr_meta_ac['default'])
-            traj, actions = self._mp.plan(curr_qpos, np.concatenate([target_qpos, env.goal]))
+            traj, actions = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
