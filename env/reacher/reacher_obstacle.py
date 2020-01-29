@@ -61,6 +61,12 @@ class ReacherObstacleEnv(BaseEnv):
             ('default', spaces.Box(shape=(32,), low=-1, high=1, dtype=np.float32))
         ])
 
+    @property
+    def ll_observation_space(self):
+        return spaces.Dict([
+            ('default', spaces.Box(shape=(25,), low=-1, high=1, dtype=np.float32))
+        ])
+
     def _step(self, action):
         info = {}
         done = False

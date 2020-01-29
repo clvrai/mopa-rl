@@ -11,8 +11,8 @@ register(
 )
 
 register(
-    id='reacher-test-v0',
-    entry_point='env.reacher:ReacherTestEnv',
+    id='reacher-v0',
+    entry_point='env.reacher:ReacherEnv',
     kwargs={},
 )
 

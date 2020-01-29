@@ -23,9 +23,11 @@ class MlpActor(Actor):
         self.fc_log_stds = nn.ModuleDict()
 
         for k, space in ac_space.spaces.items():
-            self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(space))})
             if isinstance(space, spaces.Box):
+                self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(space))})
                 self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, action_size(space))})
+            else:
+                self.fc_means.update({k: MLP(config, config.rl_hid_size, space)})
 
     def forward(self, ob):
         inp = list(ob.values())
@@ -36,6 +38,7 @@ class MlpActor(Actor):
         out = torch.reshape(out, (out.shape[0], -1))
 
         means, stds = OrderedDict(), OrderedDict()
+
         for k, space in self._ac_space.spaces.items():
             mean = self.fc_means[k](out)
             if isinstance(space, spaces.Box):

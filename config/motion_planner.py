@@ -13,7 +13,8 @@ def add_arguments(parser):
     parser.add_argument("--sst_selection_radius", type=float, default=0.01)
     parser.add_argument("--sst_pruning_radius", type=float, default=0.01)
     parser.add_argument("--threshold", type=float, default=0.01)
-    parser.add_argument("--timelimit", type=float, default=20.)
+    parser.add_argument("--timelimit", type=float, default=1.)
+    parser.add_argument("--construct_time", type=float, default=200.)
     parser.add_argument("--range", type=float, default=0.1)
 
 

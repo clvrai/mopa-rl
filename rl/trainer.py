@@ -37,6 +37,9 @@ class Trainer(object):
 
         # create a new environment
         self._env = gym.make(config.env, **config.__dict__)
+        self._config._xml_path = self._env.xml_path
+        config.nq = self._env.model.nq
+
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
 
@@ -44,12 +47,29 @@ class Trainer(object):
         actor, critic = get_actor_critic_by_name(config.policy)
 
         # build up networks
-        self._meta_agent = MetaPPOAgent(config, ob_space)
+        self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
+        self._mp = None
+
+        if config.hl_type == 'subgoal':
+            # use subgoal
+            ll_ob_space = self._env.ll_observation_space
+        else:
+            # no subgoal, only choose which low-level controler we use
+            ll_ob_space = ob_space
+
         if config.hrl:
-            from rl.low_level_agent import LowLevelAgent
-            self._agent = LowLevelAgent(
-                config, ob_space, ac_space, actor, critic
-            )
+            if config.ll_type == 'rl':
+                from rl.low_level_agent import LowLevelAgent
+                self._agent = LowLevelAgent(
+                    config, ll_ob_space, ac_space, actor, critic
+                )
+            else:
+                from rl.low_level_mp_agent import LowLevelMpAgent
+                from rl.low_level_agent import LowLevelAgent
+                self._agent = LowLevelAgent(
+                    config, ll_ob_space, ac_space, actor, critic
+                )
+                self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
         else:
             self._agent = get_agent_by_name(config.algo)(
                 config, ob_space, ac_space, actor, critic
@@ -57,7 +77,7 @@ class Trainer(object):
 
         # build rollout runner
         self._runner = RolloutRunner(
-            config, self._env, self._meta_agent, self._agent
+            config, self._env, self._meta_agent, self._agent, self._mp
         )
 
         # setup wandb
@@ -138,10 +158,12 @@ class Trainer(object):
             wandb.log({"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({"train_ep_max/%s" % k: np.max(v)}, step=step)
 
-    def _log_test(self, step, ep_info):
+    def _log_test(self, step, ep_info, vids=None):
         if self._config.is_train:
             for k, v in ep_info.items():
                 wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
+            if vids is not None:
+                self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
 
     def train(self):
         config = self._config
@@ -173,7 +195,12 @@ class Trainer(object):
             run_step_max = 10000
 
         # dummy run for preventing weird
-        self._runner.run_episode()
+        if config.ll_type == 'rl':
+            self._runner.run_episode()
+        elif config.ll_type == 'mp':
+            self._runner.mp_run_episode()
+        else:
+            ValueError("Invalid low level controller type")
 
         st_time = time()
         st_step = step
@@ -181,8 +208,12 @@ class Trainer(object):
             run_ep = 0
             run_step = 0
             while run_step < run_step_max and run_ep < run_ep_max:
-                rollout, meta_rollout, info, _ = \
-                    self._runner.run_episode()
+                if config.ll_type == 'rl':
+                    rollout, meta_rollout, info, _ = \
+                        self._runner.run_episode()
+                else:
+                    rollout, meta_rollout, info, _ = \
+                        self._runner.mp_run_episode()
                 run_step += info["len"]
                 run_ep += 1
                 self._save_success_qpos(info)
@@ -249,8 +280,8 @@ class Trainer(object):
 
                 if update_iter % config.evaluate_interval == 0:
                     logger.info("Evaluate at %d", update_iter)
-                    rollout, info = self._evaluate(step=step, record=config.record)
-                    self._log_test(step, info)
+                    rollout, info, vids = self._evaluate(step=step, record=config.record)
+                    self._log_test(step, info, vids)
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
@@ -284,9 +315,14 @@ class Trainer(object):
         """ Run one rollout if in eval mode
             Run num_record_samples rollouts if in train mode
         """
+        vids = []
         for i in range(self._config.num_record_samples):
-            rollout, meta_rollout, info, frames = \
-                self._runner.run_episode(is_train=False, record=record)
+            if self._config.ll_type == 'rl':
+                rollout, meta_rollout, info, frames = \
+                    self._runner.run_episode(is_train=False, record=record)
+            else:
+                rollout, meta_rollout, info, frames = \
+                    self._runner.mp_run_episode(is_train=False, record=record)
 
             if record:
                 ep_rew = info["rew"]
@@ -295,13 +331,14 @@ class Trainer(object):
                     self._config.env, step, idx if idx is not None else i,
                     ep_rew, ep_success)
                 self._save_video(fname, frames)
+                vids.append(frames)
 
             if idx is not None:
                 break
 
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         self._save_success_qpos(info)
-        return rollout, info
+        return rollout, info, np.array(vids)
 
     def evaluate(self):
         step, update_iter = self._load_ckpt(ckpt_num=self._config.ckpt_num)
@@ -350,3 +387,11 @@ class Trainer(object):
         video.write_videofile(path, fps, verbose=False)
         logger.warn("[*] Video saved: {}".format(path))
 
+
+    def log_videos(self, vids, name, fps=15, step=None):
+        """Logs videos to WandB in mp4 format.
+        Assumes list of numpy arrays as input with [time, channels, height, width]."""
+        assert len(vids[0].shape) == 4 and vids[0].shape[1] == 3
+        assert isinstance(vids[0], np.ndarray)
+        log_dict = {name: [wandb.Video(vid, fps=fps, format="mp4") for vid in vids]}
+        wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)

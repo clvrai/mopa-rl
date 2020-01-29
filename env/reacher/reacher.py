@@ -7,11 +7,11 @@ from gym import spaces
 from env.base import BaseEnv
 
 
-class ReacherTestEnv(BaseEnv):
+class ReacherEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("reacher_test.xml", **kwargs)
+        super().__init__("reacher.xml", **kwargs)
 
     def _reset(self):
         self._set_camera_position(0, [0, -1.0, 1.0])
@@ -21,6 +21,7 @@ class ReacherTestEnv(BaseEnv):
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            #qvel = np.ones(len(self.sim.data.qvel.ravel()))
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
@@ -44,7 +45,13 @@ class ReacherTestEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(32,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32))
+        ])
+
+    @property
+    def ll_observation_space(self):
+        return spaces.Dict([
+            ('default', spaces.Box(shape=(23,), low=-1, high=1, dtype=np.float32))
         ])
 
     def _step(self, action):

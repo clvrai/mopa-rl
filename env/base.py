@@ -229,8 +229,9 @@ class BaseEnv(gym.Env):
     def _do_simulation(self, a):
         try:
             self.data.ctrl[:] = a
-            self.sim.forward()
-            self.sim.step()
+            for _ in range(self._frame_skip):
+                self.sim.forward()
+                self.sim.step()
         except Exception as e:
             logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
             logger.warn(e)
@@ -245,6 +246,7 @@ class BaseEnv(gym.Env):
                                          old_state.act, old_state.udd_state)
         self.sim.set_state(new_state)
         self.sim.forward()
+        self.sim.step()
 
     def _get_pos(self, name):
         if name in self.model.body_names:

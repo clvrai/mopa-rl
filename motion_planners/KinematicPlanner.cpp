@@ -46,7 +46,7 @@ using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range)
+                 double Threshold, double _Range, double constructTime)
 {
     // std::string xml_filename = XML_filename;
     xml_filename = XML_filename;
@@ -56,6 +56,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     num_actions = NUM_actions;
     opt = Opt;
     threshold = Threshold;
+    constructTime = constructTime;
+    is_construct = true;
 
     mjkey_filename = strcat(getenv("HOME"), "/.mujoco/mjkey.txt");
     mj = std::make_shared<MuJoCo>(mjkey_filename);
@@ -127,6 +129,9 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         ss->setPlanner(rrt_connect_planner);
     } else if (algo == "prm_star"){
         ss->setPlanner(prm_star_planner);
+        ss->setup();
+        ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
+        std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
     }
 
 }
@@ -164,16 +169,18 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     // Call the planner
     ob::PlannerStatus solved;
-    if(is_clear){
-        ss->clear();
+    // if(is_clear){
+    //     ss->clear();
+    // }
+
+    if (algo == "prm_star"){
+        std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
     }
     solved = ss->solve(timelimit);
-    if (algo == "prm_star"){
-        std::cout << prm_star_planner->milestoneCount() << std::endl;
-    }
+
     if (solved) {
-        std::cout << "Found Solution with status: " << solved.asString() << std::endl;
-        std::cout << "Last Plan Computation Time" << ss->getLastPlanComputationTime() << std::endl;
+        // std::cout << "Found Solution with status: " << solved.asString() << std::endl;
+        // std::cout << "Last Plan Computation Time" << ss->getLastPlanComputationTime() << std::endl;
         // ss.getSolutionPath().print(std::cout);
         og::PathGeometric p = ss->getSolutionPath();
         p.interpolate();

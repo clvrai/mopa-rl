@@ -1,5 +1,5 @@
-#ifndef _KinematicPlanner_h
-#define _KinematicPlanner_h
+#ifndef _KinodynamicPlanner_h
+#define _KinodynamicPlanner_h
 
 #include <vector>
 #include <string>
@@ -17,6 +17,7 @@
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/pdst/PDST.h>
 #include <ompl/control/planners/sst/SST.h>
+#include <ompl/control/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/est/EST.h>
@@ -44,7 +45,7 @@ namespace og = ompl::geometric;
 
 namespace MotionPlanner
 {
-    class KinematicPlanner
+    class KinodynamicPlanner
     {
         public:
             std::string xml_filename;
@@ -57,22 +58,10 @@ namespace MotionPlanner
             double _range;
             std::string mjkey_filename;
             std::shared_ptr<MuJoCo> mj;
-            std::shared_ptr<ob::SpaceInformation> si;
-            std::shared_ptr<MjOmpl::MujocoStatePropagator> mj_state_prop;
-            std::shared_ptr<og::RRTstar> rrt_planner;
-            std::shared_ptr<og::SST> sst_planner;
-            std::shared_ptr<og::PDST> pdst_planner;
-            std::shared_ptr<og::EST> est_planner;
-            std::shared_ptr<og::KPIECE1> kpiece_planner;
-            std::shared_ptr<og::RRTConnect> rrt_connect_planner;
-            std::shared_ptr<og::PRMstar> prm_star_planner;
-            std::shared_ptr<og::SimpleSetup> ss;
-            double constructTime;
-            bool is_construct;
 
-            KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, std::string opt, double threshold, double _range, double constructTime);
-            ~KinematicPlanner();
-            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, bool is_clear);
+            KinodynamicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius);
+            ~KinodynamicPlanner();
+            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit);
 
     };
 }

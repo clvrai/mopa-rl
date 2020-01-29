@@ -4,7 +4,7 @@ from rl.normalizer import Normalizer
 
 
 class BaseAgent(object):
-    def __init__(self, config, ob_space):
+    def __init__(self, config, ob_space, action_space=None):
         self._config = config
 
         self._ob_norm = Normalizer(ob_space,
