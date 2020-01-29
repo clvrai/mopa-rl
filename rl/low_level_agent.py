@@ -88,9 +88,6 @@ class LowLevelAgent(SACAgent):
         activation = OrderedDict()
         if self._config.hrl:
             for i, skill_idx in enumerate(meta_ac.values()):
-                if [k for k in meta_ac.keys()][i].endswith('_diayn'):
-                    # skip diayn outputs from meta-policy
-                    continue
                 skill_idx = skill_idx[0]
                 ob_ = ob.copy()
                 ob_ = self._ob_norms[i][skill_idx].normalize(ob_)

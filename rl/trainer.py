@@ -37,7 +37,8 @@ class Trainer(object):
 
         # create a new environment
         self._env = gym.make(config.env, **config.__dict__)
-        self._config.xml_path = self._env.xml_path
+        self._config._xml_path = self._env.xml_path
+        config.nq = self._env.model.nq
 
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
@@ -47,21 +48,28 @@ class Trainer(object):
 
         # build up networks
         self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
+        self._mp = None
+
+        if config.hl_type == 'subgoal':
+            # use subgoal
+            ll_ob_space = self._env.ll_observation_space
+        else:
+            # no subgoal, only choose which low-level controler we use
+            ll_ob_space = ob_space
+
         if config.hrl:
             if config.ll_type == 'rl':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
-                    config, ob_space, ac_space, actor, critic
+                    config, ll_ob_space, ac_space, actor, critic
                 )
-                self._mp = None
             else:
                 from rl.low_level_mp_agent import LowLevelMpAgent
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
-                    config, ob_space, ac_space, actor, critic
+                    config, ll_ob_space, ac_space, actor, critic
                 )
-                self._mp = LowLevelMpAgent(config, ob_space, ac_space)
-
+                self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
         else:
             self._agent = get_agent_by_name(config.algo)(
                 config, ob_space, ac_space, actor, critic
@@ -165,8 +173,7 @@ class Trainer(object):
         step, update_iter = self._load_ckpt()
 
         # sync the networks across the cpus
-        if config.ll_type != 'mp':
-            self._agent.sync_networks()
+        self._agent.sync_networks()
 
         logger.info("Start training at step=%d", step)
         if self._is_chef:

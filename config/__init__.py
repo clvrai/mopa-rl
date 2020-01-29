@@ -21,6 +21,7 @@ def argparser():
                         choices=["mlp"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
                         choices=['HL', 'LL', 'both'])
+    parser.add_argument("--warmup", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -105,5 +106,6 @@ def argparser():
     parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--seed", type=int, default=1234, help="random seed")
     parser.add_argument("--debug", type=str2bool, default=False)
+    parser.add_argument("--debug_render", type=str2bool, default=False)
 
     return parser

@@ -12,7 +12,7 @@ from motion_planners.sampling_based_planner import SamplingBasedPlanner
 class LowLevelMpAgent:
     def __init__(self, config, ob_space, ac_space):
         if config.planner_type != 'komo':
-            self.planner = SamplingBasedPlanner(config, config.xml_path, action_size(ac_space))
+            self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space))
         else:
             raise NotImplementedError
 

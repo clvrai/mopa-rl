@@ -168,17 +168,11 @@ class MetaPPOAgent(BaseAgent):
         old_log_pi = _to_tensor(transitions['log_prob']).reshape(bs, 1)
 
         log_pi, ent = self._actor.act_log(o, z)
-        #with torch.no_grad():
-        #    #old_log_pi, _, _, _, _ = self._old_actor.act_log_debug(o, z)
-        #    old_log_pi, _ = self._old_actor.act_log(o, z)
 
         if (log_pi - old_log_pi).max() > 20:
             print('(log_pi - old_log_pi) is too large', (log_pi - old_log_pi).max())
             import ipdb; ipdb.set_trace()
 
-        #if (log_prob - old_log_pi).abs().max() > 1e-1:
-        #    print('old_log_pi are wrong', (log_prob - old_log_pi).abs().squeeze().max(-1))
-        #    import ipdb; ipdb.set_trace();
 
         # the actor loss
         entropy_loss = self._config.entropy_loss_coeff * ent.mean()
@@ -223,8 +217,6 @@ class MetaPPOAgent(BaseAgent):
 
     def act(self, ob, is_train=True):
         if self._config.hrl:
-            import pdb
-            pdb.set_trace()
             ob = self.normalize(ob)
             return self._actor.act(ob, is_train, return_log_prob=True)
         else:
