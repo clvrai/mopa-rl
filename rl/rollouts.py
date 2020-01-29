@@ -98,6 +98,7 @@ class RolloutRunner(object):
 
             meta_len = 0
             meta_rew = 0
+            subgoal = meta_ac['default'][-2:] if config.hl_type == 'subgoal' else None
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
                 meta_tmp_ac = OrderedDict([('default', np.array([0]))])
@@ -130,7 +131,7 @@ class RolloutRunner(object):
                         for i, k in enumerate(meta_ac.keys()):
                             frame_info['meta_ac'].append(meta_pi.subdiv_skills[i][int(meta_ac[k])])
 
-                    self._store_frame(frame_info)
+                    self._store_frame(frame_info, subgoal)
 
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
@@ -198,6 +199,7 @@ class RolloutRunner(object):
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
+            subgoal = meta_ac['default'][-2:] if config.hl_type == 'subgoal' else None
 
             if success:
                 mp_success += 1
@@ -223,7 +225,7 @@ class RolloutRunner(object):
                         reward_info[key].append(value)
                     if record:
                         frame_info = info.copy()
-                        self._store_frame(frame_info)
+                        self._store_frame(frame_info, subgoal)
 
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
@@ -257,7 +259,7 @@ class RolloutRunner(object):
                         reward_info[key].append(value)
                     if record:
                         frame_info = info.copy()
-                        self._store_frame(frame_info)
+                        self._store_frame(frame_info, subgoal)
 
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
         # last frame
@@ -287,12 +289,12 @@ class RolloutRunner(object):
         text = "{:4} {}".format(self._env._episode_length,
                                 self._env._episode_reward)
 
-        if self._config.hl_type == 'subgoal':
-            self._env.set_pos('subgoal', [subgoal[0], subgoal[1], self._env.get_pos('subgoal')[2]])
-            self._env.set_color('subgoal', [0.2, 0.9, 0.2, 1.])
+        if self._config.hl_type == 'subgoal' and subgoal is not None:
+            self._env._set_pos('subgoal', [subgoal[0], subgoal[1], self._env._get_pos('subgoal')[2]])
+            self._env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
 
         frame = self._env.render('rgb_array') * 255.0
-        self._env.set_color('subgoal', [0.2, 0.9, 0.2, 0.])
+        self._env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
