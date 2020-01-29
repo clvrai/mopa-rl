@@ -6,6 +6,21 @@
 - gym 0.15.4
 - [MuJoCo 2.0.2.5 ](http://www.mujoco.org/)
 
+## Installation 
+### OMPL-mujoco wrapper 
+
+- Install OMPL 
+Follow https://ompl.kavrakilab.org/installation.html
+
+- Compile cython for ompl-mujoco wrapper
+
+```
+cd ./motion_planners
+
+# Note that you need to change `prefix_path` variable in setup.py
+python setup.py build_ext --inlpace
+```
+
 ## Usage
 ### Test environment
 ```
@@ -14,9 +29,24 @@ python -m env.test_env
 sh ./scripts/test_env
 ```
 
-### Baseline
+### SAC Baseline
 ```
 sh ./scripts/baseline.sh
+```
+
+### HRL Baseline
+```
+sh ./scripts/hrl_baseline.sh
+```
+
+### HRL baseline with subgoals
+```
+sh ./scripts/hrl_subgoal_baseline.sh
+```
+
+### Subgoal + Motion planner
+```
+sh ./scripts/subgoal_mp.sh
 ```
 
 ## Trouble shooting
