@@ -148,7 +148,7 @@ class Trainer(object):
             logger.warn("Randomly initialize models")
             return 0, 0
 
-    def _log_train(self, step, train_info, ep_info):
+    def _log_train(self, step, train_info, ep_info, prefix=""):
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
                 wandb.log({"train_rl/%s" % k: v}, step=step)
@@ -156,8 +156,8 @@ class Trainer(object):
                 wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
 
         for k, v in ep_info.items():
-            wandb.log({"train_ep/%s" % k: np.mean(v)}, step=step)
-            wandb.log({"train_ep_max/%s" % k: np.max(v)}, step=step)
+            wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
+            wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
 
     def _log_test(self, step, ep_info, vids=None):
         if self._config.is_train:
@@ -205,6 +205,8 @@ class Trainer(object):
 
         st_time = time()
         st_step = step
+        global_run_ep = 0
+
         while step < config.max_global_step:
             run_ep = 0
             run_step = 0
@@ -217,6 +219,7 @@ class Trainer(object):
                         self._runner.mp_run_episode()
                 run_step += info["len"]
                 run_ep += 1
+                global_run_ep += 1
                 self._save_success_qpos(info)
                 logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
                 if config.hrl:
@@ -269,6 +272,7 @@ class Trainer(object):
                             ep_info[k].extend(v)
                         else:
                             ep_info[k].append(v)
+                    ep_info['num_episode'] = global_run_ep
                     train_info.update({
                         "sec": (time() - st_time) / config.log_interval,
                         "steps_per_sec": (step - st_step) / (time() - st_time),
