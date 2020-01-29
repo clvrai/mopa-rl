@@ -29,6 +29,13 @@ class ReacherEnv(BaseEnv):
                 break
         return self._get_obs()
 
+    def initalize_joints(self):
+        while True:
+            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos[-2:] = self.goal
+            self.set_state(qpos, self.sim.data.qvel.ravel())
+            if self.sim.data.ncon == 0:
+                break
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[:2]

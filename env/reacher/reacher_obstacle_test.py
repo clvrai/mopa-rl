@@ -28,6 +28,14 @@ class ReacherObstacleTestEnv(BaseEnv):
                 break
         return self._get_obs()
 
+    def initalize_joints(self):
+        while True:
+            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos[-2:] = self.goal
+            self.set_state(qpos, self.sim.data.qvel.ravel())
+            if self.sim.data.ncon == 0:
+                break
+
     def _get_obstacle_states(self):
         obstacle_states = []
         for name in self.obstacle_names:
