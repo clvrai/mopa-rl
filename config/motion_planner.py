@@ -16,6 +16,8 @@ def add_arguments(parser):
     parser.add_argument("--timelimit", type=float, default=1.)
     parser.add_argument("--construct_time", type=float, default=200.)
     parser.add_argument("--range", type=float, default=0.1)
+    parser.add_argument("--is_simplified", type=str2bool, default=False)
+    parser.add_argument("--simplified_duration", type=float, default=1.0)
 
 
 def get_default_config():

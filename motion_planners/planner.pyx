@@ -19,7 +19,7 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
         double constructTime
         bool_ is_construct
 
-        vector[vector[double]] plan(vector[double], vector[double], double, bool)
+        vector[vector[double]] plan(vector[double], vector[double], double, bool, double)
 
 cdef class PyKinematicPlanner:
     cdef KinematicPlanner *thisptr
@@ -29,5 +29,5 @@ cdef class PyKinematicPlanner:
     def __dealloc__(self):
         del self.thisptr
 
-    cpdef plan(self, start_vec, goal_vec, timelimit, is_clear):
-        return self.thisptr.plan(start_vec, goal_vec, timelimit, is_clear)
+    cpdef plan(self, start_vec, goal_vec, timelimit, is_simplified, simplified_duration):
+        return self.thisptr.plan(start_vec, goal_vec, timelimit, is_simplified, simplified_duration)
