@@ -128,10 +128,7 @@ class RolloutRunner(object):
                     if config.hrl:
                         frame_info['meta_ac'] = []
                         for i, k in enumerate(meta_ac.keys()):
-                            if not k.endswith('diayn'):
-                                frame_info['meta_ac'].append(meta_pi.subdiv_skills[i][int(meta_ac[k])])
-                            else:
-                                frame_info[k] = meta_ac[k]
+                            frame_info['meta_ac'].append(meta_pi.subdiv_skills[i][int(meta_ac[k])])
 
                     self._store_frame(frame_info)
 
@@ -139,6 +136,9 @@ class RolloutRunner(object):
 
         # last frame
         ll_ob = ob.copy()
+        if config.hrl and config.hl_type == 'subgoal':
+            # Change later.... change meta_ac structure (subgoal: [], low_level: [0])
+            ll_ob = OrderedDict([('default', np.concatenate((ll_ob['default'], meta_ac['default'])))])
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())
@@ -203,6 +203,9 @@ class RolloutRunner(object):
                 mp_success += 1
                 for state in traj:
                     ll_ob = ob.copy()
+                    if config.hrl and config.hl_type == 'subgoal':
+                        # Change later.... change meta_ac structure (subgoal: [], low_level: [0])
+                        ll_ob = OrderedDict([('default', np.concatenate((ll_ob['default'], meta_ac['default'])))])
                     ac = -(env.sim.data.qpos[:-2] - state[:-2])*env._frame_skip
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
@@ -259,6 +262,9 @@ class RolloutRunner(object):
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
         # last frame
         ll_ob = ob.copy()
+        if config.hrl and config.hl_type == 'subgoal':
+            # Change later.... change meta_ac structure (subgoal: [], low_level: [0])
+            ll_ob = OrderedDict([('default', np.concatenate((ll_ob['default'], meta_ac['default'])))])
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())
@@ -275,12 +281,19 @@ class RolloutRunner(object):
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
-    def _store_frame(self, info={}):
+    def _store_frame(self, info={}, subgoal=None):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(self._env._episode_length,
                                 self._env._episode_reward)
+
+        if self._config.hl_type == 'subgoal':
+            self._env.set_pos('subgoal', [subgoal[0], subgoal[1], self._env.get_pos('subgoal')[2]])
+            self._env.set_color('subgoal', [0.2, 0.9, 0.2, 1.])
+
         frame = self._env.render('rgb_array') * 255.0
+        self._env.set_color('subgoal', [0.2, 0.9, 0.2, 0.])
+
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 

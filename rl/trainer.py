@@ -255,7 +255,7 @@ class Trainer(object):
             logger.info("Update networks done")
 
             if step < config.max_ob_norm_step:
-                self._update_normalizer(rollout)
+                self._update_normalizer(rollout, meta_rollout)
 
             step += step_per_batch
             update_iter += 1
@@ -289,9 +289,9 @@ class Trainer(object):
 
         logger.info("Reached %s steps. worker %d stopped.", step, config.rank)
 
-    def _update_normalizer(self, rollout):
+    def _update_normalizer(self, rollout, meta_rollout):
         if self._config.ob_norm:
-            self._meta_agent.update_normalizer(rollout["ob"])
+            self._meta_agent.update_normalizer(meta_rollout["ob"])
             self._agent.update_normalizer(rollout["ob"])
 
     def _save_success_qpos(self, info):

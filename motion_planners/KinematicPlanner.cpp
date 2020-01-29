@@ -139,7 +139,9 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
 KinematicPlanner::~KinematicPlanner(){
 }
 
-std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, bool is_clear){
+std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
+                                                            double timelimit, bool is_simplified,
+                                                            double simplified_duration){
 // double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     if (opt == "maximize_min_clearance") {
         auto opt_obj(std::make_shared<ob::MaximizeMinClearanceObjective>(si));
@@ -182,6 +184,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         // std::cout << "Found Solution with status: " << solved.asString() << std::endl;
         // std::cout << "Last Plan Computation Time" << ss->getLastPlanComputationTime() << std::endl;
         // ss.getSolutionPath().print(std::cout);
+        if (is_simplified){
+            ss->simplifySolution(simplified_duration);
+        }
         og::PathGeometric p = ss->getSolutionPath();
         p.interpolate();
         std::vector<ob::State*> &states =  p.getStates();
