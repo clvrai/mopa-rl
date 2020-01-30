@@ -44,15 +44,14 @@ class ReacherObstaclePixelEnv(BaseEnv):
         return np.array(obstacle_states)
 
     def _get_obs(self):
-        data = self._get_viewer().get_image()
-        raw_byte_img = data[0]
-        width = data[1]
-        height = data[1]
-        tmp = np.fromstring(raw_byte_img, dtype=np.uint8)
-        img = np.reshape(tmp, [height, width, 3])
-        img = np.flipud(img)
+        img = self.sim.render(camera_name=self._camera_name,
+                                     width=self._img_width,
+                                     height=self._img_height,
+                                     depth=False)
         gray = color.rgb2gray(img)
         gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+        import pdb
+        pdb.set_trace()
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized*255
         return self.memory
