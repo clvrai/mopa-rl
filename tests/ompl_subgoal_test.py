@@ -26,7 +26,7 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-is_save_video = False
+is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
@@ -102,7 +102,7 @@ def run_mp(env, planner, i=None):
 
         start = env.sim.data.qpos.ravel()
         #planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space))
-        traj, actions = planner.plan(start, goal,  args.timelimit, is_simplified=False)
+        traj, actions = planner.plan(start, goal,  args.timelimit, max_steps=50)
         print(start ,goal)
         if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
             success = True
@@ -123,7 +123,7 @@ def run_mp(env, planner, i=None):
             num_states += len(traj[1:])
             success_count += 1
         else:
-            env.set_state(goal, env.sim.data.qvel.ravel())
+            env.set_state(np.concatenate((result.qpos[:-2], env.goal)), env.sim.data.qvel.ravel())
 
 
     if is_save_video:
@@ -140,12 +140,16 @@ def run_mp(env, planner, i=None):
 
 
 
-    return error / len(traj[1:]), num_states, end_error/len(traj[1:]), success_count
+    return 0, 0, 0, success_count
     #return success
 
-error, num_states, end_error, success = run_mp(env, planner)
+N = 10
+num_success = 0
+for i in range(N):
+    error, num_states, end_error, success = run_mp(env, planner, i)
+    num_success += success
 
-print("Success: ", success)
+print("Success: ", num_success)
 print('End effector error: ', end_error)
 print('Joint state error: ', error)
 

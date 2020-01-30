@@ -140,8 +140,7 @@ KinematicPlanner::~KinematicPlanner(){
 }
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, bool is_simplified,
-                                                            double simplified_duration){
+                                                            double timelimit, double max_steps){
 // double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     if (opt == "maximize_min_clearance") {
         auto opt_obj(std::make_shared<ob::MaximizeMinClearanceObjective>(si));
@@ -188,7 +187,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         //     ss->simplifySolution(simplified_duration);
         // }
         og::PathGeometric p = ss->getSolutionPath();
-        p.interpolate();
+        p.interpolate(max_steps);
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
         std::vector<std::vector<double> > solutions(n, std::vector<double>(start_vec.size(), -1));
@@ -205,7 +204,22 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             }
         }
         // Write solution to file
-        ss->clear();
+        //ss->clear();
+        if (algo == "sst") {
+            ss->getPlanner()->as<og::SST>()->clear();
+        } else if (algo == "pdst") {
+            ss->getPlanner()->as<og::PDST>()->clear();
+        } else if (algo == "est") {
+            ss->getPlanner()->as<og::EST>()->clear();
+        } else if (algo == "kpiece") {
+            ss->getPlanner()->as<og::KPIECE1>()->clear();
+        } else if (algo == "rrt"){
+            ss->getPlanner()->as<og::RRTstar>()->clear();
+        } else if (algo == "rrt_connect"){
+            ss->getPlanner()->as<og::RRTConnect>()->clear();
+        } else if (algo == "prm_star"){
+            ss->getPlanner()->as<og::PRMstar>()->clearQuery();
+        }
         return solutions;
     }
 
