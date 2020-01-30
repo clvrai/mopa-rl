@@ -70,7 +70,9 @@ def run_mp(env, planner, i=None):
         else:
             env.render(mode='human')
         #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-        env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
+        #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
+        action = state[:-2]-env.get_joint_positions
+        env.step(action)
         error += np.sqrt((env.sim.data.qpos - state)**2)
 
     if is_save_video:
@@ -86,16 +88,21 @@ def run_mp(env, planner, i=None):
     else:
         env.render(mode='human')
 
+    num_states = len(traj[1:])
 
-    return error / len(traj[1:])
+
+    return error / len(traj[1:]), num_states
 
 errors = 0
-N = 10
+global_num_states = 0
+N = 5
 for i in range(N):
-    error = run_mp(env, planner, i)
+    error, num_states = run_mp(env, planner, i)
     errors += error
+    global_num_states += num_states
 
 print(errors/N)
+print(global_num_states)
 
 # for action in actions:
 #     if is_save_video:
