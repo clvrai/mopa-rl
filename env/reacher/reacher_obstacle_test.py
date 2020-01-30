@@ -28,6 +28,14 @@ class ReacherObstacleTestEnv(BaseEnv):
                 break
         return self._get_obs()
 
+    def initalize_joints(self):
+        while True:
+            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos[-2:] = self.goal
+            self.set_state(qpos, self.sim.data.qvel.ravel())
+            if self.sim.data.ncon == 0:
+                break
+
     def _get_obstacle_states(self):
         obstacle_states = []
         for name in self.obstacle_names:
@@ -59,9 +67,24 @@ class ReacherObstacleTestEnv(BaseEnv):
             ('default', spaces.Box(shape=(25,), low=-1, high=1, dtype=np.float32))
         ])
 
+    @property
+    def get_joint_positions(self):
+        """
+        The joint position except for goal states
+        """
+        return self.sim.data.qpos.ravel()[:-2]
+
     def _step(self, action):
+        """
+        Args:
+            action (numpy array): The array should have the corresponding elements.
+                0-6: The desired change in joint state (radian)
+        """
+
         info = {}
         done = False
+        desired_states = self.get_joint_positions + action
+
         if self._env_config['reward_type'] == 'dense':
             reward_dist = -self._get_distance("fingertip", "target")
             reward_ctrl = self._ctrl_reward(action)
@@ -69,9 +92,16 @@ class ReacherObstacleTestEnv(BaseEnv):
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
-        self._do_simulation(action)
+
+        velocity = action*5 # According to robosuite
+        for i in range(self._action_repeat):
+            self._do_simulation(velocity)
+            if i + 1 < self._action_repeat:
+                velocity = 5*self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states)
+
         obs = self._get_obs()
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
             done =True
             self._success = True
         return obs, reward, done, info
+

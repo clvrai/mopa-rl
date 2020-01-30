@@ -162,7 +162,7 @@ class MetaPPOAgent(BaseAgent):
         _to_tensor = lambda x: to_tensor(x, self._config.device)
         o = _to_tensor(o)
         ac = _to_tensor(transitions['ac'])
-        z = _to_tensor(transitions['ac_before_activation'])
+        z = _to_tensor(transitions['ac_before_activation']) if None not in transitions['ac_before_activation'] else None
         ret = _to_tensor(transitions['ret']).reshape(bs, 1)
         adv = _to_tensor(transitions['adv']).reshape(bs, 1)
         old_log_pi = _to_tensor(transitions['log_prob']).reshape(bs, 1)

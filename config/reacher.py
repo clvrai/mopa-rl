@@ -22,6 +22,9 @@ def add_arguments(parser):
                         help="width of camera image")
     parser.add_argument("--screen_height", type=int, default=500,
                         help="height of camera image")
+    parser.add_argument("--frame_skip", type=int, default=5,
+                        help="Numer of skip frames")
+    parser.add_argument("--action_repeat", type=int, default=1)
 
 
 def get_default_config():

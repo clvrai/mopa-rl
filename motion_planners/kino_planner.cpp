@@ -4,34 +4,32 @@
 {
     "distutils": {
         "depends": [
-            "include/KinematicPlanner.h"
+            "include/KinodynamicPlanner.h"
         ],
         "extra_compile_args": [
             "-std=c++11"
         ],
         "extra_objects": [
-            "/usr/local/lib/libompl.dylib",
-            "/Users/yamadajun/.mujoco/mujoco200/bin/libmujoco200.dylib"
+            "/usr/local/lib/libompl.so",
+            "/home/jun/.mujoco/mujoco200/bin/libmujoco200.so"
         ],
         "include_dirs": [
             "./include/",
             "/usr/local/include/eigen3",
             "./3rd_party/include/",
-            "/Users/yamadajun/.mujoco/mujoco200/include/",
+            "/home/jun/.mujoco/mujoco200/include/",
             "/usr/local/include/ompl"
         ],
         "language": "c++",
-        "name": "planner",
+        "name": "kino_planner",
         "sources": [
-            "planner.pyx",
-            "KinematicPlanner.cpp",
             "kino_planner.pyx",
             "KinodynamicPlanner.cpp",
             "./src/mujoco_ompl_interface.cpp",
             "./src/mujoco_wrapper.cpp"
         ]
     },
-    "module_name": "planner"
+    "module_name": "kino_planner"
 }
 END: Cython Metadata */
 

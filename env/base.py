@@ -26,7 +26,7 @@ class BaseEnv(gym.Env):
         """ Initializes class with configuration. """
         # default env config
         self._env_config = {
-            "frame_skip": 5,
+            "frame_skip": kwargs['frame_skip'],
             "ctrl_reward": 1e-3,
             "init_randomness": 1e-5,
             "max_episode_steps": kwargs['max_episode_steps'],
@@ -42,6 +42,7 @@ class BaseEnv(gym.Env):
         self._screen_height = kwargs['screen_height']
         self._seed = kwargs['seed']
         self._gym_disable_underscore_compat = True
+        self._action_repeat = kwargs['action_repeat']
 
         # Load model
         self._load_model(xml_path)
@@ -217,6 +218,9 @@ class BaseEnv(gym.Env):
 
     def _viewer_reset(self):
         pass
+
+    def _get_current_error(self, current_state, desired_state):
+        return desired_state - current_state
 
     def _get_viewer(self):
         if self._viewer is None:
