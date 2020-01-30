@@ -155,8 +155,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         ss->setOptimizationObjective(opt_obj);
     }
 
-
-    // Set start and goal states
+    ss->clearStartStates();
+   // Set start and goal states
     ob::ScopedState<> start_ss(ss->getStateSpace());
     for(int i=0; i < start_vec.size(); i++) {
         start_ss[i] = start_vec[i];
@@ -184,9 +184,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         // std::cout << "Found Solution with status: " << solved.asString() << std::endl;
         // std::cout << "Last Plan Computation Time" << ss->getLastPlanComputationTime() << std::endl;
         // ss.getSolutionPath().print(std::cout);
-        if (is_simplified){
-            ss->simplifySolution(simplified_duration);
-        }
+        // if (is_simplified){
+        //     ss->simplifySolution(simplified_duration);
+        // }
         og::PathGeometric p = ss->getSolutionPath();
         p.interpolate();
         std::vector<ob::State*> &states =  p.getStates();
@@ -205,6 +205,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             }
         }
         // Write solution to file
+        ss->clear();
         return solutions;
     }
 

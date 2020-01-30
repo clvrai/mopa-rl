@@ -69,7 +69,10 @@ def render_frame(env, step, info={}):
 
 def run_mp(env, planner, i=None):
     error = 0
+    end_error = 0
     env.reset()
+    mp_env = gym.make(args.env, **args.__dict__)
+    mp_env.reset()
     qpos = env.sim.data.qpos.ravel()
     qvel = env.sim.data.qvel.ravel()
     #env.goal = [-0.25128643, 0.14829235]
@@ -107,10 +110,13 @@ def run_mp(env, planner, i=None):
             else:
                 env.render(mode='human')
             #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+            mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
             #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
             action = state[:-2]-env.get_joint_positions
             env.step(action)
             error += np.sqrt((env.sim.data.qpos - state)**2)
+            end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
+
 
         if is_save_video:
             frames.append(render_frame(env, step))
@@ -127,21 +133,25 @@ def run_mp(env, planner, i=None):
         num_states = len(traj[1:])
 
 
-    #return error / len(traj[1:]), num_states, success
-    return success
+    return error / len(traj[1:]), num_states, end_error/len(traj[1:]), success
+    #return success
 
 errors = 0
 global_num_states = 0
-N = 100
+global_end_error = 0
+N = 5
 num_success = 0
 for i in range(N):
-    success = run_mp(env, planner, i)
+    error, num_states, end_error, success = run_mp(env, planner, i)
     errors += error
+    global_end_error += end_error
     global_num_states += num_states
     if success:
         num_success += 1
 
 print(num_success)
+print('End effector error: ', global_end_error)
+print('Joint state error: ', errors)
 
 
 
