@@ -215,8 +215,9 @@ class Trainer(object):
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
                 else:
+                    is_warmup = global_run_ep < config.warmup_ep
                     rollout, meta_rollout, info, _ = \
-                        self._runner.mp_run_episode()
+                        self._runner.mp_run_episode(is_warmup=is_warmup)
                 run_step += info["len"]
                 run_ep += 1
                 global_run_ep += 1

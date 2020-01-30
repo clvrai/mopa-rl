@@ -156,10 +156,13 @@ class RolloutRunner(object):
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
 
-    def mp_run_episode(self, max_step=10000, is_train=True, record=False):
+    def mp_run_episode(self, max_step=10000, is_train=True, record=False, is_warmup=False):
         config = self._config
         device = config.device
         env = self._env
+        ik_env = gym.make(config.env, **config.__dict__)
+        ik_env.reset()
+
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -179,8 +182,15 @@ class RolloutRunner(object):
         saved_qpos = []
         meta_ac = None
         while not done and ep_len < max_step:
-            curr_meta_ac, meta_ac_before_activation, meta_log_prob =\
-                meta_pi.act(ob, is_train=is_train)
+            if is_warmup and config.warmup:
+                ik_env.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
+                result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=100)
+                curr_meta_ac = OrderedDict([('default', result.qpos)])
+                meta_ac_before_activation = None
+                meta_log_prob = None
+            else:
+                curr_meta_ac, meta_ac_before_activation, meta_log_prob =\
+                    meta_pi.act(ob, is_train=is_train)
 
             if meta_ac is None:
                 meta_ac = curr_meta_ac
