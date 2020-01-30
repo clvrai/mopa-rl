@@ -72,7 +72,7 @@ namespace MotionPlanner
 
             KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, std::string opt, double threshold, double _range, double constructTime);
             ~KinematicPlanner();
-            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, bool is_simplified, double simplified_duration);
+            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double max_steps);
 
     };
 }

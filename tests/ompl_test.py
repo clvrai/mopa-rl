@@ -12,6 +12,7 @@ from math import pi
 from util.misc import save_video
 from util.gym import action_size
 import time
+import cv2
 
 parser = argparser()
 args, unparsed = parser.parse_known_args()
@@ -27,20 +28,58 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 is_save_video = True
+record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
 env_prime = gym.make(args.env, **args.__dict__)
 planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space))
 
+def render_frame(env, step, info={}):
+    color = (200, 200, 200)
+    text = "Step: {}".format(step)
+    frame = env.render('rgb_array') * 255.0
+    fheight, fwidth = frame.shape[:2]
+    frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
+
+    if record_caption:
+        font_size = 0.4
+        thickness = 1
+        offset = 12
+        x, y = 5, fheight+10
+        cv2.putText(frame, text,
+                    (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size, (255, 255, 0), thickness, cv2.LINE_AA)
+
+        for i, k in enumerate(info.keys()):
+            v = info[k]
+            key_text = '{}: '.format(k)
+            (key_width, _), _ = cv2.getTextSize(key_text, cv2.FONT_HERSHEY_SIMPLEX,
+                                              font_size, thickness)
+            cv2.putText(frame, key_text,
+                        (x, y+offset*(i+2)),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        font_size, (66, 133, 244), thickness, cv2.LINE_AA)
+            cv2.putText(frame, str(v),
+                        (x + key_width, y+offset*(i+2)),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        font_size, (255, 255, 255), thickness, cv2.LINE_AA)
+    return frame
+
+
+
 def run_mp(env, planner, i=None):
     error = 0
+    end_error = 0
     env.reset()
+    mp_env = gym.make(args.env, **args.__dict__)
+    mp_env.reset()
     qpos = env.sim.data.qpos.ravel()
     qvel = env.sim.data.qvel.ravel()
     #env.goal = [-0.25128643, 0.14829235]
     #qpos[-2:] = env.goal
     #qpos[:-2] = [0.09539838, 0.04237122, 0.05476331, -0.0676346, -0.0434791, -0.06203809, 0.03571644]
     #qvel[:-2] = [ 0.00293847, 0.00158573, 0.0018593, 0.00122192, -0.0016253, 0.00225007, 0.00001702]
+    success = False
     env.set_state(qpos, qvel)
     goal = env.goal
 
@@ -58,69 +97,62 @@ def run_mp(env, planner, i=None):
     goal = result.qpos
 
     traj, actions = planner.plan(start, goal,  args.timelimit, is_simplified=True)
+    if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
+        success = True
+
+    if success:
+        goal = env.sim.data.qpos[-2:]
+        frames = []
+        action_frames = []
+        for step, state in enumerate(traj[1:]):
+            if is_save_video:
+                frames.append(render_frame(env, step))
+            else:
+                env.render(mode='human')
+            #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+            mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+            #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
+            action = state[:-2]-env.get_joint_positions
+            env.step(action)
+            error += np.sqrt((env.sim.data.qpos - state)**2)
+            end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
 
 
-    goal = env.sim.data.qpos[-2:]
-    frames = []
-    action_frames = []
-    for state in traj[1:]:
         if is_save_video:
-            frame = env.render(mode='rgb_array')
-            frames.append(frame*255.)
+            frames.append(render_frame(env, step))
+            prefix_path = os.path.join('./tmp', args.planner_type, args.env, str(args.construct_time))
+            if not os.path.exists(prefix_path):
+                os.makedirs(prefix_path)
+            if i is None:
+                i == ""
+            fpath = os.path.join(prefix_path, '{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
+            save_video(fpath, frames, fps=5)
         else:
             env.render(mode='human')
-        #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-        #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
-        action = state[:-2]-env.get_joint_positions
-        env.step(action)
-        error += np.sqrt((env.sim.data.qpos - state)**2)
 
-    if is_save_video:
-        frame = env.render(mode='rgb_array')
-        frames.append(frame*255.)
-        prefix_path = os.path.join('./tmp', args.planner_type)
-        if not os.path.exists(prefix_path):
-            os.mkdir(prefix_path)
-        if i is None:
-            i == ""
-        fpath = os.path.join(prefix_path, 'action_{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
-        save_video(fpath, frames, fps=5)
-    else:
-        env.render(mode='human')
-
-    num_states = len(traj[1:])
+        num_states = len(traj[1:])
 
 
-    return error / len(traj[1:]), num_states
+    return error / len(traj[1:]), num_states, end_error/len(traj[1:]), success
+    #return success
 
 errors = 0
 global_num_states = 0
+global_end_error = 0
 N = 5
+num_success = 0
 for i in range(N):
-    error, num_states = run_mp(env, planner, i)
+    error, num_states, end_error, success = run_mp(env, planner, i)
     errors += error
+    global_end_error += end_error
     global_num_states += num_states
+    if success:
+        num_success += 1
 
-print(errors/N)
-print(global_num_states)
+print(num_success)
+print('End effector error: ', global_end_error)
+print('Joint state error: ', errors)
 
-# for action in actions:
-#     if is_save_video:
-#         frame = env_prime.render(mode='rgb_array')
-#         action_frames.append(frame*255.)
-#     else:
-#         env_prime.render(mode='human')
-#     env_prime.step(action)
-#
-# if is_save_video:
-#     frame = env_prime.render(mode='rgb_array')
-#     action_frames.append(frame*255.)
-#     prefix_path = os.path.join('./tmp', args.planner_type)
-#     if not os.path.exists(prefix_path):
-#         os.mkdir(prefix_path)
-#     fpath = os.path.join(prefix_path, 'action_{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
-#     save_video(fpath, action_frames)
-# else:
-#     env_prime.render(mode='human')
-#
-#
+
+
+

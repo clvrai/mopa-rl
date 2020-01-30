@@ -19,8 +19,8 @@ class SamplingBasedPlanner:
                                  config.range,
                                  config.construct_time)
 
-    def plan(self, start, goal, timelimit=1., is_simplified=False, simplified_duration=1.0):
-        states = np.array(self.planner.plan(start, goal, timelimit, is_simplified, simplified_duration))
+    def plan(self, start, goal, timelimit=1., max_steps=200):
+        states = np.array(self.planner.plan(start, goal, timelimit, max_steps))
         actions = []
 
         # TODO more efficient way

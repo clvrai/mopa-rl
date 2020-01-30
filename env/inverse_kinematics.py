@@ -74,7 +74,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
         if target_pos is not None:
             err_pos[:] = target_pos - site_xpos
-           # print('steps=', steps, '   ', np.linalg.norm(err_pos))
             err_norm += np.linalg.norm(err_pos)
 
         if target_quat is not None:
@@ -86,7 +85,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
 
         if err_norm < tol:
-            print('success')
             success =True
             break
         else:
@@ -106,7 +104,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
             progress_criterion = err_norm / update_norm
             if progress_criterion > progress_thresh:
-                print('halting')
                 break
 
             if update_norm > max_update_norm:
@@ -115,13 +112,11 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             update_nv[dof_indices] = update_joints
 
             env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
-            ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
-            #env.step(update_nv[:-2])
             site_xpos = env._get_pos(site)
             site_xmat = env.data.get_body_xmat(site).ravel()
-            if steps % 10 == 0:
-                print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
-                      steps, err_norm, update_norm)
+            # if steps % 10 == 0:
+            #     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
+            #           steps, err_norm, update_norm)
 
     if env.sim.data.ncon > 0:
         print("Colision detected")
