@@ -16,8 +16,9 @@ class ReacherObstaclePixelEnv(BaseEnv):
         self.memory = np.empty([84, 84, 4], dtype=np.uint8)
 
     def _reset(self):
-        self._set_camera_position(0, [0, -1.0, 1.0])
-        self._set_camera_rotation(0, [0, 0, 0])
+        self._set_camera_position(0, [0, -0.85, 0.45])
+        #self._set_camera_position(0, [0, -1.05, 0.4])
+        self._set_camera_rotation(0, [0, 0, -0.15])
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
@@ -46,12 +47,14 @@ class ReacherObstaclePixelEnv(BaseEnv):
 
     def _get_obs(self):
         img = self.sim.render(camera_name=self._camera_name,
-                                     width=self._img_width,
-                                     height=self._img_height,
+                                     width=180,
+                                     height=100,
                                      depth=False)
         img = np.flipud(img)
         gray = color.rgb2gray(img)
         gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+        import matplotlib.pyplot as plt
+        plt.imsave('./tmp/sample_obs.png', gray_resized, cmap=plt.get_cmap('gray'))
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized*255
         return self.memory
