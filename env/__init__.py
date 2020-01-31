@@ -27,3 +27,9 @@ register(
     entry_point='env.reacher:ReacherObstaclePixelEnv',
     kwargs={},
 )
+
+register(
+    id='reacher-pixel-v0',
+    entry_point='env.reacher:ReacherPixelEnv',
+    kwargs={},
+)
