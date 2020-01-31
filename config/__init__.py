@@ -18,7 +18,7 @@ def argparser():
     parser.add_argument("--algo", type=str, default="sac",
                         choices=["sac", "ppo"])
     parser.add_argument("--policy", type=str, default="mlp",
-                        choices=["mlp"])
+                        choices=["mlp", "cnn"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
                         choices=['HL', 'LL', 'both'])
 

@@ -101,12 +101,11 @@ class RolloutRunner(object):
             subgoal = meta_ac['default'][-2:] if config.hl_type == 'subgoal' else None
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
-                meta_tmp_ac = OrderedDict([('default', np.array([0]))])
                 if config.hrl:
                     if config.hl_type == 'subgoal':
                         # Change later.... change meta_ac structure (subgoal: [], low_level: [0])
                         ll_ob = OrderedDict([('default', np.concatenate((ll_ob['default'], meta_ac['default'])))])
-                    ac, ac_before_activation = pi.act(ll_ob, meta_tmp_ac, is_train=is_train)
+                    ac, ac_before_activation = pi.act(ll_ob, meta_ac, is_train=is_train)
                 else:
                     ac, ac_before_activation = pi.act(ll_ob, is_train=is_train)
 

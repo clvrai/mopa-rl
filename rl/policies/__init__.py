@@ -1,12 +1,12 @@
 from .mlp_actor_critic import MlpActor, MlpCritic
-from .manual_subdiv_actor import ManualSubdivActor
+from .cnn_actor_critic import CNNActor, CNNCritic
 
 
 def get_actor_critic_by_name(name):
     if name == 'mlp':
         return MlpActor, MlpCritic
-    elif name == 'manual':
-        return ManualSubdivActor, MlpCritic
+    elif name == 'cnn':
+        return CNNActor, CNNCritic
     else:
         raise NotImplementedError()
 

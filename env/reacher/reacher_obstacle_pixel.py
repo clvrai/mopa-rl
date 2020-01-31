@@ -2,8 +2,9 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces 
+from gym import spaces
 from env.base import BaseEnv
+from skimage import color, transform
 
 
 class ReacherObstaclePixelEnv(BaseEnv):
@@ -48,10 +49,9 @@ class ReacherObstaclePixelEnv(BaseEnv):
                                      width=self._img_width,
                                      height=self._img_height,
                                      depth=False)
+        img = np.flipud(img)
         gray = color.rgb2gray(img)
         gray_resized = transform.resize(gray, (self._img_height, self._img_width))
-        import pdb
-        pdb.set_trace()
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized*255
         return self.memory
