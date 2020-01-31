@@ -21,3 +21,15 @@ register(
     entry_point='env.reacher:ReacherObstacleTestEnv',
     kwargs={},
 )
+
+register(
+    id='reacher-obstacle-pixel-v0',
+    entry_point='env.reacher:ReacherObstaclePixelEnv',
+    kwargs={},
+)
+
+register(
+    id='reacher-pixel-v0',
+    entry_point='env.reacher:ReacherPixelEnv',
+    kwargs={},
+)

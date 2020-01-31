@@ -18,13 +18,9 @@ def argparser():
     parser.add_argument("--algo", type=str, default="sac",
                         choices=["sac", "ppo"])
     parser.add_argument("--policy", type=str, default="mlp",
-                        choices=["mlp"])
+                        choices=["mlp", "cnn"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
                         choices=['HL', 'LL', 'both'])
-    parser.add_argument("--warmup_ep", type=int, default=300)
-    parser.add_argument("--warmup", type=str2bool, default=False)
-    parser.add_argument("--ob_type", type=str, default="state",
-                        choices=["state", "img"])
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,

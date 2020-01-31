@@ -43,6 +43,8 @@ class BaseEnv(gym.Env):
         self._seed = kwargs['seed']
         self._gym_disable_underscore_compat = True
         self._action_repeat = kwargs['action_repeat']
+        self._img_height = kwargs['img_height']
+        self._img_width = kwargs['img_width']
 
         # Load model
         self._load_model(xml_path)
