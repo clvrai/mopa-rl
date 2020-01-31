@@ -16,9 +16,8 @@ class ReacherObstaclePixelEnv(BaseEnv):
         self.memory = np.empty([84, 84, 4], dtype=np.uint8)
 
     def _reset(self):
-        self._set_camera_position(0, [0, -0.85, 0.45])
-        #self._set_camera_position(0, [0, -1.05, 0.4])
-        self._set_camera_rotation(0, [0, 0, -0.15])
+        self._set_camera_position(0, [0, -0.7, 1.5])
+        self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
@@ -47,7 +46,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
 
     def _get_obs(self):
         img = self.sim.render(camera_name=self._camera_name,
-                                     width=180,
+                                     width=100,
                                      height=100,
                                      depth=False)
         img = np.flipud(img)

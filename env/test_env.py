@@ -31,7 +31,7 @@ env._set_pos('subgoal3', [-0.18, 0.05,0])
 env.set_state(qpos, qvel)
 
 for i in range(200):
-    env.render(mode='human')
+    env.render(mode='rgb_array')
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
     if done:
