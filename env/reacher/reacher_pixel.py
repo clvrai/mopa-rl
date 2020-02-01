@@ -15,7 +15,7 @@ class ReacherPixelEnv(BaseEnv):
         self.memory = np.empty([84, 84, 4], dtype=np.uint8)
 
     def _reset(self):
-        self._set_camera_position(0, [0, -0.3, 1.0])
+        self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
 
         while True:
@@ -40,10 +40,10 @@ class ReacherPixelEnv(BaseEnv):
 
 
     def _get_obs(self):
-        img = self.sim.render(camera_name=self._obs_camera_name,
-                                     width=180,
-                                     height=100,
-                                     depth=False)
+        img = self.sim.render(camera_name=self._camera_name,
+                              width=100,
+                              height=100,
+                              depth=False)
         img = np.flipud(img)
         gray = color.rgb2gray(img)
         gray_resized = transform.resize(gray, (self._img_height, self._img_width))
