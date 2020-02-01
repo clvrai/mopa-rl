@@ -19,7 +19,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
         self._set_camera_position(0, [0, -1.0, 1.0])
         self._set_camera_rotation(0, [0, 0, 0])
         self._set_camera_position(1, [0, -0.7, 1.5])
-        self._set_camera_rotation(1, [0, 0, 0])
+        self._set_camera_position(1, [0, -0.3, 1.0])
 
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
@@ -55,8 +55,6 @@ class ReacherObstaclePixelEnv(BaseEnv):
         img = np.flipud(img)
         gray = color.rgb2gray(img)
         gray_resized = transform.resize(gray, (self._img_height, self._img_width))
-        import matplotlib.pyplot as plt
-        plt.imsave('./tmp/sample_ob.png', gray_resized, cmap=plt.get_cmap('gray'))
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized
         return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
