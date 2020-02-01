@@ -16,9 +16,11 @@ class ReacherObstaclePixelEnv(BaseEnv):
         self.memory = np.empty([84, 84, 4], dtype=np.uint8)
 
     def _reset(self):
-        self._set_camera_position(0, [0, -0.85, 0.45])
-        #self._set_camera_position(0, [0, -1.05, 0.4])
-        self._set_camera_rotation(0, [0, 0, -0.15])
+        self._set_camera_position(0, [0, -1.0, 1.0])
+        self._set_camera_rotation(0, [0, 0, 0])
+        self._set_camera_position(1, [0, -0.3, 1.0])
+        self._set_camera_rotation(1, [0, 0, 0])
+
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
@@ -54,22 +56,17 @@ class ReacherObstaclePixelEnv(BaseEnv):
         gray = color.rgb2gray(img)
         gray_resized = transform.resize(gray, (self._img_height, self._img_width))
         import matplotlib.pyplot as plt
-        plt.imsave('./tmp/sample_obs.png', gray_resized, cmap=plt.get_cmap('gray'))
+        plt.imsave('./tmp/sample_ob.png', gray_resized, cmap=plt.get_cmap('gray'))
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
-        self.memory[:, :, 0] = gray_resized*255
-        return self.memory
+        self.memory[:, :, 0] = gray_resized
+        return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(self._img_height, self._img_width, 4), low=0, high=255, dtype=np.float32)),
+            ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=255, dtype=np.float32)),
         ])
 
-    @property
-    def ll_observation_space(self):
-        return spaces.Dict([
-            ('default', spaces.Box(shape=(self._img_height, self._img_width, 4), low=0, high=255, dtype=np.float32)),
-        ])
 
     @property
     def get_joint_positions(self):

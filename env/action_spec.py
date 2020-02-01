@@ -43,11 +43,11 @@ class ActionSpec(object):
             raise ValueError('maximum is not compatible with shape. '
                             'Message: {!r}.'.format(numpy_exception))
 
-        self._minimum = np.array(minimum)
-        self._minimum.setflags(write=False)
+        self._minimum = OrderedDict([('default', minimum)])
+        #self._minimum.setflags(write=False)
 
-        self._maximum = np.array(maximum)
-        self._maximum.setflags(write=False)
+        self._maximum = OrderedDict([('default', maximum)])
+        #self._maximum.setflags(write=False)
 
     @property
     def minimum(self):
@@ -114,7 +114,7 @@ class ActionSpec(object):
         self.shape = shape
         self.dtype = OrderedDict([(k, "continuous") for k in shape.keys()])
 
-    def add(self, key, dtype, size, minimum, maxmimum):
+    def add(self, key, dtype, size, minimum, maximum):
         """
         Adds a new action dimension.
         Args:
@@ -127,3 +127,5 @@ class ActionSpec(object):
         self.size += size
         self.shape[key] = size
         self.dtype[key] = dtype
+        self._minimum[key] = minimum
+        self._maximum[key] = maximum

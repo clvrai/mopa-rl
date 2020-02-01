@@ -27,77 +27,58 @@ class LowLevelAgent(SACAgent):
     def _log_creation(self):
         if self._config.is_chef:
             logger.info('Creating a low-level agent')
-            for cluster, skills in zip(self._clusters, self._subdiv_skills):
-                logger.warn('Part {} has skills {}'.format(cluster, skills))
 
     def _build_actor(self, actor):
         config = self._config
 
         # parse body parts and skills
-        clusters = [(self._ob_space.spaces.keys(), self._ac_space.spaces.keys())]
-
-        subdiv_skills = [['primitive']] * len(clusters)
-
-        assert len(subdiv_skills) == len(clusters), \
-            'subdiv_skills and clusters have different # subdivisions'
-
-        self._clusters = clusters
-        self._subdiv_skills = subdiv_skills
-
         self._actors = []
         self._ob_norms = []
 
         # load networks
-        for cluster, skills in zip(self._clusters, self._subdiv_skills):
-            ob_space = spaces.Dict([(k, self._ob_space[k]) for k in cluster[0]])
-            ac_decomposition = OrderedDict([(k, action_size(self._ac_space[k])) for k in cluster[1]])
-            ac_size = sum(action_size(self._ac_space[k]) for k in cluster[1])
-            ac_space = ActionSpec(ac_size, -1, 1)
-            ac_space.decompose(ac_decomposition)
 
-            skill_actors = []
-            skill_ob_norms = []
-            for skill in skills:
-                skill_actor = actor(config, ob_space, ac_space, config.tanh_policy)
-                skill_ob_norm = Normalizer(ob_space,
-                                           default_clip_range=config.clip_range,
-                                           clip_obs=config.clip_obs)
+        # Change here !!!!!!
+        skills = ['skill1']
 
-                if self._config.meta_update_target == 'HL':
-                    path = os.path.join(config.primitive_dir, skill)
-                    ckpt_path, ckpt_num = get_ckpt_path(path, None)
-                    logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
-                    ckpt = torch.load(ckpt_path)
+        for skill in skills:
+            skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
+            skill_ob_norm = Normalizer(self._ob_space,
+                                       default_clip_range=config.clip_range,
+                                       clip_obs=config.clip_obs)
 
-                    if type(ckpt['agent']['actor_state_dict']) == OrderedDict:
-                        # backward compatibility to older checkpoints
-                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'])
-                    else:
-                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0][0])
-                    skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
+            if self._config.meta_update_target == 'HL':
+                path = os.path.join(config.primitive_dir, skill)
+                ckpt_path, ckpt_num = get_ckpt_path(path, None)
+                logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
+                ckpt = torch.load(ckpt_path)
 
-                skill_actor.to(config.device)
-                skill_actors.append(skill_actor)
-                skill_ob_norms.append(skill_ob_norm)
+                if type(ckpt['agent']['actor_state_dict']) == OrderedDict:
+                    # backward compatibility to older checkpoints
+                    skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'])
+                else:
+                    skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0][0])
+                skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
-            self._actors.append(skill_actors)
-            self._ob_norms.append(skill_ob_norms)
+            skill_actor.to(config.device)
+            self._actors.append(skill_actor)
+            self._ob_norms.append(skill_ob_norm)
 
     def act(self, ob, meta_ac, is_train=True):
         ac = OrderedDict()
         activation = OrderedDict()
         if self._config.hrl:
-            for i, skill_idx in enumerate(meta_ac.values()):
-                skill_idx = skill_idx[0]
-                ob_ = ob.copy()
-                ob_ = self._ob_norms[i][skill_idx].normalize(ob_)
-                ob_ = to_tensor(ob_, self._config.device)
-                if self._config.meta_update_target == 'HL':
-                    ac_, activation_ = self._actors[i][skill_idx].act(ob_, False)
-                else:
-                    ac_, activation_ = self._actors[i][skill_idx].act(ob_, is_train)
-                ac.update(ac_)
-                activation.update(activation_)
+            skill_idx = int(meta_ac['default'][0])
+            ob_ = ob.copy()
+            if self._config.policy == 'mlp':
+                ob_ = self._ob_norms[skill_idx].normalize(ob_)
+
+            ob_ = to_tensor(ob_, self._config.device)
+            if self._config.meta_update_target == 'HL':
+                ac_, activation_ = self._actors[skill_idx].act(ob_, False)
+            else:
+                ac_, activation_ = self._actors[skill_idx].act(ob_, is_train)
+            ac.update(ac_)
+            activation.update(activation_)
 
         elif self._config.meta == 'soft':
             for i, skills in enumerate(self._subdiv_skills):
