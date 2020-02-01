@@ -36,6 +36,7 @@ def argparser():
     parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])
+    parser.add_argument("--meta_subgoal_rew", type=float, default=-10)
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
