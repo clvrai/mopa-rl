@@ -87,12 +87,12 @@ class ReacherEnv(BaseEnv):
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
-        velocity = action/self.dt # According to robosuite
+        velocity = 2*action # According to robosuite
         for i in range(self._action_repeat):
             velocity = np.clip(velocity, self._minimum, self._maximum)
             self._do_simulation(velocity)
             if i + 1 < self._action_repeat:
-                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states)/self.dt
+                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states) * 2
 
 
         obs = self._get_obs()

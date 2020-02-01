@@ -27,7 +27,7 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-is_save_video = True
+is_save_video = False
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
@@ -96,7 +96,7 @@ def run_mp(env, planner, i=None):
     start = env.sim.data.qpos.ravel()
     goal = result.qpos
 
-    traj, actions = planner.plan(start, goal,  args.timelimit, is_simplified=True)
+    traj, actions = planner.plan(start, goal,  args.timelimit)
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
 
@@ -105,10 +105,10 @@ def run_mp(env, planner, i=None):
         frames = []
         action_frames = []
         for step, state in enumerate(traj[1:]):
-            if is_save_video:
-                frames.append(render_frame(env, step))
-            else:
-                env.render(mode='human')
+            # if is_save_video:
+            #     frames.append(render_frame(env, step))
+            # else:
+            #     env.render(mode='human')
             #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
             mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
             #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
@@ -118,17 +118,17 @@ def run_mp(env, planner, i=None):
             end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
 
 
-        if is_save_video:
-            frames.append(render_frame(env, step))
-            prefix_path = os.path.join('./tmp', args.planner_type, args.env, str(args.construct_time))
-            if not os.path.exists(prefix_path):
-                os.makedirs(prefix_path)
-            if i is None:
-                i == ""
-            fpath = os.path.join(prefix_path, '{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
-            save_video(fpath, frames, fps=5)
-        else:
-            env.render(mode='human')
+        # if is_save_video:
+        #     frames.append(render_frame(env, step))
+        #     prefix_path = os.path.join('./tmp', args.planner_type, args.env, str(args.construct_time))
+        #     if not os.path.exists(prefix_path):
+        #         os.makedirs(prefix_path)
+        #     if i is None:
+        #         i == ""
+        #     fpath = os.path.join(prefix_path, '{}-{}-{}-timelimit_{}-threshold_{}-range_{}_{}.mp4'.format(args.env, args.planner_type, args.planner_objective, args.timelimit, args.threshold, args.range, i))
+        #     save_video(fpath, frames, fps=5)
+        # else:
+        #     env.render(mode='human')
 
         num_states = len(traj[1:])
 
@@ -139,7 +139,7 @@ def run_mp(env, planner, i=None):
 errors = 0
 global_num_states = 0
 global_end_error = 0
-N = 5
+N = 1
 num_success = 0
 for i in range(N):
     error, num_states, end_error, success = run_mp(env, planner, i)
