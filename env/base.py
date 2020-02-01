@@ -90,7 +90,9 @@ class BaseEnv(gym.Env):
 
         # Camera
         self._camera_name = 'cam0'
+        self._obs_camera_name = 'cam1'
         self._camera_id = self.sim.model.camera_names.index(self._camera_name)
+        self._obs_camera_id = self.sim.model.camera_names.index(self._obs_camera_name)
 
     @property
     def dt(self):

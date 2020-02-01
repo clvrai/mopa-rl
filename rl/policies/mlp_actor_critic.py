@@ -26,6 +26,8 @@ class MlpActor(Actor):
             if isinstance(space, spaces.Box):
                 self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(space))})
                 self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, action_size(space))})
+            elif isinstance(space, spaces.Discrete):
+                self.fc_means.update({k: MLP(config, config.rl_hid_size, space.n)})
             else:
                 self.fc_means.update({k: MLP(config, config.rl_hid_size, space)})
 

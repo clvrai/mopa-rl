@@ -1,4 +1,5 @@
 import numpy as np
+from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,6 +7,7 @@ import torch.optim as optim
 from rl.dataset import ReplayBuffer, RandomSampler
 from rl.base_agent import BaseAgent
 from rl.policies.mlp_actor_critic import MlpActor, MlpCritic
+from rl.policies.cnn_actor_critic import CNNActor, CNNCritic
 from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
@@ -27,29 +29,30 @@ class MetaPPOAgent(BaseAgent):
         clusters = [ob_space.spaces.keys()]
 
         if config.primitive_skills:
-            subdiv_skills = config.subdiv_skills.split('/')
-            subdiv_skills = [skills.split(',') for skills in subdiv_skills]
+            skills = config.primitive_skills
         else:
-            subdiv_skills = [['primitive']] * len(clusters)
-        self.subdiv_skills = subdiv_skills
-
-        assert len(subdiv_skills) == len(clusters), \
-            'subdiv_skills and clusters have different # subdivisions'
+            skills = [['primitive']] * len(clusters)
+        self.skills = skills
 
         if config.hrl:
-            ac_space = ActionSpec(size=0)
-            if config.hl_type == 'discrete':
-                for cluster, skills in zip(clusters, subdiv_skills):
-                    ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
-            elif config.hl_type == 'subgoal':
-                ac_space = joint_space
+            # ac_space = ActionSpec(size=0)
+            ac_space = spaces.Dict()
+            ac_space.spaces['default'] = spaces.Discrete(len(skills))
+                #ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
+            if config.hl_type == 'subgoal':
+                ac_space.spaces['subgoal'] = joint_space['default']
             self.ac_space = ac_space
 
-
         # build up networks
-        self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
-        self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
-        self._critic = MlpCritic(config, ob_space)
+        if config.policy == 'mlp':
+            self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
+            self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
+            self._critic = MlpCritic(config, ob_space)
+        elif config.policy == 'cnn':
+            self._actor = CNNActor(config, ob_space, ac_space, tanh_policy=False)
+            self._old_actor = CNNActor(config, ob_space, ac_space, tanh_policy=False)
+            self._critic = CNNCritic(config, ob_space)
+
         self._network_cuda(config.device)
 
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_actor)
@@ -217,7 +220,8 @@ class MetaPPOAgent(BaseAgent):
 
     def act(self, ob, is_train=True):
         if self._config.hrl:
-            ob = self.normalize(ob)
+            if self._config.policy != 'cnn':
+                ob = self.normalize(ob)
             return self._actor.act(ob, is_train, return_log_prob=True)
         else:
             return [0], None, None

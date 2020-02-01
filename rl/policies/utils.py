@@ -5,18 +5,16 @@ import torch.nn.functional as F
 
 
 class CNN(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, input_dim):
         super().__init__()
-        self.activation_fn = getattr(F, config.activation)
+        self.activation_fn = nn.ReLU()
 
         self.convs = nn.ModuleList()
-        d_prev = 3
-        d = config.conv_dim
-        w = config.screen_width
-        for k, s in zip(config.kernel_size, config.stride):
-            self.convs.append(nn.Conv2d(d_prev, d, int(k), int(s)))
+        w = config.img_width
+        for k, s, d in zip(config.kernel_size, config.stride, config.conv_dim):
+            self.convs.append(nn.Conv2d(input_dim, d, int(k), int(s)))
             w = int(np.floor((w - (int(k) - 1) - 1) / int(s) + 1))
-            d_prev = d
+            input_dim = d
 
         # screen_width == 32 (8,4)-(3,2) -> 3x3
         # screen_width == 64 (8,4)-(3,2)-(3,2) -> 3x3
