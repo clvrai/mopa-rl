@@ -38,7 +38,10 @@ class LowLevelAgent(SACAgent):
         # load networks
 
         # Change here !!!!!!
-        skills = ['skill1']
+        if config.primitive_skills:
+            skills = config.primitive_skills
+        else:
+            skills = ['primitive']
 
         for skill in skills:
             skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)

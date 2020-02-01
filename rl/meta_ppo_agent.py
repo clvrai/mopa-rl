@@ -26,13 +26,13 @@ class MetaPPOAgent(BaseAgent):
             logger.warn('Creating a dummy meta PPO agent')
             return
 
-        clusters = [ob_space.spaces.keys()]
 
         if config.primitive_skills:
             skills = config.primitive_skills
         else:
-            skills = [['primitive']] * len(clusters)
+            skills = ['primitive']
         self.skills = skills
+
 
         if config.hrl:
             # ac_space = ActionSpec(size=0)
