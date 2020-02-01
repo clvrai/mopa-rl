@@ -15,10 +15,8 @@ class ReacherPixelEnv(BaseEnv):
         self.memory = np.empty([84, 84, 4], dtype=np.uint8)
 
     def _reset(self):
-        self._set_camera_position(0, [0, -1.0, 1.0])
+        self._set_camera_position(0, [0, -0.3, 1.0])
         self._set_camera_rotation(0, [0, 0, 0])
-        self._set_camera_position(1, [0, -0.3, 1.0])
-        self._set_camera_rotation(1, [0, 0, 0])
 
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
