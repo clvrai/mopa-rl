@@ -12,6 +12,7 @@ import moviepy.editor as mpy
 from tqdm import tqdm, trange
 import env
 import gym
+from gym import spaces
 
 from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
@@ -19,6 +20,7 @@ from rl.rollouts import RolloutRunner
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters
 from util.mpi import mpi_sum
+from util.gym import observation_size
 
 
 def get_agent_by_name(algo):
@@ -53,10 +55,17 @@ class Trainer(object):
 
         if config.hl_type == 'subgoal':
             # use subgoal
-            ll_ob_space = self._env.ll_observation_space
+            if config.policy == 'cnn':
+                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': joint_space['default']})
+            elif config.policy == 'mlp':
+                ll_ob_space = spaces.Dict({'default': ob_space['default'],
+                                           'subgoal': joint_space['default']})
+            else:
+                raise NotImplementedError
         else:
             # no subgoal, only choose which low-level controler we use
-            ll_ob_space = ob_space
+            ll_ob_space = spaces.Dict({'default': ob_space['default']})
+
 
         if config.hrl:
             if config.ll_type == 'rl':
@@ -257,7 +266,7 @@ class Trainer(object):
 
             logger.info("Update networks done")
 
-            if step < config.max_ob_norm_step:
+            if step < config.max_ob_norm_step and self._config.policy != 'cnn':
                 self._update_normalizer(rollout, meta_rollout)
 
             step += step_per_batch

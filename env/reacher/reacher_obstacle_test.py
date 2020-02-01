@@ -62,12 +62,6 @@ class ReacherObstacleTestEnv(BaseEnv):
         ])
 
     @property
-    def ll_observation_space(self):
-        return spaces.Dict([
-            ('default', spaces.Box(shape=(25,), low=-1, high=1, dtype=np.float32))
-        ])
-
-    @property
     def get_joint_positions(self):
         """
         The joint position except for goal states

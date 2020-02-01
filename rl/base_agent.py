@@ -20,7 +20,7 @@ class BaseAgent(object):
         if hasattr(self, '_actor'):
             ac, activation = self._actor.act(ob, is_train=is_train)
         else:
-            ac, activation = self._actors[0][0].act(ob, is_train=is_train)
+            ac, activation = self._actors[0].act(ob, is_train=is_train)
 
         return ac, activation
 

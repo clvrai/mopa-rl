@@ -33,7 +33,7 @@ def argparser():
 
     parser.add_argument("--ll_type", type=str, default="rl",
                         help="low level controller choice", choices=["rl", "mp"])
-    parser.add_argument("--primitive_skills", type=str, default=None)
+    parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])
 
@@ -42,6 +42,10 @@ def argparser():
     parser.add_argument("--rl_activation", type=str, default="relu",
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
+
+    parser.add_argument("--kernel_size", nargs='+', default=[8, 4, 3,])
+    parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
+    parser.add_argument("--stride", nargs='+', default=[4, 2, 1])
 
     # observation normalization
     parser.add_argument("--ob_norm", type=str2bool, default=True)

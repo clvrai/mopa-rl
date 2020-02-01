@@ -41,7 +41,7 @@ class SACAgent(BaseAgent):
         self._critic2_target.load_state_dict(self._critic2.state_dict())
         self._network_cuda(config.device)
 
-        self._actor_optims = [[optim.Adam(_actor.parameters(), lr=config.lr_actor) for _actor in _agent] for _agent in self._actors]
+        self._actor_optims = [optim.Adam(_actor.parameters(), lr=config.lr_actor) for _actor in self._actors]
         self._critic1_optim = optim.Adam(self._critic1.parameters(), lr=config.lr_critic)
         self._critic2_optim = optim.Adam(self._critic2.parameters(), lr=config.lr_critic)
 
@@ -56,16 +56,15 @@ class SACAgent(BaseAgent):
     def _log_creation(self):
         if self._config.is_chef:
             logger.info('Creating a SAC agent')
-            for i, _agent in enumerate(self._actors):
-                for j, _actor in enumerate(_agent):
-                    logger.info('The actor for agent #{} and skill #{} has %d parameters'.format(i + 1, j + 1), count_parameters(_actor))
+            for i, _actor in enumerate(self._actors):
+                logger.info('Skill #{} has %d parameters'.format(i + 1), count_parameters(_actor))
             logger.info('The critic1 has %d parameters', count_parameters(self._critic1))
             logger.info('The critic2 has %d parameters', count_parameters(self._critic2))
 
 
     def _build_actor(self, actor):
-        self._actors = [[actor(self._config, self._ob_space, self._ac_space,
-                               self._config.tanh_policy)]] # num_body_parts, num_skills
+        self._actors = [actor(self._config, self._ob_space, self._ac_space,
+                               self._config.tanh_policy)] # num_body_parts, num_skills
 
     def store_episode(self, rollouts):
         self._buffer.store_episode(rollouts)
@@ -110,18 +109,16 @@ class SACAgent(BaseAgent):
         optimizer_cuda(self._critic2_optim, self._config.device)
 
     def _network_cuda(self, device):
-        for _agent in self._actors:
-            for _actor in _agent:
-                _actor.to(device)
+        for _actor in self._actors:
+            _actor.to(device)
         self._critic1.to(device)
         self._critic2.to(device)
         self._critic1_target.to(device)
         self._critic2_target.to(device)
 
     def sync_networks(self):
-        for _agent in self._actors:
-            for _actor in _agent:
-                sync_networks(_actor)
+        for _actor in self._actors:
+            sync_networks(_actor)
         sync_networks(self._critic1)
         sync_networks(self._critic2)
 
@@ -133,8 +130,8 @@ class SACAgent(BaseAgent):
             self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
 
         train_info.update({
-            'actor_grad_norm': np.mean([np.mean([compute_gradient_norm(_actor) for _actor in _agent]) for _agent in self._actors]),
-            'actor_weight_norm': np.mean([np.mean([compute_weight_norm(_actor) for _actor in _agent]) for _agent in self._actors]),
+            'actor_grad_norm': np.mean([compute_gradient_norm(_actor) for _actor in self._actors]),
+            'actor_weight_norm': np.mean([compute_weight_norm(_actor) for _actor in self._actors]),
             'critic1_grad_norm': compute_gradient_norm(self._critic1),
             'critic2_grad_norm': compute_gradient_norm(self._critic2),
             'critic1_weight_norm': compute_weight_norm(self._critic1),
@@ -146,7 +143,7 @@ class SACAgent(BaseAgent):
         #assert meta_ac is None, "vanilla SAC agent doesn't support meta action input"
         if meta_ac:
             raise NotImplementedError()
-        return self._actors[0][0].act_log(ob)
+        return self._actors[0].act_log(ob)
 
     def _update_network(self, transitions):
         info = {}
@@ -214,15 +211,13 @@ class SACAgent(BaseAgent):
         info['critic2_loss'] = critic2_loss.cpu().item()
 
         # update the actor
-        for _agent in self._actor_optims:
-            for _actor_optim in _agent:
-                _actor_optim.zero_grad()
+        for _actor_optim in self._actor_optims:
+            _actor_optim.zero_grad()
         actor_loss.backward()
         #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
-        for i, _agent in enumerate(self._actors):
-            for j, _actor in enumerate(_agent):
+        for i, _actor in enumerate(self._actors):
                 sync_grads(_actor)
-                self._actor_optims[i][j].step()
+                self._actor_optims[i].step()
 
         # update the critic
         self._critic1_optim.zero_grad()
@@ -238,8 +233,8 @@ class SACAgent(BaseAgent):
         self._critic2_optim.step()
 
         # include info from policy
-        if len(self._actors) == 1 and len(self._actors[0]) == 1:
-            info.update(self._actors[0][0].info)
+        if len(self._actors) == 1:
+            info.update(self._actors[0].info)
         else:
             constructed_info = {}
             for i, _agent in enumerate(self._actors):
