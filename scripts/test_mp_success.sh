@@ -1,6 +1,0 @@
-python -m tests.ompl_test --planner_type prm_star --planner_objective state_const_integral --range 20.0 --threshold 0.01 --timelimit 1. --construct_time 100 --env reacher-obstacle-v0 --action_repeat 3
-python -m tests.ompl_test --planner_type prm_star --planner_objective state_const_integral --range 20.0 --threshold 0.01 --timelimit 1. --construct_time 200 --env reacher-obstacle-v0 --action_repeat 3
-python -m tests.ompl_test --planner_type prm_star --planner_objective state_const_integral --range 20.0 --threshold 0.01 --timelimit 1. --construct_time 300 --env reacher-obstacle-v0 --action_repeat 3
-python -m tests.ompl_test --planner_type prm_star --planner_objective state_const_integral --range 20.0 --threshold 0.01 --timelimit 1. --construct_time 400 --env reacher-obstacle-v0 --action_repeat 3
-python -m tests.ompl_test --planner_type prm_star --planner_objective state_const_integral --range 20.0 --threshold 0.01 --timelimit 1. --construct_time 500 --env reacher-obstacle-v0 --action_repeat 3
-python -m tests.ompl_test --planner_type prm_star --planner_objective state_const_integral --range 20.0 --threshold 0.01 --timelimit 1. --construct_time 600 --env reacher-obstacle-v0 --action_repeat 3
