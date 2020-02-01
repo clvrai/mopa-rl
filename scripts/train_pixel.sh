@@ -1,1 +1,1 @@
-python -m rl.main --env reacher-pixel-v0 --hrl True --log_root_dir ./logs --prefix baseline.reacher_pixel --max_global_step 10000000 --meta_update_target both --ll_type rl --hl_type discrete --policy cnn
+python -m rl.main --env reacher-pixel-v0 --hrl True --log_root_dir ./logs --prefix baseline.reacher_pixel_v1 --max_global_step 10000000 --meta_update_target both --ll_type rl --hl_type discrete --policy cnn

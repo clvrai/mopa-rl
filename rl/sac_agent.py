@@ -72,11 +72,11 @@ class SACAgent(BaseAgent):
     def state_dict(self):
         return {
             'log_alpha': self._log_alpha.cpu().detach().numpy(),
-            'actor_state_dict': [[_actor.state_dict() for _actor in _agent] for _agent in self._actors],
+            'actor_state_dict': [_actor.state_dict() for _actor in self._actors],
             'critic1_state_dict': self._critic1.state_dict(),
             'critic2_state_dict': self._critic2.state_dict(),
             'alpha_optim_state_dict': self._alpha_optim.state_dict(),
-            'actor_optim_state_dict': [[_actor_optim.state_dict() for _actor_optim in _agent] for _agent in self._actor_optims],
+            'actor_optim_state_dict': [_actor_optim.state_dict() for _actor_optim in self._actor_optims],
             'critic1_optim_state_dict': self._critic1_optim.state_dict(),
             'critic2_optim_state_dict': self._critic2_optim.state_dict(),
             'ob_norm_state_dict': self._ob_norm.state_dict(),
@@ -85,9 +85,8 @@ class SACAgent(BaseAgent):
     def load_state_dict(self, ckpt):
         self._log_alpha.data = torch.tensor(ckpt['log_alpha'], requires_grad=True,
                                             device=self._config.device)
-        for _agent, agent_ckpt in zip(self._actors, ckpt['actor_state_dict']):
-            for _actor, actor_ckpt in zip(_agent, agent_ckpt):
-                _actor.load_state_dict(actor_ckpt)
+        for _actor, actor_ckpt in zip(self._actors, ckpt['actor_state_dict']):
+            _actor.load_state_dict(actor_ckpt)
         self._critic1.load_state_dict(ckpt['critic1_state_dict'])
         self._critic2.load_state_dict(ckpt['critic2_state_dict'])
         self._critic1_target.load_state_dict(self._critic1.state_dict())
@@ -96,15 +95,13 @@ class SACAgent(BaseAgent):
         self._network_cuda(self._config.device)
 
         self._alpha_optim.load_state_dict(ckpt['alpha_optim_state_dict'])
-        for _agent, agent_optim_ckpt in zip(self._actor_optims, ckpt['actor_optim_state_dict']):
-            for _actor_optim, actor_optim_ckpt in zip(_agent, agent_optim_ckpt):
-                _actor_optim.load_state_dict(actor_optim_ckpt)
+        for _actor_optim, actor_optim_ckpt in zip(self._actor_optims, ckpt['actor_optim_state_dict']):
+            _actor_optim.load_state_dict(actor_optim_ckpt)
         self._critic1_optim.load_state_dict(ckpt['critic1_optim_state_dict'])
         self._critic2_optim.load_state_dict(ckpt['critic2_optim_state_dict'])
         optimizer_cuda(self._alpha_optim, self._config.device)
-        for _agent in self._actor_optims:
-            for _actor_optim in _agent:
-                optimizer_cuda(_actor_optim, self._config.device)
+        for _actor_optim in self._actor_optims:
+            optimizer_cuda(_actor_optim, self._config.device)
         optimizer_cuda(self._critic1_optim, self._config.device)
         optimizer_cuda(self._critic2_optim, self._config.device)
 
