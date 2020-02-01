@@ -52,7 +52,6 @@ class MlpActor(Actor):
 
             means[k] = mean
             stds[k] = std
-
         return means, stds
 
 

@@ -13,7 +13,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
     def __init__(self, **kwargs):
         super().__init__("reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
-        self.memory = np.empty([84, 84, 4], dtype=np.uint8)
+        self.memory = np.zeros((84, 84, 4))
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -47,12 +47,12 @@ class ReacherObstaclePixelEnv(BaseEnv):
 
     def _get_obs(self):
         img = self.sim.render(camera_name=self._camera_name,
-                                     width=100,
-                                     height=100,
-                                     depth=False)
+                              width=100,
+                              height=100,
+                              depth=False)
         img = np.flipud(img)
         gray = color.rgb2gray(img)
-        gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+        gray_resized = transform.resize(gray, (self._img_height, self._img_width)) / 255.
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized
         return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])

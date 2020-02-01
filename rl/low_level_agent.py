@@ -74,6 +74,8 @@ class LowLevelAgent(SACAgent):
             ob_ = ob.copy()
             if self._config.policy == 'mlp':
                 ob_ = self._ob_norms[skill_idx].normalize(ob_)
+            # if self._config.hl_type == 'subgoal':
+            #     ob_['subgoal'] = self._ob_norms[skill_idx].normalize(ob)
 
             ob_ = to_tensor(ob_, self._config.device)
             if self._config.meta_update_target == 'HL':

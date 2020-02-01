@@ -14,7 +14,7 @@ class ReacherEnv(BaseEnv):
         super().__init__("reacher.xml", **kwargs)
 
     def _reset(self):
-        self._set_camera_position(0, [0, -1.0, 1.0])
+        self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=-.35, high=.35, size=2)

@@ -12,7 +12,7 @@ class ReacherPixelEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("reacher.xml", **kwargs)
-        self.memory = np.empty([84, 84, 4], dtype=np.uint8)
+        self.memory = np.zeros((84, 84, 4))
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -46,7 +46,7 @@ class ReacherPixelEnv(BaseEnv):
                               depth=False)
         img = np.flipud(img)
         gray = color.rgb2gray(img)
-        gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+        gray_resized = transform.resize(gray, (self._img_height, self._img_width)) / 255.
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized
         return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
