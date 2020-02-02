@@ -194,12 +194,11 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
-            target_qpos = np.array(meta_ac['default'])
-            traj, actions = self._mp.plan(curr_qpos, target_qpos)
+            subgoal = meta_ac['subgoal']
+            traj, actions = self._mp.plan(curr_qpos, subgoal)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
-            subgoal = meta_ac['subgoal'] if config.hl_type == 'subgoal' else None
 
             if success:
                 mp_success += 1
