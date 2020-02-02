@@ -240,6 +240,8 @@ class RolloutRunner(object):
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
             else:
+                ep_len += 1
+                reward_info['episode_success'].append(False)
                 meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
         # last frame
         ll_ob = ob.copy()

@@ -46,7 +46,7 @@ class ReacherPixelEnv(BaseEnv):
                               depth=False)
         img = np.flipud(img)
         gray = color.rgb2gray(img)
-        gray_resized = transform.resize(gray, (self._img_height, self._img_width)) / 255.
+        gray_resized = transform.resize(gray, (self._img_height, self._img_width))
         self.memory[:, :, 1:] = self.memory[:, :, 0:3]
         self.memory[:, :, 0] = gray_resized
         return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
@@ -54,7 +54,7 @@ class ReacherPixelEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=255, dtype=np.float32)),
+            ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
         ])
 
     @property

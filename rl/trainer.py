@@ -456,6 +456,6 @@ class Trainer(object):
         wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
 
     def log_obs(self, obs, name, step=None):
-        log_dict = {name: [wandb.Image(obs*255, mode='L')]}
+        log_dict = {name: [wandb.Image(obs, mode='L')]}
         wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
 
