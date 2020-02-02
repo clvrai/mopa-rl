@@ -44,7 +44,7 @@ def argparser():
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
 
-    parser.add_argument("--kernel_size", nargs='+', default=[8, 4, 3,])
+    parser.add_argument("--kernel_size", nargs='+', default=[8, 4, 3])
     parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
     parser.add_argument("--stride", nargs='+', default=[4, 2, 1])
 

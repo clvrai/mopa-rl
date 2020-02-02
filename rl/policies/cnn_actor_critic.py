@@ -29,8 +29,8 @@ class CNNActor(Actor):
         self._aux_keys = []
         for k, space in self._ob_space.spaces.items():
             if len(space.shape) == 1:
-                self.aux_fc.update({k: MLP(config, observation_size(space), config.rl_hid_size, [config.rl_hid_size])})
-                out_size += config.rl_hid_size
+                self.aux_fc.update({k: MLP(config, observation_size(space), int(config.rl_hid_size/4))})
+                out_size += config.rl_hid_size/4
                 self._aux_keys.append(k)
 
         self.fc = MLP(config, out_size, config.rl_hid_size, [config.rl_hid_size])
