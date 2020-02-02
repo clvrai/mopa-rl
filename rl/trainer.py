@@ -113,19 +113,20 @@ class Trainer(object):
         torch.save(state_dict, ckpt_path)
         logger.warn("Save checkpoint: %s", ckpt_path)
 
-        replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
-        with gzip.open(replay_path, "wb") as f:
-            if self._config.hrl:
-                if self._config.hrl_network_to_update == "HL":
-                    replay_buffers = {"replay": self._meta_agent.replay_buffer()}
-                elif self._config.hrl_network_to_update == "LL":
+        if self._config.policy == 'mlp':
+            replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
+            with gzip.open(replay_path, "wb") as f:
+                if self._config.hrl:
+                    if self._config.hrl_network_to_update == "HL":
+                        replay_buffers = {"replay": self._meta_agent.replay_buffer()}
+                    elif self._config.hrl_network_to_update == "LL":
+                        replay_buffers = {"replay": self._agent.replay_buffer()}
+                    else: # both
+                        replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
+                                          "ll_replay": self._agent.replay_buffer()}
+                else:
                     replay_buffers = {"replay": self._agent.replay_buffer()}
-                else: # both
-                    replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
-                                      "ll_replay": self._agent.replay_buffer()}
-            else:
-                replay_buffers = {"replay": self._agent.replay_buffer()}
-            pickle.dump(replay_buffers, f)
+                pickle.dump(replay_buffers, f)
 
     def _load_ckpt(self, ckpt_num=None):
         ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
