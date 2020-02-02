@@ -84,11 +84,8 @@ class RolloutRunner(object):
         # run rollout
         meta_ac = None
         while not done and ep_len < max_step:
-            curr_meta_ac, meta_ac_before_activation, meta_log_prob = \
+            meta_ac, meta_ac_before_activation, meta_log_prob = \
                 meta_pi.act(ob, is_train=is_train)
-
-            if meta_ac is None:
-                meta_ac = curr_meta_ac
 
             meta_rollout.add({
                 'meta_ob': ob, 'meta_ac':  meta_ac,
@@ -185,11 +182,8 @@ class RolloutRunner(object):
         meta_ac = None
         success = False
         while not done and ep_len < max_step:
-            curr_meta_ac, meta_ac_before_activation, meta_log_prob =\
+            meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
-
-            if meta_ac is None:
-                meta_ac = curr_meta_ac
 
             meta_rollout.add({
                 'meta_ob': ob, 'meta_ac': meta_ac,
@@ -200,12 +194,13 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
-            target_qpos = np.array(curr_meta_ac['default'])
+            target_qpos = np.array(meta_ac['default'])
             traj, actions = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
             subgoal = meta_ac['subgoal'] if config.hl_type == 'subgoal' else None
+
             if success:
                 mp_success += 1
                 for state in traj:
@@ -213,7 +208,7 @@ class RolloutRunner(object):
                     if config.hrl and config.hl_type == 'subgoal':
                         ll_ob['subgoal'] = meta_ac['subgoal']
 
-                    ac = -(env.sim.data.qpos[:-2] - state[:-2])*env._frame_skip
+                    ac = state[:-2] - env.sim.data.qpos[:-2]
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
@@ -228,9 +223,6 @@ class RolloutRunner(object):
 
                     for key, value in info.items():
                         reward_info[key].append(value)
-                    if record:
-                        frame_info = info.copy()
-                        self._store_frame(frame_info, subgoal)
 
                     if record:
                         frame_info = info.copy()
