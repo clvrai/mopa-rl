@@ -232,8 +232,6 @@ class RolloutRunner(object):
                         frame_info = info.copy()
                         self._store_frame(frame_info, subgoal)
 
-                    for key, value in info.items():
-                        reward_info[key].append(value)
                     if record:
                         frame_info = info.copy()
                         if config.hrl:
