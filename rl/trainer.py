@@ -177,6 +177,15 @@ class Trainer(object):
             if obs is not None:
                 self.log_obs(obs, 'test_ep/obs', step=step)
 
+    def _log_mp_test(self, step, ep_info, vids=None, obs=None):
+        if self._config.is_train:
+            for k, v in ep_info.items():
+                wandb.log({"test_mp_ep/%s" % k: np.mean(v)}, step=step)
+            if vids is not None:
+                self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/mp_video', step=step)
+            if obs is not None:
+                self.log_obs(obs, 'test_ep/mp_obs', step=step)
+
     def train(self):
         config = self._config
         num_batches = config.num_batches
@@ -294,10 +303,20 @@ class Trainer(object):
                     self._log_train(step, train_info, ep_info)
                     ep_info = defaultdict(list)
 
+                ## Evaluate both MP and RL
                 if update_iter % config.evaluate_interval == 0:
                     logger.info("Evaluate at %d", update_iter)
                     rollout, info, vids = self._evaluate(step=step, record=config.record)
-                    self._log_test(step, info, vids,  rollout['ob'][0]['default'][0])
+                    obs = None
+                    if self._config.policy == 'cnn':
+                        obs = rollout['ob'][0]['default'][0]
+                    self._log_test(step, info, vids, obs)
+
+                    # Evaluate mp
+                    if self._config.ll_type == 'mp':
+                        mp_rollout, mp_info, mp_vids = self._mp_evaluate(step=step, record=config.record)
+                        self._log_mp_test(step, mp_info, mp_vids)
+
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
@@ -309,9 +328,9 @@ class Trainer(object):
             self._meta_agent.update_normalizer(meta_rollout["ob"])
             self._agent.update_normalizer(rollout["ob"])
 
-    def _save_success_qpos(self, info):
+    def _save_success_qpos(self, info, prefix=""):
         if self._config.save_qpos and info["episode_success"]:
-            path = os.path.join(self._config.record_dir, "qpos.p")
+            path = os.path.join(self._config.record_dir, prefix+"qpos.p")
             with h5py.File(path, "a") as f:
                 key_id = len(f.keys())
                 num_qpos = len(info["saved_qpos"])
@@ -319,7 +338,7 @@ class Trainer(object):
                     f["{}".format(key_id)] = qpos_to_save
                     key_id += 1
         if self._config.save_success_qpos and info["episode_success"]:
-            path = os.path.join(self._config.record_dir, "success_qpos.p")
+            path = os.path.join(self._config.record_dir, prefix+"success_qpos.p")
             with h5py.File(path, "a") as f:
                 key_id = len(f.keys())
                 num_qpos = len(info["saved_qpos"])
@@ -333,12 +352,8 @@ class Trainer(object):
         """
         vids = []
         for i in range(self._config.num_record_samples):
-            if self._config.ll_type == 'rl':
-                rollout, meta_rollout, info, frames = \
-                    self._runner.run_episode(is_train=False, record=record)
-            else:
-                rollout, meta_rollout, info, frames = \
-                    self._runner.mp_run_episode(is_train=False, record=record)
+            rollout, meta_rollout, info, frames = \
+                self._runner.run_episode(is_train=False, record=record)
 
             if record:
                 ep_rew = info["rew"]
@@ -355,6 +370,33 @@ class Trainer(object):
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         self._save_success_qpos(info)
         return rollout, info, np.array(vids)
+
+    def _mp_evaluate(self, step=None, record=False, idx=None):
+        """ Run one rollout if in eval mode
+            Run num_record_samples rollouts if in train mode
+            Evaluation for Motion Planner
+        """
+        vids = []
+        for i in range(self._config.num_record_samples):
+            rollout, meta_rollout, info, frames = \
+                self._runner.mp_run_episode(is_train=False, record=record)
+
+            if record:
+                ep_rew = info["rew"]
+                ep_success = "s" if info["episode_success"] else "f"
+                fname = "{}_step_{:011d}_{}_r_{}_{}_mp.mp4".format(
+                    self._config.env, step, idx if idx is not None else i,
+                    ep_rew, ep_success)
+                self._save_video(fname, frames)
+                vids.append(frames)
+
+            if idx is not None:
+                break
+
+        logger.info("mp rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
+        self._save_success_qpos(info, prefix="mp_")
+        return rollout, info, np.array(vids)
+
 
     def evaluate(self):
         step, update_iter = self._load_ckpt(ckpt_num=self._config.ckpt_num)

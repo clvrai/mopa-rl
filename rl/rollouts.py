@@ -202,7 +202,7 @@ class RolloutRunner(object):
 
                 curr_qpos = env.sim.data.qpos
                 target_qpos = np.array(curr_meta_ac['default'])
-                traj, actions = self._mp.plan(curr_qpos, target_qpos)
+                traj, actions = self._mp.plan(curr_qpos, target_qpos, max_steps=config.mp_max_steps)
 
                 ## Change later
                 success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
@@ -240,7 +240,10 @@ class RolloutRunner(object):
                             if config.hrl:
                                 frame_info['meta_ac'] = 'mp'
                                 for i, k in enumerate(meta_ac.keys()):
-                                    if k != 'default':
+                                    if k == 'subgoal' and k != 'default':
+                                        frame_info['meta_joint'] = meta_ac[k][:-2]
+                                        frame_info['meta_subgoal'] = meta_ac[k][-2:]
+                                    elif k != 'default':
                                         frame_info['meta_'+k] = meta_ac[k]
 
                             self._store_frame(frame_info, subgoal)
