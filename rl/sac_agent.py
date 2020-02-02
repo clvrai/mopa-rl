@@ -147,8 +147,10 @@ class SACAgent(BaseAgent):
 
         # pre-process observations
         o, o_next = transitions['ob'], transitions['ob_next']
-        o = self.normalize(o)
-        o_next = self.normalize(o_next)
+
+        if self._config.policy == 'mlp':
+            o = self.normalize(o)
+            o_next = self.normalize(o_next)
 
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)

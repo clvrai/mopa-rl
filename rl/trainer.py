@@ -168,12 +168,14 @@ class Trainer(object):
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
 
-    def _log_test(self, step, ep_info, vids=None):
+    def _log_test(self, step, ep_info, vids=None, obs=None):
         if self._config.is_train:
             for k, v in ep_info.items():
                 wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
             if vids is not None:
                 self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
+            if obs is not None:
+                self.log_obs(obs, 'test_ep/obs', step=step)
 
     def train(self):
         config = self._config
@@ -295,7 +297,7 @@ class Trainer(object):
                 if update_iter % config.evaluate_interval == 0:
                     logger.info("Evaluate at %d", update_iter)
                     rollout, info, vids = self._evaluate(step=step, record=config.record)
-                    self._log_test(step, info, vids)
+                    self._log_test(step, info, vids,  rollout['ob'][0]['default'][0])
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
@@ -409,3 +411,8 @@ class Trainer(object):
         assert isinstance(vids[0], np.ndarray)
         log_dict = {name: [wandb.Video(vid, fps=fps, format="mp4") for vid in vids]}
         wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
+
+    def log_obs(self, obs, name, step=None):
+        log_dict = {name: [wandb.Image(obs*255, mode='L')]}
+        wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
+

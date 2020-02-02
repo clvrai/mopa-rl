@@ -75,8 +75,6 @@ class RolloutRunner(object):
         ep_len = 0
         ep_rew = 0
         ob = self._env.reset()
-        import pdb
-        pdb.set_trace()
         self._record_frames = []
         if record: self._store_frame()
 
