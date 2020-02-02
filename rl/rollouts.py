@@ -84,11 +84,8 @@ class RolloutRunner(object):
         # run rollout
         meta_ac = None
         while not done and ep_len < max_step:
-            curr_meta_ac, meta_ac_before_activation, meta_log_prob = \
+            meta_ac, meta_ac_before_activation, meta_log_prob = \
                 meta_pi.act(ob, is_train=is_train)
-
-            if meta_ac is None:
-                meta_ac = curr_meta_ac
 
             meta_rollout.add({
                 'meta_ob': ob, 'meta_ac':  meta_ac,
@@ -184,76 +181,67 @@ class RolloutRunner(object):
         # Run rollout
         meta_ac = None
         success = False
-        while not success:
-            while not done and ep_len < max_step:
-                curr_meta_ac, meta_ac_before_activation, meta_log_prob =\
-                        meta_pi.act(ob, is_train=is_train)
+        while not done and ep_len < max_step:
+            meta_ac, meta_ac_before_activation, meta_log_prob =\
+                    meta_pi.act(ob, is_train=is_train)
 
-                if meta_ac is None:
-                    meta_ac = curr_meta_ac
+            meta_rollout.add({
+                'meta_ob': ob, 'meta_ac': meta_ac,
+                'meta_ac_before_activation': meta_ac_before_activation,
+                'meta_log_prob': meta_log_prob,
+            })
+            meta_len = 0
+            meta_rew = 0
 
-                meta_rollout.add({
-                    'meta_ob': ob, 'meta_ac': meta_ac,
-                    'meta_ac_before_activation': meta_ac_before_activation,
-                    'meta_log_prob': meta_log_prob,
-                })
-                meta_len = 0
-                meta_rew = 0
+            curr_qpos = env.sim.data.qpos
+            target_qpos = np.array(meta_ac['default'])
+            traj, actions = self._mp.plan(curr_qpos, target_qpos)
 
-                curr_qpos = env.sim.data.qpos
-                target_qpos = np.array(curr_meta_ac['default'])
-                traj, actions = self._mp.plan(curr_qpos, target_qpos, max_steps=config.max_mp_steps)
+            ## Change later
+            success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
+            subgoal = meta_ac['subgoal'] if config.hl_type == 'subgoal' else None
 
-                ## Change later
-                success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
-                subgoal = meta_ac['subgoal'] if config.hl_type == 'subgoal' else None
-                if success:
-                    mp_success += 1
-                    for state in traj:
-                        ll_ob = ob.copy()
-                        if config.hrl and config.hl_type == 'subgoal':
-                            ll_ob['subgoal'] = meta_ac['subgoal']
+            if success:
+                mp_success += 1
+                for state in traj:
+                    ll_ob = ob.copy()
+                    if config.hrl and config.hl_type == 'subgoal':
+                        ll_ob['subgoal'] = meta_ac['subgoal']
 
-                        ac = -(env.sim.data.qpos[:-2] - state[:-2])*env._frame_skip
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
-                        saved_qpos.append(env.sim.get_state().qpos.copy())
+                    ac = state[:-2] - env.sim.data.qpos[:-2]
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
+                    saved_qpos.append(env.sim.get_state().qpos.copy())
 
-                        ob, reward, done, info = env.step(ac)
+                    ob, reward, done, info = env.step(ac)
 
-                        rollout.add({'done': done, 'rew': reward})
-                        acs.append(ac)
-                        ep_len += 1
-                        ep_rew += reward
-                        meta_len += 1
-                        meta_rew += reward
+                    rollout.add({'done': done, 'rew': reward})
+                    acs.append(ac)
+                    ep_len += 1
+                    ep_rew += reward
+                    meta_len += 1
+                    meta_rew += reward
 
-                        for key, value in info.items():
-                            reward_info[key].append(value)
-                        if record:
-                            frame_info = info.copy()
-                            self._store_frame(frame_info, subgoal)
+                    for key, value in info.items():
+                        reward_info[key].append(value)
 
-                        for key, value in info.items():
-                            reward_info[key].append(value)
-                        if record:
-                            frame_info = info.copy()
-                            if config.hrl:
-                                frame_info['meta_ac'] = 'mp'
-                                for i, k in enumerate(meta_ac.keys()):
-                                    if k == 'subgoal' and k != 'default':
-                                        frame_info['meta_joint'] = meta_ac[k][:-2]
-                                        frame_info['meta_subgoal'] = meta_ac[k][-2:]
-                                    elif k != 'default':
-                                        frame_info['meta_'+k] = meta_ac[k]
+                    if record:
+                        frame_info = info.copy()
+                        if config.hrl:
+                            frame_info['meta_ac'] = 'mp'
+                            for i, k in enumerate(meta_ac.keys()):
+                                if k == 'subgoal' and k != 'default':
+                                    frame_info['meta_joint'] = meta_ac[k][:-2]
+                                    frame_info['meta_subgoal'] = meta_ac[k][-2:]
+                                elif k != 'default':
+                                    frame_info['meta_'+k] = meta_ac[k]
 
-                            self._store_frame(frame_info, subgoal)
+                        self._store_frame(frame_info, subgoal)
 
-                        if done or ep_len >= max_step and meta_len >= config.max_meta_len:
-                            break
-                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
-                else:
-                    meta_rollout.add({'meta_done': True, 'meta_rew': self._config.meta_subgoal_rew})
-                    break
+                    if done or ep_len >= max_step and meta_len >= config.max_meta_len:
+                        break
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+            else:
+                meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
         # last frame
         ll_ob = ob.copy()
         if config.hrl and config.hl_type == 'subgoal':
