@@ -58,6 +58,7 @@ class RolloutRunner(object):
         self._meta_pi = meta_pi
         self._pi = pi
         self._mp = mp
+        self._ik_env = gym.make(config.env, **config.__dict__)
 
     def run_episode(self, max_step=10000, is_train=True, record=False):
         config = self._config
@@ -159,7 +160,7 @@ class RolloutRunner(object):
         meta_pi = self._meta_pi
         pi = self._pi
 
-        ik_env = gym.make(config.env, **config.__dict__)
+        ik_env = self._ik_env
         ik_env.reset()
 
 
@@ -196,6 +197,14 @@ class RolloutRunner(object):
 
             curr_qpos = env.sim.data.qpos
             subgoal = meta_ac['subgoal']
+
+            # ========== Clip subgoal range ===================
+            idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+            joint_range = env.model.jnt_range
+            min_ = joint_range[:, 0]
+            max_ = joint_range[:, 1]
+            subgoal[idx] = np.clip(subgoal[idx], min_, max_)
+            # =================================================
 
             ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel())
 
