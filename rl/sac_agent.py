@@ -221,13 +221,13 @@ class SACAgent(BaseAgent):
         # update the critic
         self._critic1_optim.zero_grad()
         critic1_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic1)
         self._critic1_optim.step()
 
         self._critic2_optim.zero_grad()
         critic2_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._critic2.parameters(), self._config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self._critic2.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic2)
         self._critic2_optim.step()
 
