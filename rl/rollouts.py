@@ -201,8 +201,8 @@ class RolloutRunner(object):
             # Will change fingertip to variable later
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1]
 
-            target_qpos = np.concatenate([subgoal, subgoal_site_pos])
-            traj, actions = self._mp.plan(curr_qpos, subgoal)
+            target_qpos = np.concatenate([subgoal, env.goal])
+            traj, actions = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
