@@ -64,6 +64,7 @@ class RolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env
+        ik_env = self._ik_env
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -76,6 +77,7 @@ class RolloutRunner(object):
         ep_len = 0
         ep_rew = 0
         ob = self._env.reset()
+        ik_env.reset()
         self._record_frames = []
         if record: self._store_frame()
 
@@ -97,6 +99,23 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
+            subgoal_site_ops = None
+            if config.hl_type == 'subgoal':
+                subgoal = meta_ac['subgoal']
+
+                # ========== Clip subgoal range ===================
+                idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+                joint_range = env.model.jnt_range
+                min_ = joint_range[:, 0]
+                max_ = joint_range[:, 1]
+                subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
+                # =================================================
+
+                ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel())
+
+                # Will change fingertip to variable later
+                subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1]
+
 
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
@@ -132,7 +151,7 @@ class RolloutRunner(object):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
 
-                    self._store_frame(frame_info, subgoal)
+                    self._store_frame(frame_info, subgoal_site_pos)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
