@@ -155,7 +155,14 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
 
     ss->clearStartStates();
+    auto initState = ss->getSpaceInformation()->allocState();
+    MjOmpl::readOmplStateKinematic(start_vec,
+                                    ss->getSpaceInformation().get(),
+                                    initState->as<ob::CompoundState>());
+    MjOmpl::copyOmplStateToMujoco(initState->as<ob::CompoundState>(),
+                                    ss->getSpaceInformation().get(), mj->m, mj->d, false);
    // Set start and goal states
+
     ob::ScopedState<> start_ss(ss->getStateSpace());
     for(int i=0; i < start_vec.size(); i++) {
         start_ss[i] = start_vec[i];
