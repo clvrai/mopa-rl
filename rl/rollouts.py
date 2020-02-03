@@ -85,18 +85,29 @@ class RolloutRunner(object):
         # run rollout
         meta_ac = None
         while not done and ep_len < max_step:
-            meta_ac, meta_ac_before_activation, meta_log_prob = \
-                meta_pi.act(ob, is_train=is_train)
+            meta_ac, meta_ac_before_activation, meta_log_prob =\
+                    meta_pi.act(ob, is_train=is_train)
 
             meta_rollout.add({
-                'meta_ob': ob, 'meta_ac':  meta_ac,
+                'meta_ob': ob, 'meta_ac': meta_ac,
                 'meta_ac_before_activation': meta_ac_before_activation,
                 'meta_log_prob': meta_log_prob,
             })
-
             meta_len = 0
             meta_rew = 0
-            subgoal = meta_ac['subgoal'] if config.hl_type == 'subgoal' else None
+
+            curr_qpos = env.sim.data.qpos
+            subgoal = meta_ac['subgoal']
+
+            # ========== Clip subgoal range ===================
+            idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+            joint_range = env.model.jnt_range
+            min_ = joint_range[:, 0]
+            max_ = joint_range[:, 1]
+            subgoal[idx] = np.clip(subgoal[idx], min_, max_)
+            # =================================================
+
+
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
                 if config.hrl:
