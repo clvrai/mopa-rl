@@ -1,28 +1,13 @@
 import os, sys
 import numpy as np
 
+from env.base import BaseEnv
 
-class SawyerEnv(MujocoEnv):
+class SawyerEnv(BaseEnv):
     """Initializes a Sawyer robot environment."""
 
     def __init__(
-        self,
-        gripper_type=None,
-        gripper_visualization=False,
-        use_indicator_object=False,
-        has_renderer=False,
-        has_offscreen_renderer=True,
-        render_collision_mesh=False,
-        render_visual_mesh=True,
-        control_freq=10,
-        horizon=1000,
-        ignore_done=False,
-        use_camera_obs=False,
-        camera_name="frontview",
-        camera_height=256,
-        camera_width=256,
-        camera_depth=False,
-    ):
+        self, xml_path, **kwargs):
         """
         Args:
             gripper_type (str): type of gripper, used to instantiate
@@ -52,24 +37,11 @@ class SawyerEnv(MujocoEnv):
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
 
-        self.has_gripper = gripper_type is not None
-        self.gripper_type = gripper_type
-        self.gripper_visualization = gripper_visualization
-        self.use_indicator_object = use_indicator_object
-        super().__init__(
-            has_renderer=has_renderer,
-            has_offscreen_renderer=has_offscreen_renderer,
-            render_collision_mesh=render_collision_mesh,
-            render_visual_mesh=render_visual_mesh,
-            control_freq=control_freq,
-            horizon=horizon,
-            ignore_done=ignore_done,
-            use_camera_obs=use_camera_obs,
-            camera_name=camera_name,
-            camera_height=camera_height,
-            camera_width=camera_height,
-            camera_depth=camera_depth,
-        )
+        self.has_gripper = kwargs['gripper_type'] is not None
+        self.gripper_type = kwargs['gripper_type']
+        self.gripper_visualization = kwargs['gripper_visualization']
+        self.use_indicator_object = kwargs['use_indicator_object']
+        super().__init__(xml_path, **kwargs)
 
     def _load_model(self):
         """
