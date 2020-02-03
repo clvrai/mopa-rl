@@ -33,7 +33,7 @@ class CNNActor(Actor):
                 out_size += config.rl_hid_size/4
                 self._aux_keys.append(k)
 
-        self.fc = MLP(config, out_size, config.rl_hid_size, [config.rl_hid_size])
+        self.fc = MLP(config, int(out_size), config.rl_hid_size, [config.rl_hid_size])
         self.fc_means = nn.ModuleDict()
         self.fc_log_stds = nn.ModuleDict()
 
