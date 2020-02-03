@@ -97,15 +97,6 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
-            subgoal = meta_ac['subgoal']
-
-            # ========== Clip subgoal range ===================
-            idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
-            joint_range = env.model.jnt_range
-            min_ = joint_range[:, 0]
-            max_ = joint_range[:, 1]
-            subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
-            # =================================================
 
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
