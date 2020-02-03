@@ -131,8 +131,8 @@ class PPOAgent(BaseAgent):
         ret = _to_tensor(transitions['ret']).reshape(bs, 1)
         adv = _to_tensor(transitions['adv']).reshape(bs, 1)
 
-        log_pi, ent = self._actor.act_log(o, a_z, z=z)
-        old_log_pi, _ = self._old_actor.act_log(o, a_z, z=z)
+        log_pi, ent = self._actor.act_log(o, a_z)
+        old_log_pi, _ = self._old_actor.act_log(o, a_z)
         if old_log_pi.min() < -100:
             import ipdb; ipdb.set_trace()
 
@@ -161,14 +161,14 @@ class PPOAgent(BaseAgent):
         # update the actor
         self._actor_optim.zero_grad()
         actor_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
         sync_grads(self._actor)
         self._actor_optim.step()
 
         # update the critic
         self._critic_optim.zero_grad()
         value_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self._critic.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic)
         self._critic_optim.step()
 
