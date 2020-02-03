@@ -127,7 +127,7 @@ class RolloutRunner(object):
                     frame_info['ac'] = ac['default']
                     if config.hrl:
                         i = int(meta_ac['default'])
-                        frame_info['meta_ac'] = meta_pi.skills[i][]
+                        frame_info['meta_ac'] = meta_pi.skills[i]
                         for i, k in enumerate(meta_ac.keys()):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
