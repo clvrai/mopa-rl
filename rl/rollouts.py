@@ -99,7 +99,7 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
-            subgoal_site_ops = None
+            subgoal_site_pos = None
             if config.hl_type == 'subgoal':
                 subgoal = meta_ac['subgoal']
 
