@@ -7,6 +7,16 @@
 - [MuJoCo 2.0.2.5 ](http://www.mujoco.org/)
 
 ## Installation 
+
+### Install ompl
+```
+sh ./scripts/installEigen.sh
+git clone git@github.com:ompl/ompl.git ../ompl
+cd ../ompl
+cmake .
+make install
+```
+
 ### OMPL-mujoco wrapper 
 
 - Install OMPL 
