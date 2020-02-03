@@ -104,7 +104,7 @@ class RolloutRunner(object):
             joint_range = env.model.jnt_range
             min_ = joint_range[:, 0]
             max_ = joint_range[:, 1]
-            subgoal[idx] = np.clip(subgoal[idx], min_, max_)
+            subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
             # =================================================
 
 
@@ -214,7 +214,7 @@ class RolloutRunner(object):
             joint_range = env.model.jnt_range
             min_ = joint_range[:, 0]
             max_ = joint_range[:, 1]
-            subgoal[idx] = np.clip(subgoal[idx], min_, max_)
+            subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
             # =================================================
 
             ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel())
