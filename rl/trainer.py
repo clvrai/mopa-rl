@@ -50,16 +50,16 @@ class Trainer(object):
         actor, critic = get_actor_critic_by_name(config.policy)
 
         # build up networks
-        self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
+        self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
         self._mp = None
 
         if config.hl_type == 'subgoal':
             # use subgoal
             if config.policy == 'cnn':
-                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': joint_space['default']})
+                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': ac_space['default']})
             elif config.policy == 'mlp':
                 ll_ob_space = spaces.Dict({'default': ob_space['default'],
-                                           'subgoal': joint_space['default']})
+                                           'subgoal': ac_space['default']})
             else:
                 raise NotImplementedError
         else:

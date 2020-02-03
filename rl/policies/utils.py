@@ -11,8 +11,11 @@ class CNN(nn.Module):
 
         self.convs = nn.ModuleList()
         w = config.img_width
+        init_ = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.
+                       constant_(x, 0), nn.init.calculate_gain('relu'))
+
         for k, s, d in zip(config.kernel_size, config.stride, config.conv_dim):
-            self.convs.append(nn.Conv2d(input_dim, d, int(k), int(s)))
+            self.convs.append(init_(nn.Conv2d(input_dim, d, int(k), int(s))))
             w = int(np.floor((w - (int(k) - 1) - 1) / int(s) + 1))
             input_dim = d
 
@@ -65,4 +68,10 @@ class MLP(nn.Module):
 
     def forward(self, ob):
         return self.fc(ob)
+
+def init(module, weight_init, bias_init, gain=1):
+    weight_init(module.weight.data, gain=gain)
+    bias_init(module.bias.data)
+    return module
+
 

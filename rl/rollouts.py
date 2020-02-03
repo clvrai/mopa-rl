@@ -195,7 +195,14 @@ class RolloutRunner(object):
 
             curr_qpos = env.sim.data.qpos
             subgoal = meta_ac['subgoal']
-            traj, actions = self._mp.plan(curr_qpos, subgoal)
+
+            ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel())
+
+            # Will change fingertip to variable later
+            subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1]
+
+            target_qpos = np.concatenate([subgoal, env.goal])
+            traj, actions = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
@@ -229,20 +236,20 @@ class RolloutRunner(object):
                             frame_info['meta_ac'] = 'mp'
                             for i, k in enumerate(meta_ac.keys()):
                                 if k == 'subgoal' and k != 'default':
-                                    frame_info['meta_joint'] = meta_ac[k][:-2]
-                                    frame_info['meta_subgoal'] = meta_ac[k][-2:]
+                                    frame_info['meta_joint'] = meta_ac[k]
+                                    frame_info['meta_subgoal'] = subgoal_site_pos
                                 elif k != 'default':
                                     frame_info['meta_'+k] = meta_ac[k]
 
-                        self._store_frame(frame_info, subgoal)
+                        self._store_frame(frame_info, subgoal_site_pos)
 
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
             else:
-                ep_len += 1
                 reward_info['episode_success'].append(False)
                 meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
+                break
         # last frame
         ll_ob = ob.copy()
         if config.hrl and config.hl_type == 'subgoal':
@@ -271,7 +278,7 @@ class RolloutRunner(object):
                                 self._env._episode_reward)
 
         if self._config.hl_type == 'subgoal' and subgoal is not None:
-            self._env._set_pos('subgoal', [subgoal[-2], subgoal[-1], self._env._get_pos('subgoal')[2]])
+            self._env._set_pos('subgoal', [subgoal[0], subgoal[1], self._env._get_pos('subgoal')[2]])
             self._env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
 
         frame = self._env.render('rgb_array') * 255.0

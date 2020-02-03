@@ -155,7 +155,14 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
 
     ss->clearStartStates();
+    auto initState = ss->getSpaceInformation()->allocState();
+    MjOmpl::readOmplStateKinematic(start_vec,
+                                    ss->getSpaceInformation().get(),
+                                    initState->as<ob::CompoundState>());
+    MjOmpl::copyOmplStateToMujoco(initState->as<ob::CompoundState>(),
+                                    ss->getSpaceInformation().get(), mj->m, mj->d, false);
    // Set start and goal states
+
     ob::ScopedState<> start_ss(ss->getStateSpace());
     for(int i=0; i < start_vec.size(); i++) {
         start_ss[i] = start_vec[i];
@@ -221,6 +228,22 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             ss->getPlanner()->as<og::PRMstar>()->clearQuery();
         }
         return solutions;
+    }
+
+    if (algo == "sst") {
+        ss->getPlanner()->as<og::SST>()->clear();
+    } else if (algo == "pdst") {
+        ss->getPlanner()->as<og::PDST>()->clear();
+    } else if (algo == "est") {
+        ss->getPlanner()->as<og::EST>()->clear();
+    } else if (algo == "kpiece") {
+        ss->getPlanner()->as<og::KPIECE1>()->clear();
+    } else if (algo == "rrt"){
+        ss->getPlanner()->as<og::RRTstar>()->clear();
+    } else if (algo == "rrt_connect"){
+        ss->getPlanner()->as<og::RRTConnect>()->clear();
+    } else if (algo == "prm_star"){
+        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
     }
 
     // return solutions;
