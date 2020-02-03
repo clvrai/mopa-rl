@@ -230,6 +230,22 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         return solutions;
     }
 
+    if (algo == "sst") {
+        ss->getPlanner()->as<og::SST>()->clear();
+    } else if (algo == "pdst") {
+        ss->getPlanner()->as<og::PDST>()->clear();
+    } else if (algo == "est") {
+        ss->getPlanner()->as<og::EST>()->clear();
+    } else if (algo == "kpiece") {
+        ss->getPlanner()->as<og::KPIECE1>()->clear();
+    } else if (algo == "rrt"){
+        ss->getPlanner()->as<og::RRTstar>()->clear();
+    } else if (algo == "rrt_connect"){
+        ss->getPlanner()->as<og::RRTConnect>()->clear();
+    } else if (algo == "prm_star"){
+        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
+    }
+
     // return solutions;
     //return 0;
     std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
