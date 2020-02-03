@@ -124,10 +124,10 @@ class RolloutRunner(object):
                     reward_info[key].append(value)
                 if record:
                     frame_info = info.copy()
-                    frame_info['ac'] = ac
+                    frame_info['ac'] = ac['default']
                     if config.hrl:
                         i = int(meta_ac['default'])
-                        frame_info['meta_ac'] = meta_pi.skills[i]
+                        frame_info['meta_ac'] = meta_pi.skills[i][]
                         for i, k in enumerate(meta_ac.keys()):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
@@ -246,7 +246,7 @@ class RolloutRunner(object):
                         frame_info = info.copy()
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
-                            frame_info['ac'] = ac
+                            frame_info['ac'] = ac['default']
                             for i, k in enumerate(meta_ac.keys()):
                                 if k == 'subgoal' and k != 'default':
                                     frame_info['meta_joint'] = meta_ac[k]
