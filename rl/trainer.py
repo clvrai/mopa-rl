@@ -96,7 +96,10 @@ class Trainer(object):
             if config.debug:
                 os.environ["WANDB_MODE"] = "dryrun"
 
-            group_name = config.env + '-' + config.hl_type + '-' + config.ll_type + '-' + config.policy
+            tags = [config.env, config.hl_type, config.ll_type, config.policy, config.algo]
+            if config.hrl:
+                tags.append('hrl')
+
             wandb.init(
                 resume=config.run_name,
                 project="hrl-planner",
@@ -104,7 +107,7 @@ class Trainer(object):
                 dir=config.log_dir,
                 entity="clvr",
                 notes=config.notes,
-                group=group_name
+                tags=tags
             )
 
     def _save_ckpt(self, ckpt_num, update_iter):
