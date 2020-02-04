@@ -131,6 +131,7 @@ class RolloutRunner(object):
                 saved_qpos.append(env.sim.get_state().qpos.copy())
 
                 ob, reward, done, info = env.step(ac)
+                info['ac'] = ac['default']
 
                 rollout.add({'done': done, 'rew': reward})
                 acs.append(ac)
@@ -143,7 +144,6 @@ class RolloutRunner(object):
                     reward_info[key].append(value)
                 if record:
                     frame_info = info.copy()
-                    frame_info['ac'] = ac['default']
                     if config.hrl:
                         i = int(meta_ac['default'])
                         frame_info['meta_ac'] = meta_pi.skills[i]
@@ -250,6 +250,7 @@ class RolloutRunner(object):
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
                     ob, reward, done, info = env.step(ac)
+                    info['ac'] = ac['default']
 
                     rollout.add({'done': done, 'rew': reward})
                     acs.append(ac)
