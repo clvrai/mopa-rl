@@ -1,13 +1,16 @@
 import os, sys
 import numpy as np
 
-from env.base import BaseEnv
+from env.robosuite_base import RobosuiteBaseEnv
 
-class SawyerEnv(BaseEnv):
+from env.robosuite.models.grippers import gripper_factory
+from env.robosuite.models.robots import Sawyer
+
+class SawyerEnv(RobosuiteBaseEnv):
     """Initializes a Sawyer robot environment."""
 
     def __init__(
-        self, xml_path, **kwargs):
+        self, **kwargs):
         """
         Args:
             gripper_type (str): type of gripper, used to instantiate
@@ -41,7 +44,7 @@ class SawyerEnv(BaseEnv):
         self.gripper_type = kwargs['gripper_type']
         self.gripper_visualization = kwargs['gripper_visualization']
         self.use_indicator_object = kwargs['use_indicator_object']
-        super().__init__(xml_path, **kwargs)
+        super().__init__(**kwargs)
 
     def _load_model(self):
         """

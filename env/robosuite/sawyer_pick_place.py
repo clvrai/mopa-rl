@@ -2,53 +2,30 @@ from collections import OrderedDict
 import random
 import numpy as np
 
-import robosuite.utils.transform_utils as T
-from envs.robosuite.utils.mjcf_utils import string_to_array
-from envs.robosuite.sawyer import SawyerEnv
+import env.robosuite.utils.transform_utils as T
+from env.robosuite.utils.mjcf_utils import string_to_array
+from env.robosuite.sawyer import SawyerEnv
 
-from robosuite.models.arenas import BinsArena
-from robosuite.models.objects import (
+from env.robosuite.models.arenas import BinsArena
+from env.robosuite.models.objects import (
     MilkObject,
     BreadObject,
     CerealObject,
     CanObject,
 )
-from robosuite.models.objects import (
+from env.robosuite.models.objects import (
     MilkVisualObject,
     BreadVisualObject,
     CerealVisualObject,
     CanVisualObject,
 )
-from robosuite.models.robots import Sawyer
-from robosuite.models.tasks import PickPlaceTask, UniformRandomSampler
+from env.robosuite.models.robots import Sawyer
+from env.robosuite.models.tasks import PickPlaceTask, UniformRandomSampler
 
 
-class SawyerPickPlace(SawyerEnv):
+class SawyerPickPlaceEnv(SawyerEnv):
     def __init__(
-        self,
-        gripper_type="TwoFingerGripper",
-        table_full_size=(0.39, 0.49, 0.82),
-        table_friction=(1, 0.005, 0.0001),
-        use_camera_obs=True,
-        use_object_obs=True,
-        reward_shaping=False,
-        placement_initializer=None,
-        single_object_mode=0,
-        object_type=None,
-        gripper_visualization=False,
-        use_indicator_object=False,
-        has_renderer=False,
-        has_offscreen_renderer=True,
-        render_collision_mesh=False,
-        render_visual_mesh=True,
-        control_freq=10,
-        horizon=1000,
-        ignore_done=False,
-        camera_name="frontview",
-        camera_height=256,
-        camera_width=256,
-        camera_depth=False,
-    ):
+        self, **kwargs):
         """
         Args:
             gripper_type (str): type of gripper, used to instantiate
@@ -99,9 +76,9 @@ class SawyerPickPlace(SawyerEnv):
         """
 
         # task settings
-        self.single_object_mode = single_object_mode
+        self.single_object_mode = kwargs['single_object_mode']
         self.object_to_id = {"milk": 0, "bread": 1, "cereal": 2, "can": 3}
-        if object_type is not None:
+        if kwargs['object_type'] is not None:
             assert (
                 object_type in self.object_to_id.keys()
             ), "invalid @object_type argument - choose one of {}".format(
@@ -113,35 +90,19 @@ class SawyerPickPlace(SawyerEnv):
         self.obj_to_use = None
 
         # settings for table top
-        self.table_full_size = table_full_size
-        self.table_friction = table_friction
+        self.table_full_size = kwargs['table_full_size']
+        self.table_friction = kwargs['table_friction']
 
         # whether to show visual aid about where is the gripper
-        self.gripper_visualization = gripper_visualization
+        self.gripper_visualization = kwargs['gripper_visualization']
 
         # whether to use ground-truth object states
-        self.use_object_obs = use_object_obs
+        self.use_object_obs = kwargs['use_object_obs']
 
-        super().__init__(
-            gripper_type=gripper_type,
-            gripper_visualization=gripper_visualization,
-            use_indicator_object=use_indicator_object,
-            has_renderer=has_renderer,
-            has_offscreen_renderer=has_offscreen_renderer,
-            render_collision_mesh=render_collision_mesh,
-            render_visual_mesh=render_visual_mesh,
-            control_freq=control_freq,
-            horizon=horizon,
-            ignore_done=ignore_done,
-            use_camera_obs=use_camera_obs,
-            camera_name=camera_name,
-            camera_height=camera_height,
-            camera_width=camera_width,
-            camera_depth=camera_depth,
-        )
+        super().__init__(**kwargs)
 
         # reward configuration
-        self.reward_shaping = reward_shaping
+        self.reward_shaping = kwargs['reward_shaping']
 
         # information of objects
         self.object_names = list(self.mujoco_objects.keys())
@@ -549,7 +510,7 @@ class SawyerPickPlace(SawyerEnv):
             self.sim.model.site_rgba[self.eef_site_id] = rgba
 
 
-class SawyerPickPlaceSingle(SawyerPickPlace):
+class SawyerPickPlaceSingleEnv(SawyerPickPlaceEnv):
     """
     Easier version of task - place one object into its bin.
     A new object is sampled on every reset.
@@ -560,7 +521,7 @@ class SawyerPickPlaceSingle(SawyerPickPlace):
         super().__init__(single_object_mode=1, **kwargs)
 
 
-class SawyerPickPlaceMilk(SawyerPickPlace):
+class SawyerPickPlaceMilkEnv(SawyerPickPlaceEnv):
     """
     Easier version of task - place one milk into its bin.
     """
@@ -572,7 +533,7 @@ class SawyerPickPlaceMilk(SawyerPickPlace):
         super().__init__(single_object_mode=2, object_type="milk", **kwargs)
 
 
-class SawyerPickPlaceBread(SawyerPickPlace):
+class SawyerPickPlaceBreadEnv(SawyerPickPlaceEnv):
     """
     Easier version of task - place one bread into its bin.
     """
@@ -584,7 +545,7 @@ class SawyerPickPlaceBread(SawyerPickPlace):
         super().__init__(single_object_mode=2, object_type="bread", **kwargs)
 
 
-class SawyerPickPlaceCereal(SawyerPickPlace):
+class SawyerPickPlaceCerealEnv(SawyerPickPlaceEnv):
     """
     Easier version of task - place one cereal into its bin.
     """
@@ -596,7 +557,7 @@ class SawyerPickPlaceCereal(SawyerPickPlace):
         super().__init__(single_object_mode=2, object_type="cereal", **kwargs)
 
 
-class SawyerPickPlaceCan(SawyerPickPlace):
+class SawyerPickPlaceCanEnv(SawyerPickPlaceEnv):
     """
     Easier version of task - place one can into its bin.
     """
@@ -605,4 +566,4 @@ class SawyerPickPlaceCan(SawyerPickPlace):
         assert (
             "single_object_mode" not in kwargs and "object_type" not in kwargs
         ), "invalid set of arguments"
-        super().__init__(single_object_mode=2, object_type="can", **kwargs)a
+        super().__init__(single_object_mode=2, object_type="can", **kwargs)
