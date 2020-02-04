@@ -1,1 +1,1 @@
-from env.robosuite.base import REGISTERED_ENVS, MujocoEnv
+from env.robosuite.sawyer_pick_place import SawyerPickPlaceEnv

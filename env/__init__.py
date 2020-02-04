@@ -33,3 +33,9 @@ register(
     entry_point='env.reacher:ReacherPixelEnv',
     kwargs={},
 )
+
+register(
+    id='sawyer-pick-place-v0',
+    entry_point='env.robosuite:SawyerPickPlaceEnv',
+    kwargs={}
+)
