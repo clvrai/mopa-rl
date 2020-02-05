@@ -80,7 +80,7 @@ class SawyerPushEnv(SawyerEnv):
 
         # reward configuration
         self.reward_shaping = kwargs['reward_shaping']
-
+        self.distance_threshold = kwargs['distance_threshold']
         # information of objects
         # self.object_names = [o['object_name'] for o in self.object_metadata]
         self.object_names = list(self.mujoco_objects.keys())
@@ -185,11 +185,18 @@ class SawyerPushEnv(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        r_reach, r_lift, r_stack = self.staged_rewards()
+
+        cubeA_pos = self.sim.data.body_xpos[self.cubeA_body_id]
+        target_pos = self.get_pos('target')
+        dist = np.linalg.norm(cubeA_pos-target_pos)
+
         if self.reward_shaping:
-            reward = max(r_reach, r_lift, r_stack)
+            reward_dist = -dist
+            reward_ctrl = self._ctrl_reward(action)
+            rewards = reward_dist + reward_ctrl
+            return reward
         else:
-            reward = 1.0 if r_stack > 0 else 0.0
+            reward = (-dist > self.distance_threshold).astype(np.float32)
 
         return reward
 

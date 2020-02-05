@@ -23,6 +23,7 @@ def add_arguments(parser):
     parser.add_argument("--use_camera_obs", type=str2bool, default=True)
     parser.add_argument("--camera_name", type=str, default='frontview')
     parser.add_argument("--placement_initializer", type=str, default=None)
+    #parser.add_argument("--distance_threshold", type=float, default=0.01)
 
     parser.add_argument("--reward_type", type=str, default="dense",
                         choices=["dense", "sparse"])
