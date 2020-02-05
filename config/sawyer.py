@@ -8,7 +8,7 @@ def add_arguments(parser):
     # sawyer
     parser.add_argument("--single_object_mode", type=str2bool, default=True)
     parser.add_argument("--object_type", type=str, default=None)
-    parser.add_argument("--table_full_size", nargs=3, default=(0.39, 0.49, 0.82))
+    parser.add_argument("--table_full_size", nargs=3, default=(1.2, 1.2, 0.8))
     parser.add_argument("--table_friction", nargs=3, default=(1, 0.005, 0.0001))
     parser.add_argument("--gripper_visualization", type=str2bool, default=False)
     parser.add_argument("--use_object_obs", type=str2bool, default=True)
@@ -22,6 +22,7 @@ def add_arguments(parser):
     parser.add_argument("--render_visual_mesh", type=str2bool, default=True)
     parser.add_argument("--use_camera_obs", type=str2bool, default=True)
     parser.add_argument("--camera_name", type=str, default='frontview')
+    parser.add_argument("--placement_initializer", type=str, default=None)
 
     parser.add_argument("--reward_type", type=str, default="dense",
                         choices=["dense", "sparse"])

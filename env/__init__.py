@@ -39,3 +39,15 @@ register(
     entry_point='env.robosuite:SawyerPickPlaceEnv',
     kwargs={}
 )
+
+register(
+    id='sawyer-push-v0',
+    entry_point='env.robosuite:SawyerPushEnv',
+    kwargs={}
+)
+
+register(
+    id='sawyer-stack-v0',
+    entry_point='env.robosuite:SawyerStackEnv',
+    kwargs={}
+)
