@@ -71,6 +71,8 @@ def argparser():
     parser.add_argument("--decoder_padding", nargs='+', default=[0, 0,  0])
     parser.add_argument('--decoder_latent_lambda', default=1e-6, type=float)
     parser.add_argument("--ae_feat_dim", type=int, default=50)
+    parser.add_argument("--actor_update_freq", type=int, default=1)
+    parser.add_argument("--critic_target_update_freq", type=int, default=1)
 
     parser.add_argument("--lr_encoder", type=float, default=1e-3, help="the learning rate of the encoder")
     parser.add_argument("--lr_decoder", type=float, default=1e-3, help="the learning rate of the decoder")

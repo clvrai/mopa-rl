@@ -128,7 +128,7 @@ class Trainer(object):
         torch.save(state_dict, ckpt_path)
         logger.warn("Save checkpoint: %s", ckpt_path)
 
-        if self._config.policy == 'mlp':
+        if self._config.policy == 'mlp' or not self._config.use_ae:
             replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
             with gzip.open(replay_path, "wb") as f:
                 if self._config.hrl:

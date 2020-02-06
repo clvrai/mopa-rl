@@ -41,13 +41,13 @@ class ReacherPixelEnv(BaseEnv):
 
     def _get_obs(self):
         img = self.sim.render(camera_name=self._camera_name,
-                              width=100,
-                              height=100,
+                              width=self._img_height, # try this  later
+                              height=self._img_width,
                               depth=False)
         img = np.flipud(img)
         if self._env_config['is_rgb']:
-            img = transform.resize(img, (self._img_height, self._img_width))
-            return OrderedDict([('default', img.transpose((2, 0, 1)))])
+            # img = transform.resize(img, (self._img_height, self._img_width))
+            return OrderedDict([('default', img.transpose((2, 0, 1))/255.)])
         else:
             gray = color.rgb2gray(img)
             gray_resized = transform.resize(gray, (self._img_height, self._img_width))

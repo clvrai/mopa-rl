@@ -195,7 +195,8 @@ class TD3Agent(BaseAgent):
 
         ## Actor loss
         actions_real, _ = self.act_log(o, meta_ac)
-        actor_loss = -self._critic(o, actions_real).mean()
+        actor_loss = -torch.min(self._critic1(o, actions_real),
+                                self._critic2(o, actions_real)).mean()
         info['actor_loss'] = actor_loss.cpu().item()
 
         ## Critic loss
@@ -219,8 +220,8 @@ class TD3Agent(BaseAgent):
         info['min_real2_q'] = real_q_value2.min().cpu().item()
         info['real1_q'] = real_q_value1.mean().cpu().item()
         info['rea2_q'] = real_q_value2.mean().cpu().item()
-        info['critic1_loss'] = critic_loss1.cpu().item()
-        info['critic2_loss'] = critic_loss2.cpu().item()
+        info['critic1_loss'] = critic1_loss.cpu().item()
+        info['critic2_loss'] = critic2_loss.cpu().item()
 
 
         # update the critics
