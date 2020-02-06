@@ -37,7 +37,7 @@ def get_agent_by_name(algo, use_ae=False):
     elif algo == 'ddpg':
         from rl.ddpg_agent import DDPGAgent
         return DDPGAgent
-    elif algo == 'TD3':
+    elif algo == 'td3':
         from rl.td3_agent import TD3Agent
         return TD3Agent
 
