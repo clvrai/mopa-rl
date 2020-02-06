@@ -38,9 +38,11 @@ class ReacherObstacleEnv(BaseEnv):
 
     def _get_obstacle_states(self):
         obstacle_states = []
+        obstacle_size = []
         for name in self.obstacle_names:
             obstacle_states.extend(self._get_pos(name)[:2])
-        return np.array(obstacle_states)
+            obstacle_size.extend(self._get_size(name)[:2])
+        return np.concatenate([obstacle_states, obstacle_size])
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[:2]
@@ -51,14 +53,14 @@ class ReacherObstacleEnv(BaseEnv):
                 self.sim.data.qpos.flat[2:],
                 self.sim.data.qvel.flat[:2],
                 self._get_obstacle_states(),
-                self._get_pos("fingertip") - self._get_pos("target")
+                self._get_pos("target")
             ]))
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(32,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(48,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property

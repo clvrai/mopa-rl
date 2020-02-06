@@ -45,7 +45,7 @@ class ReacherEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qpos.flat[2:],
                 self.sim.data.qvel.flat[:2],
-                self._get_pos("fingertip") - self._get_pos("target")
+                self._get_pos("target")
             ]))
         ])
 
