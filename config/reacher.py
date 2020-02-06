@@ -25,10 +25,11 @@ def add_arguments(parser):
     parser.add_argument("--frame_skip", type=int, default=5,
                         help="Numer of skip frames")
     parser.add_argument("--action_repeat", type=int, default=5)
-    parser.add_argument("--img_height", type=int, default=84,
+    parser.add_argument("--img_height", type=int, default=64,
                         help="Image observation height")
-    parser.add_argument("--img_width", type=int, default=84,
+    parser.add_argument("--img_width", type=int, default=64,
                         help="Image observation width")
+    parser.add_argument("--is_rgb", type=str2bool, default=False)
 
 
 def get_default_config():

@@ -18,18 +18,28 @@ from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
 from rl.rollouts import RolloutRunner
 from util.logger import logger
-from util.pytorch import get_ckpt_path, count_parameters
+from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
 from util.gym import observation_size
 
 
-def get_agent_by_name(algo):
+def get_agent_by_name(algo, use_ae=False):
     if algo == "sac":
-        from rl.sac_agent import SACAgent
-        return SACAgent
+        if use_ae:
+            from rl.sac_ae_agent import SACAEAgent
+            return SACAEAgent
+        else:
+            from rl.sac_agent import SACAgent
+            return SACAgent
     elif algo == "ppo":
         from rl.ppo_agent import PPOAgent
         return PPOAgent
+    elif algo == 'ddpg':
+        from rl.ddpg_agent import DDPGAgent
+        return DDPGAgent
+    elif algo == 'TD3':
+        from rl.td3_agent import TD3Agent
+        return TD3Agent
 
 
 class Trainer(object):
@@ -47,7 +57,7 @@ class Trainer(object):
         joint_space = self._env.joint_sapce
 
         # get actor and critic networks
-        actor, critic = get_actor_critic_by_name(config.policy)
+        actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)
 
         # build up networks
         self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
@@ -81,7 +91,7 @@ class Trainer(object):
                 )
                 self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
         else:
-            self._agent = get_agent_by_name(config.algo)(
+            self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
             )
 
@@ -315,7 +325,16 @@ class Trainer(object):
                     rollout, info, vids = self._evaluate(step=step, record=config.record)
                     obs = None
                     if self._config.policy == 'cnn':
-                        obs = rollout['ob'][0]['default'][0]
+                        if self._config.is_rgb:
+                            obs = rollout['ob'][0]['default'].transpose((1, 2, 0))
+                        else:
+                            obs = rollout['ob'][0]['default'][0]
+
+                        if self._config.use_ae:
+                            _to_tensor = lambda x: to_tensor(x, self._config.device)
+                            h = self._agent._critic_encoder(_to_tensor(rollout['ob'][0]['default']).unsqueeze(0))
+                            recon = self._agent._decoder(h)[0].detach().cpu().numpy().transpose((1, 2, 0))
+                            self.log_obs(recon, 'test_ep/reconstructed', step=step)
                     self._log_test(step, info, vids, obs)
 
                     # Evaluate mp
@@ -413,7 +432,7 @@ class Trainer(object):
         rollouts = []
         for i in trange(self._config.num_eval):
             logger.warn("Evalute run %d", i+1)
-            rollout, info = \
+            rollout, info, vids = \
                 self._evaluate(step=step, record=self._config.record, idx=i)
             for k, v in info.items():
                 info_history[k].append(v)
@@ -461,6 +480,9 @@ class Trainer(object):
         wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
 
     def log_obs(self, obs, name, step=None):
-        log_dict = {name: [wandb.Image(obs, mode='L')]}
+        if self._config.is_rgb:
+            log_dict = {name: [wandb.Image(obs)]}
+        else:
+            log_dict = {name: [wandb.Image(obs, mode='L')]}
         wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
 

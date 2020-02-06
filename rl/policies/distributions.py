@@ -98,7 +98,7 @@ class MixedDistribution(nn.Module):
             [(k, dist.sample()) for k, dist in self.distributions.items()]
         )
 
-    def rsample(self):
+    def resample(self):
         return OrderedDict(
             [(k, dist.rsample()) for k, dist in self.distributions.items()]
         )

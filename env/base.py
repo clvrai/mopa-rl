@@ -32,7 +32,8 @@ class BaseEnv(gym.Env):
             "max_episode_steps": kwargs['max_episode_steps'],
             "unstable_penalty": 0,
             "reward_type": kwargs['reward_type'],
-            "distance_threshold": kwargs['distance_threshold']
+            "distance_threshold": kwargs['distance_threshold'],
+            "is_rgb": kwargs['is_rgb']
         }
 
         logger.setLevel(logging.INFO)

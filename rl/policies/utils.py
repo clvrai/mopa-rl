@@ -25,6 +25,7 @@ class CNN(nn.Module):
         # screen_width == 256 (8,4)-(3,2)-(3,2)-(3,2) -> 7x7
 
         print('Output of CNN = %d x %d x %d' % (w, w, d))
+        self.w = w
         self.output_size = w * w * d
 
     def forward(self, ob):

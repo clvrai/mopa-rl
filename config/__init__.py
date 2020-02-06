@@ -16,7 +16,7 @@ def argparser():
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",
-                        choices=["sac", "ppo"])
+                        choices=["sac", "ppo", "ddpg", "td3"])
     parser.add_argument("--policy", type=str, default="mlp",
                         choices=["mlp", "cnn"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
@@ -44,9 +44,9 @@ def argparser():
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
 
-    parser.add_argument("--kernel_size", nargs='+', default=[8, 4, 3])
+    parser.add_argument("--kernel_size", nargs='+', default=[3, 3, 3])
     parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
-    parser.add_argument("--stride", nargs='+', default=[4, 2, 1])
+    parser.add_argument("--stride", nargs='+', default=[2, 1, 1])
 
     # observation normalization
     parser.add_argument("--ob_norm", type=str2bool, default=True)
@@ -60,6 +60,21 @@ def argparser():
     parser.add_argument("--lr_actor", type=float, default=3e-4, help="the learning rate of the actor")
     parser.add_argument("--lr_critic", type=float, default=3e-4, help="the learning rate of the critic")
     parser.add_argument("--polyak", type=float, default=0.995, help="the average coefficient")
+    parser.add_argument("--use_ae", type=str2bool, default=False, help="use AutoEncoder")
+    parser.add_argument("--encoder_kernel_size", nargs='+', default=[3, 3, 3])
+    parser.add_argument("--encoder_conv_dim", nargs='+', default=[32, 64, 32])
+    parser.add_argument("--encoder_stride", nargs='+', default=[2, 2, 1])
+    parser.add_argument("--decoder_kernel_size", nargs='+', default=[3, 3, 3])
+    parser.add_argument("--decoder_conv_dim", nargs='+', default=[64, 32, 3])
+    parser.add_argument("--decoder_stride", nargs='+', default=[1, 2, 2])
+    parser.add_argument("--decoder_out_padding", nargs='+', default=[0, 0, 1])
+    parser.add_argument("--decoder_padding", nargs='+', default=[0, 0,  0])
+    parser.add_argument('--decoder_latent_lambda', default=1e-6, type=float)
+    parser.add_argument("--ae_feat_dim", type=int, default=50)
+
+    parser.add_argument("--lr_encoder", type=float, default=1e-3, help="the learning rate of the encoder")
+    parser.add_argument("--lr_decoder", type=float, default=1e-3, help="the learning rate of the decoder")
+
 
     # training
     parser.add_argument("--is_train", type=str2bool, default=True)

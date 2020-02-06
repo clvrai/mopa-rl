@@ -76,8 +76,8 @@ class RolloutRunner(object):
         done = False
         ep_len = 0
         ep_rew = 0
-        ob = self._env.reset()
         ik_env.reset()
+        ob = self._env.reset()
         self._record_frames = []
         if record: self._store_frame()
 
@@ -123,15 +123,15 @@ class RolloutRunner(object):
                 if config.hrl:
                     if config.hl_type == 'subgoal':
                         ll_ob['subgoal'] = meta_ac['subgoal']
-                    ac, ac_before_activation = pi.act(ll_ob, meta_ac, is_train=is_train)
+                    ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                 else:
-                    ac, ac_before_activation = pi.act(ll_ob, is_train=is_train)
+                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 saved_qpos.append(env.sim.get_state().qpos.copy())
 
                 ob, reward, done, info = env.step(ac)
-                info['ac'] = ac['default']
+
 
                 rollout.add({'done': done, 'rew': reward})
                 acs.append(ac)
@@ -144,6 +144,8 @@ class RolloutRunner(object):
                     reward_info[key].append(value)
                 if record:
                     frame_info = info.copy()
+                    frame_info['ac'] = ac['default']
+                    frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                     if config.hrl:
                         i = int(meta_ac['default'])
                         frame_info['meta_ac'] = meta_pi.skills[i]

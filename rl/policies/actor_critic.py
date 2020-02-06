@@ -13,7 +13,7 @@ from util.pytorch import to_tensor
 
 
 class Actor(nn.Module):
-    def __init__(self, config, ob_space, ac_space, tanh_policy):
+    def __init__(self, config, ob_space, ac_space, tanh_policy, deterministic=False):
         super().__init__()
         self._config = config
         self._activation_fn = getattr(F, config.rl_activation)
@@ -23,24 +23,27 @@ class Actor(nn.Module):
     def info(self):
         return {}
 
-    def act(self, ob, is_train=True, return_log_prob=False):
+    def act(self, ob, is_train=True, return_log_prob=False, return_stds=False):
         ob = to_tensor(ob, self._config.device)
         self._ob = ob
-        means, stds = self.forward(ob)
+        means, stds = self.forward(ob, self._deterministic)
 
         dists = OrderedDict()
         for k, space in self._ac_space.spaces.items():
             if isinstance(space, spaces.Box):
+                if self._deterministic:
+                    stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
                 dists[k] = FixedCategorical(logits=means[k])
 
         actions = OrderedDict()
         mixed_dist = MixedDistribution(dists)
-        if not is_train:
+        if not is_train or self._deterministic:
             activations = mixed_dist.mode()
         else:
             activations = mixed_dist.sample()
+
 
         if return_log_prob:
             log_probs = mixed_dist.log_probs(activations)
@@ -67,6 +70,9 @@ class Actor(nn.Module):
 
             log_probs_ = log_probs_.detach().cpu().numpy().squeeze(0)
             return actions, activations, log_probs_
+
+        elif return_stds:
+            return actions, activations, stds
         else:
             return actions, activations
 
@@ -78,13 +84,22 @@ class Actor(nn.Module):
         actions = OrderedDict()
         for k, space in self._ac_space.spaces.items():
             if isinstance(space, spaces.Box):
+                if self._deterministic:
+                    stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
                 dists[k] = FixedCategorical(logits=means[k])
 
         mixed_dist = MixedDistribution(dists)
 
-        activations_ = mixed_dist.rsample() if activations is None else activations
+        if activations is None and not self._deterministic:
+            activations_ = mixed_dist.resample()
+        elif activations is None and self._deterministic:
+            activations_ = mixed_dist.mode()
+        else:
+            activations_ = activations
+
+        #activations_ = mixed_dist.rsample() if activations is None else activations
         for k in activations_.keys():
             if len(activations_[k].shape) == 1:
                 activations_[k] = activations_[k].unsqueeze(0)
