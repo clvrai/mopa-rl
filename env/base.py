@@ -379,3 +379,9 @@ class BaseEnv(gym.Env):
                     return True
         return False
 
+    def _check_contact(self):
+        return False
+
+    def _check_success(self):
+        return False
+
