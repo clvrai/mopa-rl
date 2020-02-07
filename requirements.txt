@@ -2,7 +2,7 @@ numpy
 torch
 wandb
 requests
-moviepy
+moviepy==1.0.0
 imageio
 colorlog
 pyquaternion

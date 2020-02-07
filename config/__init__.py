@@ -106,6 +106,7 @@ def argparser():
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,
                         help="set it True if you want to use wandb")
+    parser.add_argument("--group", type=str, default=None)
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)

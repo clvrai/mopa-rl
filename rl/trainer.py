@@ -13,6 +13,7 @@ from tqdm import tqdm, trange
 import env
 import gym
 from gym import spaces
+from sklearn.externals import joblib
 
 from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
@@ -117,7 +118,8 @@ class Trainer(object):
                 dir=config.log_dir,
                 entity="clvr",
                 notes=config.notes,
-                tags=tags
+                tags=tags,
+                group=config.group
             )
 
     def _save_ckpt(self, ckpt_num, update_iter):
@@ -128,20 +130,21 @@ class Trainer(object):
         torch.save(state_dict, ckpt_path)
         logger.warn("Save checkpoint: %s", ckpt_path)
 
-        if self._config.policy == 'mlp' or not self._config.use_ae:
-            replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
-            with gzip.open(replay_path, "wb") as f:
-                if self._config.hrl:
-                    if self._config.hrl_network_to_update == "HL":
-                        replay_buffers = {"replay": self._meta_agent.replay_buffer()}
-                    elif self._config.hrl_network_to_update == "LL":
-                        replay_buffers = {"replay": self._agent.replay_buffer()}
-                    else: # both
-                        replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
-                                          "ll_replay": self._agent.replay_buffer()}
-                else:
+        #if self._config.policy == 'mlp' or not self._config.use_ae:
+        replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
+        with gzip.open(replay_path, "wb") as f:
+            if self._config.hrl:
+                if self._config.hrl_network_to_update == "HL":
+                    replay_buffers = {"replay": self._meta_agent.replay_buffer()}
+                elif self._config.hrl_network_to_update == "LL":
                     replay_buffers = {"replay": self._agent.replay_buffer()}
-                pickle.dump(replay_buffers, f)
+                else: # both
+                    replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
+                                      "ll_replay": self._agent.replay_buffer()}
+            else:
+                replay_buffers = {"replay": self._agent.replay_buffer()}
+            #pickle.dump(replay_buffers, f)
+            joblib.dump(replay_buffers, f)
 
     def _load_ckpt(self, ckpt_num=None):
         ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
@@ -153,10 +156,12 @@ class Trainer(object):
             self._agent.load_state_dict(ckpt["agent"])
 
             if self._config.is_train:
+                #if self._config.policy == 'mlp' or not self._config.use_ae:
                 replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
                 logger.warn("Load replay_buffer %s", replay_path)
                 with gzip.open(replay_path, "rb") as f:
-                    replay_buffers = pickle.load(f)
+                    #replay_buffers = pickle.load(f)
+                    replay_buffers = joblib.load(f)
                     if self._config.hrl:
                         if self._config.hrl_network_to_update == "HL":
                             self._meta_agent.load_replay_buffer(replay_buffers["replay"])
@@ -467,7 +472,7 @@ class Trainer(object):
 
         video = mpy.VideoClip(f, duration=len(frames)/fps+2)
 
-        video.write_videofile(path, fps, verbose=False)
+        video.write_videofile(path, fps, verbose=False, logger=None)
         logger.warn("[*] Video saved: {}".format(path))
 
 
