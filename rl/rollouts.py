@@ -219,15 +219,19 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
-            subgoal = meta_ac['subgoal']
+            if meta_ac is None and 'subgoal' in meta_ac.keys():
+                subgoal = meta_ac['subgoal']
+                # ========== Clip subgoal range ===================
+                idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+                joint_range = env.model.jnt_range
+                min_ = joint_range[:, 0]
+                max_ = joint_range[:, 1]
+                subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
+                # =================================================
 
-            # ========== Clip subgoal range ===================
-            idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
-            joint_range = env.model.jnt_range
-            min_ = joint_range[:, 0]
-            max_ = joint_range[:, 1]
-            subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
-            # =================================================
+            if self._config.use_ik:
+                result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=100)
+                subgoal = result.qpos[:-2]
 
             ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel())
 
@@ -247,12 +251,12 @@ class RolloutRunner(object):
                     if config.hrl and config.hl_type == 'subgoal':
                         ll_ob['subgoal'] = meta_ac['subgoal']
 
-                    ac = state[:-2] - env.sim.data.qpos[:-2]
+                    #ac = state[:-2] - env.sim.data.qpos[:-2]
+                    ac = OrderedDict([('default', state[:-2] - env.sim.data.qpos[:-2])])
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
                     ob, reward, done, info = env.step(ac)
-                    info['ac'] = ac['default']
 
                     rollout.add({'done': done, 'rew': reward})
                     acs.append(ac)
@@ -266,9 +270,9 @@ class RolloutRunner(object):
 
                     if record:
                         frame_info = info.copy()
+                        frame_info['ac'] = ac
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
-                            frame_info['ac'] = ac['default']
                             for i, k in enumerate(meta_ac.keys()):
                                 if k == 'subgoal' and k != 'default':
                                     frame_info['meta_joint'] = meta_ac[k]

@@ -79,22 +79,18 @@ class Trainer(object):
 
 
         if config.hrl:
-            if config.ll_type == 'rl':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
                     config, ll_ob_space, ac_space, actor, critic
                 )
-            else:
-                from rl.low_level_mp_agent import LowLevelMpAgent
-                from rl.low_level_agent import LowLevelAgent
-                self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic
-                )
-                self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
             )
+
+        if config.ll_type == 'mp':
+            from rl.low_level_mp_agent import LowLevelMpAgent
+            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
 
         # build rollout runner
         self._runner = RolloutRunner(

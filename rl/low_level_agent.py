@@ -66,7 +66,7 @@ class LowLevelAgent(SACAgent):
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
-    def act(self, ob, meta_ac, is_train=True):
+    def act(self, ob, meta_ac, is_train=True, return_stds=False):
         ac = OrderedDict()
         activation = OrderedDict()
         if self._config.hrl:
@@ -79,9 +79,15 @@ class LowLevelAgent(SACAgent):
 
             ob_ = to_tensor(ob_, self._config.device)
             if self._config.meta_update_target == 'HL':
-                ac_, activation_ = self._actors[skill_idx].act(ob_, False)
+                if return_stds:
+                    ac_, activation_, stds = self._actors[skill_idx].act(ob_, False, return_stds=return_stds)
+                else:
+                    ac_, activation_ = self._actors[skill_idx].act(ob_, False, return_stds=return_stds)
             else:
-                ac_, activation_ = self._actors[skill_idx].act(ob_, is_train)
+                if return_stds:
+                    ac_, activation_, stds = self._actors[skill_idx].act(ob_, is_train, return_stds=return_stds)
+                else:
+                    ac_, activation_ = self._actors[skill_idx].act(ob_, is_train, return_stds=return_stds)
             ac.update(ac_)
             activation.update(activation_)
 
@@ -106,7 +112,10 @@ class LowLevelAgent(SACAgent):
                     ac[k] = sum([x[k] for x in ac_i])
                     activation[k] = np.stack([x[k] for x in activation_i])
 
-        return ac, activation
+        if return_stds:
+            return ac, activation, stds
+        else:
+            return ac, activation
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
@@ -114,19 +123,16 @@ class LowLevelAgent(SACAgent):
 
         ac = OrderedDict()
         log_probs = []
-        meta_ac_keys = [k for k in meta_ac.keys() if (not k.endswith('_diayn'))]
-        for i, key in enumerate(meta_ac_keys):
-            skill_idx = meta_ac[key]
+        skill_idx = meta_ac['default']
+        # assert np.sum(skill_idx.detach().cpu().to(int).numpy()) == 0, "multiple skills not supported"
+        skill_idx = 0
 
-            # assert np.sum(skill_idx.detach().cpu().to(int).numpy()) == 0, "multiple skills not supported"
-            skill_idx = 0
-
-            ob_ = ob_detached.copy()
-            ob_ = self._ob_norms[i][skill_idx].normalize(ob_)
-            ob_ = to_tensor(ob_, self._config.device)
-            ac_, log_probs_ = self._actors[i][skill_idx].act_log(ob_)
-            ac.update(ac_)
-            log_probs.append(log_probs_)
+        ob_ = ob_detached.copy()
+        ob_ = self._ob_norms[skill_idx].normalize(ob_)
+        ob_ = to_tensor(ob_, self._config.device)
+        ac_, log_probs_ = self._actors[skill_idx].act_log(ob_)
+        ac.update(ac_)
+        log_probs.append(log_probs_)
 
         try:
             log_probs = torch.cat(log_probs, -1).sum(-1, keepdim=True)
