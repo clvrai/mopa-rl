@@ -53,7 +53,7 @@ class CNNActor(Actor):
             else:
                 self.fc_means.update({k: MLP(config, config.rl_hid_size, space)})
 
-    def forward(self, ob):
+    def forward(self, ob, deterministic=False):
         inp = list(ob.values())
         x = ob['default']
 
