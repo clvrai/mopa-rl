@@ -219,7 +219,7 @@ class RolloutRunner(object):
             meta_rew = 0
 
             curr_qpos = env.sim.data.qpos
-            if meta_ac is None and 'subgoal' in meta_ac.keys():
+            if self._config.hrl and 'subgoal' in meta_ac.keys():
                 subgoal = meta_ac['subgoal']
                 # ========== Clip subgoal range ===================
                 idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
@@ -285,10 +285,10 @@ class RolloutRunner(object):
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
-            else:
-                reward_info['episode_success'].append(False)
-                meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
-                break
+            # else:
+            #     reward_info['episode_success'].append(False)
+            #     meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
+            #     break
         # last frame
         ll_ob = ob.copy()
         if config.hrl and config.hl_type == 'subgoal':
