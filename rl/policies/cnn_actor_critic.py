@@ -70,7 +70,6 @@ class CNNActor(Actor):
                 ob[k] = ob[k].unsqueeze(0)
             aux_out = self._activation_fn(self.aux_fc[k](ob[k]))
             aux_feat.append(aux_out)
-
         if len(aux_feat) > 0:
             aux_feat = torch.cat(aux_feat, dim=-1)
             out = torch.cat([out, aux_feat], dim=1)
@@ -101,6 +100,7 @@ class CNNCritic(Critic):
 
         self._ob_space = ob_space
         self._ac_space = ac_space
+        self._activation_fn = nn.ReLU()
 
 
         input_shape = ob_space['default'].shape
@@ -137,7 +137,7 @@ class CNNCritic(Critic):
             ac = list(ac.values())
             if len(ac[0].shape) == 1:
                 ac = [x.unsqueeze(0) for x in ac]
-            out = torch.cat([out, ac], dim=1)
+            out = torch.cat([out, ac[0]], dim=1)
 
 
         aux_feat = []
