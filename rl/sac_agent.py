@@ -194,8 +194,8 @@ class SACAgent(BaseAgent):
                 (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
-            #clip_return = 1 / (1 - self._config.discount_factor)
-            #target_q_value = torch.clamp(target_q_value, -clip_return, clip_return)
+            clip_return = 1 / (1 - self._config.discount_factor)
+            target_q_value = torch.clamp(target_q_value, -clip_return, clip_return)
 
         # the q loss
         real_q_value1 = self._critic1(o, ac)

@@ -19,6 +19,9 @@ class Rollout(object):
         for key, value in data.items():
             self._history[key].append(value)
 
+    def __len__(self):
+        return len(self._history['ob'])
+
     def get(self):
         batch = {}
         batch['ob'] = self._history['ob']
@@ -38,6 +41,9 @@ class MetaRollout(object):
     def add(self, data):
         for key, value in data.items():
             self._history[key].append(value)
+
+    def __len__(self):
+        return len(self._history['ob'])
 
     def get(self):
         batch = {}
@@ -196,7 +202,10 @@ class RolloutRunner(object):
         ep_len = 0
         ep_rew = 0
         mp_success = 0
-        ob = self._env.reset()
+
+
+
+        ob = env.reset()
         self._record_frames = []
         if record: self._store_frame()
 
@@ -286,9 +295,22 @@ class RolloutRunner(object):
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
             else:
-                reward_info['episode_success'].append(False)
-                meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
-                break
+                if len(rollout) != 0:
+                    reward_info['episode_success'].append(False)
+                    meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
+                    break
+                else:
+                    ob = env.reset()
+                    rollout = Rollout()
+                    meta_rollout = MetaRollout()
+                    reward_info = defaultdict(list)
+                    acs = []
+
+                    done = False
+                    ep_len = 0
+                    ep_rew = 0
+                    mp_success = 0
+
         # last frame
         ll_ob = ob.copy()
         if config.hrl and config.hl_type == 'subgoal':
