@@ -285,10 +285,10 @@ class RolloutRunner(object):
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
-            # else:
-            #     reward_info['episode_success'].append(False)
-            #     meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
-            #     break
+            else:
+                reward_info['episode_success'].append(False)
+                meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
+                break
         # last frame
         ll_ob = ob.copy()
         if config.hrl and config.hl_type == 'subgoal':
