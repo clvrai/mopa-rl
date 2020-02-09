@@ -127,7 +127,7 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, joint_names=None,
                         max_steps=100, rot_weight=1., tol=1e-14,
                         max_update_norm=2.0, progress_thresh=20.0,
-                        regularization_threshold=0.1, regularization_strength=3e-2):
+                                 regularization_threshold=0.1, regularization_strength=3e-2, logging=False):
     mjlib = mjbindings.mjlib
     dtype = env.sim.data.qpos.dtype
     trials = 0
@@ -215,7 +215,6 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
 
                 progress_criterion = err_norm / update_norm
                 if progress_criterion > progress_thresh:
-                    print('halting')
                     break
 
                 if update_norm > max_update_norm:
@@ -228,7 +227,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 #env.step(update_nv[:-2])
                 site_xpos = env._get_pos(site)
                 site_xmat = env.data.get_body_xmat(site).ravel()
-                if steps % 10 == 0:
+                if steps % 10 == 0 and logging:
                     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
                           steps, err_norm, update_norm)
 
@@ -237,7 +236,6 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
         else:
             env.initalize_joints()
             trials += 1
-            print("Trials: ", trials)
 
 
 

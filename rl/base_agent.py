@@ -15,15 +15,24 @@ class BaseAgent(object):
             return self._ob_norm.normalize(ob)
         return ob
 
-    def act(self, ob, is_train=True):
+    def act(self, ob, is_train=True, return_stds=False):
         if self._config.policy == 'mlp':
             ob = self.normalize(ob)
         if hasattr(self, '_actor'):
-            ac, activation = self._actor.act(ob, is_train=is_train)
+            if return_stds:
+                ac, activation, stds = self._actor.act(ob, is_train=is_train, return_stds=return_stds)
+            else:
+                ac, activation = self._actor.act(ob, is_train=is_train, return_stds=return_stds)
         else:
-            ac, activation = self._actors[0].act(ob, is_train=is_train)
+            if return_stds:
+                ac, activation, stds = self._actors[0].act(ob, is_train=is_train, return_stds=return_stds)
+            else:
+                ac, activation = self._actors[0].act(ob, is_train=is_train, return_stds=return_stds)
 
-        return ac, activation
+        if return_stds:
+            return ac, activation, stds
+        else:
+            return ac, activation
 
     def update_normalizer(self, obs):
         if self._config.ob_norm:

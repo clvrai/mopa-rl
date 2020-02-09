@@ -54,6 +54,9 @@ def argparser():
     parser.add_argument("--clip_obs", type=float, default=200, help="the clip range of observation")
     parser.add_argument("--clip_range", type=float, default=5, help="the clip range after normalization of observation")
 
+    # motion planning
+    parser.add_argument("--use_ik", type=str2bool, default=False)
+
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
     parser.add_argument("--discount_factor", type=float, default=0.99, help="the discount factor")

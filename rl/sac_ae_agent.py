@@ -97,6 +97,11 @@ class SACAEAgent(BaseAgent):
             'critic1_optim_state_dict': self._critic1_optim.state_dict(),
             'critic2_optim_state_dict': self._critic2_optim.state_dict(),
             'ob_norm_state_dict': self._ob_norm.state_dict(),
+            'critic_encoder_state_dict': self._critic_encoder.state_dict(),
+            'decoder_state_dict': self._decoder.state_dict(),
+            'actor_encoder_state_dict': self._actor_encoder.state_dict(),
+            'encoder_optim_state_dict': self._encoder_optim.state_dict(),
+            'decoder_optim_state_dict': self._decoder_optim.state_dict()
         }
 
     def load_state_dict(self, ckpt):
@@ -108,6 +113,10 @@ class SACAEAgent(BaseAgent):
         self._critic2.load_state_dict(ckpt['critic2_state_dict'])
         self._critic1_target.load_state_dict(self._critic1.state_dict())
         self._critic2_target.load_state_dict(self._critic2.state_dict())
+        self._actor_encoder.load_state_dict(ckpt['actor_encoder_state_dict'])
+        self._critic_encoder.load_state_dict(ckpt['critc_encoder_state_dict'])
+        self._actor_encoder.copy_conv_weights_from(self._critic_encoder)
+        self._decoder.load_state_dict(ckpt['decoder_state_dict'])
         self._ob_norm.load_state_dict(ckpt['ob_norm_state_dict'])
         self._network_cuda(self._config.device)
 
@@ -116,6 +125,8 @@ class SACAEAgent(BaseAgent):
             _actor_optim.load_state_dict(actor_optim_ckpt)
         self._critic1_optim.load_state_dict(ckpt['critic1_optim_state_dict'])
         self._critic2_optim.load_state_dict(ckpt['critic2_optim_state_dict'])
+        self._encoder_optim.load_state_dict(ckpt['encoder_optim_state_dict'])
+        self._decoder_optim.load_state_dict(ckpt['decoder_optim_state_dict'])
         optimizer_cuda(self._alpha_optim, self._config.device)
         for _actor_optim in self._actor_optims:
             optimizer_cuda(_actor_optim, self._config.device)

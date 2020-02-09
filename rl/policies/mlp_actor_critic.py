@@ -19,7 +19,7 @@ class MlpActor(Actor):
         # observation
         input_dim = observation_size(ob_space)
 
-        self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size])
+        self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size]*2)
         self.fc_means = nn.ModuleDict()
         self.fc_log_stds = nn.ModuleDict()
 

@@ -222,6 +222,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             ss->getPlanner()->as<og::KPIECE1>()->clear();
         } else if (algo == "rrt"){
             ss->getPlanner()->as<og::RRTstar>()->clear();
+        } else if (algo == "sst"){
+            ss->getPlanner()->as<og::SST>()->clear();
         } else if (algo == "rrt_connect"){
             ss->getPlanner()->as<og::RRTConnect>()->clear();
         } else if (algo == "prm_star"){
@@ -240,6 +242,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         ss->getPlanner()->as<og::KPIECE1>()->clear();
     } else if (algo == "rrt"){
         ss->getPlanner()->as<og::RRTstar>()->clear();
+    } else if (algo == "sst"){
+        ss->getPlanner()->as<og::SST>()->clear();
     } else if (algo == "rrt_connect"){
         ss->getPlanner()->as<og::RRTConnect>()->clear();
     } else if (algo == "prm_star"){
