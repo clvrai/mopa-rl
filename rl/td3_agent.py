@@ -145,15 +145,15 @@ class TD3Agent(BaseAgent):
             ac, activation, stds = self._actors[0].act(ob, is_train=is_train, return_stds=return_stds)
             for k, space in self._ac_space.spaces.items():
                 if isinstance(space, spaces.Box):
-                    ac[k] += self._ounoise.noise()
-                    ac[k] = np.clip(ac[k], -1, 1)
+                    ac[k] += np.random.normal(0, 0.1, size=len(ac[k]))
+                    ac[k] = np.clip(ac[k], self._config.action_min, self._config.action_max)
             return ac, activation, stds
         else:
             ac, activation = self._actors[0].act(ob, is_train=is_train, return_stds=return_stds)
             for k, space in self._ac_space.spaces.items():
                 if isinstance(space, spaces.Box):
-                    ac[k] += self._ounoise.noise()
-                    ac[k] = np.clip(ac[k], -1, 1)
+                    ac[k] += np.random.normal(0, 0.1, size=len(ac[k]))
+                    ac[k] = np.clip(ac[k], self._config.action_min, self._config.action_max)
             return ac, activation
 
     def target_act(self, ob, is_train=True):
@@ -202,6 +202,10 @@ class TD3Agent(BaseAgent):
         ## Critic loss
         with torch.no_grad():
             actions_next, _ = self.target_act_log(o_next, meta_ac)
+            for k, space in self._ac_space.spaces.items():
+                if isinstance(space, spaces.Box):
+                    actions_next[k] += torch.randn_like(actions_next[k]) * 0.1
+                    actions_next[k] = torch.clamp(actions_next[k], self._config.action_min, self._config.action_max)
             q_next_value1 = self._critic1_target(o_next, actions_next)
             q_next_value2 = self._critic2_target(o_next, actions_next)
             q_next_value = torch.min(q_next_value1, q_next_value2)
