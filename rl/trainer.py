@@ -236,10 +236,7 @@ class Trainer(object):
         if config.ll_type == 'rl':
             self._runner.run_episode()
         elif config.ll_type == 'mp':
-            if self._config.mp_ratio > np.random.rand():
-                self._runner.mp_run_episode()
-            else:
-                self._runner.run_episode()
+            self._runner.mp_run_episode()
         else:
             ValueError("Invalid low level controller type")
 
@@ -255,8 +252,13 @@ class Trainer(object):
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
                 else:
-                    rollout, meta_rollout, info, _ = \
-                        self._runner.mp_run_episode()
+                    if self._config.mp_ratio > np.random.rand():
+                        rollout, meta_rollout, info, _ = \
+                            self._runner.mp_run_episode()
+                    else:
+                        rollout, meta_rollout, info, _ = \
+                            self._runner.run_episode()
+
                 run_step += info["len"]
                 run_ep += 1
                 global_run_ep += 1
