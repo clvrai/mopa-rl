@@ -279,7 +279,7 @@ class RolloutRunner(object):
 
                     if record:
                         frame_info = info.copy()
-                        frame_info['ac'] = ac
+                        frame_info['ac'] = ac['default']
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
                             for i, k in enumerate(meta_ac.keys()):
