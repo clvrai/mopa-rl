@@ -236,7 +236,10 @@ class Trainer(object):
         if config.ll_type == 'rl':
             self._runner.run_episode()
         elif config.ll_type == 'mp':
-            self._runner.mp_run_episode()
+            if self._config.mp_ratio > np.random.rand():
+                self._runner.mp_run_episode()
+            else:
+                self._runner.run_episode()
         else:
             ValueError("Invalid low level controller type")
 

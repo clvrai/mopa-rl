@@ -80,6 +80,8 @@ def argparser():
     parser.add_argument("--lr_encoder", type=float, default=1e-3, help="the learning rate of the encoder")
     parser.add_argument("--lr_decoder", type=float, default=1e-3, help="the learning rate of the decoder")
 
+    parser.add_argument("--mp_ratio", type=float, default=1., help='How often a motion planner is used')
+
 
     # training
     parser.add_argument("--is_train", type=str2bool, default=True)
