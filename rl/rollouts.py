@@ -297,22 +297,24 @@ class RolloutRunner(object):
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                reward_info['meta_rew'].append(meta_rew)
             else:
-                if len(rollout) != 0:
-                    reward_info['episode_success'].append(False)
-                    meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
-                    break
-                else:
-                    ob = env.reset()
-                    rollout = Rollout()
-                    meta_rollout = MetaRollout()
-                    reward_info = defaultdict(list)
-                    acs = []
-
-                    done = False
-                    ep_len = 0
-                    ep_rew = 0
-                    mp_success = 0
+                #if len(rollout) != 0:
+                reward_info['episode_success'].append(False)
+                meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
+                reward_info['meta_rew'].append(self._config.meta_subgoal_rew)
+                break
+                # else:
+                #     ob = env.reset()
+                #     rollout = Rollout()
+                #     meta_rollout = MetaRollout()
+                #     reward_info = defaultdict(list)
+                #     acs = []
+                #
+                #     done = False
+                #     ep_len = 0
+                #     ep_rew = 0
+                #     mp_success = 0
 
         # last frame
         ll_ob = ob.copy()
