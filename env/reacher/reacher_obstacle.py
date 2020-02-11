@@ -2,9 +2,8 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces 
+from gym import spaces
 from env.base import BaseEnv
-
 
 class ReacherObstacleEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
@@ -23,7 +22,8 @@ class ReacherObstacleEnv(BaseEnv):
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+            self.sim.step()
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2: # might need to take action for one step to check the collision sim step.
                 self.goal = goal
                 break
         return self._get_obs()
@@ -95,6 +95,25 @@ class ReacherObstacleEnv(BaseEnv):
             if i + 1 < self._action_repeat:
                 velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states) * 2
 
+        obs = self._get_obs()
+        if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+            done =True
+            self._success = True
+        return obs, reward, done, info
+
+    def _kinematics_step(self, states):
+        info = {}
+        done = False
+
+        if self._env_config['reward_type'] == 'dense':
+            reward_dist = -self._get_distance("fingertip", "target")
+            reward = reward_dist
+            info = dict(reward_dist=reward_dist)
+        else:
+            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+
+        states = np.concatenate((states[:-2], self.goal))
+        self.set_state(states, self.sim.data.qvel.ravel())
         obs = self._get_obs()
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
             done =True

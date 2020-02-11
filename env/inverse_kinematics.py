@@ -98,6 +98,7 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
                 regularization_strength if err_norm > regularization_threshold else 0.0
             )
 
+            env.sim.step()
             collision = env.sim.data.ncon
             update_joints = nullspace_method(jac_joints, err, regularization_strength, collision)
             update_norm = np.linalg.norm(update_joints)

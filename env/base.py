@@ -149,6 +149,17 @@ class BaseEnv(gym.Env):
         done, info, penalty = self._after_step(reward, done, info)
         return ob, reward + penalty, done, info
 
+    def kinematics_step(self, states):
+        self._before_kinematics_step()
+
+        ob, reward, done, info = self._kinematics_step(states)
+        done, info, penalty = self._after_step(reward, done, info)
+        return ob, reward+penalty, done, info
+
+
+    def _before_kinematics_step(self):
+        pass
+
     def _before_step(self):
         pass
 

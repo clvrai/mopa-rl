@@ -8,7 +8,7 @@ def add_arguments(parser):
     # reacher
     parser.add_argument("--reward_type", type=str, default="dense",
                         choices=["dense", "sparse"])
-    parser.add_argument("--distance_threshold", type=float, default=0.03)
+    parser.add_argument("--distance_threshold", type=float, default=0.06)
     parser.add_argument("--max_episode_steps", type=int, default=150)
 
     # observations

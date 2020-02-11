@@ -265,7 +265,10 @@ class RolloutRunner(object):
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
-                    ob, reward, done, info = env.step(ac)
+                    if self._config.kinematics:
+                        ob, reward, done, info = env.kinematics_step(state)
+                    else:
+                        ob, reward, done, info = env.step(ac)
 
                     rollout.add({'done': done, 'rew': reward})
                     acs.append(ac)
