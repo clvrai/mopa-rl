@@ -14,6 +14,9 @@
         <default class="link">
             <geom contype="1" conaffinity="1" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule" />
         </default>
+        <default class="link-dummy">
+            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 0" size=".01" type="capsule" />
+        </default>
     </default>
 
     <worldbody>
@@ -63,6 +66,39 @@
             </body>
         </body>
 
+        <geom conaffinity="0" contype="0" fromto="0 0 0 0 0 0.05" name="root-dummy" rgba="0.9 0.4 0.6 0.3" size=".011" type="cylinder"/>
+        <body name="body0-dummy" pos="0 0 .02">
+            <geom class='link-dummy' name='link0-dummy'/>
+            <joint axis="0 0 1" limited="false" name="joint0-dummy" pos="0 0 0" type="hinge"/>
+            <body name="body1-dummy" pos="0.1 0 0">
+                <joint axis="0 0 1" limited="true" name="joint1-dummy" pos="0 0 0" range="-3.0 3.0" type="hinge"/>
+                <geom class='link-dummy' name='link1-dummy'/>
+                <body name="body2-dummy" pos="0.1 0 0">
+                    <joint axis="0 0 1" limited="true" name="joint2-dummy" pos="0 0 0" range="-3.0 3.0" type="hinge"/>
+                    <geom class='link-dummy' name='link2-dummy'/>
+                    <body name="body3-dummy" pos="0.1 0 0">
+                        <joint axis="0 0 1" limited="true" name="joint3-dummy" pos="0 0 0" range="-3.0 3.0" type="hinge"/>
+                        <geom class='link-dummy' name='link3-dummy'/>
+                        <body name="body4-dummy" pos="0.1 0 0">
+                            <joint axis="0 0 1" limited="true" name="joint4-dummy" pos="0 0 0" range="-3.0 3.0" type="hinge"/>
+                            <geom class='link-dummy' name='link4-dummy'/>
+                            <body name="body5" pos="0.1 0 0">
+                                <joint axis="0 0 1" limited="true" name="joint5-dummy" pos="0 0 0" range="-3.0 3.0" type="hinge"/>
+                                <geom class='link-dummy' name='link5-dummy'/>
+                                <body name="body6-dummy" pos="0.1 0 0">
+                                    <joint axis="0 0 1" limited="true" name="joint6-dummy" pos="0 0 0" range="-3.0 3.0" type="hinge"/>
+                                    <geom class='link-dummy' name='link6-dummy'/>
+                                    <body name="fingertip-dummy" pos="0.11 0 0">
+                                            <geom contype="1" conaffinity="1" name="fingertip-dummy" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> -->
+                                            <site name='fingertip-dummy' />
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
         <body name="target" pos=".1 -.1 .01">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide"/>
@@ -75,13 +111,6 @@
     </worldbody>
 
     <actuator>
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint0"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint1"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint2"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint3"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint4"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint5"/> -->
-        <!-- <motor ctrllimited="true" ctrlrange="&#45;1.0 1.0" gear="200.0" joint="joint6"/> -->
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint0"/>
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint1"/>
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint2"/>
