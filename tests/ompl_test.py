@@ -108,12 +108,32 @@ def run_mp(env, planner, i=None):
             # if is_save_video:
             #     frames.append(render_frame(env, step))
             # else:
-            #     env.render(mode='human')
-            #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-            mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+            if step % 10 == 0:
+                mp_env.set_state(np.concatenate((traj[step+10][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+                for l in range(7):
+                    body_idx = mp_env.model.body_name2id('body'+str(l))
+                    # pos = mp_env.sim.data.xipos[body_idx]
+                    # body_idx = mp_env.model.body_name2id('body'+str(l)+'-dummy')
+                    # env.sim.data.xipos[body_idx] = pos
+                    #pos = mp_env._get_pos('body'+str(l))
+                    pos = mp_env.sim.data.body_xpos[body_idx]
+                    quat = mp_env.sim.data.body_xquat[body_idx]
+                    # #xmat = mp_env.data.get_geom_xmat('link'+str(i))
+                    # #geom_id = mp_env.model.geom_name2id('link'+str(i))
+                    #quat = mp_env._get_quat('body'+str(l))
+                    # #xmat = mp_env._get_xmat('body'+str(l))
+                    # #xmat = mp_env.data.get_geom_quat('link'+str(i))
+                    env._set_pos('body'+str(l)+'-dummy', pos)
+                    # #print(env._get_pos('link0-dummy'))
+                    env._set_quat('body'+str(l)+'-dummy', quat)
+                    # #env._set_xmat('body'+str(i)+'-dummy', xmat)
+
+
+            env.render(mode='human')
+            env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
             #env.step(-(env.sim.data.qpos[:-2]-state[:-2])*env._frame_skip)
-            action = state[:-2]-env.get_joint_positions
-            env.step(action)
+            #action = state[:-2]-env.get_joint_positions
+            #env.step(action)
             error += np.sqrt((env.sim.data.qpos - state)**2)
             end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
 

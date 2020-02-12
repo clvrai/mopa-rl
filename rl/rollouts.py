@@ -292,7 +292,9 @@ class RolloutRunner(object):
                                 elif k != 'default':
                                     frame_info['meta_'+k] = meta_ac[k]
 
-                        self._store_frame(frame_info, subgoal_site_pos)
+                        ik_env.set_state(state, ik_env.sim.data.qvel.ravel())
+                        xpos, xquat = self_.get_mp_body_pos(ik_env)
+                        self._store_frame(frame_info, subgoal_site_pos, xpos, xquat)
 
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
@@ -337,7 +339,18 @@ class RolloutRunner(object):
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
-    def _store_frame(self, info={}, subgoal=None):
+    def _get_mp_body_pos(self, ik_env):
+        xpos = OrderedDict()
+        xquat = OrderedDict
+        for i in range(len(ik_env.sim.data.qpos)-2):
+            name = 'body'+str(i)
+            body_idx = ik_env.model.body_name2id(name)
+            xpos[name+'-dummy'] = ik_env.sim.data.body_xpos(body_idx)
+            xquat[name+'-dummy'] = ik_env.sim.data.body_xquat(body_idx)
+
+        return xpos, xquat
+
+    def _store_frame(self, info={}, subgoal=None, xpos=None, xquat=None):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(self._env._episode_length,
@@ -346,6 +359,11 @@ class RolloutRunner(object):
         if self._config.hl_type == 'subgoal' and subgoal is not None:
             self._env._set_pos('subgoal', [subgoal[0], subgoal[1], self._env._get_pos('subgoal')[2]])
             self._env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
+
+        if xpos is not None and xquat is not None:
+            for k in xpos.keys():
+                self._env._set_pos(k, xpos[k])
+                self._env._set_quat(k, xquat[k])
 
         frame = self._env.render('rgb_array') * 255.0
         self._env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])

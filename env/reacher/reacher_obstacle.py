@@ -28,6 +28,7 @@ class ReacherObstacleEnv(BaseEnv):
                 break
         return self._get_obs()
 
+
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
