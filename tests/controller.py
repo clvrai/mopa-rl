@@ -103,46 +103,55 @@ def run_mp(env, planner, i=None):
 
     sim_dt = 0.01
     edge_dt = 0.2
-    Kp = 1.
+    Kp = 150.0
+    Kd = 20.0
+    Ki = 0.1
+    alpha = 0.95
     n_inner_loop = int(edge_dt / sim_dt)
 
     if success:
         goal = env.sim.data.qpos[-2:]
-        for step, state in enumerate(traj[1:]):
+        prev_state = traj[0, :]
+        i_term = np.zeros_like(env.sim.data.qpos[:-2])
 
+        for step, state in enumerate(traj[1:]):
 
             # Update dummy reacher
             if step % 1 == 0:
-                mp_env.set_state(np.concatenate((traj[step+1][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+                mp_env.set_state(np.concatenate((traj[step + 1][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
                 for l in range(len(env.sim.data.qpos[:-2])):
-                    body_idx = mp_env.model.body_name2id('body'+str(l))
+                    body_idx = mp_env.model.body_name2id('body' + str(l))
                     pos = mp_env.sim.data.body_xpos[body_idx]
                     quat = mp_env.sim.data.body_xquat[body_idx]
-                    env._set_pos('body'+str(l)+'-dummy', pos)
-                    env._set_quat('body'+str(l)+'-dummy', quat)
+                    env._set_pos('body' + str(l) + '-dummy', pos)
+                    env._set_quat('body' + str(l) + '-dummy', quat)
 
             if is_save_video:
-                 frames.append(render_frame(env, step))
+                frames.append(render_frame(env, step))
             else:
                 env.render(mode='human')
 
-
-            # Action space is the difference between next state and current state
-            # ===================================
-            # Use controller here?
-            # ===================================
-            #env.set_state(np.concatenate((state[:-2], env.goal)), env.sim.data.qvel.ravel())
+            target_vel = (state - prev_state) / edge_dt
             for t in range(n_inner_loop):
-                action = Kp * (state[:-2] - env.sim.data.qpos[:-2])
-                action = np.clip(action, -1., 1.)
-                print(state[:-2], env.sim.data.qpos[:-2], action)
-                env.step(action)
+                p_term = Kp * (state[:-2] - env.sim.data.qpos[:-2])
+                d_term = Kd * (target_vel[:-2] * 0 - env.sim.data.qvel[:-2])
+                i_term = alpha * i_term + Ki * (prev_state[:-2] - env.sim.data.qpos[:-2])
 
-            env.render(mode='human')
+                # print('p term ', np.linalg.norm(p_term))
+                # print('d term ', np.linalg.norm(d_term))
+                # print('i term ', np.linalg.norm(i_term))
+                action = p_term + d_term + i_term
 
+                env.sim.data.ctrl[:] = action
+                env.sim.forward()
+                env.sim.step()
+                # env.step(action)
 
-            error += np.sqrt((env.sim.data.qpos - state)**2)
-            end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
+                env.render(mode='human')
+
+            error += np.sqrt((env.sim.data.qpos - state) ** 2)
+            end_error += np.sqrt((env.data.get_site_xpos('fingertip') - mp_env.data.get_site_xpos('fingertip')) ** 2)
+            prev_state = state
 
     if is_save_video:
         frames.append(render_frame(env, step))
