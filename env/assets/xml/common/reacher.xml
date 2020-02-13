@@ -4,7 +4,7 @@
     <include file="./common/visual.xml"/>
 
     <compiler angle="radian" inertiafromgeom="true" meshdir="../meshes" />
-    <option gravity="0 0 -9.81" integrator="RK4" timestep="0.01" cone="elliptic"/>
+    <option gravity="0 0 -9.81" integrator="RK4" timestep="0.01"/>
     <default>
         <joint armature="1" damping="1" limited="true"/>
         <geom contype="0" friction="1 0.1 0.1"/>

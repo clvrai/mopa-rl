@@ -27,7 +27,7 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-is_save_video = False
+is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
