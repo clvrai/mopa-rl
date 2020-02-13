@@ -100,6 +100,12 @@ def run_mp(env, planner, i=None):
     frames = []
     action_frames = []
     step = 0
+
+    sim_dt = 0.01
+    edge_dt = 0.1
+    Kp = 0.9
+    n_inner_loop = int(edge_dt / sim_dt)
+
     if success:
         goal = env.sim.data.qpos[-2:]
         for step, state in enumerate(traj[1:]):
@@ -107,7 +113,7 @@ def run_mp(env, planner, i=None):
 
             # Update dummy reacher
             if step % 1 == 0:
-                mp_env.set_state(np.concatenate((traj[step][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+                mp_env.set_state(np.concatenate((traj[step+1][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
                 for l in range(7):
                     body_idx = mp_env.model.body_name2id('body'+str(l))
                     pos = mp_env.sim.data.body_xpos[body_idx]
@@ -125,9 +131,13 @@ def run_mp(env, planner, i=None):
             # ===================================
             # Use controller here?
             # ===================================
-            action = state[:-2] - env.sim.data.qpos[:-2]
+            for t in range(n_inner_loop):
+                action = Kp * (state[:-2] - env.sim.data.qpos[:-2])
+                env.step(action)
 
-            env.step(action)
+                env.render(mode='human')
+
+
             error += np.sqrt((env.sim.data.qpos - state)**2)
             end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
 
