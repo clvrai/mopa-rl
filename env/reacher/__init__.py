@@ -1,4 +1,6 @@
 from env.reacher.reacher_obstacle import ReacherObstacleEnv
+from env.reacher.simple_reacher_obstacle import SimpleReacherObstacleEnv
+from env.reacher.simple_reacher_obstacle_pixel import SimpleReacherObstaclePixelEnv
 from env.reacher.reacher import ReacherEnv
 from env.reacher.reacher_obstacle_test import ReacherObstacleTestEnv
 from env.reacher.reacher_obstacle_pixel import ReacherObstaclePixelEnv

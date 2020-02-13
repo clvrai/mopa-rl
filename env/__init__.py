@@ -11,6 +11,18 @@ register(
 )
 
 register(
+    id='simple-reacher-obstacle-v0',
+    entry_point='env.reacher:SimpleReacherObstacleEnv',
+    kwargs={},
+)
+
+register(
+    id='simple-reacher-obstacle-pixel-v0',
+    entry_point='env.reacher:SimpleReacherObstaclePixelEnv',
+    kwargs={},
+)
+
+register(
     id='reacher-v0',
     entry_point='env.reacher:ReacherEnv',
     kwargs={},

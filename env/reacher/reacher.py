@@ -18,7 +18,7 @@ class ReacherEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=-.35, high=.35, size=2)
-            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
             #qvel = np.ones(len(self.sim.data.qvel.ravel()))
@@ -31,7 +31,7 @@ class ReacherEnv(BaseEnv):
 
     def initalize_joints(self):
         while True:
-            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = self.goal
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
@@ -87,12 +87,12 @@ class ReacherEnv(BaseEnv):
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
-        velocity = 2*action # According to robosuite
+        velocity = action # According to robosuite
         for i in range(self._action_repeat):
             velocity = np.clip(velocity, self._minimum, self._maximum)
             self._do_simulation(velocity)
             if i + 1 < self._action_repeat:
-                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states) * 2
+                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states)
 
 
         obs = self._get_obs()
