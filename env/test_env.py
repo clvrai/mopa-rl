@@ -18,7 +18,8 @@ print(args)
 print(args.env)
 
 env = gym.make(args.env, **args.__dict__)
-env.reset()
+obs = env.reset()
+print(len(obs['default']))
 qpos = env.sim.data.qpos.ravel()
 qvel = env.sim.data.qvel.ravel()
 
@@ -27,6 +28,7 @@ qvel = env.sim.data.qvel.ravel()
 for i in range(1000):
     env.render(mode='human')
     action = env.action_space.sample()
+    print(action)
     obs, reward, done, _ = env.step(action)
     if done:
         print('done')

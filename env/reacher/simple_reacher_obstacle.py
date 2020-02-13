@@ -5,11 +5,11 @@ import numpy as np
 from gym import spaces
 from env.base import BaseEnv
 
-class ReacherObstacleEnv(BaseEnv):
+class SimpleReacherObstacleEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("reacher_obstacle.xml", **kwargs)
+        super().__init__("simple_reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
 
     def _reset(self):
@@ -62,7 +62,7 @@ class ReacherObstacleEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(48,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(24,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -97,7 +97,6 @@ class ReacherObstacleEnv(BaseEnv):
             self._do_simulation(velocity)
             if i + 1 < self._action_repeat:
                 velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states)
-
         obs = self._get_obs()
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
             done =True

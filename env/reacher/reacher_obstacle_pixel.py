@@ -13,7 +13,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
     def __init__(self, **kwargs):
         super().__init__("reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
-        self.memory = np.zeros((84, 84, 4))
+        self.memory = np.zeros((self._img_height, self._img_width, 4))
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -47,21 +47,30 @@ class ReacherObstaclePixelEnv(BaseEnv):
 
     def _get_obs(self):
         img = self.sim.render(camera_name=self._camera_name,
-                              width=100,
-                              height=100,
+                              width=self._img_height, # try this  later
+                              height=self._img_width,
                               depth=False)
         img = np.flipud(img)
-        gray = color.rgb2gray(img)
-        gray_resized = transform.resize(gray, (self._img_height, self._img_width))
-        self.memory[:, :, 1:] = self.memory[:, :, 0:3]
-        self.memory[:, :, 0] = gray_resized
-        return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
+        if self._env_config['is_rgb']:
+            # img = transform.resize(img, (self._img_height, self._img_width))
+            return OrderedDict([('default', img.transpose((2, 0, 1))/255.)])
+        else:
+            gray = color.rgb2gray(img)
+            gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+            self.memory[:, :, 1:] = self.memory[:, :, 0:3]
+            self.memory[:, :, 0] = gray_resized
+            return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
 
     @property
     def observation_space(self):
-        return spaces.Dict([
-            ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=255, dtype=np.float32)),
-        ])
+        if self._env_config['is_rgb']:
+            return spaces.Dict([
+                ('default', spaces.Box(shape=(3, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
+            ])
+        else:
+            return spaces.Dict([
+                ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
+            ])
 
 
     @property
@@ -90,11 +99,11 @@ class ReacherObstaclePixelEnv(BaseEnv):
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
-        velocity = action * 2 # According to robosuite
+        velocity = action # According to robosuite
         for i in range(self._action_repeat):
             self._do_simulation(velocity)
             if i + 1 < self._action_repeat:
-                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states) * 2
+                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states)
 
         obs = self._get_obs()
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
