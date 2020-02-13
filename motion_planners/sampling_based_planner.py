@@ -21,12 +21,25 @@ class SamplingBasedPlanner:
 
     def plan(self, start, goal, timelimit=1., max_steps=200):
         states = np.array(self.planner.plan(start, goal, timelimit, max_steps))
-        actions = []
 
-        # TODO more efficient way
+        traj = [states[0]]
+        pre_state = states[0]
         for i, state in enumerate(states[1:]):
-            actions.append((state-states[i])[:-2])
-        return states, actions
+            tmp_state = pre_state + (state-pre_state)
+            if abs(state[0]-pre_state[0]) > 3.14:
+                if pre_state[0] > 0 and state[0] < 0:
+                    tmp_state[0] = 3.14 + (3.14+state[0])
+                elif pre_state[0] < 0 and state[0] > 0:
+                    tmp_state[0] = -3.14 + (-3.14+state[0])
+            # if state[0]-pre_state[0] < -3.14:
+            #     tmp_state[0] = pre_state[0] + (3.14-states[i][0] + state[0]+3.14)
+            #     #tmp_state[1:] = pre_state[1:] + (state[1:]-pre_state[1:])
+            # elif state[0]-pre_state[0]> 3.14:
+            #     tmp_state[0] = pre_state[0] - (3.14-state[0] + 3.14+states[i][0])
+            #     #tmp_state[1:] = pre_state[1:] + (state[1:]-pre_state[1:])
+            pre_state = tmp_state
+            traj.append(tmp_state)
+        return np.array(traj)
 
 
 class SamplingBasedKinodynamicPlanner:

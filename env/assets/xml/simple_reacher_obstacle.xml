@@ -12,7 +12,7 @@
         <body name="obstacle1" pos="0.08 0.18 0.01">
             <geom name="obstacle1_geom" size="0.02 0.01 0.05" type="box" class="obstacle" />
         </body>
-        <body name="obstacle2" pos="-0.18 0. 0.01">
+        <body name="obstacle2" pos="-0.2 0. 0.01">
             <geom name="obstacle2_geom" size="0.01 0.02 0.05" type="box" class="obstacle" />
         </body>
         <body name="obstacle3" pos="0.08 -0.09 0.01">

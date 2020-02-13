@@ -72,14 +72,14 @@ def run_mp(env, planner, i=None):
     ik_env.set_state(result.qpos, ik_env.sim.data.qvel.ravel())
 
     # Update dummy reacher states (goal state and ompl states)
-    for l in range(7):
+    for l in range(len(env.sim.data.qpos[:-2])):
         body_idx = ik_env.model.body_name2id('body'+str(l))
         pos = ik_env.sim.data.body_xpos[body_idx]
         quat = ik_env.sim.data.body_xquat[body_idx]
         env._set_pos('body'+str(l)+'-goal', pos)
         env._set_quat('body'+str(l)+'-goal', quat)
 
-    for l in range(7):
+    for l in range(len(env.sim.data.qpos[:-2])):
         body_idx = env.model.body_name2id('body'+str(l))
         pos = env.sim.data.body_xpos[body_idx]
         quat = env.sim.data.body_xquat[body_idx]
@@ -91,7 +91,7 @@ def run_mp(env, planner, i=None):
     goal = result.qpos
 
     # OMPL Planning
-    traj, actions = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
+    traj = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
 
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
@@ -102,8 +102,8 @@ def run_mp(env, planner, i=None):
     step = 0
 
     sim_dt = 0.01
-    edge_dt = 0.1
-    Kp = 0.9
+    edge_dt = 0.2
+    Kp = 1.
     n_inner_loop = int(edge_dt / sim_dt)
 
     if success:
@@ -114,7 +114,7 @@ def run_mp(env, planner, i=None):
             # Update dummy reacher
             if step % 1 == 0:
                 mp_env.set_state(np.concatenate((traj[step+1][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-                for l in range(7):
+                for l in range(len(env.sim.data.qpos[:-2])):
                     body_idx = mp_env.model.body_name2id('body'+str(l))
                     pos = mp_env.sim.data.body_xpos[body_idx]
                     quat = mp_env.sim.data.body_xquat[body_idx]
@@ -131,11 +131,14 @@ def run_mp(env, planner, i=None):
             # ===================================
             # Use controller here?
             # ===================================
+            #env.set_state(np.concatenate((state[:-2], env.goal)), env.sim.data.qvel.ravel())
             for t in range(n_inner_loop):
                 action = Kp * (state[:-2] - env.sim.data.qpos[:-2])
+                action = np.clip(action, -1., 1.)
+                print(state[:-2], env.sim.data.qpos[:-2], action)
                 env.step(action)
 
-                env.render(mode='human')
+            env.render(mode='human')
 
 
             error += np.sqrt((env.sim.data.qpos - state)**2)
