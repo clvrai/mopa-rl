@@ -10,14 +10,14 @@
             "-std=c++11"
         ],
         "extra_objects": [
-            "/usr/local/lib/libompl.so",
-            "/home/ubuntu/.mujoco/mujoco200/bin/libmujoco200.so"
+            "/usr/local/lib/libompl.dylib",
+            "/Users/yamadajun/.mujoco/mujoco200/bin/libmujoco200.dylib"
         ],
         "include_dirs": [
             "./include/",
             "/usr/local/include/eigen3",
             "./3rd_party/include/",
-            "/home/ubuntu/.mujoco/mujoco200/include/",
+            "/Users/yamadajun/.mujoco/mujoco200/include/",
             "/usr/local/include/ompl"
         ],
         "language": "c++",

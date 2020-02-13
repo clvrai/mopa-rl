@@ -224,10 +224,10 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 update_nv[dof_indices] = update_joints
 
                 env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
+                env.sim.forward()
+                env.sim.step()
                 ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
                 #env.step(update_nv[:-2])
-                site_xpos = env._get_pos(site)
-                site_xmat = env.data.get_body_xmat(site).ravel()
                 if steps % 10 == 0 and logging:
                     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
                           steps, err_norm, update_norm)

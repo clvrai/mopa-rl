@@ -17,17 +17,29 @@ class ReacherObstacleEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
-            qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
+            self.sim.forward()
             self.sim.step()
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2: # might need to take action for one step to check the collision sim step.
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+                #and self._is_far_from_obstacle: # might need to take action for one step to check the collision sim step.
                 self.goal = goal
                 break
         return self._get_obs()
-
+    #
+    # @property
+    # def _is_far_from_obstacle(self):
+    #     ret = True
+    #     for i in range(6):
+    #         for j in range(8):
+    #             dist = self._get_distance('body'+str(i), 'obstacle'+str(j+1))
+    #             print('body'+str(i), '  obstacle'+str(j+1), '  ', dist)
+    #             if dist < 0.1:
+    #                 ret = False
+    #     return ret
 
     def initalize_joints(self):
         while True:

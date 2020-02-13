@@ -106,7 +106,5 @@ if is_save_video:
     save_video(fpath, action_frames)
 else:
     env_prime.render(mode='human')
-import pdb
-pdb.set_trace()
 
 

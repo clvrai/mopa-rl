@@ -14,25 +14,6 @@ from util.gym import action_size
 import time
 import cv2
 
-parser = argparser()
-args, unparsed = parser.parse_known_args()
-
-if 'reacher' in args.env:
-    from config.reacher import add_arguments
-else:
-    raise ValueError('args.env (%s) is not supported' % args.env)
-
-
-add_arguments(parser)
-planner_add_arguments(parser)
-args, unparsed = parser.parse_known_args()
-
-is_save_video = True
-record_caption = True
-
-env = gym.make(args.env, **args.__dict__)
-env_prime = gym.make(args.env, **args.__dict__)
-planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space))
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
@@ -71,17 +52,12 @@ def run_mp(env, planner, i=None):
     error = 0
     end_error = 0
     env.reset()
-    print("After reset: ", env.sim.data.ncon)
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
     qpos = env.sim.data.qpos.ravel()
     qvel = env.sim.data.qvel.ravel()
-    #env.goal = [-0.25128643, 0.14829235]
-    #qpos[-2:] = env.goal
-    #qpos[:-2] = [0.09539838, 0.04237122, 0.05476331, -0.0676346, -0.0434791, -0.06203809, 0.03571644]
-    #qvel[:-2] = [ 0.00293847, 0.00158573, 0.0018593, 0.00122192, -0.0016253, 0.00225007, 0.00001702]
     success = False
-    mp_env.set_state(qpos, qvel)
+    env.set_state(qpos, qvel)
     goal = env.goal
 
 
@@ -90,9 +66,12 @@ def run_mp(env, planner, i=None):
     ik_env.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
     env_prime.reset()
     env_prime.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
-    #result = qpos_from_site_pose(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=1000)
+
+    # IK to find a goal state
     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=300)
     ik_env.set_state(result.qpos, ik_env.sim.data.qvel.ravel())
+
+    # Update dummy reacher states (goal state and ompl states)
     for l in range(7):
         body_idx = ik_env.model.body_name2id('body'+str(l))
         pos = ik_env.sim.data.body_xpos[body_idx]
@@ -110,21 +89,22 @@ def run_mp(env, planner, i=None):
 
     start = env.sim.data.qpos.ravel()
     goal = result.qpos
-    print(start)
 
+    # OMPL Planning
     traj, actions = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
+
+    # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
 
     frames = []
     action_frames = []
     step = 0
-    print('After plan: ', env.sim.data.ncon)
     if success:
         goal = env.sim.data.qpos[-2:]
         for step, state in enumerate(traj[1:]):
             if step % 1 == 0:
-                mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+                mp_env.set_state(np.concatenate((traj[step][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
                 for l in range(7):
                     body_idx = mp_env.model.body_name2id('body'+str(l))
                     pos = mp_env.sim.data.body_xpos[body_idx]
@@ -143,10 +123,6 @@ def run_mp(env, planner, i=None):
             error += np.sqrt((env.sim.data.qpos - state)**2)
             end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
     else:
-        if is_save_video:
-             frames.append(render_frame(env, step))
-        else:
-            env.render(mode='human')
 
 
     if is_save_video:
@@ -161,15 +137,34 @@ def run_mp(env, planner, i=None):
     else:
         env.render(mode='human')
 
-    num_states = len(traj[1:])
 
+    num_states = len(traj[1:])
     if num_states == 0:
         return 0, num_states, 0, success
     else:
         return error / len(traj[1:]), num_states, end_error/len(traj[1:]), success
 
 
-    #return success
+parser = argparser()
+args, unparsed = parser.parse_known_args()
+
+if 'reacher' in args.env:
+    from config.reacher import add_arguments
+else:
+    raise ValueError('args.env (%s) is not supported' % args.env)
+
+
+add_arguments(parser)
+planner_add_arguments(parser)
+args, unparsed = parser.parse_known_args()
+
+# Save video or not
+is_save_video = False
+record_caption = True
+
+env = gym.make(args.env, **args.__dict__)
+env_prime = gym.make(args.env, **args.__dict__)
+planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space))
 
 errors = 0
 global_num_states = 0
@@ -187,5 +182,3 @@ for i in range(N):
 print(num_success)
 print('End effector error: ', global_end_error/N)
 print('Joint state error: ', errors/N)
-
-

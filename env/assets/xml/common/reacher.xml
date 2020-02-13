@@ -4,7 +4,7 @@
     <include file="./common/visual.xml"/>
 
     <compiler angle="radian" inertiafromgeom="true" meshdir="../meshes" />
-    <option gravity="0 0 0" integrator="RK4" timestep="0.01"/>
+    <option gravity="0 0 -9.81" integrator="RK4" timestep="0.01" cone="elliptic"/>
     <default>
         <joint armature="1" damping="1" limited="true"/>
         <geom contype="0" friction="1 0.1 0.1"/>
@@ -17,8 +17,8 @@
         <default class="link-dummy">
             <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 0.3" size=".01" type="capsule" />
         </default>
-        <default class="joint_dummy">
-            <site rgba="0 0 0 0"/>
+        <default class="link-goal">
+            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.6 0.4 0. 0.3" size=".01" type="capsule" />
         </default>
 
     </default>
@@ -73,23 +73,45 @@
         <body name="body0-dummy" pos="0 0 .02">
             <geom class='link-dummy' name='link0-dummy'/>
         </body>
-        <body name="body1-dummy" pos="0.1 0 0">
+        <body name="body1-dummy" pos="0.1 0 .02">
             <geom class='link-dummy' name='link1-dummy'/>
         </body>
-        <body name="body2-dummy" pos="0.1 0 0">
+        <body name="body2-dummy" pos="0.2 0 .02">
             <geom class='link-dummy' name='link2-dummy'/>
         </body>
-        <body name="body3-dummy" pos="0.1 0 0">
+        <body name="body3-dummy" pos="0.3 0 .02">
             <geom class='link-dummy' name='link3-dummy'/>
         </body>
-        <body name="body4-dummy" pos="0.1 0 0">
+        <body name="body4-dummy" pos="0.4 0 .02">
             <geom class='link-dummy' name='link4-dummy'/>
         </body>
-        <body name="body5-dummy" pos="0.1 0 0">
+        <body name="body5-dummy" pos="0.5 0 .02">
             <geom class='link-dummy' name='link5-dummy'/>
         </body>
-        <body name="body6-dummy" pos="0.1 0 0">
+        <body name="body6-dummy" pos="0.6 0 .02">
             <geom class='link-dummy' name='link6-dummy'/>
+        </body>
+
+        <body name="body0-goal" pos="0 0 .02">
+            <geom class='link-goal' name='link0-goal'/>
+        </body>
+        <body name="body1-goal" pos="0.1 0 .02">
+            <geom class='link-goal' name='link1-goal'/>
+        </body>
+        <body name="body2-goal" pos="0.2 0 .02">
+            <geom class='link-goal' name='link2-goal'/>
+        </body>
+        <body name="body3-goal" pos="0.3 0 .02">
+            <geom class='link-goal' name='link3-goal'/>
+        </body>
+        <body name="body4-goal" pos="0.4 0 .02">
+            <geom class='link-goal' name='link4-goal'/>
+        </body>
+        <body name="body5-goal" pos="0.5 0 .02">
+            <geom class='link-goal' name='link5-goal'/>
+        </body>
+        <body name="body6-goal" pos="0.6 0 .02">
+            <geom class='link-goal' name='link6-goal'/>
         </body>
 
         <body name="target" pos=".1 -.1 .01">
