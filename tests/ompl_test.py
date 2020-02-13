@@ -27,7 +27,7 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-is_save_video = True
+is_save_video = False
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
@@ -91,16 +91,16 @@ def run_mp(env, planner, i=None):
     env_prime.reset()
     env_prime.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
     #result = qpos_from_site_pose(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=1000)
-    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=300)
+    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.joint_names[:-2], max_steps=500)
     ik_env.set_state(result.qpos, ik_env.sim.data.qvel.ravel())
-    for l in range(7):
+    for l in range(3):
         body_idx = ik_env.model.body_name2id('body'+str(l))
         pos = ik_env.sim.data.body_xpos[body_idx]
         quat = ik_env.sim.data.body_xquat[body_idx]
         env._set_pos('body'+str(l)+'-goal', pos)
         env._set_quat('body'+str(l)+'-goal', quat)
 
-    for l in range(7):
+    for l in range(3):
         body_idx = env.model.body_name2id('body'+str(l))
         pos = env.sim.data.body_xpos[body_idx]
         quat = env.sim.data.body_xquat[body_idx]
@@ -131,7 +131,7 @@ def run_mp(env, planner, i=None):
 
             if step % 1 == 0:
                 mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-                for l in range(7):
+                for l in range(3):
                     body_idx = mp_env.model.body_name2id('body'+str(l))
                     pos = mp_env.sim.data.body_xpos[body_idx]
                     quat = mp_env.sim.data.body_xquat[body_idx]
