@@ -103,6 +103,9 @@ def run_mp(env, planner, i=None):
     if success:
         goal = env.sim.data.qpos[-2:]
         for step, state in enumerate(traj[1:]):
+
+
+            # Update dummy reacher
             if step % 1 == 0:
                 mp_env.set_state(np.concatenate((traj[step][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
                 for l in range(7):
@@ -118,12 +121,15 @@ def run_mp(env, planner, i=None):
                 env.render(mode='human')
 
 
+            # Action space is the difference between next state and current state
+            # ===================================
+            # Use controller here?
+            # ===================================
             action = state[:-2] - env.sim.data.qpos[:-2]
+
             env.step(action)
             error += np.sqrt((env.sim.data.qpos - state)**2)
             end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
-    else:
-
 
     if is_save_video:
         frames.append(render_frame(env, step))
