@@ -102,7 +102,8 @@ class ReacherObstacleEnv(BaseEnv):
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
-        velocity = action * 2 # According to robosuite
+        #velocity = action * 2 # According to robosuite
+        velocity = action # According to robosuite
         for i in range(self._action_repeat):
             self._do_simulation(velocity)
             if i + 1 < self._action_repeat:

@@ -120,9 +120,15 @@ def run_mp(env, planner, i=None):
     action_frames = []
     step = 0
     print('After plan: ', env.sim.data.ncon)
+    info = {}
     if success:
         goal = env.sim.data.qpos[-2:]
         for step, state in enumerate(traj[1:]):
+            if is_save_video:
+                 frames.append(render_frame(env, step, info))
+            else:
+                env.render(mode='human')
+
             if step % 1 == 0:
                 mp_env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
                 for l in range(7):
@@ -132,25 +138,25 @@ def run_mp(env, planner, i=None):
                     env._set_pos('body'+str(l)+'-dummy', pos)
                     env._set_quat('body'+str(l)+'-dummy', quat)
 
-            if is_save_video:
-                 frames.append(render_frame(env, step))
-            else:
-                env.render(mode='human')
-
-
             action = state[:-2] - env.sim.data.qpos[:-2]
+            #env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
             env.step(action)
+            info['state'] = state[:-2]
+            info['curr_pos'] =  env.sim.data.qpos.ravel()[:-2]
+
+
+
             error += np.sqrt((env.sim.data.qpos - state)**2)
             end_error += np.sqrt((env.data.get_site_xpos('fingertip')-mp_env.data.get_site_xpos('fingertip'))**2)
     else:
         if is_save_video:
-             frames.append(render_frame(env, step))
+             frames.append(render_frame(env, step, info))
         else:
             env.render(mode='human')
 
 
     if is_save_video:
-        frames.append(render_frame(env, step))
+        frames.append(render_frame(env, step, info))
         prefix_path = os.path.join('./tmp', args.planner_type, args.env, str(args.construct_time))
         if not os.path.exists(prefix_path):
             os.makedirs(prefix_path)
@@ -162,6 +168,7 @@ def run_mp(env, planner, i=None):
         env.render(mode='human')
 
     num_states = len(traj[1:])
+    print("num states")
 
     if num_states == 0:
         return 0, num_states, 0, success

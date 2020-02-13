@@ -89,6 +89,7 @@ std::vector<std::vector<double> > KinodynamicPlanner::plan(std::vector<double> s
     auto si = MjOmpl::createSpaceInformation(mj->m);
     auto mj_state_prop(std::make_shared<MjOmpl::MujocoStatePropagator>(si, mj));
     si->setStatePropagator(mj_state_prop);
+    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false));
 
     // Create a SimpleSetup object
     oc::SimpleSetup ss(si);

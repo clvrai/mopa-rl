@@ -125,13 +125,13 @@
     </worldbody>
 
     <actuator>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint0"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint1"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint2"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint3"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint4"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint5"/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.1" joint="joint6"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint0"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint1"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint2"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint3"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint4"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint5"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint6"/>
     </actuator>
 </mujoco>
 
