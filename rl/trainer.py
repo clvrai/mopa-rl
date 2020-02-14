@@ -252,7 +252,7 @@ class Trainer(object):
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
                 else:
-                    if self._config.mp_ratio > np.random.rand():
+                    if self._config.mp_ratio >= np.random.rand():
                         rollout, meta_rollout, info, _ = \
                             self._runner.mp_run_episode()
                     else:
