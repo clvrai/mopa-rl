@@ -314,10 +314,14 @@ class RolloutRunner(object):
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
-                #if len(rollout) != 0:
+                #if len(rollout) != 0
+                ep_len += 1
+                ep_rew += self._config.meta_subgoal_rew
+                meta_len += 1
+                meta_rew += self._config.meta_subgoal_rew
                 reward_info['episode_success'].append(False)
-                meta_rollout.add({'meta_done': done, 'meta_rew': self._config.meta_subgoal_rew})
-                reward_info['meta_rew'].append(self._config.meta_subgoal_rew)
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                reward_info['meta_rew'].append(meta_rew)
                 break
                 # else:
                 #     ob = env.reset()

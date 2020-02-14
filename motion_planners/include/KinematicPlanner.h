@@ -24,6 +24,7 @@
 #include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/geometric/planners/sst/SST.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
@@ -66,6 +67,7 @@ namespace MotionPlanner
             std::shared_ptr<og::KPIECE1> kpiece_planner;
             std::shared_ptr<og::RRTConnect> rrt_connect_planner;
             std::shared_ptr<og::PRMstar> prm_star_planner;
+            std::shared_ptr<og::SPARS> spars_planner;
             std::shared_ptr<og::SimpleSetup> ss;
             double constructTime;
             bool is_construct;

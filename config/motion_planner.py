@@ -7,7 +7,7 @@ def add_arguments(parser):
     """
     # reacher
     parser.add_argument("--planner_type", type=str, default="rrt",
-                        choices=["sst", "rrt", "rrt_connect", "prm_star", "kpiece"])
+                        choices=["sst", "rrt", "rrt_connect", "prm_star", "kpiece", "spars"])
     parser.add_argument("--planner_objective", type=str, default="",
                         choices=["maximize_min_clearance", "path_length", "state_const_integral", "constraint"])
     parser.add_argument("--sst_selection_radius", type=float, default=0.01)
