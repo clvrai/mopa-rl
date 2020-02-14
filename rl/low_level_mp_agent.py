@@ -22,6 +22,6 @@ class LowLevelMpAgent:
 
     def plan(self, start, goal):
         config = self._config
-        traj, actions = self.planner.plan(start, goal, config.timelimit, config.max_mp_steps)
-        return traj, actions
+        traj = self.planner.plan(start, goal, config.timelimit, config.max_mp_steps)
+        return traj
 

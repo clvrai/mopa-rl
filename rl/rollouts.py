@@ -255,14 +255,14 @@ class RolloutRunner(object):
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1]
 
             target_qpos = np.concatenate([subgoal, env.goal])
-            traj, actions = self._mp.plan(curr_qpos, target_qpos)
+            traj = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
 
             if success:
                 mp_success += 1
-                for state in traj:
+                for state in traj[:1]:
                     ll_ob = ob.copy()
                     if config.hrl and config.hl_type == 'subgoal':
                         ll_ob['subgoal'] = meta_ac['subgoal']
