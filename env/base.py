@@ -43,9 +43,12 @@ class BaseEnv(gym.Env):
         self._screen_height = kwargs['screen_height']
         self._seed = kwargs['seed']
         self._gym_disable_underscore_compat = True
-        self._action_repeat = kwargs['action_repeat']
         self._img_height = kwargs['img_height']
         self._img_width = kwargs['img_width']
+        self._kp = kwargs['kp']
+        self._kd = kwargs['kd']
+        self._ki = kwargs['ki']
+        self._frame_dt = kwargs['frame_dt']
 
         # Load model
         self._load_model(xml_path)
@@ -95,6 +98,7 @@ class BaseEnv(gym.Env):
         self._camera_id = self.sim.model.camera_names.index(self._camera_name)
         self._obs_camera_id = self.sim.model.camera_names.index(self._obs_camera_name)
 
+
     @property
     def dt(self):
         return self.model.opt.timestep * self._frame_skip
@@ -120,6 +124,15 @@ class BaseEnv(gym.Env):
         self._after_reset()
         return ob
 
+    def _get_control(self, state, prev_state, target_vel):
+        alpha = 0.95
+        p_term = self._kp * (state - self.sim.data.qpos[:-2])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:-2])
+        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:-2])
+        action = p_term + d_term + self._i_term
+
+        return action
+
     def _init_random(self, size):
         r = self._env_config["init_randomness"]
         return np.random.uniform(low=-r, high=r, size=size)
@@ -135,6 +148,7 @@ class BaseEnv(gym.Env):
         self._terminal = False
         self._success = False
         self._fail = False
+        self._i_term = np.zeros_like(self.sim.data.qpos[:-2])
 
         #with self.model.disable('actuation'):
         #    self.forward()

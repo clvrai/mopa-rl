@@ -102,7 +102,7 @@ def run_mp(env, planner, i=None):
     step = 0
 
     sim_dt = 0.01
-    edge_dt = 0.2
+    edge_dt = 1.
     Kp = 150.0
     Kd = 20.0
     Ki = 0.1
@@ -131,23 +131,25 @@ def run_mp(env, planner, i=None):
             else:
                 env.render(mode='human')
 
-            target_vel = (state - prev_state) / edge_dt
-            for t in range(n_inner_loop):
-                p_term = Kp * (state[:-2] - env.sim.data.qpos[:-2])
-                d_term = Kd * (target_vel[:-2] * 0 - env.sim.data.qvel[:-2])
-                i_term = alpha * i_term + Ki * (prev_state[:-2] - env.sim.data.qpos[:-2])
-
-                # print('p term ', np.linalg.norm(p_term))
-                # print('d term ', np.linalg.norm(d_term))
-                # print('i term ', np.linalg.norm(i_term))
-                action = p_term + d_term + i_term
-
-                env.sim.data.ctrl[:] = action
-                env.sim.forward()
-                env.sim.step()
-                # env.step(action)
-
-                env.render(mode='human')
+            env.step(state[:-2]-env.sim.data.qpos[:-2])
+            # prev_state = env.sim.data.qpos
+            # target_vel = (state - prev_state) / edge_dt
+            # for t in range(n_inner_loop):
+            #     p_term = Kp * (state[:-2] - env.sim.data.qpos[:-2])
+            #     d_term = Kd * (target_vel[:-2] * 0 - env.sim.data.qvel[:-2])
+            #     i_term = alpha * i_term + Ki * (prev_state[:-2] - env.sim.data.qpos[:-2])
+            #
+            #     # print('p term ', np.linalg.norm(p_term))
+            #     # print('d term ', np.linalg.norm(d_term))
+            #     # print('i term ', np.linalg.norm(i_term))
+            #     action = p_term + d_term + i_term
+            #
+            #     env.sim.data.ctrl[:] = action
+            #     env.sim.forward()
+            #     env.sim.step()
+            #     # env.step(action)
+            #
+            #     env.render(mode='human')
 
             error += np.sqrt((env.sim.data.qpos - state) ** 2)
             end_error += np.sqrt((env.data.get_site_xpos('fingertip') - mp_env.data.get_site_xpos('fingertip')) ** 2)
@@ -187,7 +189,7 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 # Save video or not
-is_save_video = False
+is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)

@@ -27,7 +27,7 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-is_save_video = True
+is_save_video = False
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
@@ -112,7 +112,7 @@ def run_mp(env, planner, i=None):
     goal = result.qpos
     print(start)
 
-    traj, actions = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
+    traj = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
 

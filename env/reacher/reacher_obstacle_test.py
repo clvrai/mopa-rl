@@ -77,7 +77,7 @@ class ReacherObstacleTestEnv(BaseEnv):
 
         info = {}
         done = False
-        desired_states = self.get_joint_positions + action
+        desired_state = self.get_joint_positions + action
 
         if self._env_config['reward_type'] == 'dense':
             reward_dist = -self._get_distance("fingertip", "target")
@@ -87,11 +87,14 @@ class ReacherObstacleTestEnv(BaseEnv):
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
-        velocity = action# According to robosuite
-        for i in range(self._action_repeat):
-            self._do_simulation(velocity)
-            if i + 1 < self._action_repeat:
-                velocity = self._get_current_error(self.sim.data.qpos.ravel()[:-2], desired_states)
+        n_inner_loop = int(self._frame_dt/self.dt)
+
+        prev_state = self.sim.data.qpos[:-2].copy()
+        target_vel = (desired_state-prev_state) / self._frame_dt
+        for t in range(n_inner_loop):
+            action = self._get_control(desired_state, prev_state, target_vel)
+            self._do_simulation(action)
+            self.render('human')
 
         obs = self._get_obs()
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
