@@ -304,7 +304,7 @@ class RolloutRunner(object):
                         ik_env.set_state(state, ik_env.sim.data.qvel.ravel())
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                        self._store_frame(frame_info, subgoal_site_pos, xpos, xquat, vis_pos=vis_pos)
+                        self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
 
                     if done or ep_len >= max_step and meta_len >= config.max_meta_len:
                         break
