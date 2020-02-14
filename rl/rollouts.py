@@ -9,6 +9,7 @@ from collections import OrderedDict
 from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 
 from util.logger import logger
+from util.env import joint_convert
 
 
 class Rollout(object):
@@ -110,11 +111,14 @@ class RolloutRunner(object):
                 subgoal = meta_ac['subgoal']
 
                 # ========== Clip subgoal range ===================
-                idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+                limited_idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+                not_limited_idx = np.where(env.model.jnt_limited[:len(subgoal)]==0)[0]
                 joint_range = env.model.jnt_range
                 min_ = joint_range[:, 0]
                 max_ = joint_range[:, 1]
-                subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
+                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx])
+                for idx in not_limited_idx:
+                    subgoal[idx] = joint_convert(subgoal[idx])
                 # =================================================
 
                 ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel())
@@ -231,11 +235,14 @@ class RolloutRunner(object):
             if self._config.hrl and 'subgoal' in meta_ac.keys():
                 subgoal = meta_ac['subgoal']
                 # ========== Clip subgoal range ===================
-                idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+                limited_idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
+                not_limited_idx = np.where(env.model.jnt_limited[:len(subgoal)]==0)[0]
                 joint_range = env.model.jnt_range
                 min_ = joint_range[:, 0]
                 max_ = joint_range[:, 1]
-                subgoal[idx] = np.clip(subgoal[idx], min_[idx], max_[idx])
+                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx])
+                for idx in not_limited_idx:
+                    subgoal[idx] = joint_convert(subgoal[idx])
                 # =================================================
 
             if self._config.use_ik:
@@ -338,6 +345,7 @@ class RolloutRunner(object):
         ep_info['mp_success'] = mp_success
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
+
 
     def _get_mp_body_pos(self, ik_env):
         xpos = OrderedDict()
