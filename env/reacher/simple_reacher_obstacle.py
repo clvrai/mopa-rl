@@ -17,13 +17,11 @@ class SimpleReacherObstacleEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=-.2, high=.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self._init_qpos
             qpos[-2:] = goal
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self._init_qvel
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            self.sim.forward()
-            self.sim.step()
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 #and self._is_far_from_obstacle: # might need to take action for one step to check the collision sim step.
                 self.goal = goal

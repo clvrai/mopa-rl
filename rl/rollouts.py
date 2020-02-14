@@ -116,7 +116,7 @@ class RolloutRunner(object):
                 joint_range = env.model.jnt_range
                 min_ = joint_range[:, 0]
                 max_ = joint_range[:, 1]
-                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx])
+                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx]).astype(float)
                 for idx in not_limited_idx:
                     subgoal[idx] = joint_convert(subgoal[idx])
                 # =================================================
@@ -240,7 +240,7 @@ class RolloutRunner(object):
                 joint_range = env.model.jnt_range
                 min_ = joint_range[:, 0]
                 max_ = joint_range[:, 1]
-                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx])
+                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx]).astype(float)
                 for idx in not_limited_idx:
                     subgoal[idx] = joint_convert(subgoal[idx])
                 # =================================================
