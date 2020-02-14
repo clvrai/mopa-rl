@@ -257,6 +257,9 @@ class RolloutRunner(object):
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
 
             target_qpos = np.concatenate([subgoal, env.goal])
+
+            for idx in not_limited_idx:
+                curr_qpos[idx] = joint_convert(curr_qpos[idx])
             traj = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
