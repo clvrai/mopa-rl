@@ -35,7 +35,7 @@ print(len(obs['default']))
 #     return env
 #
 # env = reset(env)
-qpos = env.sim.data.qpos.ravel()
+qpos = env.sim.data.qpos.ravel().copy()
 qpos[0] = 1.75
 qpos[1] = 0.879
 qpos[2] = 0.87
@@ -43,7 +43,16 @@ qpos[3] = 0.701
 qpos[4] = 0.589
 qpos[5] = 1.55
 qpos[6] = 1.39
+env.set_state(qpos, env.sim.data.qvel.ravel())
+env.sim.forward()
+env.sim.step()
 
+env.render(mode='human')
+print("# contact: ", env.sim.data.ncon)
+import pdb
+pdb.set_trace()
+env.step(np.ones(7)*0.0001)
+print("# contact: ", env.sim.data.ncon)
 env.render(mode='human')
 import pdb
 pdb.set_trace()
