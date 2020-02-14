@@ -1,6 +1,7 @@
 import env
 import gym
 from config import argparser
+import numpy as np
 
 parser = argparser()
 args, unparsed = parser.parse_known_args()
@@ -20,11 +21,23 @@ print(args.env)
 env = gym.make(args.env, **args.__dict__)
 obs = env.reset()
 print(len(obs['default']))
-qpos = env.sim.data.qpos.ravel()
-qvel = env.sim.data.qvel.ravel()
 
+def reset(env):
+    while True:
+        qpos = np.random.uniform(low=-1., high=1., size=env.model.nq) + env.sim.data.qpos.ravel()
+        qvel = np.random.uniform(low=-.005, high=.005, size=env.model.nv) + env.sim.data.qvel.ravel()
+        qvel[-2:] = 0
+        env.set_state(qpos, qvel)
+        env.sim.forward()
+        env.sim.step()
+        if env.sim.data.ncon == 0:
+            break
+    return env
 
-
+env = reset(env)
+env.render(mode='human')
+import pdb
+pdb.set_trace()
 for i in range(1000):
     env.render(mode='human')
     action = env.action_space.sample()
