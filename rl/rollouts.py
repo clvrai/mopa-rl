@@ -254,7 +254,7 @@ class RolloutRunner(object):
 
 
             # Will change fingertip to variable later
-            subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1]
+            subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
 
             target_qpos = np.concatenate([subgoal, env.goal])
             traj = self._mp.plan(curr_qpos, target_qpos)
@@ -301,7 +301,7 @@ class RolloutRunner(object):
                                 elif k != 'default':
                                     frame_info['meta_'+k] = meta_ac[k]
 
-                        ik_env.set_state(state, ik_env.sim.data.qvel.ravel())
+                        ik_env.set_state(np.concatenate((state[:-2], env.goal)), ik_env.sim.data.qvel.ravel())
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                         self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
@@ -356,8 +356,8 @@ class RolloutRunner(object):
         for i in range(len(ik_env.sim.data.qpos)-2):
             name = 'body'+str(i)
             body_idx = ik_env.model.body_name2id(name)
-            xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx]
-            xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat[body_idx]
+            xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx].copy()
+            xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat[body_idx].copy()
 
         return xpos, xquat
 
