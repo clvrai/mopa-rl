@@ -371,7 +371,7 @@ class RolloutRunner(object):
             self._env._set_pos('subgoal', [subgoal[0], subgoal[1], self._env._get_pos('subgoal')[2]])
             self._env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
 
-        for xpos, quat in vis_pos:
+        for xpos, xquat in vis_pos:
             for k in xpos.keys():
                 self._env._set_pos(k, xpos[k])
                 self._env._set_quat(k, xquat[k])
