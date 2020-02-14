@@ -356,8 +356,8 @@ class RolloutRunner(object):
         for i in range(len(ik_env.sim.data.qpos)-2):
             name = 'body'+str(i)
             body_idx = ik_env.model.body_name2id(name)
-            xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos(body_idx)
-            xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat(body_idx)
+            xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx]
+            xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat[body_idx]
 
         return xpos, xquat
 
