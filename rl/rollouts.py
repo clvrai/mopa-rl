@@ -262,7 +262,7 @@ class RolloutRunner(object):
             traj = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
-            success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
+            success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
 
             if success:
                 mp_success += 1
