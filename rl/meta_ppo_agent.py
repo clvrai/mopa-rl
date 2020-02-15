@@ -170,26 +170,42 @@ class MetaPPOAgent(BaseAgent):
         z = _to_tensor(transitions['ac_before_activation'])
         ret = _to_tensor(transitions['ret']).reshape(bs, 1)
         adv = _to_tensor(transitions['adv']).reshape(bs, 1)
-        old_log_pi = _to_tensor(transitions['log_prob']).reshape(bs, 1)
+
+        #old_log_pi = _to_tensor(transitions['log_prob']).reshape(bs, 1)
+        old_log_pi = _to_tensor(transitions['log_prob'])
 
         log_pi, ent = self._actor.act_log(o, z)
 
-        if (log_pi - old_log_pi).max() > 20:
-            print('(log_pi - old_log_pi) is too large', (log_pi - old_log_pi).max())
-            import ipdb; ipdb.set_trace()
+        # need to fix here
+        # if (log_pi - old_log_pi).max() > 20:
+        #     print('(log_pi - old_log_pi) is too large', (log_pi - old_log_pi).max())
+        #     import ipdb; ipdb.set_trace()
 
 
         # the actor loss
         entropy_loss = self._config.entropy_loss_coeff * ent.mean()
-        ratio = torch.exp(torch.clamp(log_pi - old_log_pi, -20, 20))
-        surr1 = ratio * adv
-        surr2 = torch.clamp(ratio, 1.0 - self._config.clip_param,
-                            1.0 + self._config.clip_param) * adv
-        actor_loss = -torch.min(surr1, surr2).mean()
+
+        actor_loss = OrderedDict()
+        for k in log_pi.keys():
+            ratio = torch.exp(torch.clamp(log_pi[k]-old_log_pi[k], -20, 20))
+            surr1 = ratio * adv
+            surr2 = ratio = torch.clamp(ratio, 1.0 - self._config.clip_param,
+                                              1.0 + self._config.clip_param) * adv
+            actor_loss[k] = -torch.min(surr1, surr2).mean()
+        # ratio = torch.exp(torch.clamp(log_pi - old_log_pi, -20, 20))
+        # surr1 = ratio * adv
+        # surr2 = torch.clamp(ratio, 1.0 - self._config.clip_param,
+        #                     1.0 + self._config.clip_param) * adv
+        # actor_loss = -torch.min(surr1, surr2).mean()
 
         if not np.isfinite(ratio.cpu().detach()).all() or not np.isfinite(adv.cpu().detach()).all():
             import ipdb; ipdb.set_trace()
         info['entropy_loss'] = entropy_loss.cpu().item()
+
+        for k in actor_loss.keys():
+            info['actor_loss_'+k] = actor_loss[k].cpu().item()
+
+        actor_loss = torch.stack(list(actor_loss.values())).sum()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
 
@@ -202,6 +218,7 @@ class MetaPPOAgent(BaseAgent):
         info['value_loss'] = value_loss.cpu().item()
 
         # update the actor
+
         self._actor_optim.zero_grad()
         actor_loss.backward()
         #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)

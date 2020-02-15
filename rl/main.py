@@ -115,6 +115,10 @@ if __name__ == '__main__':
     mp_add_arguments(parser)
     args, unparsed = parser.parse_known_args()
 
+
+    if args.debug:
+        args.rollout_length = 150
+
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)
     else:
