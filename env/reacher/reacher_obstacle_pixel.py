@@ -26,7 +26,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            self.step(np.ones(self.model.nq-2)*0.0001) # small oscillation
+            self._do_simulation(np.ones(self.model.nq-2)*0.0001) # small oscillation
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 self.goal = goal
                 break

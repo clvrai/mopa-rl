@@ -56,6 +56,7 @@ class BaseEnv(gym.Env):
         self._init_qpos = self.sim.data.qpos.ravel().copy()
         self._init_qvel = self.sim.data.qvel.ravel().copy()
 
+
     def _load_model(self, xml_path):
         if not xml_path.startswith('/'):
             xml_path = os.path.join(os.path.dirname(__file__), 'assets', 'xml', xml_path)

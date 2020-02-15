@@ -22,7 +22,7 @@ class ReacherObstacleEnv(BaseEnv):
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            self.step(np.ones(self.model.nq-2)*0.0001) # small oscillation
+            self._do_simulation(np.ones(self.model.nq-2)*0.0001) # small oscillation
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 #and self._is_far_from_obstacle: # might need to take action for one step to check the collision sim step.
                 self.goal = goal
