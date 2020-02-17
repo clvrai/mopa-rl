@@ -3,27 +3,27 @@ from collections import OrderedDict
 
 import numpy as np
 from gym import spaces
+
 from env.base import BaseEnv
 
-class SimpleReacherObstacleEnv(BaseEnv):
+
+class SimpleReacherEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("simple_reacher_obstacle.xml", **kwargs)
-        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        super().__init__("simple_reacher.xml", **kwargs)
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-.2, high=.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self._init_qpos
+            goal = np.random.uniform(low=-.35, high=.35, size=2)
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = goal
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self._init_qvel
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
-                #and self._is_far_from_obstacle: # might need to take action for one step to check the collision sim step.
                 self.goal = goal
                 break
         return self._get_obs()
@@ -36,14 +36,6 @@ class SimpleReacherObstacleEnv(BaseEnv):
             if self.sim.data.ncon == 0:
                 break
 
-    def _get_obstacle_states(self):
-        obstacle_states = []
-        obstacle_size = []
-        for name in self.obstacle_names:
-            obstacle_states.extend(self._get_pos(name)[:2])
-            obstacle_size.extend(self._get_size(name)[:2])
-        return np.concatenate([obstacle_states, obstacle_size])
-
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[:2]
         return OrderedDict([
@@ -52,7 +44,6 @@ class SimpleReacherObstacleEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qpos.flat[2:],
                 self.sim.data.qvel.flat[:2],
-                self._get_obstacle_states(),
                 self._get_pos("target")
             ]))
         ])
@@ -60,7 +51,13 @@ class SimpleReacherObstacleEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(24,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(12,), low=-1, high=1, dtype=np.float32))
+        ])
+
+    @property
+    def ll_observation_space(self):
+        return spaces.Dict([
+            ('default', spaces.Box(shape=(25,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -98,9 +95,9 @@ class SimpleReacherObstacleEnv(BaseEnv):
             self._do_simulation(action)
 
         obs = self._get_obs()
-        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
+        if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+            done =True
+            self._success = True
         return obs, reward, done, info
 
     def _kinematics_step(self, states):

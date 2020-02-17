@@ -328,16 +328,19 @@ class RolloutRunner(object):
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
-                ep_len += self._config.max_meta_len
-                rew = self._config.meta_subgoal_rew*self._config.max_meta_len
-                #rew = self._config.meta_subgoal_rew
-                ep_rew += rew
-                meta_rew += rew
+                if is_train:
+                    ep_len += self._config.max_meta_len
+                    rew = self._config.meta_subgoal_rew*self._config.max_meta_len
+                    ep_rew += rew
+                    meta_rew += rew
+                else:
+                    rew = self._config.meta_subgoal_rew*(max_step-ep_len)
+                    ep_rew += rew
+                    meta_rew += rew
                 reward_info['episode_success'].append(False)
-                print('Meta rew: ', meta_rew)
-                print("ep: ", ep_len, " max_step: ", max_step)
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
+
                 if record:
                     frame_info = OrderedDict()
                     if config.hrl:
@@ -356,17 +359,6 @@ class RolloutRunner(object):
                     self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
                 if not is_train:
                     break
-                # else:
-                #     ob = env.reset()
-                #     rollout = Rollout()
-                #     meta_rollout = MetaRollout()
-                #     reward_info = defaultdict(list)
-                #     acs = []
-                #
-                #     done = False
-                #     ep_len = 0
-                #     ep_rew = 0
-                #     mp_success = 0
 
         # last frame
         ll_ob = ob.copy()
