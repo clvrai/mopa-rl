@@ -189,6 +189,7 @@ class RolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env
+        max_step = env.max_episode_steps
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -230,9 +231,9 @@ class RolloutRunner(object):
             meta_len = 0
             meta_rew = 0
 
-            curr_qpos = env.sim.data.qpos
+            curr_qpos = env.sim.data.qpos.ravel().copy()
             if self._config.hrl and 'subgoal' in meta_ac.keys():
-                subgoal = meta_ac['subgoal']
+                subgoal = curr_qpos[:-2]+meta_ac['subgoal']
                 # ========== Clip subgoal range ===================
                 limited_idx = np.where(env.model.jnt_limited[:len(subgoal)]==1)[0]
                 not_limited_idx = np.where(env.model.jnt_limited[:len(subgoal)]==0)[0]
@@ -272,7 +273,12 @@ class RolloutRunner(object):
                         ll_ob['subgoal'] = meta_ac['subgoal']
 
                     #ac = state[:-2] - env.sim.data.qpos[:-2]
-                    ac = OrderedDict([('default', state[:-2] - env.sim.data.qpos[:-2])])
+                    #ac = OrderedDict([('default', state[:-2] - env.sim.data.qpos[:-2])])
+
+                    curr_qpos = env.sim.data.qpos[:-2].ravel().copy()
+                    for idx in not_limited_idx:
+                        curr_qpos[idx] = joint_convert(curr_qpos[idx])
+                    ac = OrderedDict([('default', state[:-2] - curr_qpos)])
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
@@ -294,6 +300,7 @@ class RolloutRunner(object):
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
+                        frame_info['statue'] = 'Success'
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
                             for i, k in enumerate(meta_ac.keys()):
@@ -313,15 +320,33 @@ class RolloutRunner(object):
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
-                #if len(rollout) != 0
-                ep_len += 1
-                ep_rew += self._config.meta_subgoal_rew
-                meta_len += 1
-                meta_rew += self._config.meta_subgoal_rew
+                ep_len += self._config.max_meta_len
+                rew = (-env._get_distance('fingertip', 'target') + self._config.meta_subgoal_rew)*self._config.max_meta_len
+                #rew = self._config.meta_subgoal_rew
+                ep_rew += rew
+                meta_rew += rew
                 reward_info['episode_success'].append(False)
+                print('Meta rew: ', meta_rew)
+                print("ep: ", ep_len, " max_step: ", max_step)
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
-                break
+                if record:
+                    frame_info = OrderedDict()
+                    if config.hrl:
+                        frame_info['meta_ac'] = 'mp'
+                        frame_info['statue'] = 'Failure'
+                        for i, k in enumerate(meta_ac.keys()):
+                            if k == 'subgoal' and k != 'default':
+                                frame_info['meta_joint'] = meta_ac[k]
+                                frame_info['meta_subgoal'] = subgoal_site_pos
+                            elif k != 'default':
+                                frame_info['meta_'+k] = meta_ac[k]
+
+                    xpos, xquat = self._get_mp_body_pos(env)
+                    vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                    self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
+                if not is_train:
+                    break
                 # else:
                 #     ob = env.reset()
                 #     rollout = Rollout()

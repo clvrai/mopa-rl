@@ -40,17 +40,20 @@ class MetaPPOAgent(BaseAgent):
             ac_space.spaces['default'] = spaces.Discrete(len(skills))
                 #ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
             if config.hl_type == 'subgoal':
-                ac_space.spaces['subgoal'] = joint_space['default']
+                if config.subgoal_type == 'joint':
+                    ac_space.spaces['subgoal'] = joint_space['default']
+                else:
+                    ac_space.spaces['subgoal'] = spaces.Box(shape=(2,), low=-1, high=1)
             self.ac_space = ac_space
 
         # build up networks
         if config.policy == 'mlp':
-            self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
-            self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=False)
+            self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
+            self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
             self._critic = MlpCritic(config, ob_space)
         elif config.policy == 'cnn':
-            self._actor = CNNActor(config, ob_space, ac_space, tanh_policy=False)
-            self._old_actor = CNNActor(config, ob_space, ac_space, tanh_policy=False)
+            self._actor = CNNActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
+            self._old_actor = CNNActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
             self._critic = CNNCritic(config, ob_space)
 
         self._network_cuda(config.device)

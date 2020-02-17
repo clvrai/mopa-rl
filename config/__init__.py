@@ -45,6 +45,8 @@ def argparser():
     parser.add_argument("--rl_activation", type=str, default="relu",
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
+    parser.add_argument("--meta_tanh_policy", type=str2bool, default=False)
+    parser.add_argument("--subgoal_type", type=str, default='joint', choices=['joint', 'cart'])
 
     parser.add_argument("--kernel_size", nargs='+', default=[3, 3, 3])
     parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
