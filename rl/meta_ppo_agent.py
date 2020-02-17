@@ -43,7 +43,7 @@ class MetaPPOAgent(BaseAgent):
                 if config.subgoal_type == 'joint':
                     ac_space.spaces['subgoal'] = joint_space['default']
                 else:
-                    ac_space.spaces['subgoal'] = spaces.Box(shape=(2,), low=-1, high=1)
+                    ac_space.spaces['subgoal'] = spaces.Box(shape=(2,), low=-0.3, high=0.3)
             self.ac_space = ac_space
 
         # build up networks

@@ -51,7 +51,7 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action = torch.tanh(z)
+                action = torch.tanh(z) * to_tensor((self._ac_space[k].high), self._config.device)
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
                     log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)

@@ -21,7 +21,7 @@ from rl.rollouts import RolloutRunner
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
-from util.gym import observation_size
+from util.gym import observation_size, action_size
 
 
 def get_agent_by_name(algo, use_ae=False):
@@ -90,7 +90,8 @@ class Trainer(object):
 
         if config.ll_type == 'mp':
             from rl.low_level_mp_agent import LowLevelMpAgent
-            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
+            non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
+            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space, non_limited_idx)
 
         # build rollout runner
         self._runner = RolloutRunner(
