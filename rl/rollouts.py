@@ -109,15 +109,9 @@ class RolloutRunner(object):
             subgoal_site_pos = None
 
             if self._config.hrl and 'subgoal' in meta_ac.keys():
-                limited_idx = np.where(env.model.jnt_limited[:action_size(env.action_space)]==1)[0]
-                joint_range = env.model.jnt_range
-                min_ = joint_range[:, 0]
-                max_ = joint_range[:, 1]
                 if self._config.subgoal_type == 'joint':
                     subgoal = curr_qpos[:-2]+meta_ac['subgoal']
-                    # ========== Clip subgoal range ===================
-                    subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx]).astype(float)
-                    # =================================================
+                    #subgoal = meta_ac['subgoal']
                 else:
                     subgoal = meta_ac['subgoal']
                     subgoal = np.clip(subgoal, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
@@ -239,12 +233,12 @@ class RolloutRunner(object):
             curr_qpos = env.sim.data.qpos.ravel().copy()
 
             if self._config.hrl and 'subgoal' in meta_ac.keys():
-                limited_idx = np.where(env.model.jnt_limited[:action_size(env.action_space)]==1)[0]
-                joint_range = env.model.jnt_range
-                min_ = joint_range[:, 0]
-                max_ = joint_range[:, 1]
+                joint_space = env.joint_space['default']
+                minimum = joint_space.low
+                maximum = joint_space.high
                 if self._config.subgoal_type == 'joint':
-                    subgoal = curr_qpos[:-2]+meta_ac['subgoal']
+                    #subgoal = curr_qpos[:-2]+meta_ac['subgoal']
+                    subgoal = meta_ac['subgoal']
                 else:
                     subgoal_cart = meta_ac['subgoal']
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
@@ -253,7 +247,7 @@ class RolloutRunner(object):
                                                           joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
                     subgoal = result.qpos[:-2].copy()
 
-                subgoal[limited_idx] = np.clip(subgoal[limited_idx], min_[limited_idx], max_[limited_idx]).astype(float)
+                subgoal = np.clip(subgoal, minimum, maximum)
 
             ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
             goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')

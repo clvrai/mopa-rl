@@ -20,7 +20,7 @@ from gym import spaces
 
 class MetaPPOAgent(BaseAgent):
     def __init__(self, config, ob_space, joint_space=None):
-        super().__init__(config, ob_space, joint_space)
+        super().__init__(config, ob_space)
 
         if not config.hrl:
             logger.warn('Creating a dummy meta PPO agent')
@@ -41,8 +41,10 @@ class MetaPPOAgent(BaseAgent):
                 #ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
             if config.hl_type == 'subgoal':
                 if config.subgoal_type == 'joint':
-                    ac_space.spaces['subgoal'] = joint_space['default']
+                    ac_space.spaces['subgoal'] = spaces.Box(shape=(action_size(joint_space),), low=-1., high=1.)
+                    #joint_space['default']
                 else:
+                    # change here
                     ac_space.spaces['subgoal'] = spaces.Box(shape=(2,), low=-0.3, high=0.3)
             self.ac_space = ac_space
 
@@ -224,7 +226,8 @@ class MetaPPOAgent(BaseAgent):
 
         self._actor_optim.zero_grad()
         actor_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+        if self._config.max_grad_norm is not None:
+            torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
         sync_grads(self._actor)
         self._actor_optim.step()
 

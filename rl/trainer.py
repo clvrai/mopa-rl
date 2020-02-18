@@ -55,13 +55,14 @@ class Trainer(object):
 
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
-        joint_space = self._env.joint_sapce
+        joint_space = self._env.joint_space
 
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)
 
         # build up networks
-        self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
+        non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
+        self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
         self._mp = None
 
         if config.hl_type == 'subgoal':
@@ -90,7 +91,6 @@ class Trainer(object):
 
         if config.ll_type == 'mp':
             from rl.low_level_mp_agent import LowLevelMpAgent
-            non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
             self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space, non_limited_idx)
 
         # build rollout runner
