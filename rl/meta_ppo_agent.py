@@ -234,7 +234,8 @@ class MetaPPOAgent(BaseAgent):
         # update the critic
         self._critic_optim.zero_grad()
         value_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
+        if self._config.max_grad_norm is not None:
+            torch.nn.utils.clip_grad_norm_(self._critic.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic)
         self._critic_optim.step()
 

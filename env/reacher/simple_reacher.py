@@ -17,7 +17,7 @@ class SimpleReacherEnv(BaseEnv):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-.35, high=.35, size=2)
+            goal = np.random.uniform(low=-0.2, high=.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
@@ -95,9 +95,9 @@ class SimpleReacherEnv(BaseEnv):
             self._do_simulation(action)
 
         obs = self._get_obs()
-        if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-            done =True
-            self._success = True
+        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+        #     done =True
+        #     self._success = True
         return obs, reward, done, info
 
     def _kinematics_step(self, states):
