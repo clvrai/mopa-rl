@@ -121,8 +121,8 @@ class RolloutRunner(object):
                     subgoal = result.qpos[:-2]
 
 
-            ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
-            goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+                ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
+                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
 
 
 
