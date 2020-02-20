@@ -264,7 +264,7 @@ class Trainer(object):
                 run_ep += 1
                 global_run_ep += 1
                 self._save_success_qpos(info)
-                logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
+                logger.info("Ep: %d rollout: %s", run_ep, {k: v for k, v in info.items() if not "qpos" in k})
                 if config.hrl:
                     if (config.hrl_network_to_update == "HL" or \
                         config.hrl_network_to_update == "both"):

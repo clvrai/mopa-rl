@@ -4,7 +4,7 @@
     <default>
         <geom contype="0" friction="1 0.1 0.1" />
         <default class="obstacle">
-            <geom conaffinity="0" contype="1" rgba="0.55 0.25 0.07 1" />
+            <geom conaffinity="1" contype="1" rgba="0.55 0.25 0.07 1" />
         </default>
     </default>
 

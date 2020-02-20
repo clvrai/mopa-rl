@@ -246,7 +246,6 @@ class RolloutRunner(object):
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
                                                           joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
                     subgoal = result.qpos[:-2].copy()
-
                 subgoal = np.clip(subgoal, minimum, maximum)
 
             ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
@@ -317,14 +316,18 @@ class RolloutRunner(object):
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                         self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
 
-                    if done or ep_len >= max_step and meta_len >= config.max_meta_len:
+                    if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
                 if is_train:
-                    ep_len += self._config.max_meta_len
-                    rew = self._config.meta_subgoal_rew*self._config.max_meta_len
+                    if ep_len+self._config.max_meta_len > max_step:
+                        meta_len = max_step-ep_len
+                    else:
+                        meta_len = self._config.max_meta_len
+                    ep_len += meta_len
+                    rew = self._config.meta_subgoal_rew * self._config.max_meta_len
                     ep_rew += rew
                     meta_rew += rew
                 else:
