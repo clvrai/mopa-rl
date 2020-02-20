@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="20"
-prefix="hl.sst.num_batches.16"
+prefix="hl.sst.num_batches.16.fixed_env"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -25,8 +25,8 @@ max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="4096"
 num_batches="16"
-lr_actor="1e-4"
-lr_critic="1e-4"
+lr_actor="6e-4"
+lr_critic="6e-4"
 debug="False"
 rollout_length="3750"
 
