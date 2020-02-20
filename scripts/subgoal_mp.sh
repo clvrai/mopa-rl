@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="20"
-prefix="hl.sst.num_batches.16"
+workers="5"
+prefix="hl.sst.cnn.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -10,10 +10,10 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-v0"
+env="simple-reacher-obstacle-pixel-v0"
 hl_type="subgoal"
 gpu="1"
-rl_hid_size="256"
+rl_hid_size="512"
 meta_update_target="both"
 hrl_network_to_update="HL"
 max_episode_step="150"
@@ -25,10 +25,12 @@ max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="4096"
 num_batches="16"
-lr_actor="1e-4"
-lr_critic="1e-4"
+lr_actor="4e-4"
+lr_critic="4e-4"
 debug="False"
 rollout_length="3750"
+policy='cnn'
+is_rgb='True'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
@@ -59,5 +61,7 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --lr_actor $lr_actor \
     --lr_critic $lr_critic \
     --debug $debug \
-    --rollout_length $rollout_length
+    --rollout_length $rollout_length \
+    --is_rgb $is_rgb \
+    --policy $policy
     #--max_grad_norm $max_grad_norm \

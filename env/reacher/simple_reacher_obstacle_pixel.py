@@ -18,20 +18,18 @@ class SimpleReacherObstaclePixelEnv(BaseEnv):
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
-
         while True:
             goal = np.random.uniform(low=-.2, high=.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self._init_qpos
             qpos[-2:] = goal
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self._init_qvel
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            self._do_simulation(np.ones(self.model.nq-2)*0.0001) # small oscillation
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+                #and self._is_far_from_obstacle: # might need to take action for one step to check the collision sim step.
                 self.goal = goal
                 break
         return self._get_obs()
-
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
@@ -109,8 +107,28 @@ class SimpleReacherObstaclePixelEnv(BaseEnv):
             self._do_simulation(action)
 
         obs = self._get_obs()
+        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+        #     done =True
+        #     self._success = True
+        return obs, reward, done, info
+
+    def _kinematics_step(self, states):
+        info = {}
+        done = False
+
+        if self._env_config['reward_type'] == 'dense':
+            reward_dist = -self._get_distance("fingertip", "target")
+            reward = reward_dist
+            info = dict(reward_dist=reward_dist)
+        else:
+            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+
+        states = np.concatenate((states[:-2], self.goal))
+        self.set_state(states, self.sim.data.qvel.ravel())
+        obs = self._get_obs()
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
             done =True
             self._success = True
         return obs, reward, done, info
+
 
