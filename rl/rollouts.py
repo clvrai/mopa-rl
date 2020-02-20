@@ -301,6 +301,7 @@ class RolloutRunner(object):
                         frame_info['curr_qpos'] = curr_qpos
                         frame_info['mp_qpos'] = state[:-2]
                         frame_info['mp_path_qpos'] = states[i+1][:-2]
+                        frame_info['goal'] = env.goal
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
                             for i, k in enumerate(meta_ac.keys()):
@@ -343,6 +344,7 @@ class RolloutRunner(object):
                     if config.hrl:
                         frame_info['meta_ac'] = 'mp'
                         frame_info['statue'] = 'Failure'
+                        frame_info['goal'] = env.goal
                         for i, k in enumerate(meta_ac.keys()):
                             if k == 'subgoal' and k != 'default':
                                 frame_info['meta_subgoal'] = meta_ac[k]
