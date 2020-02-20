@@ -149,6 +149,9 @@ class SACAEAgent(BaseAgent):
             sync_networks(_actor)
         sync_networks(self._critic1)
         sync_networks(self._critic2)
+        sync_networks(self._actor_encoder)
+        sync_networks(self._critic_encoder)
+        sync_networks(self._decoder)
 
     def train(self):
         for i in range(self._config.num_batches):
@@ -208,6 +211,9 @@ class SACAEAgent(BaseAgent):
         self._encoder_optim.zero_grad()
         self._decoder_optim.zero_grad()
         loss.backward(retain_graph=True)
+
+        sync_grads(self._critic_encoder)
+        sync_grads(self._decoder)
 
         self._encoder_optim.step()
         self._decoder_optim.step()
