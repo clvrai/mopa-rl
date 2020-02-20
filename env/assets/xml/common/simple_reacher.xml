@@ -44,7 +44,7 @@
                     <joint axis="0 0 1" limited="true" name="joint2" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
                     <geom class='link' name='link2'/>
                     <body name="fingertip" pos="0.11 0 0">
-                            <geom contype="1" conaffinity="1" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/>
+                            <geom contype="1" conaffinity="0" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/>
                             <site name='fingertip' />
                             <!--<geom fromto="0 -0.02 0 0 0.02 0" contype="1" conaffinity="1" name="fingertip0" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
                             <geom fromto="0 -0.02 0 0.02 -0.02 0" contype="1" conaffinity="1" name="fingertip1" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
