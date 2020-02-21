@@ -64,7 +64,7 @@ class MlpCritic(Critic):
         if ac_space is not None:
             input_dim += action_size(ac_space)
 
-        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
+        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2, last_activation=False)
 
     def forward(self, ob, ac=None):
         inp = list(ob.values())

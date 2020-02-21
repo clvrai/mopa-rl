@@ -51,7 +51,7 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action = torch.tanh(z)
+                action = torch.tanh(z) * to_tensor((self._ac_space[k].high), self._config.device)
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
                     log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
@@ -61,6 +61,8 @@ class Actor(nn.Module):
 
             actions[k] = action.detach().cpu().numpy().squeeze(0)
             activations[k] = z.detach().cpu().numpy().squeeze(0)
+            # if return_log_prob:
+            #     log_probs[k] = log_probs[k].detach().cpu().numpy().squeeze(0)
 
         if return_log_prob:
             log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
@@ -70,6 +72,7 @@ class Actor(nn.Module):
 
             log_probs_ = log_probs_.detach().cpu().numpy().squeeze(0)
             return actions, activations, log_probs_
+            #return actions, activations, log_probs
 
         elif return_stds:
             return actions, activations, stds
@@ -108,7 +111,7 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations_[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action = torch.tanh(z)
+                action = torch.tanh(z) * to_tensor((self._ac_space[k].high), self._config.device)
                 # follow the Appendix C. Enforcing Action Bounds
                 log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
                 log_probs[k] = log_probs[k] - log_det_jacobian
@@ -121,8 +124,10 @@ class Actor(nn.Module):
         log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
         if activations is None:
             return actions, log_probs_
+            #return actions, log_probs
         else:
             return log_probs_, ents
+            #return log_probs, ents
 
     def act_log_debug(self, ob, activations=None):
         means, stds = self.forward(ob)
@@ -143,7 +148,7 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations_[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action = torch.tanh(z)
+                action = torch.tanh(z) * to_tensor((self._ac_space[k].high), self._config.device)
                 # follow the Appendix C. Enforcing Action Bounds
                 log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
                 log_probs[k] = log_probs[k] - log_det_jacobian

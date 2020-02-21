@@ -26,15 +26,18 @@ def run(config):
     config.num_workers = MPI.COMM_WORLD.Get_size()
 
     if config.is_chef:
-        logger.warn('Run a base worker.')
+        logger.warning('Run a base worker.')
         make_log_files(config)
     else:
-        logger.warn('Run worker %d and disable logger.', config.rank)
+        logger.warning('Run worker %d and disable logger.', config.rank)
         import logging
         logger.setLevel(logging.CRITICAL)
 
+        config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+        config.log_dir = os.path.join(config.log_root_dir, config.run_name)
+
     def shutdown(signal, frame):
-        logger.warn('Received signal %s: exiting', signal)
+        logger.warning('Received signal %s: exiting', signal)
         sys.exit(128+signal)
 
     signal.signal(signal.SIGHUP, shutdown)
@@ -114,6 +117,10 @@ if __name__ == '__main__':
     add_arguments(parser)
     mp_add_arguments(parser)
     args, unparsed = parser.parse_known_args()
+
+
+    if args.debug:
+        args.rollout_length = 150
 
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)

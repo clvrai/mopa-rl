@@ -21,7 +21,7 @@ from rl.rollouts import RolloutRunner
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
-from util.gym import observation_size
+from util.gym import observation_size, action_size
 
 
 def get_agent_by_name(algo, use_ae=False):
@@ -55,22 +55,23 @@ class Trainer(object):
 
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
-        joint_space = self._env.joint_sapce
+        joint_space = self._env.joint_space
 
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)
 
         # build up networks
-        self._meta_agent = MetaPPOAgent(config, ob_space, ac_space)
+        non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
+        self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
         self._mp = None
 
         if config.hl_type == 'subgoal':
             # use subgoal
             if config.policy == 'cnn':
-                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': ac_space['default']})
+                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': self._meta_agent.ac_space['subgoal']})
             elif config.policy == 'mlp':
                 ll_ob_space = spaces.Dict({'default': ob_space['default'],
-                                           'subgoal': ac_space['default']})
+                                           'subgoal': self._meta_agent.ac_space['subgoal']})
             else:
                 raise NotImplementedError
         else:
@@ -90,7 +91,7 @@ class Trainer(object):
 
         if config.ll_type == 'mp':
             from rl.low_level_mp_agent import LowLevelMpAgent
-            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space)
+            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space, non_limited_idx)
 
         # build rollout runner
         self._runner = RolloutRunner(
@@ -263,7 +264,7 @@ class Trainer(object):
                 run_ep += 1
                 global_run_ep += 1
                 self._save_success_qpos(info)
-                logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
+                logger.info("Ep: %d rollout: %s", run_ep, {k: v for k, v in info.items() if not "qpos" in k})
                 if config.hrl:
                     if (config.hrl_network_to_update == "HL" or \
                         config.hrl_network_to_update == "both"):

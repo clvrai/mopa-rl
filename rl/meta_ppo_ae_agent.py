@@ -18,7 +18,7 @@ from util.gym import action_size
 from gym import spaces
 
 
-class MetaPPOAgent(BaseAgent):
+class MetaPPOAEAgent(BaseAgent):
     def __init__(self, config, ob_space, joint_space=None):
         super().__init__(config, ob_space)
 
@@ -49,19 +49,23 @@ class MetaPPOAgent(BaseAgent):
             self.ac_space = ac_space
 
         # build up networks
-        if config.policy == 'mlp':
-            self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
-            self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
-            self._critic = MlpCritic(config, ob_space)
-        elif config.policy == 'cnn':
-            self._actor = CNNActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
-            self._old_actor = CNNActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
-            self._critic = CNNCritic(config, ob_space)
+        self._actor_encoder = Encoder(config, ob_space['default'].shape[0], config.ae_feat_dim)
+        self._actor_encoder.copy_conv_weights_from(self._critic_encoder)
+        self._decoder = Decoder(config, config.ae_feat_dim, self._critic_encoder.w)
+        print(self._actor_encoder)
+
+        self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
+        self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
+        self._critic = MlpCritic(config, ob_space)
 
         self._network_cuda(config.device)
 
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_actor)
         self._critic_optim = optim.Adam(self._critic.parameters(), lr=config.lr_critic)
+        self._encoder_optim = optim.Adam(self._critic_encoder.parameters(),
+                                         lr=config.lr_encoder)
+        self._decoder_optim = optim.Adam(self._decoder.parameters(),
+                                         lr=config.lr_decoder)
 
         sampler = RandomSampler()
         self._buffer = ReplayBuffer(['ob', 'ac', 'done', 'rew', 'ret', 'adv',
@@ -118,6 +122,11 @@ class MetaPPOAgent(BaseAgent):
             'actor_optim_state_dict': self._actor_optim.state_dict(),
             'critic_optim_state_dict': self._critic_optim.state_dict(),
             'ob_norm_state_dict': self._ob_norm.state_dict(),
+            'critic_encoder_state_dict': self._critic_encoder.state_dict(),
+            'decoder_state_dict': self._decoder.state_dict(),
+            'actor_encoder_state_dict': self._actor_encoder.state_dict(),
+            'encoder_optim_state_dict': self._encoder_optim.state_dict(),
+            'decoder_optim_state_dict': self._decoder_optim.state_dict()
         }
 
     def load_state_dict(self, ckpt):
@@ -127,10 +136,17 @@ class MetaPPOAgent(BaseAgent):
         self._actor.load_state_dict(ckpt['actor_state_dict'])
         self._critic.load_state_dict(ckpt['critic_state_dict'])
         self._ob_norm.load_state_dict(ckpt['ob_norm_state_dict'])
+        self._actor_encoder.load_state_dict(ckpt['actor_encoder_state_dict'])
+        self._critic_encoder.load_state_dict(ckpt['critc_encoder_state_dict'])
+        self._actor_encoder.copy_conv_weights_from(self._critic_encoder)
+        self._decoder.load_state_dict(ckpt['decoder_state_dict'])
+
         self._network_cuda(self._config.device)
 
         self._actor_optim.load_state_dict(ckpt['actor_optim_state_dict'])
         self._critic_optim.load_state_dict(ckpt['critic_optim_state_dict'])
+        self._encoder_optim.load_state_dict(ckpt['encoder_optim_state_dict'])
+        self._decoder_optim.load_state_dict(ckpt['decoder_optim_state_dict'])
         optimizer_cuda(self._actor_optim, self._config.device)
         optimizer_cuda(self._critic_optim, self._config.device)
 
@@ -138,10 +154,16 @@ class MetaPPOAgent(BaseAgent):
         self._actor.to(device)
         self._old_actor.to(device)
         self._critic.to(device)
+        self._actor_encoder.to(device)
+        self._critic_encoder.to(device)
+        self._decoder.to(device)
 
     def sync_networks(self):
         sync_networks(self._actor)
         sync_networks(self._critic)
+        sync_networks(self._actor_encoder)
+        sync_networks(self._critic_encoder)
+        sync_networks(self._decoder)
 
     def train(self):
         self._copy_target_network(self._old_actor, self._actor)
@@ -149,6 +171,7 @@ class MetaPPOAgent(BaseAgent):
         for _ in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions)
+            decoder_info = self._update_decoder(transitions['ob'], transitions['ob'])
 
         self._buffer.clear()
 
@@ -158,7 +181,37 @@ class MetaPPOAgent(BaseAgent):
             'critic_grad_norm': compute_gradient_norm(self._critic),
             'critic_weight_norm': compute_weight_norm(self._critic),
         })
+
+        for k, v in decoder_info.items():
+            train_info.update({
+                k: v
+            })
         return train_info
+
+    def _update_decoder(self, obs, target_obs):
+        info = {}
+        _to_tensor = lambda x: to_tensor(x, self._config.device)
+        obs = _to_tensor(obs)
+        target_obs = _to_tensor(target_obs)
+        h = self._critic_encoder(obs['default'])
+
+        rec_obs = self._decoder(h)
+        rec_loss = F.mse_loss(target_obs['default'], rec_obs)
+
+        latent_loss = (0.5*h.pow(2).sum(1)).mean()
+
+        loss = rec_loss + self._config.decoder_latent_lambda * latent_loss
+        self._encoder_optim.zero_grad()
+        self._decoder_optim.zero_grad()
+        loss.backward(retain_graph=True)
+        sync_grads(self._critic_encoder)
+        sync_grads(self._decoder)
+
+        self._encoder_optim.step()
+        self._decoder_optim.step()
+        info['ae_loss'] = loss
+
+        return info
 
     def _update_network(self, transitions):
         info = {}

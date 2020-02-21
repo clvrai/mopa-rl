@@ -45,6 +45,9 @@ def argparser():
     parser.add_argument("--rl_activation", type=str, default="relu",
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
+    parser.add_argument("--meta_tanh_policy", type=str2bool, default=False)
+    parser.add_argument("--subgoal_type", type=str, default='joint', choices=['joint', 'cart'])
+    parser.add_argument("--activation", type=str, default='tanh')
 
     parser.add_argument("--kernel_size", nargs='+', default=[3, 3, 3])
     parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
@@ -105,6 +108,7 @@ def argparser():
     parser.add_argument("--entropy_loss_coeff", type=float, default=1e-4)
     parser.add_argument("--rollout_length", type=int, default=1000)
     parser.add_argument("--gae_lambda", type=float, default=0.95)
+    parser.add_argument("--reward_division", type=float, default=None)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)

@@ -56,7 +56,7 @@
                                     <joint axis="0 0 1" limited="true" name="joint6" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
                                     <geom class='link' name='link6'/>
                                     <body name="fingertip" pos="0.11 0 0">
-                                            <geom contype="1" conaffinity="1" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> 
+                                            <geom contype="1" conaffinity="0" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> 
                                             <site name='fingertip' />
                                             <!--<geom fromto="0 -0.02 0 0 0.02 0" contype="1" conaffinity="1" name="fingertip0" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
                                             <geom fromto="0 -0.02 0 0.02 -0.02 0" contype="1" conaffinity="1" name="fingertip1" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
@@ -114,12 +114,12 @@
             <geom class='link-goal' name='link6-goal'/>
         </body>
 
-        <body name="target" pos=".1 -.1 .01">
+        <body name="target" pos=".1 -.1 .005">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide"/>
-            <geom conaffinity="0" contype="0" name="target" pos="0 0 0" rgba="0.2 0.2 0.2 1" size=".020 .005 .002" type="cylinder"/>
+            <geom conaffinity="" contype="0" name="target" pos="0 0 0" rgba="0.2 0.2 0.2 1" size=".020 .005 .002" type="cylinder"/>
         </body>
-        <body name="subgoal" pos=".1 -.1 .01">
+        <body name="subgoal" pos=".1 -.1 .005">
             <geom conaffinity="0" contype="0" name="subgoal_geom" pos="0 0 0" rgba="0.2 0.9 0.2 0" size=".020 .005 .002" type="cylinder"/>
         </body>
     </worldbody>

@@ -1,4 +1,4 @@
-<mujoco model="reacher_obstacle">
+<mujoco model="simple_reacher_obstacle_toy">
     <include file="./common/simple_reacher.xml" />
 
     <default>

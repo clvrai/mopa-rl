@@ -2,7 +2,6 @@
 
 from gym.envs.registration import register
 
-
 # register all environments to use
 register(
     id='reacher-obstacle-v0',
@@ -17,6 +16,12 @@ register(
 )
 
 register(
+    id='simple-reacher-obstacle-toy-v0',
+    entry_point='env.reacher:SimpleReacherObstacleToyEnv',
+    kwargs={},
+)
+
+register(
     id='simple-reacher-obstacle-pixel-v0',
     entry_point='env.reacher:SimpleReacherObstaclePixelEnv',
     kwargs={},
@@ -25,6 +30,12 @@ register(
 register(
     id='reacher-v0',
     entry_point='env.reacher:ReacherEnv',
+    kwargs={},
+)
+
+register(
+    id='simple-reacher-v0',
+    entry_point='env.reacher:SimpleReacherEnv',
     kwargs={},
 )
 

@@ -5,25 +5,25 @@ import numpy as np
 from gym import spaces
 from env.base import BaseEnv
 
-class SimpleReacherObstacleEnv(BaseEnv):
+class SimpleReacherObstacleToyEnv(BaseEnv):
     """ Reacher with Obstacles environment. """
 
     def __init__(self, **kwargs):
         super().__init__("simple_reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        self._goals = np.array([[-0.072, -0.096], [0.108, 0.228], [0.108, -0.136]])
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-.2, high=.2, size=2)
+            goal = self._goals[np.random.randint(len(self._goals))] + np.random.uniform(low=-0.01, high=0.01, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self._init_qpos
             qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self._init_qvel
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
-                #and self._is_far_from_obstacle: # might need to take action for one step to check the collision sim step.
+            if self.sim.data.ncon == 0:
                 self.goal = goal
                 break
         return self._get_obs()

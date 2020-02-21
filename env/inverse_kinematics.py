@@ -126,12 +126,12 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
 
 def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, joint_names=None,
-                        max_steps=100, rot_weight=1., tol=1e-14,
+                        max_steps=100, rot_weight=1., tol=1e-4,
                         max_update_norm=2.0, progress_thresh=20.0,
-                                 regularization_threshold=0.1, regularization_strength=3e-2, logging=False):
+                                 regularization_threshold=0.1, regularization_strength=3e-2, logging=False, trials=10):
     mjlib = mjbindings.mjlib
     dtype = env.sim.data.qpos.dtype
-    trials = 0
+    tried = 0
     while True:
 
         if target_pos is not None and target_quat is not None:
@@ -194,7 +194,6 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 mjlib.mju_quat2Vel(err_rot, err_rot_quat, 1)
                 err_norm += np.linalg.norm(err_rot) * rot_weight
 
-
             if err_norm < tol:
                 print('success')
                 success =True
@@ -223,20 +222,18 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
 
                 update_nv[dof_indices] = update_joints
 
-                env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
-                env.sim.forward()
-                env.sim.step()
+                env.set_state(env.sim.data.qpos.copy()+update_nv, env.sim.data.qvel.ravel().copy())
                 ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
                 #env.step(update_nv[:-2])
                 if steps % 10 == 0 and logging:
                     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
                           steps, err_norm, update_norm)
 
-        if env.sim.data.ncon == 0 or trials > 10:
+        if env.sim.data.ncon == 0 or tried > trials:
             return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
         else:
             env.initalize_joints()
-            trials += 1
+            tried += 1
 
 
 

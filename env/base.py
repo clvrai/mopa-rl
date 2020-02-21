@@ -24,6 +24,7 @@ class BaseEnv(gym.Env):
 
     def __init__(self, xml_path, **kwargs):
         """ Initializes class with configuration. """
+        print("Create")
         # default env config
         self._env_config = {
             "frame_skip": kwargs['frame_skip'],
@@ -92,8 +93,18 @@ class BaseEnv(gym.Env):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-        self.joint_sapce = spaces.Dict([
-            ('default', spaces.Box(low=-3, high=-3, shape=(self.model.nq,), dtype=np.float32))
+
+        jnt_range = self.model.jnt_range[:num_actions]
+        is_jnt_limited = self.model.jnt_limited[:num_actions].astype(np.bool)
+        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
+        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
+        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+
+
+        self.joint_space = spaces.Dict([
+            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
         # Camera
@@ -384,6 +395,13 @@ class BaseEnv(gym.Env):
         for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
             if body_idx1 == body_idx2:
                 self.model.geom_rgba[geom_idx, 0:len(color)] = color
+
+    def _get_color(self, name):
+        body_idx1 = self.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+            if body_idx1 == body_idx2:
+                return self.model.geom_rgba[geom_idx]
+        raise ValueError
 
     def _mass_center(self):
         mass = np.expand_dims(self.model.body_mass, axis=1)
