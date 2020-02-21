@@ -52,8 +52,8 @@ class MLP(nn.Module):
     def __init__(self, config, input_dim, output_dim, hid_dims=[]):
         super().__init__()
         #activation_fn = getattr(F, config.activation)
-        self._activation_fn = getattr(F, config.rl_activation)
         #activation_fn = nn.ReLU()
+        activation_fn = nn.Tanh()
 
         fc = []
         prev_dim = input_dim

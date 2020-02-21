@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="8"
-prefix="hl.sst.cnn.v1.sm.clip.grad_norm.v4"
+workers="20"
+prefix="hl.sst.tanh"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -10,32 +10,32 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-pixel-v0"
+env="simple-reacher-obstacle-toy-v0"
 hl_type="subgoal"
-gpu="1"
-rl_hid_size="512"
+gpu="2"
+rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
 meta_subgoal_rew="-0.5"
-max_meta_len="10"
+max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="64"
+num_batches="16"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
-rollout_length="2550"
-policy='cnn'
-is_rgb='True'
-batch_size="64"
-clip_param='0.1'
+rollout_length="3750"
+batch_size="256"
+clip_param="0.1"
+rl_activation="tanh"
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -64,8 +64,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --lr_critic $lr_critic \
     --debug $debug \
     --rollout_length $rollout_length \
-    --is_rgb $is_rgb \
-    --policy $policy \
     --batch_size $batch_size \
-    --clip_param $clip_param
+    --clip_param $clip_param \
     --max_grad_norm $max_grad_norm \
