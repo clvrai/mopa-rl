@@ -2,7 +2,6 @@
 
 from gym.envs.registration import register
 
-
 # register all environments to use
 register(
     id='reacher-obstacle-v0',

@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class CNN(nn.Module):
     def __init__(self, config, input_dim):
         super().__init__()
@@ -49,23 +48,37 @@ def fanin_init(tensor):
 
 
 class MLP(nn.Module):
-    def __init__(self, config, input_dim, output_dim, hid_dims=[]):
+    def __init__(self, config, input_dim, output_dim, hid_dims=[], last_activation=True):
         super().__init__()
-        #activation_fn = getattr(F, config.activation)
+        if config.rl_activation == 'relu':
+            activation_fn = nn.ReLU()
+        elif config.rl_activation == 'tanh':
+            activation_fn = nn.Tanh()
+        elif config.rl_acitvation == 'elu':
+            activation_fn = nn.Elu()
+        else:
+            return NotImplementedError
+
+        #activation_fn = getattr(nn, rl_activation)
         #activation_fn = nn.ReLU()
-        activation_fn = nn.Tanh()
+
+        init_ = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.
+                               constant_(x, 0), np.sqrt(2))
 
         fc = []
         prev_dim = input_dim
         for d in hid_dims:
-            fc.append(nn.Linear(prev_dim, d))
-            fanin_init(fc[-1].weight)
-            fc[-1].bias.data.fill_(0.1)
+            fc.append(init_(nn.Linear(prev_dim, d)))
+            #fc.append(nn.Linear(prev_dim, d))
+            # fanin_init(fc[-1].weight)
+            # fc[-1].bias.data.fill_(0.1)
             fc.append(activation_fn)
             prev_dim = d
-        fc.append(nn.Linear(prev_dim, output_dim))
-        fc[-1].weight.data.uniform_(-1e-3, 1e-3)
-        fc[-1].bias.data.uniform_(-1e-3, 1e-3)
+        fc.append(init_(nn.Linear(prev_dim, output_dim)))
+        if last_activation:
+            fc.append(activation_fn)
+        # fc[-1].weight.data.uniform_(-1e-3, 1e-3)
+        # fc[-1].bias.data.uniform_(-1e-3, 1e-3)
         self.fc = nn.Sequential(*fc)
 
     def forward(self, ob):

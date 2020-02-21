@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="20"
-prefix="hl.sst.tanh"
+prefix="hl.sst.tanh.init_.v2"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -19,7 +19,7 @@ hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-0.5"
+meta_subgoal_rew="-1"
 max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
@@ -67,3 +67,4 @@ python -m rl.main --log_root_dir ./logs \
     --batch_size $batch_size \
     --clip_param $clip_param \
     --max_grad_norm $max_grad_norm \
+    --rl_activation $rl_activation
