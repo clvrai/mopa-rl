@@ -404,9 +404,17 @@ class RolloutRunner(object):
             for k in xpos.keys():
                 self._env._set_pos(k, xpos[k])
                 self._env._set_quat(k, xquat[k])
+                color = self._env._get_color(k)
+                color[-1] = 0.3
+                self._env._set_color(k, color)
 
         frame = self._env.render('rgb_array') * 255.0
         self._env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
+        for xpos, xquat in vis_pos:
+            for k in xpos.keys():
+                color = self._env._get_color(k)
+                color[-1] = 0.
+                self._env._set_color(k, color)
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
