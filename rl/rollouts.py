@@ -319,6 +319,8 @@ class RolloutRunner(object):
 
                     if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break
+                if self._config.reward_division is not None:
+                    meta_rew /= self._config.reward_division
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
@@ -331,10 +333,14 @@ class RolloutRunner(object):
                     rew = self._config.meta_subgoal_rew * self._config.max_meta_len
                     ep_rew += rew
                     meta_rew += rew
+                    if self._config.reward_division is not None:
+                        meta_rew /= self._config.reward_division
                 else:
                     rew = self._config.meta_subgoal_rew*(max_step-ep_len)
                     ep_rew += rew
                     meta_rew += rew
+                    if self._config.reward_division is not None:
+                        meta_rew /= self._config.reward_division
                 reward_info['episode_success'].append(False)
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
@@ -406,9 +412,17 @@ class RolloutRunner(object):
             for k in xpos.keys():
                 self._env._set_pos(k, xpos[k])
                 self._env._set_quat(k, xquat[k])
+                color = self._env._get_color(k)
+                color[-1] = 0.3
+                self._env._set_color(k, color)
 
         frame = self._env.render('rgb_array') * 255.0
         self._env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
+        for xpos, xquat in vis_pos:
+            for k in xpos.keys():
+                color = self._env._get_color(k)
+                color[-1] = 0.
+                self._env._set_color(k, color)
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
@@ -438,4 +452,3 @@ class RolloutRunner(object):
                             font_size, (255, 255, 255), thickness, cv2.LINE_AA)
 
         self._record_frames.append(frame)
-

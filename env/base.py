@@ -395,6 +395,13 @@ class BaseEnv(gym.Env):
             if body_idx1 == body_idx2:
                 self.model.geom_rgba[geom_idx, 0:len(color)] = color
 
+    def _get_color(self, name):
+        body_idx1 = self.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+            if body_idx1 == body_idx2:
+                return self.model.geom_rgba[geom_idx]
+        raise ValueError
+
     def _mass_center(self):
         mass = np.expand_dims(self.model.body_mass, axis=1)
         xpos = self.data.xipos

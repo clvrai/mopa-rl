@@ -15,10 +15,10 @@
             <geom contype="1" conaffinity="1" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule" />
         </default>
         <default class="link-dummy">
-            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 0.3" size=".01" type="capsule" />
+            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 0" size=".01" type="capsule" />
         </default>
         <default class="link-goal">
-            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.6 0.4 0. 0.3" size=".01" type="capsule" />
+            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.6 0.4 0. 0" size=".01" type="capsule" />
         </default>
 
     </default>
