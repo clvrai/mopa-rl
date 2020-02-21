@@ -301,6 +301,7 @@ class RolloutRunner(object):
                         frame_info['curr_qpos'] = curr_qpos
                         frame_info['mp_qpos'] = state[:-2]
                         frame_info['mp_path_qpos'] = states[i+1][:-2]
+                        frame_info['goal'] = env.goal
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
                             for i, k in enumerate(meta_ac.keys()):
@@ -318,6 +319,8 @@ class RolloutRunner(object):
 
                     if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break
+                if self._config.reward_division is not None:
+                    meta_rew /= self._config.reward_division
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
@@ -330,10 +333,14 @@ class RolloutRunner(object):
                     rew = self._config.meta_subgoal_rew * self._config.max_meta_len
                     ep_rew += rew
                     meta_rew += rew
+                    if self._config.reward_division is not None:
+                        meta_rew /= self._config.reward_division
                 else:
                     rew = self._config.meta_subgoal_rew*(max_step-ep_len)
                     ep_rew += rew
                     meta_rew += rew
+                    if self._config.reward_division is not None:
+                        meta_rew /= self._config.reward_division
                 reward_info['episode_success'].append(False)
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
@@ -343,6 +350,7 @@ class RolloutRunner(object):
                     if config.hrl:
                         frame_info['meta_ac'] = 'mp'
                         frame_info['statue'] = 'Failure'
+                        frame_info['goal'] = env.goal
                         for i, k in enumerate(meta_ac.keys()):
                             if k == 'subgoal' and k != 'default':
                                 frame_info['meta_subgoal'] = meta_ac[k]
@@ -444,4 +452,3 @@ class RolloutRunner(object):
                             font_size, (255, 255, 255), thickness, cv2.LINE_AA)
 
         self._record_frames.append(frame)
-

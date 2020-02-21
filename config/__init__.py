@@ -108,6 +108,7 @@ def argparser():
     parser.add_argument("--entropy_loss_coeff", type=float, default=1e-4)
     parser.add_argument("--rollout_length", type=int, default=1000)
     parser.add_argument("--gae_lambda", type=float, default=0.95)
+    parser.add_argument("--reward_division", type=float, default=None)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)

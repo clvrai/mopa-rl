@@ -402,7 +402,6 @@ class BaseEnv(gym.Env):
                 return self.model.geom_rgba[geom_idx]
         raise ValueError
 
-
     def _mass_center(self):
         mass = np.expand_dims(self.model.body_mass, axis=1)
         xpos = self.data.xipos
