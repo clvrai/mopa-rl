@@ -2,28 +2,30 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces 
+from gym import spaces
+
 from env.base import BaseEnv
 
 
-class ReacherObstacleTestEnv(BaseEnv):
-    """ Reacher with Obstacles environment. """
+class SimplePusherEnv(BaseEnv):
+    """ Pusher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("reacher_obstacle_test.xml", **kwargs)
-        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        super().__init__("simple_pusher.xml", **kwargs)
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-.35, high=.35, size=2)
+            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
+            box = np.random.uniform(low=-0.2, high=0.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[self.model.nu:] = goal
+            qpos[-4:-2] = goal
+            qpos[-2:] = box
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
-            qvel[self.model.nu:] = 0
+            qvel[-4:-2] = 0
+            qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            self._do_simulation(np.ones(self.model.nu)*0.0001) # small oscillation
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 self.goal = goal
                 break
@@ -32,33 +34,29 @@ class ReacherObstacleTestEnv(BaseEnv):
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[self.model.nu:] = self.goal
+            qpos[-4:-2] = goal
+            qpos[-2:] = box
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
 
-    def _get_obstacle_states(self):
-        obstacle_states = []
-        for name in self.obstacle_names:
-            obstacle_states.extend(self._get_pos(name)[:2])
-        return np.array(obstacle_states)
-
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
+        theta = self.sim.data.qpos.flat[:2]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[self.model.nu:],
-                self.sim.data.qvel.flat[:self.model.nu],
-                self._get_obstacle_states(),
+                self.sim.data.qpos.flat[2:],
+                self.sim.data.qvel.flat[:2],
+                self._get_pos('box'),
+                self._get_pos("target")
             ]))
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(27,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(14,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -94,11 +92,29 @@ class ReacherObstacleTestEnv(BaseEnv):
         for t in range(n_inner_loop):
             action = self._get_control(desired_state, prev_state, target_vel)
             self._do_simulation(action)
-            self.render('human')
 
         obs = self._get_obs()
-        if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-            done =True
-            self._success = True
+        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+        #     done =True
+        #     self._success = True
+        return obs, reward, done, info
+
+    def _kinematics_step(self, states):
+        info = {}
+        done = False
+
+        if self._env_config['reward_type'] == 'dense':
+            reward_dist = -self._get_distance("box", "target")
+            reward = reward_dist
+            info = dict(reward_dist=reward_dist)
+        else:
+            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+
+        states = np.concatenate((states[:self.model.nu], self.goal))
+        self.set_state(states, self.sim.data.qvel.ravel())
+        obs = self._get_obs()
+        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+        #     done =True
+        #     self._success = True
         return obs, reward, done, info
 

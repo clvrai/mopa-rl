@@ -22,11 +22,11 @@ class ReacherObstaclePixelEnv(BaseEnv):
         while True:
             goal = np.random.uniform(low=-.4, high=.4, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-2:] = goal
+            qpos[self.model.nu:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
-            qvel[-2:] = 0
+            qvel[self.model.nu:] = 0
             self.set_state(qpos, qvel)
-            self._do_simulation(np.ones(self.model.nq-2)*0.0001) # small oscillation
+            self._do_simulation(np.ones(self.model.nu)*0.0001) # small oscillation
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 self.goal = goal
                 break
@@ -35,7 +35,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-1, high=1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-2:] = self.goal
+            qpos[self.model.nu:] = self.goal
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
@@ -79,7 +79,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:-2]
+        return self.sim.data.qpos.ravel()[:self.model.nu]
 
     def _step(self, action):
         """
@@ -102,7 +102,7 @@ class ReacherObstaclePixelEnv(BaseEnv):
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[:-2].copy()
+        prev_state = self.sim.data.qpos[:self.model.nu].copy()
         target_vel = (desired_state-prev_state) / self._frame_dt
         for t in range(n_inner_loop):
             action = self._get_control(desired_state, prev_state, target_vel)
