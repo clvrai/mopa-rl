@@ -50,6 +50,8 @@ class BaseEnv(gym.Env):
         self._kd = kwargs['kd']
         self._ki = kwargs['ki']
         self._frame_dt = kwargs['frame_dt']
+        self._reward_coef = kwargs['reward_coef']
+        self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
 
         # Load model
         self._load_model(xml_path)
@@ -220,6 +222,38 @@ class BaseEnv(gym.Env):
             step_log["episode_unstable"] = penalty
 
         return self._terminal, step_log, penalty
+
+    def _after_mp_step(self, reward, terminal, mp_steps, info=None):
+        if info is not None:
+            step_log = dict(info)
+        else:
+            step_log = {}
+
+        self._terminal = terminal
+
+        if reward is not None:
+            self._episode_reward += reward
+            self._episode_length += mp_steps
+
+        if self._episode_length == self.max_episode_steps or self._fail:
+            self._terminal = True
+            if self._fail:
+                self._fail = False
+                penalty = -self._env_config["unstable_penalty"]
+
+        if self._terminal:
+            total_time = time.time() - self._episode_time
+            step_log["episode_success"] = int(self._success)
+            step_log["episode_reward"] = self._episode_reward + penalty
+            step_log["episode_length"] = self._episode_length
+            step_log["episode_time"] = total_time
+            step_log["episode_unstable"] = penalty
+
+        return self._terminal, step_log, penalty
+
+
+
+
 
     def _ctrl_reward(self, a):
         ctrl_reward = -self._env_config["ctrl_reward"] * np.square(a).sum()

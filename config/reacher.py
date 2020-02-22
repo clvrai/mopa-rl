@@ -35,6 +35,8 @@ def add_arguments(parser):
     parser.add_argument("--kd", type=float, default=20.)
     parser.add_argument("--ki", type=float, default=0.1)
     parser.add_argument("--frame_dt", type=float, default=1.)
+    parser.add_argument("--reward_coef", type=flaot, default=10.)
+    parser.add_argument("--ctrl_reward_coef", type=flaot, default=1e3)
 
 
 def get_default_config():

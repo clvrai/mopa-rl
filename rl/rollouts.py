@@ -298,7 +298,7 @@ class RolloutRunner(object):
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
-                        frame_info['statue'] = 'Success'
+                        frame_info['states'] = 'Valid states'
                         frame_info['curr_qpos'] = curr_qpos
                         frame_info['mp_qpos'] = state[:-2]
                         frame_info['mp_path_qpos'] = states[i+1][:-2]
@@ -326,14 +326,17 @@ class RolloutRunner(object):
                 reward_info['meta_rew'].append(meta_rew)
             else:
                 if is_train:
-                    if ep_len+self._config.max_meta_len > max_step:
+                    terminal = False
+                    if ep_len+self._config.max_meta_len >= max_step:
                         meta_len = max_step-ep_len
+                        terminal = True
                     else:
                         meta_len = self._config.max_meta_len
                     ep_len += meta_len
                     rew = self._config.meta_subgoal_rew * self._config.max_meta_len
                     ep_rew += rew
                     meta_rew += rew
+                    env._after_step(rew)
                     if self._config.reward_division is not None:
                         meta_rew /= self._config.reward_division
                 else:
@@ -350,7 +353,7 @@ class RolloutRunner(object):
                     frame_info = OrderedDict()
                     if config.hrl:
                         frame_info['meta_ac'] = 'mp'
-                        frame_info['statue'] = 'Failure'
+                        frame_info['status'] = 'Invalid states'
                         frame_info['goal'] = env.goal
                         for i, k in enumerate(meta_ac.keys()):
                             if k == 'subgoal' and k != 'default':

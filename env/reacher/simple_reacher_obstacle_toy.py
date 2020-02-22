@@ -88,7 +88,7 @@ class SimpleReacherObstacleToyEnv(BaseEnv):
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type'] == 'dist_diff':
             pre_reward_dist = self._get_distance("fingertip", "target")
-            reward_ctrl = self._ctrl_reward(action)
+            reward_ctrl = self._ctrl_reward_coef * self._ctrl_reward(action)
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
@@ -105,7 +105,7 @@ class SimpleReacherObstacleToyEnv(BaseEnv):
 
         if self._env_config['reward_type'] == 'dist_diff':
             post_reward_dist = self._get_distance("fingertip", "target")
-            reward_dist_diff = post_reward_dist - pre_reward_dist
+            reward_dist_diff = self._reward_coef * (pre_reward_dist - post_reward_dist)
             info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
             reward = reward_dist_diff + reward_ctrl
 
