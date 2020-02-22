@@ -1,7 +1,6 @@
-<mujoco model="reacher">
+<mujoco model="pusher">
     <include file="./common/skybox.xml"/>
-    <include file="./common/materials.xml"/>
-    <include file="./common/visual.xml"/>
+    <include file="./common/materials.xml"/> <include file="./common/visual.xml"/>
 
     <compiler angle="radian" inertiafromgeom="true" meshdir="../meshes" />
     <option gravity="0 0 -9.81" integrator="RK4" timestep="0.01"/>
@@ -56,11 +55,11 @@
                                     <joint axis="0 0 1" limited="true" name="joint6" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
                                     <geom class='link' name='link6'/>
                                     <body name="fingertip" pos="0.11 0 0">
-                                            <geom contype="1" conaffinity="0" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> 
+                                            <!-- <geom contype="1" conaffinity="1" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> -->
                                             <site name='fingertip' />
-                                            <!--<geom fromto="0 -0.02 0 0 0.02 0" contype="1" conaffinity="1" name="fingertip0" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
-                                            <geom fromto="0 -0.02 0 0.02 -0.02 0" contype="1" conaffinity="1" name="fingertip1" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
-                                            <geom fromto="0 0.02 0 0.02 0.02 0" contype="1" conaffinity="1" name="fingertip2" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/> -->
+                                            <geom fromto="0 -0.03 0 0 0.03 0" contype="1" conaffinity="1" name="fingertip0" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
+                                            <geom fromto="0 -0.03 0 0.03 -0.03 0" contype="1" conaffinity="1" name="fingertip1" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
+                                            <geom fromto="0 0.03 0 0.03 0.03 0" contype="1" conaffinity="1" name="fingertip2" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/>
                                     </body>
                                 </body>
                             </body>
@@ -121,6 +120,10 @@
         </body>
         <body name="subgoal" pos=".1 -.1 .005">
             <geom conaffinity="0" contype="0" name="subgoal_geom" pos="0 0 0" rgba="0.2 0.9 0.2 0" size=".020 .005 .002" type="cylinder"/>
+        </body>
+
+        <body name='object' pos=".1 -.1 .02">
+            <geom conaffinity="1" contype="1" name="object_geom" pos="0 0 0" rgba="0.2 0.2 0.2 1" size=".02 .02 .02" type="box"/>
         </body>
     </worldbody>
 
