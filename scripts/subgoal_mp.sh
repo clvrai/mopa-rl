@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="20"
-prefix="HL.Dist_diff_Reward"
+prefix="HL.Dist_diff_Reward.coef.10"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -33,6 +33,7 @@ batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
 reward_type='dist_diff'
+reward_coef='10'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
@@ -69,3 +70,4 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
     --reward_type $reward_type \
+    --reward_coef $reward_coef

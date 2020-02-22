@@ -336,7 +336,6 @@ class RolloutRunner(object):
                     rew = self._config.meta_subgoal_rew * self._config.max_meta_len
                     ep_rew += rew
                     meta_rew += rew
-                    env._after_step(rew)
                     if self._config.reward_division is not None:
                         meta_rew /= self._config.reward_division
                 else:
