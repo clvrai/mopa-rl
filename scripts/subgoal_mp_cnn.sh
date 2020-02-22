@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.sst.cnn.mp"
+prefix="HL.MP.SST.CNN"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -10,9 +10,9 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-toy-v0"
+env="simple-reacher-obstacle-pixel-v0"
 hl_type="subgoal"
-gpu="2"
+gpu="1"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -68,4 +68,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --batch_size $batch_size \
     --clip_param $clip_param \
     --max_grad_norm $max_grad_norm \
-    --rl_activation $rl_activation
+    --rl_activation $rl_activation \
+    --policy $policy \
+    --is_rgb $is_rgb

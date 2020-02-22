@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="20"
-prefix="hl.sst.tanh.init_.v3"
+workers="10"
+prefix="HL.Dist_diff_Reward"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-reacher-obstacle-toy-v0"
 hl_type="subgoal"
-gpu="2"
+gpu="1"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -28,14 +28,14 @@ num_batches="16"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
-rollout_length="3750"
+rollout_length="7500"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
+reward_type='dist_diff'
 
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -67,4 +67,5 @@ python -m rl.main --log_root_dir ./logs \
     --batch_size $batch_size \
     --clip_param $clip_param \
     --max_grad_norm $max_grad_norm \
-    --rl_activation $rl_activation
+    --rl_activation $rl_activation \
+    --reward_type $reward_type \
