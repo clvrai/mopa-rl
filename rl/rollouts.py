@@ -237,7 +237,7 @@ class RolloutRunner(object):
                 minimum = joint_space.low
                 maximum = joint_space.high
                 if self._config.subgoal_type == 'joint':
-                    subgoal = curr_qpos[:-2]+meta_ac['subgoal']
+                    subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
                     #subgoal = meta_ac['subgoal']
                 else:
                     subgoal_cart = meta_ac['subgoal']
@@ -245,7 +245,7 @@ class RolloutRunner(object):
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
                                                           joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
-                    subgoal = result.qpos[:-2].copy()
+                    subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
                 #subgoal = np.clip(subgoal, minimum, maximum)
 
@@ -256,7 +256,7 @@ class RolloutRunner(object):
             # Will change fingertip to variable later
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
 
-            target_qpos = np.concatenate([subgoal, env.goal])
+            target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
 
             # for idx in not_limited_idx:
             #     curr_qpos[idx] = joint_convert(curr_qpos[idx])
@@ -272,8 +272,6 @@ class RolloutRunner(object):
                     if config.hrl and config.hl_type == 'subgoal':
                         ll_ob['subgoal'] = meta_ac['subgoal']
 
-                    #ac = state[:-2] - env.sim.data.qpos[:-2]
-                    #ac = OrderedDict([('default', state[:-2] - env.sim.data.qpos[:-2])])
 
                     curr_qpos = env.sim.data.qpos[:-2].ravel().copy()
                     ac = OrderedDict([('default', state[:-2] - curr_qpos)])
