@@ -101,6 +101,7 @@ class BaseEnv(gym.Env):
         jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+        self._is_jnt_limited = is_jnt_limited
 
 
         self.joint_space = spaces.Dict([

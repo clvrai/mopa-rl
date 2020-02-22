@@ -246,7 +246,10 @@ class RolloutRunner(object):
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
                                                           joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
                     subgoal = result.qpos[:-2].copy()
-                subgoal = np.clip(subgoal, minimum, maximum)
+                import pdb
+                pdb.set_trace()
+                subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
+                #subgoal = np.clip(subgoal, minimum, maximum)
 
             ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
             goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
