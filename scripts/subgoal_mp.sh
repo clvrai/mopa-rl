@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="20"
-prefix="hl.sst.tanh.init_.v2"
+prefix="hl.sst.tanh.init_.v3"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -30,7 +30,7 @@ lr_critic="6e-4"
 debug="False"
 rollout_length="3750"
 batch_size="256"
-clip_param="0.1"
+clip_param="0.2"
 rl_activation="tanh"
 
 
