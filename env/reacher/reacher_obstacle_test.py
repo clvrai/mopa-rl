@@ -19,11 +19,11 @@ class ReacherObstacleTestEnv(BaseEnv):
         while True:
             goal = np.random.uniform(low=-.35, high=.35, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-2:] = goal
+            qpos[self.model.nu:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
-            qvel[-2:] = 0
+            qvel[self.model.nu:] = 0
             self.set_state(qpos, qvel)
-            self._do_simulation(np.ones(self.model.nq-2)*0.0001) # small oscillation
+            self._do_simulation(np.ones(self.model.nu)*0.0001) # small oscillation
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 self.goal = goal
                 break
@@ -32,7 +32,7 @@ class ReacherObstacleTestEnv(BaseEnv):
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-2:] = self.goal
+            qpos[self.model.nu:] = self.goal
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
@@ -44,22 +44,21 @@ class ReacherObstacleTestEnv(BaseEnv):
         return np.array(obstacle_states)
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:2]
+        theta = self.sim.data.qpos.flat[:self.model.nu]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[2:],
-                self.sim.data.qvel.flat[:2],
+                self.sim.data.qpos.flat[self.model.nu:],
+                self.sim.data.qvel.flat[:self.model.nu],
                 self._get_obstacle_states(),
-                self._get_pos("fingertip") - self._get_pos("target")
             ]))
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(32,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(27,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -67,7 +66,7 @@ class ReacherObstacleTestEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:-2]
+        return self.sim.data.qpos.ravel()[:self.model.nu]
 
     def _step(self, action):
         """
@@ -90,7 +89,7 @@ class ReacherObstacleTestEnv(BaseEnv):
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[:-2].copy()
+        prev_state = self.sim.data.qpos[:self.model.nu].copy()
         target_vel = (desired_state-prev_state) / self._frame_dt
         for t in range(n_inner_loop):
             action = self._get_control(desired_state, prev_state, target_vel)

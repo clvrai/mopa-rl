@@ -141,9 +141,9 @@ class BaseEnv(gym.Env):
 
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
-        p_term = self._kp * (state - self.sim.data.qpos[:-2])
-        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:-2])
-        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:-2])
+        p_term = self._kp * (state - self.sim.data.qpos[:self.model.nu])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.model.nu])
+        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.model.nu])
         action = p_term + d_term + self._i_term
 
         return action
@@ -163,7 +163,7 @@ class BaseEnv(gym.Env):
         self._terminal = False
         self._success = False
         self._fail = False
-        self._i_term = np.zeros_like(self.sim.data.qpos[:-2])
+        self._i_term = np.zeros_like(self.sim.data.qpos[:self.model.nu])
 
         #with self.model.disable('actuation'):
         #    self.forward()
