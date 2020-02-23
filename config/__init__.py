@@ -141,4 +141,6 @@ def argparser():
     parser.add_argument("--debug", type=str2bool, default=False)
     parser.add_argument("--debug_render", type=str2bool, default=False)
 
+    parser.add_argument("--comment", nargs='+', default=None)
+
     return parser

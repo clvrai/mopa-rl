@@ -179,6 +179,8 @@ class Trainer(object):
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
                 wandb.log({"train_rl/%s" % k: v}, step=step)
+            elif isinstance(v, np.ndarray) or isinstance(v, list):
+                wandb.log({"train_rl/%s" % k: wandb.Histogram(v)}, step=step)
             else:
                 wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
 

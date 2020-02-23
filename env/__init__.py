@@ -74,3 +74,15 @@ register(
     entry_point='env.robosuite:SawyerStackEnv',
     kwargs={}
 )
+
+register(
+    id='simple-pusher-v0',
+    entry_point='env.pusher:SimplePusherEnv',
+    kwargs={}
+)
+
+register(
+    id='simple-pusher-obstacle-v0',
+    entry_point='env.pusher:SimplePusherObstacleEnv',
+    kwargs={}
+)

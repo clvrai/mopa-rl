@@ -144,9 +144,9 @@ class BaseEnv(gym.Env):
 
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
-        p_term = self._kp * (state - self.sim.data.qpos[:-2])
-        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:-2])
-        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:-2])
+        p_term = self._kp * (state - self.sim.data.qpos[:self.model.nu])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.model.nu])
+        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.model.nu])
         action = p_term + d_term + self._i_term
 
         return action
@@ -166,7 +166,7 @@ class BaseEnv(gym.Env):
         self._terminal = False
         self._success = False
         self._fail = False
-        self._i_term = np.zeros_like(self.sim.data.qpos[:-2])
+        self._i_term = np.zeros_like(self.sim.data.qpos[:self.model.nu])
 
         #with self.model.disable('actuation'):
         #    self.forward()
@@ -222,38 +222,6 @@ class BaseEnv(gym.Env):
             step_log["episode_unstable"] = penalty
 
         return self._terminal, step_log, penalty
-
-    def _after_mp_step(self, reward, terminal, mp_steps, info=None):
-        if info is not None:
-            step_log = dict(info)
-        else:
-            step_log = {}
-
-        self._terminal = terminal
-
-        if reward is not None:
-            self._episode_reward += reward
-            self._episode_length += mp_steps
-
-        if self._episode_length == self.max_episode_steps or self._fail:
-            self._terminal = True
-            if self._fail:
-                self._fail = False
-                penalty = -self._env_config["unstable_penalty"]
-
-        if self._terminal:
-            total_time = time.time() - self._episode_time
-            step_log["episode_success"] = int(self._success)
-            step_log["episode_reward"] = self._episode_reward + penalty
-            step_log["episode_length"] = self._episode_length
-            step_log["episode_time"] = total_time
-            step_log["episode_unstable"] = penalty
-
-        return self._terminal, step_log, penalty
-
-
-
-
 
     def _ctrl_reward(self, a):
         ctrl_reward = -self._env_config["ctrl_reward"] * np.square(a).sum()

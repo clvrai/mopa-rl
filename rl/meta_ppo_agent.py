@@ -177,7 +177,6 @@ class MetaPPOAgent(BaseAgent):
         adv = _to_tensor(transitions['adv']).reshape(bs, 1)
 
         old_log_pi = _to_tensor(transitions['log_prob']).reshape(bs, 1)
-        #old_log_pi = _to_tensor(transitions['log_prob'])
 
         log_pi, ent = self._actor.act_log(o, z)
 

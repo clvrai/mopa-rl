@@ -53,14 +53,13 @@ class SimpleReacherObstacleToyEnv(BaseEnv):
                 self.sim.data.qpos.flat[self.model.nu:],
                 self.sim.data.qvel.flat[:self.model.nu],
                 self._get_obstacle_states(),
-                self._get_pos("target")
             ]))
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(26,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(23,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
