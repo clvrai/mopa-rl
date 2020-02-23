@@ -325,48 +325,44 @@ class RolloutRunner(object):
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
             else:
-                if is_train:
-                    terminal = False
-                    if ep_len+self._config.max_meta_len >= max_step:
-                        meta_len = max_step-ep_len
-                        terminal = True
-                    else:
-                        meta_len = self._config.max_meta_len
-                    ep_len += meta_len
-                    rew = self._config.meta_subgoal_rew * self._config.max_meta_len
-                    ep_rew += rew
-                    meta_rew += rew
-                    if self._config.reward_division is not None:
-                        meta_rew /= self._config.reward_division
-                else:
-                    rew = self._config.meta_subgoal_rew*(max_step-ep_len)
-                    ep_rew += rew
-                    meta_rew += rew
-                    if self._config.reward_division is not None:
-                        meta_rew /= self._config.reward_division
-                reward_info['episode_success'].append(False)
+                for i in range(self._config.max_meta_len):
+                    reward = self._config.meta_subgoal_rew
+                    ep_len += 1
+                    ep_rew += reward
+                    meta_len += 1
+                    meta_rew += reward
+
+                    info = OrderedDict()
+                    done, info, _ = env._after_step(rew, False, info)
+
+                    reward_info['episode_success'].append(False)
+
+                    for key, value in info.items():
+                        reward_info[key].append(value)
+
+                    if record:
+                        frame_info = OrderedDict()
+                        if config.hrl:
+                            frame_info['meta_ac'] = 'mp'
+                            frame_info['status'] = 'Invalid states'
+                            frame_info['goal'] = env.goal
+                            for i, k in enumerate(meta_ac.keys()):
+                                if k == 'subgoal' and k != 'default':
+                                    frame_info['meta_subgoal'] = meta_ac[k]
+                                    frame_info['meta_subgoal_cart'] = subgoal_site_pos
+                                    frame_info['meta_subgoal_joint'] = subgoal
+                                elif k != 'default':
+                                    frame_info['meta_'+k] = meta_ac[k]
+
+                        xpos, xquat = self._get_mp_body_pos(env)
+                        vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                        self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
+                    if done or ep_len >= max_step or meta_len >= config.max_meta_len:
+                        break
+                if self._config.reward_division is not None:
+                    meta_rew /= self._config.reward_division
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info['meta_rew'].append(meta_rew)
-
-                if record:
-                    frame_info = OrderedDict()
-                    if config.hrl:
-                        frame_info['meta_ac'] = 'mp'
-                        frame_info['status'] = 'Invalid states'
-                        frame_info['goal'] = env.goal
-                        for i, k in enumerate(meta_ac.keys()):
-                            if k == 'subgoal' and k != 'default':
-                                frame_info['meta_subgoal'] = meta_ac[k]
-                                frame_info['meta_subgoal_cart'] = subgoal_site_pos
-                                frame_info['meta_subgoal_joint'] = subgoal
-                            elif k != 'default':
-                                frame_info['meta_'+k] = meta_ac[k]
-
-                    xpos, xquat = self._get_mp_body_pos(env)
-                    vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                    self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
-                if not is_train:
-                    break
 
         # last frame
         ll_ob = ob.copy()
