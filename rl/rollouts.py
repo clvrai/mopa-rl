@@ -6,7 +6,7 @@ import torch
 import cv2
 import gym
 from collections import OrderedDict
-from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose 
+from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 from util.logger import logger
 from util.env import joint_convert
 from util.gym import action_size
@@ -218,6 +218,7 @@ class RolloutRunner(object):
         # Run rollout
         meta_ac = None
         success = False
+        path_length = []
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
@@ -267,6 +268,7 @@ class RolloutRunner(object):
 
             if success:
                 mp_success += 1
+                path_length.append(len(traj))
                 for i, state in enumerate(traj[1:]):
                     ll_ob = ob.copy()
                     if config.hrl and config.hl_type == 'subgoal':
@@ -333,7 +335,7 @@ class RolloutRunner(object):
                     meta_rew += reward
 
                     info = OrderedDict()
-                    done, info, _ = env._after_step(rew, False, info)
+                    done, info, _ = env._after_step(reward, False, info)
 
                     reward_info['episode_success'].append(False)
 
@@ -373,7 +375,7 @@ class RolloutRunner(object):
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())
 
-        ep_info = {'len': ep_len, 'rew': ep_rew}
+        ep_info = {'len': ep_len, 'rew': ep_rew, 'path_length': path_length}
         for key, value in reward_info.items():
             if isinstance(value[0], (int, float, bool)):
                 if '_mean' in key:

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="HL.test"
+prefix="hl.dist_diff.200"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -19,21 +19,23 @@ hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-0.5"
-max_meta_len="1"
+meta_subgoal_rew="-1"
+max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="16"
+num_batches="24"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
-rollout_length="300"
+rollout_length="3750"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
-reward_type='dense'
-reward_coef='10'
+reward_type='dist_diff'
+reward_coef='200'
+comment='Use large coefficient and expect better result than the exp with smaller coefficient'
+seed='2345'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
@@ -70,4 +72,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
     --reward_type $reward_type \
-    --reward_coef $reward_coef
+    --reward_coef $reward_coef \
+    --comment $comment \
+    --seed $seed

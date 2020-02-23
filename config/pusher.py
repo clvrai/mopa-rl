@@ -3,11 +3,11 @@ from util import str2bool
 
 def add_arguments(parser):
     """
-    Adds a list of arguments to argparser for the Pusher environment.
+    Adds a list of arguments to argparser for the pusher environment.
     """
-    # Pusher
+    # pusher
     parser.add_argument("--reward_type", type=str, default="dense",
-                        choices=["dense", "sparse"])
+                        choices=["dense", "sparse", "dist_diff"])
     parser.add_argument("--distance_threshold", type=float, default=0.06)
     parser.add_argument("--max_episode_steps", type=int, default=150)
 
@@ -35,16 +35,18 @@ def add_arguments(parser):
     parser.add_argument("--kd", type=float, default=20.)
     parser.add_argument("--ki", type=float, default=0.1)
     parser.add_argument("--frame_dt", type=float, default=1.)
+    parser.add_argument("--reward_coef", type=float, default=10.)
+    parser.add_argument("--ctrl_reward_coef", type=float, default=1e3)
 
 
 def get_default_config():
     """
-    Gets default configurations for the Pusher environment.
+    Gets default configurations for the pusher environment.
     """
     import argparse
     from util import str2bool
 
-    parser = argparse.ArgumentParser("Default Configuration for Pusher Environment")
+    parser = argparse.ArgumentParser("Default Configuration for pusher Environment")
     add_argument(parser)
 
     parser.add_argument("--seed", type=int, default=1234)

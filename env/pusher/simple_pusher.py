@@ -56,7 +56,7 @@ class SimplePusherEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(14,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(17,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
