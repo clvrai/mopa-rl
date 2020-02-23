@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="20"
-prefix="HL.Dist_diff_Reward.coef.10"
+workers="16"
+prefix="HL.test"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -12,15 +12,15 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-reacher-obstacle-toy-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="0"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-1"
-max_meta_len="15"
+meta_subgoal_rew="-0.5"
+max_meta_len="1"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
@@ -28,11 +28,11 @@ num_batches="16"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
-rollout_length="3750"
+rollout_length="300"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
-reward_type='dist_diff'
+reward_type='dense'
 reward_coef='10'
 
 
