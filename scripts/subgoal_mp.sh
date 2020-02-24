@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.dist_diff.200"
+prefix="hl.dist_diff.coef.300"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -10,9 +10,9 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-toy-v0"
+env="simple-reacher-obstacle-v0"
 hl_type="subgoal"
-gpu="0"
+gpu="1"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -33,7 +33,7 @@ batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
 reward_type='dist_diff'
-reward_coef='200'
+reward_coef='300'
 comment='Use large coefficient and expect better result than the exp with smaller coefficient'
 seed='2345'
 
