@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.dist_diff.200"
+prefix="hl.dist_diff.coef.400.rew_ctrl_coef.2.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -33,9 +33,10 @@ batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
 reward_type='dist_diff'
-reward_coef='200'
-comment='Use large coefficient and expect better result than the exp with smaller coefficient'
+reward_coef='400'
+comment='Increase the ctrl reward coef to see if the reacher shows more stable action'
 seed='2345'
+ctrl_reward_coef='2.'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
@@ -74,4 +75,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --reward_type $reward_type \
     --reward_coef $reward_coef \
     --comment $comment \
-    --seed $seed
+    --seed $seed \
+    --ctrl_reward_coef $ctrl_reward_coef

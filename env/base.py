@@ -28,7 +28,7 @@ class BaseEnv(gym.Env):
         # default env config
         self._env_config = {
             "frame_skip": kwargs['frame_skip'],
-            "ctrl_reward": 1e-3,
+            "ctrl_reward": kwargs['ctrl_reward_coef'],
             "init_randomness": 1e-5,
             "max_episode_steps": kwargs['max_episode_steps'],
             "unstable_penalty": 0,
