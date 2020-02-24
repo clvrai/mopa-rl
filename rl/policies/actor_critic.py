@@ -39,7 +39,6 @@ class Actor(nn.Module):
 
         actions = OrderedDict()
         mixed_dist = MixedDistribution(dists)
-        print('Mean: ', means)
         if not is_train or self._deterministic:
             activations = mixed_dist.mode()
         else:
