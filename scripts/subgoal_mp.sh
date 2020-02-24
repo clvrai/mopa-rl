@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.dist_diff.coef.400.rew_ctrl_coef.4e3.v1"
+prefix="hl.dist_diff.coef.400.rew_ctrl_coef.2.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -10,7 +10,7 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-v0"
+env="simple-reacher-obstacle-toy-v0"
 hl_type="subgoal"
 gpu="0"
 rl_hid_size="128"
@@ -36,7 +36,7 @@ reward_type='dist_diff'
 reward_coef='400'
 comment='Increase the ctrl reward coef to see if the reacher shows more stable action'
 seed='2345'
-ctrl_reward_coef='4e3'
+ctrl_reward_coef='2.'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
