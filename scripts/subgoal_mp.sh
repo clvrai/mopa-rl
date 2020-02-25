@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.dist_diff.coef.400.rew_ctrl_coef.2.v1"
+prefix="hl.dist_diff.coef.400.fixed_ac.v3"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -10,9 +10,9 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-toy-v0"
+env="simple-reacher-obstacle-v0"
 hl_type="subgoal"
-gpu="0"
+gpu="1"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -24,19 +24,19 @@ max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="24"
+num_batches="64"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
-rollout_length="3750"
+rollout_length="9450"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
 reward_type='dist_diff'
 reward_coef='400'
-comment='Increase the ctrl reward coef to see if the reacher shows more stable action'
-seed='2345'
-ctrl_reward_coef='2.'
+comment='Remove unnecessary tanh'
+seed='1234'
+ctrl_reward_coef='1.'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
