@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="20"
-prefix="baseline.sac"
+prefix="baseline.sac.dense.ctrl.1e-3"
 max_global_step="60000000"
 env="simple-pusher-v0"
 gpu="1"
@@ -21,11 +21,14 @@ rollout_length="1000"
 #batch_size="512"
 batch_size="256"
 clip_param="0.2"
-rl_activation="relu"
+rl_activation="tanh"
 algo='sac'
+seed='1234'
+ctrl_reward='1e-3'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -45,5 +48,7 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --clip_param $clip_param \
     --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
-    --algo $algo
+    --algo $algo \
+    --seed $seed \
+    --ctrl_reward $ctrl_reward
 

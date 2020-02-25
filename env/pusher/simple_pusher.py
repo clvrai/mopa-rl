@@ -41,13 +41,13 @@ class SimplePusherEnv(BaseEnv):
                 break
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:2]
+        theta = self.sim.data.qpos.flat[:self.model.nu]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[2:],
-                self.sim.data.qvel.flat[:2],
+                self.sim.data.qpos.flat[self.model.nu:],
+                self.sim.data.qvel.flat[:self.model.nu],
                 self._get_pos('box'),
                 self._get_pos("target")
             ]))
@@ -56,7 +56,7 @@ class SimplePusherEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(17,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(19,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -78,12 +78,24 @@ class SimplePusherEnv(BaseEnv):
         desired_state = self.get_joint_positions + action
 
         if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("fingertip", "target")
+            reward_dist = -self._get_distance("box", "target")
             reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+        elif self._env_config['reward_type'] == 'dist_diff':
+            pre_reward_dist = self._get_distance("box", "target")
+            reward_ctrl = self._ctrl_reward(action)
+        elif self._env_config['reward_type'] == 'composition':
+            reward_box_to_target = -self._box_to_target_coef * self._get_distance("box", "target")
+            reward_end_effector_to_box = -self._box_to_target_coef * self._get_distance("end_effector", "box")
+            reward_ctrl = self._ctrl_reward(action)
+            reward = reward_box_to_target + reward_end_effector_to_box + reward_ctrl
+            info = dict(reward_box_to_target=reward_box_to_target,
+                        reward_end_effector_to_box=reward_end_effector_to_box,
+                        reward_ctrl=reward_ctrl)
         else:
-            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
@@ -94,25 +106,13 @@ class SimplePusherEnv(BaseEnv):
             self._do_simulation(action)
 
         obs = self._get_obs()
-        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
-        return obs, reward, done, info
 
-    def _kinematics_step(self, states):
-        info = {}
-        done = False
+        if self._env_config['reward_type'] == 'dist_diff':
+            post_reward_dist = self._get_distance("box", "target")
+            reward_dist_diff = self._reward_coef * (pre_reward_dist - post_reward_dist)
+            info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
+            reward = reward_dist_diff + reward_ctrl
 
-        if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("box", "target")
-            reward = reward_dist
-            info = dict(reward_dist=reward_dist)
-        else:
-            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
-
-        states = np.concatenate((states[:self.model.nu], self.goal))
-        self.set_state(states, self.sim.data.qvel.ravel())
-        obs = self._get_obs()
         # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
         #     done =True
         #     self._success = True

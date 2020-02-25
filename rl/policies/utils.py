@@ -48,7 +48,7 @@ def fanin_init(tensor):
 
 
 class MLP(nn.Module):
-    def __init__(self, config, input_dim, output_dim, hid_dims=[], last_activation=True):
+    def __init__(self, config, input_dim, output_dim, hid_dims=[], last_activation=False):
         super().__init__()
         if config.rl_activation == 'relu':
             activation_fn = nn.ReLU()

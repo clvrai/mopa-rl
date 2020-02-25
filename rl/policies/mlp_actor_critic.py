@@ -19,7 +19,7 @@ class MlpActor(Actor):
         # observation
         input_dim = observation_size(ob_space)
 
-        self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size]*2)
+        self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size]*2, last_activation=True)
         self.fc_means = nn.ModuleDict()
         self.fc_log_stds = nn.ModuleDict()
 
@@ -64,7 +64,7 @@ class MlpCritic(Critic):
         if ac_space is not None:
             input_dim += action_size(ac_space)
 
-        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2, last_activation=False)
+        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
 
     def forward(self, ob, ac=None):
         inp = list(ob.values())

@@ -105,24 +105,34 @@ class RolloutRunner(object):
             meta_len = 0
             meta_rew = 0
 
-            curr_qpos = env.sim.data.qpos
+            curr_qpos = env.sim.data.qpos.ravel().copy()
             subgoal_site_pos = None
 
             if self._config.hrl and 'subgoal' in meta_ac.keys():
+                joint_space = env.joint_space['default']
+                minimum = joint_space.low
+                maximum = joint_space.high
                 if self._config.subgoal_type == 'joint':
                     subgoal = curr_qpos[:-2]+meta_ac['subgoal']
                     #subgoal = meta_ac['subgoal']
                 else:
-                    subgoal = meta_ac['subgoal']
-                    subgoal = np.clip(subgoal, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
-                    ik_env._set_pos('subgoal', [subgoal[0], subgoal[1], self._env._get_pos('subgoal')[2]])
-                    ik_env.set_state(env.sim.data.qpos.ravel().copy(), env.sim.data.qvel.ravel().copy())
-                    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'), joint_names=env.model.joint_names[:-2], max_steps=100, trials=10)
-                    subgoal = result.qpos[:-2]
-
+                    subgoal_cart = meta_ac['subgoal']
+                    subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
+                    ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
+                    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
+                                                          joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
+                    subgoal = result.qpos[:-2].copy()
+                subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
+                #subgoal = np.clip(subgoal, minimum, maximum)
 
                 ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+
+
+                # Will change fingertip to variable later
+                subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
+
+                target_qpos = np.concatenate([subgoal, env.goal])
 
 
 

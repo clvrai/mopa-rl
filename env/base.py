@@ -53,6 +53,12 @@ class BaseEnv(gym.Env):
         self._reward_coef = kwargs['reward_coef']
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
 
+        if 'box_to_target_coef' in kwargs:
+            self._box_to_target_coef = kwargs['box_to_target_coef']
+        if 'end_effector_to_box_coef' in kwargs:
+            self._end_effector_to_box_coef = kwargs['end_effector_to_box_coef']
+
+
         # Load model
         self._load_model(xml_path)
 
