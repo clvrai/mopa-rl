@@ -383,7 +383,8 @@ class RolloutRunner(object):
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())
 
-        ep_info = {'len': ep_len, 'rew': ep_rew, 'path_length': path_length}
+        #ep_info = {'len': ep_len, 'rew': ep_rew, 'path_length': path_length}
+        ep_info = {'len': ep_len, 'rew': ep_rew}
         for key, value in reward_info.items():
             if isinstance(value[0], (int, float, bool)):
                 if '_mean' in key:

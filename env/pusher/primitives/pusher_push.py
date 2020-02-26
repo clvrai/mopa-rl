@@ -35,3 +35,55 @@ class PusherPushEnv(SimplePusherEnv):
                 break
         return self._get_obs()
 
+    def _step(self, action):
+        """
+        Args:
+            action (numpy array): The array should have the corresponding elements.
+                0-6: The desired change in joint state (radian)
+        """
+
+        info = {}
+        done = False
+        desired_state = self.get_joint_positions + action
+
+        if self._env_config['reward_type'] == 'dense':
+            reward_dist = -self._get_distance("box", "target")
+            reward_ctrl = self._ctrl_reward(action)
+            reward = reward_dist + reward_ctrl
+            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+        elif self._env_config['reward_type'] == 'dist_diff':
+            pre_reward_dist = self._get_distance("box", "target")
+            reward_ctrl = self._ctrl_reward(action)
+        elif self._env_config['reward_type'] == 'composition':
+            reward_box_to_target = -self._box_to_target_coef * self._get_distance("box", "target")
+            reward_end_effector_to_box = -self._box_to_target_coef * self._get_distance("end_effector", "box")
+            reward_ctrl = self._ctrl_reward(action)
+            reward = reward_box_to_target + reward_end_effector_to_box + reward_ctrl
+            info = dict(reward_box_to_target=reward_box_to_target,
+                        reward_end_effector_to_box=reward_end_effector_to_box,
+                        reward_ctrl=reward_ctrl)
+        else:
+            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+
+
+        n_inner_loop = int(self._frame_dt/self.dt)
+
+        prev_state = self.sim.data.qpos[:self.model.nu].copy()
+        target_vel = (desired_state-prev_state) / self._frame_dt
+        for t in range(n_inner_loop):
+            action = self._get_control(desired_state, prev_state, target_vel)
+            self._do_simulation(action)
+
+        obs = self._get_obs()
+
+        if self._env_config['reward_type'] == 'dist_diff':
+            post_reward_dist = self._get_distance("box", "target")
+            reward_dist_diff = self._reward_coef * (pre_reward_dist - post_reward_dist)
+            info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
+            reward = reward_dist_diff + reward_ctrl
+
+        # if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+        #     done =True
+        #     self._success = True
+        return obs, reward, done, info
+
