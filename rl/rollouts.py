@@ -83,6 +83,7 @@ class RolloutRunner(object):
         done = False
         ep_len = 0
         ep_rew = 0
+        mp_success = 0
         ik_env.reset()
         ob = self._env.reset()
         self._record_frames = []
@@ -127,51 +128,153 @@ class RolloutRunner(object):
 
                 ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-
-
                 # Will change fingertip to variable later
                 subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
 
                 target_qpos = np.concatenate([subgoal, env.goal])
 
+            mp_done = False
 
-
-            while not done and ep_len < max_step and meta_len < config.max_meta_len:
+            while (not done and ep_len < max_step and meta_len < config.max_meta_len) or not mp_done:
                 ll_ob = ob.copy()
                 if config.hrl:
                     if config.hl_type == 'subgoal':
                         ll_ob['subgoal'] = meta_ac['subgoal']
-                    ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                    if config.ll_type == 'mix':
+                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac,
+                                                                curr_qpos=curr_qpos,
+                                                                target_qpos=target_qpos,
+                                                                is_train=is_train, return_stds=True)
+                    else:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                 else:
                     ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                if isinstance(ac, list) or isinstance(ac, np.ndarray):
+                    traj = ac
+                    success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
+                    if success:
+                        mp_success += 1
+                        for i, state in enumerate(traj[1:]):
+                            ll_ob = ob.copy()
+                            if config.hrl and config.hl_type == 'subgoal':
+                                ll_ob['subgoal'] = meta_ac['subgoal']
 
-                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                saved_qpos.append(env.sim.get_state().qpos.copy())
+                            curr_qpos = env.sim.data.qpos[:-2].ravel().copy()
+                            ac = OrderedDict([('default', state[:-2] - curr_qpos)])
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
+                            saved_qpos.append(env.sim.get_state().qpos.copy())
 
-                ob, reward, done, info = env.step(ac)
+                            if self._config.kinematics:
+                                ob, reward, done, info = env.kinematics_step(state)
+                            else:
+                                ob, reward, done, info = env.step(ac)
+
+                            rollout.add({'done': done, 'rew': reward})
+                            acs.append(ac)
+                            ep_len += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            meta_rew += reward
+
+                            for key, value in info.items():
+                                reward_info[key].append(value)
+
+                            if record:
+                                frame_info = info.copy()
+                                frame_info['ac'] = ac['default']
+                                frame_info['states'] = 'Valid states'
+                                frame_info['curr_qpos'] = curr_qpos
+                                frame_info['mp_qpos'] = state[:-2]
+                                frame_info['mp_path_qpos'] = states[i+1][:-2]
+                                frame_info['goal'] = env.goal
+                                if config.hrl:
+                                    frame_info['meta_ac'] = 'mp'
+                                    for i, k in enumerate(meta_ac.keys()):
+                                        if k == 'subgoal' and k != 'default':
+                                            frame_info['meta_subgoal'] = meta_ac[k]
+                                            frame_info['meta_subgoal_cart'] = subgoal_site_pos
+                                            frame_info['meta_subgoal_joint'] = subgoal
+                                        elif k != 'default':
+                                            frame_info['meta_'+k] = meta_ac[k]
+
+                                ik_env.set_state(np.concatenate((state[:-2], env.goal)), ik_env.sim.data.qvel.ravel())
+                                xpos, xquat = self._get_mp_body_pos(ik_env)
+                                vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                                self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
+
+                            if done or ep_len >= max_step or meta_len >= config.max_meta_len:
+                                break
+                        if self._config.reward_division is not None:
+                            meta_rew /= self._config.reward_division
+                        meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                        reward_info['meta_rew'].append(meta_rew)
+                    else:
+                        for i in range(self._config.max_meta_len):
+                            reward = self._config.meta_subgoal_rew
+                            ep_len += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            meta_rew += reward
+
+                            info = OrderedDict()
+                            done, info, _ = env._after_step(reward, False, info)
+
+                            reward_info['episode_success'].append(False)
+
+                            for key, value in info.items():
+                                reward_info[key].append(value)
+
+                            if record:
+                                frame_info = OrderedDict()
+                                if config.hrl:
+                                    frame_info['meta_ac'] = 'mp'
+                                    frame_info['status'] = 'Invalid states'
+                                    frame_info['goal'] = env.goal
+                                    for i, k in enumerate(meta_ac.keys()):
+                                        if k == 'subgoal' and k != 'default':
+                                            frame_info['meta_subgoal'] = meta_ac[k]
+                                            frame_info['meta_subgoal_cart'] = subgoal_site_pos
+                                            frame_info['meta_subgoal_joint'] = subgoal
+                                        elif k != 'default':
+                                            frame_info['meta_'+k] = meta_ac[k]
+
+                                xpos, xquat = self._get_mp_body_pos(env)
+                                vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                                self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
+                            if done or ep_len >= max_step or meta_len >= config.max_meta_len:
+                                break
+                        if self._config.reward_division is not None:
+                            meta_rew /= self._config.reward_division
+                        meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                        reward_info['meta_rew'].append(meta_rew)
+                else:
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                    saved_qpos.append(env.sim.get_state().qpos.copy())
+
+                    ob, reward, done, info = env.step(ac)
 
 
-                rollout.add({'done': done, 'rew': reward})
-                acs.append(ac)
-                ep_len += 1
-                ep_rew += reward
-                meta_len += 1
-                meta_rew += reward
+                    rollout.add({'done': done, 'rew': reward})
+                    acs.append(ac)
+                    ep_len += 1
+                    ep_rew += reward
+                    meta_len += 1
+                    meta_rew += reward
 
-                for key, value in info.items():
-                    reward_info[key].append(value)
-                if record:
-                    frame_info = info.copy()
-                    frame_info['ac'] = ac['default']
-                    frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
-                    if config.hrl:
-                        i = int(meta_ac['default'])
-                        frame_info['meta_ac'] = meta_pi.skills[i]
-                        for i, k in enumerate(meta_ac.keys()):
-                            if k != 'default':
-                                frame_info['meta_'+k] = meta_ac[k]
+                    for key, value in info.items():
+                        reward_info[key].append(value)
+                    if record:
+                        frame_info = info.copy()
+                        frame_info['ac'] = ac['default']
+                        frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
+                        if config.hrl:
+                            i = int(meta_ac['default'])
+                            frame_info['meta_ac'] = meta_pi.skills[i]
+                            for i, k in enumerate(meta_ac.keys()):
+                                if k != 'default':
+                                    frame_info['meta_'+k] = meta_ac[k]
 
-                    self._store_frame(frame_info, subgoal_site_pos)
+                        self._store_frame(frame_info, subgoal_site_pos)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
@@ -271,7 +374,7 @@ class RolloutRunner(object):
 
             # for idx in not_limited_idx:
             #     curr_qpos[idx] = joint_convert(curr_qpos[idx])
-            traj, states = self._mp.plan(curr_qpos, target_qpos)
+            traj = self._mp.plan(curr_qpos, target_qpos)
 
             ## Change later
             success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
@@ -313,7 +416,7 @@ class RolloutRunner(object):
                         frame_info['states'] = 'Valid states'
                         frame_info['curr_qpos'] = curr_qpos
                         frame_info['mp_qpos'] = state[:-2]
-                        frame_info['mp_path_qpos'] = states[i+1][:-2]
+                        frame_info['mp_path_qpos'] = traj[i+1][:-2]
                         frame_info['goal'] = env.goal
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
