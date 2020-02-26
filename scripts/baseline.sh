@@ -1,10 +1,10 @@
 #!/bin/bash
 
 workers="16"
-prefix="baseline.ppo.dense.v2"
+prefix="baseline.ppo.dist_diff.coef400.v2"
 max_global_step="60000000"
 env="simple-pusher-v0"
-gpu="2"
+gpu="1"
 rl_hid_size="128"
 max_episode_step="150"
 evaluate_interval="1"
@@ -22,9 +22,9 @@ rl_activation="tanh"
 algo='ppo'
 seed='1234'
 ctrl_reward='1e-2'
-reward_type='dense'
+reward_type='dist_diff'
 comment='PPO baseline for pusher env'
-reward_coef='100'
+reward_coef='400'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \

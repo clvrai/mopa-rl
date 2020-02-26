@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.dist_diff.coef.400.relu.ctrl.1e-3"
+prefix="hl.dist_diff.coef.400.relu.ctrl.1e-1.sm.lr"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -25,16 +25,16 @@ max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
 num_batches="64"
-lr_actor="6e-4"
-lr_critic="6e-4"
+lr_actor="1e-5"
+lr_critic="1e-5"
 debug="False"
-rollout_length="10000"
+rollout_length="1000"
 batch_size="64"
 clip_param="0.2"
 rl_activation="relu"
 policy='cnn'
 is_rgb='True'
-ctrl_reward_coef='1e-3'
+ctrl_reward_coef='1e-1'
 seed='1234'
 reward_coef='400'
 reward_type='dist_diff'

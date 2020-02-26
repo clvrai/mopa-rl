@@ -95,18 +95,29 @@ class SimpleReacherObstaclePixelEnv(BaseEnv):
             reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+        elif self._env_config['reward_type'] == 'dist_diff':
+            pre_reward_dist = self._get_distance("fingertip", "target")
+            reward_ctrl = self._ctrl_reward(action)
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
+
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[:-2].copy()
+        prev_state = self.sim.data.qpos[:self.model.nu].copy()
         target_vel = (desired_state-prev_state) / self._frame_dt
         for t in range(n_inner_loop):
             action = self._get_control(desired_state, prev_state, target_vel)
             self._do_simulation(action)
 
         obs = self._get_obs()
+
+        if self._env_config['reward_type'] == 'dist_diff':
+            post_reward_dist = self._get_distance("fingertip", "target")
+            reward_dist_diff = self._reward_coef * (pre_reward_dist - post_reward_dist)
+            info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
+            reward = reward_dist_diff + reward_ctrl
+
         # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
         #     done =True
         #     self._success = True
