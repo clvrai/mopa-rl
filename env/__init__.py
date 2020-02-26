@@ -82,6 +82,12 @@ register(
 )
 
 register(
+    id='pusher-push-v0',
+    entry_point='env.pusher.primitives.pusher_push:PusherPushEnv',
+    kwargs={}
+)
+
+register(
     id='simple-pusher-obstacle-v0',
     entry_point='env.pusher:SimplePusherObstacleEnv',
     kwargs={}
