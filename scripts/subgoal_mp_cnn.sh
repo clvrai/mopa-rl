@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="HL.MP.SST.CNN"
+prefix="hl.dist_diff.coef.400.relu.ctrl.1e-1.sm.lr"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-reacher-obstacle-pixel-v0"
 hl_type="subgoal"
-gpu="1"
+gpu="0"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -20,21 +20,24 @@ max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
 meta_subgoal_rew="-1"
-max_meta_len="10"
+max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="16"
-lr_actor="6e-4"
-lr_critic="6e-4"
+num_batches="64"
+lr_actor="1e-5"
+lr_critic="1e-5"
 debug="False"
-rollout_length="2550"
+rollout_length="1000"
 batch_size="64"
 clip_param="0.2"
-rl_activation="tanh"
+rl_activation="relu"
 policy='cnn'
 is_rgb='True'
-
+ctrl_reward_coef='1e-1'
+seed='1234'
+reward_coef='400'
+reward_type='dist_diff'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -70,4 +73,8 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
     --policy $policy \
-    --is_rgb $is_rgb
+    --is_rgb $is_rgb \
+    --ctrl_reward_coef $ctrl_reward_coef \
+    --seed $seed \
+    --reward_coef $reward_coef \
+    --reward_type $reward_type

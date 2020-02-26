@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="20"
-prefix="baseline.sac.dense.ctrl.1e-3"
+workers="16"
+prefix="baseline.ppo.dist_diff.coef400.v2"
 max_global_step="60000000"
 env="simple-pusher-v0"
 gpu="1"
@@ -9,26 +9,25 @@ rl_hid_size="128"
 max_episode_step="150"
 evaluate_interval="1"
 max_grad_norm="0.5"
-entropy_loss_coef="1e-4"
+entropy_loss_coef="0.1"
 buffer_size="100000"
-#buffer_size="8192"
-num_batches="48"
+num_batches="512"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
-#rollout_length="6000"
-rollout_length="1000"
-#batch_size="512"
+rollout_length="9450"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
-algo='sac'
+algo='ppo'
 seed='1234'
-ctrl_reward='1e-3'
+ctrl_reward='1e-2'
+reward_type='dist_diff'
+comment='PPO baseline for pusher env'
+reward_coef='400'
 
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -50,5 +49,8 @@ python -m rl.main --log_root_dir ./logs \
     --rl_activation $rl_activation \
     --algo $algo \
     --seed $seed \
-    --ctrl_reward $ctrl_reward
+    --ctrl_reward $ctrl_reward \
+    --reward_type $reward_type \
+    --comment $comment \
+    --reward_coef $reward_coef
 
