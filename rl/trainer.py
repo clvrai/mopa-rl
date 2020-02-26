@@ -79,7 +79,20 @@ class Trainer(object):
             ll_ob_space = spaces.Dict({'default': ob_space['default']})
 
 
+        if config.ll_type == 'mp':
+            from rl.mp_agent import MpAgent
+            mp = MpAgent(config, ac_space, non_limited_idx)
+            self._mp = mp
+
         if config.hrl:
+            if config.ll_type == 'mix':
+                from rl.low_level_mp_agent import LowLevelMpAgent
+                from rl.mp_agent import MpAgent
+                mp = MpAgent(config, ac_space, non_limited_idx)
+                self._agent = LowLevelMpAgent(
+                    config, ll_ob_space, ac_space, actor, critic, mp
+                )
+            else:
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
                     config, ll_ob_space, ac_space, actor, critic
@@ -89,9 +102,6 @@ class Trainer(object):
                 config, ob_space, ac_space, actor, critic
             )
 
-        if config.ll_type == 'mp':
-            from rl.low_level_mp_agent import LowLevelMpAgent
-            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space, non_limited_idx)
 
         # build rollout runner
         self._runner = RolloutRunner(
@@ -255,12 +265,8 @@ class Trainer(object):
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
                 else:
-                    if self._config.mp_ratio >= np.random.rand():
-                        rollout, meta_rollout, info, _ = \
-                            self._runner.mp_run_episode()
-                    else:
-                        rollout, meta_rollout, info, _ = \
-                            self._runner.run_episode()
+                    rollout, meta_rollout, info, _ = \
+                        self._runner.run_episode()
 
                 run_step += info["len"]
                 run_ep += 1
