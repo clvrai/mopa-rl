@@ -33,8 +33,12 @@ def run(config):
         import logging
         logger.setLevel(logging.CRITICAL)
 
-        config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+        config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed-rank)
         config.log_dir = os.path.join(config.log_root_dir, config.run_name)
+        if config.is_train:
+            config.record_dir = os.path.join(config.log_dir, 'video')
+        else:
+            config.record_dir = os.path.join(config.log_dir, 'eval_video')
 
     def shutdown(signal, frame):
         logger.warning('Received signal %s: exiting', signal)

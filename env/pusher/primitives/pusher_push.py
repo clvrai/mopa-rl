@@ -12,6 +12,9 @@ class PusherPushEnv(SimplePusherEnv):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._env_config.update({
+            "pos_reward": kwargs['pos_reward_coef'],
+        })
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -28,9 +31,12 @@ class PusherPushEnv(SimplePusherEnv):
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and \
                     self._get_distance('box', 'target') < 0.2 and \
-                    self._get_distance('box', 'fingertip') < 0.2 and \
+                    self._get_distance('box', 'target') < self._get_distance('target', 'fingertip') and \
+                    self._get_distance('box', 'fingertip') < 0.1 and \
+                    self._get_distance('target', 'fingertip') < 0.3 and \
                     self._get_distance('target', 'fingertip') > 0.2 and \
-                    np.linalg.norm(box) > 0.1:
+                    self._get_distance('box', 'target') < self._get_distance('target', 'link1') and \
+                    np.linalg.norm(box) > 0.1 and self._get_distance('box', 'target') > self._env_config['distance_threshold']:
                 self.goal = goal
                 break
         return self._get_obs()
@@ -47,7 +53,7 @@ class PusherPushEnv(SimplePusherEnv):
         desired_state = self.get_joint_positions + action
 
         if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("box", "target")
+            reward_dist = -self._env_config['pos_reward'] * self._get_distance("box", "target")
             reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
@@ -82,8 +88,8 @@ class PusherPushEnv(SimplePusherEnv):
             info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
             reward = reward_dist_diff + reward_ctrl
 
-        # if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._env_config['reward_type'] == 'dense':
+            done = True
+            self._success = True
         return obs, reward, done, info
 
