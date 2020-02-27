@@ -39,9 +39,11 @@
             <body name="body1" pos="0.1 0 0">
                 <joint axis="0 0 1" limited="true" name="joint1" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
                 <geom class='link' name='link1'/>
+                <site name='link1' />
                 <body name="body2" pos="0.1 0 0">
                     <joint axis="0 0 1" limited="true" name="joint2" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
                     <geom class='link' name='link2'/>
+                    <site name='link2' />
                     <body name="fingertip" pos="0.11 0 0">
                             <geom contype="1" conaffinity="1" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/>
                             <site name='fingertip' />

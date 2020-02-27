@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="ll.push.primitive.sac"
+prefix="ll.push.primitive.sac.dense.pos_reward_10.ctrl.0.1"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
@@ -12,7 +12,7 @@ meta_update_target="both"
 hrl_network_to_update="LL"
 max_episode_step="50"
 max_meta_len="15"
-evaluate_interval="1"
+evaluate_interval="10"
 meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
@@ -25,14 +25,16 @@ rollout_length="1000"
 batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
-reward_type='dist_diff'
+reward_type='dense'
 reward_coef='400'
 comment='Train primitive policy'
 seed='1234'
-ctrl_reward_coef='1e-2'
+ctrl_reward_coef='0.1'
+pos_reward_coef='10.'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -62,4 +64,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --reward_coef $reward_coef \
     --comment $comment \
     --seed $seed \
-    --ctrl_reward_coef $ctrl_reward_coef
+    --ctrl_reward_coef $ctrl_reward_coef \
+    --pos_reward_coef $pos_reward_coef
