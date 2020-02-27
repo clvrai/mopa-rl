@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="16"
-prefix="hl.dist_diff.coef.400.rollout.18900"
+workers="8"
+prefix="hl.dense.coef.10.rollout.18900.worker.8"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-reacher-obstacle-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="0"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -24,7 +24,7 @@ max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="20"
+num_batches="24"
 lr_actor="6e-4"
 lr_critic="6e-4"
 debug="False"
@@ -32,12 +32,12 @@ rollout_length="18900"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
-reward_type='dist_diff'
+reward_type='dense'
 reward_coef='400'
 comment='check ho the num batces and rolout length makes the training stable'
 seed='1234'
 ctrl_reward_coef='0.1'
-
+pos_reward_coef='10'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -76,4 +76,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --reward_coef $reward_coef \
     --comment $comment \
     --seed $seed \
-    --ctrl_reward_coef $ctrl_reward_coef
+    --ctrl_reward_coef $ctrl_reward_coef \
+    --pos_reward_coef $pos_reward_coef
