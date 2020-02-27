@@ -63,7 +63,6 @@ class Trainer(object):
         # build up networks
         non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
         self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
-        self._mp = None
 
         if config.hl_type == 'subgoal':
             # use subgoal
@@ -80,23 +79,17 @@ class Trainer(object):
 
 
         if config.ll_type == 'mp':
-            from rl.mp_agent import MpAgent
-            mp = MpAgent(config, ac_space, non_limited_idx)
-            self._mp = mp
+            config.primitive_skills = ['mp']
 
         if config.hrl:
-            if config.ll_type == 'mix':
-                from rl.low_level_mp_agent import LowLevelMpAgent
+            mp = None
+            from rl.low_level_agent import LowLevelAgent
+            if config.ll_type == 'mix' or config.ll_type == 'mp':
                 from rl.mp_agent import MpAgent
                 mp = MpAgent(config, ac_space, non_limited_idx)
-                self._agent = LowLevelMpAgent(
-                    config, ll_ob_space, ac_space, actor, critic, mp
-                )
-            else:
-                from rl.low_level_agent import LowLevelAgent
-                self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic
-                )
+            self._agent = LowLevelAgent(
+                config, ll_ob_space, ac_space, actor, critic, mp
+            )
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
@@ -105,7 +98,7 @@ class Trainer(object):
 
         # build rollout runner
         self._runner = RolloutRunner(
-            config, self._env, self._meta_agent, self._agent, self._mp
+            config, self._env, self._meta_agent, self._agent
         )
 
         # setup wandb
@@ -248,8 +241,8 @@ class Trainer(object):
         # dummy run for preventing weird
         if config.ll_type == 'rl':
             self._runner.run_episode()
-        elif config.ll_type == 'mp':
-            self._runner.mp_run_episode()
+        elif config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
+            self._runner.run_episode_with_mp()
         else:
             ValueError("Invalid low level controller type")
 

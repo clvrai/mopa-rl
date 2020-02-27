@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.dist_diff.coef.400.rollout.18900"
+prefix="hl.dist_diff.coef.400.rollout.18900.debug"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-reacher-obstacle-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="0"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -27,7 +27,7 @@ buffer_size="4096"
 num_batches="20"
 lr_actor="6e-4"
 lr_critic="6e-4"
-debug="False"
+debug="True"
 rollout_length="18900"
 batch_size="256"
 clip_param="0.2"
@@ -39,7 +39,8 @@ seed='1234'
 ctrl_reward_coef='0.1'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
