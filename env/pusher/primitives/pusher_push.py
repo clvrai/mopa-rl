@@ -60,6 +60,12 @@ class PusherPushEnv(SimplePusherEnv):
         elif self._env_config['reward_type'] == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
             reward_ctrl = self._ctrl_reward(action)
+        elif self._env_config['reward_type'] == 'inverse':
+            reward_0 = 100.
+            reward_ctrl = self._ctrl_reward(action)
+            reward_inv_dist = reward_0 / (self._get_distance('box', 'target')+1.)
+            reward = reward_inv_dist + reward_ctrl
+            info = dict(reward_inv=reward_inv_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type'] == 'composition':
             reward_box_to_target = -self._box_to_target_coef * self._get_distance("box", "target")
             reward_end_effector_to_box = -self._box_to_target_coef * self._get_distance("end_effector", "box")
@@ -88,8 +94,8 @@ class PusherPushEnv(SimplePusherEnv):
             info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
             reward = reward_dist_diff + reward_ctrl
 
-        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._env_config['reward_type'] == 'dense':
-            done = True
-            self._success = True
+        # if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._env_config['reward_type'] == 'dense':
+        #     done = True
+        #     self._success = True
         return obs, reward, done, info
 

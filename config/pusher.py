@@ -7,7 +7,7 @@ def add_arguments(parser):
     """
     # pusher
     parser.add_argument("--reward_type", type=str, default="dense",
-                        choices=["dense", "sparse", "dist_diff", "composition"])
+                        choices=["dense", "sparse", "dist_diff", "composition", 'inverse'])
     parser.add_argument("--distance_threshold", type=float, default=0.04)
     parser.add_argument("--max_episode_steps", type=int, default=150)
 

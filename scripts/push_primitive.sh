@@ -1,12 +1,12 @@
 #!/bin/bash
 
-workers="16"
-prefix="ll.push.primitive.sac.dense.pos_reward_10.ctrl.0.1"
+workers="8"
+prefix="ll.push.primitive.sac.inverse"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="2"
+gpu="1"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -25,16 +25,15 @@ rollout_length="1000"
 batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
-reward_type='dense'
+reward_type='inverse'
 reward_coef='400'
 comment='Train primitive policy'
 seed='1234'
-ctrl_reward_coef='0.1'
-pos_reward_coef='10.'
+ctrl_reward_coef='1.'
+pos_reward_coef='500.'
 
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
