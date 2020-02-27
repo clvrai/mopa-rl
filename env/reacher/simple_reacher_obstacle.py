@@ -12,6 +12,10 @@ class SimpleReacherObstacleEnv(BaseEnv):
         super().__init__("simple_reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
 
+        self._env_config.update({
+            'pos_reward': kwargs['pos_reward_coef']
+        })
+
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
@@ -81,7 +85,7 @@ class SimpleReacherObstacleEnv(BaseEnv):
         desired_state = self.get_joint_positions + action
 
         if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("fingertip", "target")
+            reward_dist = -self._env_config['pos_reward'] * self._get_distance("fingertip", "target")
             reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
