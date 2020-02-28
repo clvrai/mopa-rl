@@ -7,7 +7,7 @@ def add_arguments(parser):
     """
     # reacher
     parser.add_argument("--reward_type", type=str, default="dense",
-                        choices=["dense", "sparse", "dist_diff"])
+                        choices=["dense", "sparse", "dist_diff", "inverse"])
     parser.add_argument("--distance_threshold", type=float, default=0.06)
     parser.add_argument("--max_episode_steps", type=int, default=150)
 
@@ -38,6 +38,7 @@ def add_arguments(parser):
     parser.add_argument("--reward_coef", type=float, default=10.)
     parser.add_argument("--ctrl_reward_coef", type=float, default=1)
     parser.add_argument("--pos_reward_coef", type=float, default=10.)
+    parser.add_argument("--inv_reward", type=float, default=100.)
 
 
 def get_default_config():
