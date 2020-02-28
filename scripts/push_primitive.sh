@@ -1,12 +1,12 @@
 #!/bin/bash
 
 workers="1"
-prefix="ll.push.primitive.sac.inverse.max10.terminate.no_clip"
+prefix="ll.push.primitive.sac.dense.no_clip.ctrl0.01.coef50"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="3"
+gpu="2"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -26,12 +26,12 @@ rollout_length="1000"
 batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
-reward_type='inverse'
+reward_type='dense'
 reward_coef='400'
 comment='first store random data into the buffer'
 seed='1234'
-ctrl_reward_coef='0.1'
-pos_reward_coef='500.'
+ctrl_reward_coef='0.01'
+pos_reward_coef='50.'
 
 
 #mpiexec -n $workers

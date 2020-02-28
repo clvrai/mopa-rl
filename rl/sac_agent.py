@@ -123,9 +123,9 @@ class SACAgent(BaseAgent):
         sync_networks(self._critic2)
 
     def train(self):
-        for _ in range(self._config.num_batches):
+        for i in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
-            train_info = self._update_network(transitions)
+            train_info = self._update_network(transitions, i)
             self._soft_update_target_network(self._critic1_target, self._critic1, self._config.polyak)
             self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
 
@@ -146,7 +146,7 @@ class SACAgent(BaseAgent):
             raise NotImplementedError()
         return self._actors[0].act_log(ob)
 
-    def _update_network(self, transitions):
+    def _update_network(self, transitions, step=0):
         info = {}
 
         # pre-process observations
@@ -213,28 +213,23 @@ class SACAgent(BaseAgent):
         info['critic1_loss'] = critic1_loss.cpu().item()
         info['critic2_loss'] = critic2_loss.cpu().item()
 
-        # update the actor
-        for _actor_optim in self._actor_optims:
-            _actor_optim.zero_grad()
-        actor_loss.backward()
-        for i, _actor in enumerate(self._actors):
-            # if self._config.max_grad_norm is not None:
-            #     torch.nn.utils.clip_grad_norm_(_actor.parameters(), self._config.max_grad_norm)
-            sync_grads(_actor)
-            self._actor_optims[i].step()
+        if step % self._config.actor_update_freq == 0:
+            # update the actor
+            for _actor_optim in self._actor_optims:
+                _actor_optim.zero_grad()
+            actor_loss.backward()
+            for i, _actor in enumerate(self._actors):
+                sync_grads(_actor)
+                self._actor_optims[i].step()
 
         # update the critic
         self._critic1_optim.zero_grad()
         critic1_loss.backward()
-        # if self._config.max_grad_norm is not None:
-        #     torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic1)
         self._critic1_optim.step()
 
         self._critic2_optim.zero_grad()
         critic2_loss.backward()
-        # if self._config.max_grad_norm is not None:
-        #     torch.nn.utils.clip_grad_norm_(self._critic2.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic2)
         self._critic2_optim.step()
 

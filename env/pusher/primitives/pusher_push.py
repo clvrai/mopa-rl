@@ -87,8 +87,6 @@ class PusherPushEnv(SimplePusherEnv):
         if self._env_config['reward_type'] == 'dist_diff':
             post_reward_dist = self._get_distance("box", "target")
             reward_dist_diff = self._reward_coef * (pre_reward_dist - post_reward_dist)
-            if reward_dist_diff > 0:
-                reward_dist_diff *= 3
             info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
             reward = reward_dist_diff + reward_ctrl
 

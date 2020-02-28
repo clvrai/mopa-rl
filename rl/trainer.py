@@ -140,8 +140,11 @@ class Trainer(object):
                                       "ll_replay": self._agent.replay_buffer()}
             else:
                 replay_buffers = {"replay": self._agent.replay_buffer()}
-            #pickle.dump(replay_buffers, f)
-            joblib.dump(replay_buffers, f)
+            if self._config.policy == 'cnn' or self._config.use_ae:
+                joblib.dump(replay_buffers, f)
+            else:
+                pickle.dump(replay_buffers, f)
+            #joblib.dump(replay_buffers, f)
 
     def _load_ckpt(self, ckpt_num=None):
         ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
