@@ -139,14 +139,6 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         std::cout << "Milestone: " << ss->getPlanner()->as<og::SPARS>()->milestoneCount() << std::endl;
     }
 
-}
-
-KinematicPlanner::~KinematicPlanner(){
-}
-
-std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, double max_steps){
-// double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
     if (opt == "maximize_min_clearance") {
         auto opt_obj(std::make_shared<ob::MaximizeMinClearanceObjective>(si));
         ss->setOptimizationObjective(opt_obj);
@@ -158,6 +150,15 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cout << "Cost: " << opt_obj->getCostThreshold().value() << std::endl;
         ss->setOptimizationObjective(opt_obj);
     }
+
+}
+
+KinematicPlanner::~KinematicPlanner(){
+}
+
+std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
+                                                            double timelimit, double max_steps){
+// double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
 
     ss->clearStartStates();
     auto initState = ss->getSpaceInformation()->allocState();
@@ -192,8 +193,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     solved = ss->solve(timelimit);
 
     if (solved) {
-        // std::cout << "Found Solution with status: " << solved.asString() << std::endl;
-        // std::cout << "Last Plan Computation Time" << ss->getLastPlanComputationTime() << std::endl;
         // ss.getSolutionPath().print(std::cout);
         // if (is_simplified){
         //     ss->simplifySolution(simplified_duration);
@@ -202,13 +201,11 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         p.interpolate(max_steps);
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
-        std::vector<std::vector<double> > solutions(n, std::vector<double>(start_vec.size(), -1));
+        std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));
 
         for (unsigned int i=0; i < n; ++i)
         {
-            // const double *pos = states[i]->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(0)->values;
             const ob::CompoundState* cState = states[i]->as<ob::CompoundState>();
-
             solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
 
             for (unsigned int j=1; j < start_vec.size();  ++j){
