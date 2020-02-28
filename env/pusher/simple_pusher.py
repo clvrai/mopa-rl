@@ -80,14 +80,23 @@ class SimplePusherEnv(BaseEnv):
         done = False
         desired_state = self.get_joint_positions + action
 
-        if self._env_config['reward_type'] == 'dense':
+        reward_type = self._env_config['reward_type']
+        reward_ctrl = self._ctrl_reward(action)
+        if reward_type == 'dense':
             reward_dist = -self._env_config['pos_reward'] * self._get_distance("box", "target")
-            reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
-        elif self._env_config['reward_type'] == 'dist_diff':
+        elif reward_type == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
-            reward_ctrl = self._ctrl_reward(action)
+        elif reward_type == 'inverse':
+            reward_0 = 10.
+            reward_inv_dist = reward_0 / (self._get_distance('box', 'target')+1.)
+            reward = reward_inv_dist + reward_ctrl
+            info = dict(reward_inv=reward_inv_dist, reward_ctrl=reward_ctrl)
+        elif reward_type == 'exp':
+            reward_exp_dist = self._env_config['exp_reward'] * np.exp(-self._get_distance('box', 'target'))
+            reward = reward_exp_dist + reward_ctrl
+            info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type'] == 'composition':
             reward_box_to_target = -self._box_to_target_coef * self._get_distance("box", "target")
             reward_end_effector_to_box = -self._box_to_target_coef * self._get_distance("end_effector", "box")

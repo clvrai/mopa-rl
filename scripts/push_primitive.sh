@@ -1,12 +1,12 @@
 #!/bin/bash
 
-workers="8"
-prefix="ll.push.primitive.sac.inverse.work.8"
+workers="1"
+prefix="ll.push.primitive.sac.inverse.max10.terminate.no_clip"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="0"
+gpu="3"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -34,7 +34,8 @@ ctrl_reward_coef='0.1'
 pos_reward_coef='500.'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \

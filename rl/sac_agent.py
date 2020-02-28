@@ -218,23 +218,23 @@ class SACAgent(BaseAgent):
             _actor_optim.zero_grad()
         actor_loss.backward()
         for i, _actor in enumerate(self._actors):
-            if self._config.max_grad_norm is not None:
-                torch.nn.utils.clip_grad_norm_(_actor.parameters(), self._config.max_grad_norm)
+            # if self._config.max_grad_norm is not None:
+            #     torch.nn.utils.clip_grad_norm_(_actor.parameters(), self._config.max_grad_norm)
             sync_grads(_actor)
             self._actor_optims[i].step()
 
         # update the critic
         self._critic1_optim.zero_grad()
         critic1_loss.backward()
-        if self._config.max_grad_norm is not None:
-            torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
+        # if self._config.max_grad_norm is not None:
+        #     torch.nn.utils.clip_grad_norm_(self._critic1.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic1)
         self._critic1_optim.step()
 
         self._critic2_optim.zero_grad()
         critic2_loss.backward()
-        if self._config.max_grad_norm is not None:
-            torch.nn.utils.clip_grad_norm_(self._critic2.parameters(), self._config.max_grad_norm)
+        # if self._config.max_grad_norm is not None:
+        #     torch.nn.utils.clip_grad_norm_(self._critic2.parameters(), self._config.max_grad_norm)
         sync_grads(self._critic2)
         self._critic2_optim.step()
 
