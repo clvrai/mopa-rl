@@ -13,7 +13,8 @@ class SimpleReacherObstacleEnv(BaseEnv):
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
 
         self._env_config.update({
-            'pos_reward': kwargs['pos_reward_coef']
+            'pos_reward': kwargs['pos_reward_coef'],
+            'inv_reward': kwargs['inv_reward']
         })
 
     def _reset(self):
@@ -92,6 +93,12 @@ class SimpleReacherObstacleEnv(BaseEnv):
         elif self._env_config['reward_type'] == 'dist_diff':
             pre_reward_dist = self._get_distance("fingertip", "target")
             reward_ctrl = self._ctrl_reward(action)
+        elif self._env_config['reward_type'] == 'inverse':
+            reward_ctrl = self._ctrl_reward(action)
+            reward_0 = self._env_config['inv_reward']
+            reward_inv_dist = reward_0 / (self._get_distance("fingertip", 'target')+1.)
+            reward = reward_inv_dist + reward_ctrl
+            info = dict(reward_inv=reward_inv_dist, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
