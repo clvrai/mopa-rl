@@ -247,6 +247,20 @@ class Trainer(object):
         st_step = step
         global_run_ep = 0
 
+        if config.hrl:
+            if self._config.hrl_network_to_update == 'LL' or \
+                    self._config.hrl_network_to_update == 'both':
+                init_step = 0
+                init_ep = 0
+                while init_step < self._config.start_steps:
+                    rollout, meta_rollout, info, _ = \
+                        self._runner.run_episode()
+                    init_step += info["len"]
+                    init_ep += 1
+                    self._agent.store_episode(rollout)
+                    logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
+
+
         while step < config.max_global_step:
             run_ep = 0
             run_step = 0

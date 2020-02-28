@@ -100,6 +100,7 @@ def argparser():
 
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")
+    parser.add_argument("--start_steps", type=int, default=1e4)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)
