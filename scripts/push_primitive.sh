@@ -1,13 +1,13 @@
 #!/bin/bash
 
 workers="1"
-prefix="ll.push.primitive.sac.dense.no_clip.ctrl0.01.coef50"
+prefix="ll.push.primitive.sac.dense.pos1.change.init"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
 gpu="2"
-rl_hid_size="128"
+rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
 hl_type='subgoal'
@@ -18,20 +18,22 @@ meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="20000"
-num_batches="25"
+num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
 rollout_length="1000"
-batch_size="256"
+batch_size="512"
 clip_param="0.2"
 rl_activation="relu"
 reward_type='dense'
 reward_coef='400'
 comment='first store random data into the buffer'
 seed='1234'
-ctrl_reward_coef='0.01'
-pos_reward_coef='50.'
+ctrl_reward_coef='0.001'
+pos_reward_coef='1.'
+start_steps='20000'
+actor_update_freq='2'
 
 
 #mpiexec -n $workers
@@ -66,4 +68,6 @@ python -m rl.main --log_root_dir ./logs \
     --comment $comment \
     --seed $seed \
     --ctrl_reward_coef $ctrl_reward_coef \
-    --pos_reward_coef $pos_reward_coef
+    --pos_reward_coef $pos_reward_coef \
+    --start_steps $start_steps \
+    --actor_update_freq $actor_update_freq

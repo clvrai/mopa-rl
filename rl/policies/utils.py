@@ -68,17 +68,18 @@ class MLP(nn.Module):
         fc = []
         prev_dim = input_dim
         for d in hid_dims:
-            fc.append(init_(nn.Linear(prev_dim, d)))
-            #fc.append(nn.Linear(prev_dim, d))
-            # fanin_init(fc[-1].weight)
-            # fc[-1].bias.data.fill_(0.1)
+            #fc.append(init_(nn.Linear(prev_dim, d)))
+            fc.append(nn.Linear(prev_dim, d))
+            fanin_init(fc[-1].weight)
+            fc[-1].bias.data.fill_(0.1)
             fc.append(activation_fn)
             prev_dim = d
-        fc.append(init_(nn.Linear(prev_dim, output_dim)))
+        #fc.append(init_(nn.Linear(prev_dim, output_dim)))
+        fc.append(nn.Linear(prev_dim, output_dim))
+        fc[-1].weight.data.uniform_(-1e-3, 1e-3)
+        fc[-1].bias.data.uniform_(-1e-3, 1e-3)
         if last_activation:
             fc.append(activation_fn)
-        # fc[-1].weight.data.uniform_(-1e-3, 1e-3)
-        # fc[-1].bias.data.uniform_(-1e-3, 1e-3)
         self.fc = nn.Sequential(*fc)
 
     def forward(self, ob):
