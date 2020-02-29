@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="4"
-prefix="ll.push.primitive.sac.dense.pos10.num_batch.4.work4"
+workers="1"
+prefix="ll.push.primitive.sac.dense.pos10.num_batch.4.ctrl0.1.step150"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
@@ -11,14 +11,14 @@ rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
 hl_type='subgoal'
-max_episode_step="50"
+max_episode_step="150"
 max_meta_len="15"
 evaluate_interval="10"
 meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="20000"
-num_batches="4"
+num_batches="8"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -30,13 +30,14 @@ reward_type='dense'
 reward_coef='400'
 comment='first store random data into the buffer'
 seed='1234'
-ctrl_reward_coef='0.01'
+ctrl_reward_coef='0.1'
 pos_reward_coef='10.'
 start_steps='10000'
 actor_update_freq='1'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
