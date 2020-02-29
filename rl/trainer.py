@@ -160,8 +160,8 @@ class Trainer(object):
                 replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
                 logger.warn("Load replay_buffer %s", replay_path)
                 with gzip.open(replay_path, "rb") as f:
-                    #replay_buffers = pickle.load(f)
-                    replay_buffers = joblib.load(f)
+                    replay_buffers = pickle.load(f)
+                    #replay_buffers = joblib.load(f)
                     if self._config.hrl:
                         if self._config.hrl_network_to_update == "HL":
                             self._meta_agent.load_replay_buffer(replay_buffers["replay"])
@@ -252,9 +252,18 @@ class Trainer(object):
 
         init_step = 0
         init_ep = 0
-        if config.hrl:
-            if self._config.hrl_network_to_update == 'LL' or \
-                    self._config.hrl_network_to_update == 'both':
+        if step == 0:
+            if config.hrl:
+                if self._config.hrl_network_to_update == 'LL' or \
+                        self._config.hrl_network_to_update == 'both':
+                    while init_step < self._config.start_steps:
+                        rollout, meta_rollout, info, _ = \
+                            self._runner.run_episode()
+                        init_step += info["len"]
+                        init_ep += 1
+                        self._agent.store_episode(rollout)
+                        logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
+            elif config.algo == 'sac':
                 while init_step < self._config.start_steps:
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
@@ -262,14 +271,6 @@ class Trainer(object):
                     init_ep += 1
                     self._agent.store_episode(rollout)
                     logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
-        elif config.algo == 'sac':
-            while init_step < self._config.start_steps:
-                rollout, meta_rollout, info, _ = \
-                    self._runner.run_episode()
-                init_step += info["len"]
-                init_ep += 1
-                self._agent.store_episode(rollout)
-                logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
 
 
 
@@ -291,7 +292,7 @@ class Trainer(object):
                 run_step += info["len"]
                 run_ep += 1
                 global_run_ep += 1
-                self._save_success_qpos(info)
+                #self._save_success_qpos(info)
                 logger.info("Ep: %d rollout: %s", run_ep, {k: v for k, v in info.items() if not "qpos" in k})
                 if config.hrl:
                     if (config.hrl_network_to_update == "HL" or \
