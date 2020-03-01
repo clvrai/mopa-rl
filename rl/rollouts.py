@@ -67,7 +67,7 @@ class RolloutRunner(object):
         self._mp = mp
         self._ik_env = gym.make(config.env, **config.__dict__)
 
-    def run_episode(self, max_step=10000, is_train=True, record=False):
+    def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
         config = self._config
         device = config.device
         env = self._env
@@ -138,12 +138,17 @@ class RolloutRunner(object):
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
-                if config.hrl:
-                    if config.hl_type == 'subgoal':
-                        ll_ob['subgoal'] = meta_ac['subgoal']
-                    ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                if random_exploration:
+                    ac = env.action_space.sample()
+                    ac_before_activation = None
+                    stds = None
                 else:
-                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                    if config.hrl:
+                        if config.hl_type == 'subgoal':
+                            ll_ob['subgoal'] = meta_ac['subgoal']
+                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                    else:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 saved_qpos.append(env.sim.get_state().qpos.copy())

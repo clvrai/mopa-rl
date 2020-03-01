@@ -258,7 +258,7 @@ class Trainer(object):
                         self._config.hrl_network_to_update == 'both':
                     while init_step < self._config.start_steps:
                         rollout, meta_rollout, info, _ = \
-                            self._runner.run_episode()
+                            self._runner.run_episode(random_exploration=True)
                         init_step += info["len"]
                         init_ep += 1
                         self._agent.store_episode(rollout)
@@ -266,7 +266,7 @@ class Trainer(object):
             elif config.algo == 'sac':
                 while init_step < self._config.start_steps:
                     rollout, meta_rollout, info, _ = \
-                        self._runner.run_episode()
+                        self._runner.run_episode(random_exploration=True)
                     init_step += info["len"]
                     init_ep += 1
                     self._agent.store_episode(rollout)
