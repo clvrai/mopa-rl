@@ -2,8 +2,7 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces
-
+from gym import spaces 
 from env.base import BaseEnv
 
 
@@ -52,14 +51,16 @@ class SimplePusherEnv(BaseEnv):
                 self.sim.data.qpos.flat[self.model.nu:],
                 self.sim.data.qvel.flat[:self.model.nu],
                 self._get_pos('box'),
-                self._get_pos("target")
+                self.sim.data.qvel.flat[-2:], # box vel
+                self._get_pos("target"),
+                self._get_pos('fingertip')
             ]))
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(19,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(24,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
