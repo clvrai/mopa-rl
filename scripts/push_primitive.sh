@@ -1,12 +1,12 @@
 #!/bin/bash
 
 workers="1"
-prefix="ll.push.sac.reward_scale.3.ctrl.1.num_batch.50.success_rew"
+prefix="ll.push.sac.reward_scale.5.ctrl.1.num_batch.50"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="3"
+gpu="0"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -27,14 +27,14 @@ batch_size="512"
 clip_param="0.2"
 rl_activation="relu"
 reward_type='dense'
-reward_coef='400'
 comment='Get rid of unnecessary obs'
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'
 actor_update_freq='1'
-reward_scale='3'
+reward_scale='5'
 distance_threshold='0.06'
+actor_num_hid_layers='1'
 
 
 #mpiexec -n $workers
@@ -65,11 +65,11 @@ python -m rl.main --log_root_dir ./logs \
     --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
     --reward_type $reward_type \
-    --reward_coef $reward_coef \
     --comment $comment \
     --seed $seed \
     --ctrl_reward_coef $ctrl_reward_coef \
     --start_steps $start_steps \
     --actor_update_freq $actor_update_freq \
     --reward_scale $reward_scale \
-    --distance_threshold $distance_threshold
+    --distance_threshold $distance_threshold \
+    --actor_num_hid_layers $actor_num_hid_layers

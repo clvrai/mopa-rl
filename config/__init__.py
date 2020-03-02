@@ -52,6 +52,7 @@ def argparser():
     parser.add_argument("--kernel_size", nargs='+', default=[3, 3, 3])
     parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
     parser.add_argument("--stride", nargs='+', default=[2, 1, 1])
+    parser.add_argument("--actor_num_hid_layers", type=int, default=2)
 
     # observation normalization
     parser.add_argument("--ob_norm", type=str2bool, default=True)
