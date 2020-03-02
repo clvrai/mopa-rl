@@ -27,6 +27,8 @@ for i in range(1000):
     env.render(mode='rgb_array')
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
+    for j in range(3):
+        print(env.on_collision('body'+str(i), 'box'))
     print(env._get_pos('box'))
     print(env._get_quat('box'))
     if done:
