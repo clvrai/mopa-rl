@@ -1,17 +1,17 @@
 #!/bin/bash
 
 workers="8"
-prefix="baseline.sac.inverse.v1.no_clip"
+prefix="baseline.sac.num_batch.1"
 max_global_step="60000000"
-env="simple-pusher-v0"
-gpu="1"
-rl_hid_size="128"
+env="simple-reacher-v0"
+gpu="2"
+rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="1"
 max_grad_norm="0.5"
 entropy_loss_coef="0.1"
 buffer_size="20000"
-num_batches="50"
+num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -22,12 +22,14 @@ rl_activation="relu"
 algo='sac'
 seed='1234'
 ctrl_reward='0.1'
-reward_type='inverse'
-comment='PPO baseline for pusher env'
+reward_type='dense'
+comment='sac baseline for reacher'
 reward_coef='400'
-pos_reward_coef='10'
+pos_reward_coef='1'
+start_steps='20000'
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -54,4 +56,4 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --comment $comment \
     --reward_coef $reward_coef \
     --pos_reward_coef $pos_reward_coef
-
+    --start_steps= $start_steps

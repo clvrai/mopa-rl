@@ -91,26 +91,6 @@ class LowLevelAgent(SACAgent):
             ac.update(ac_)
             activation.update(activation_)
 
-        elif self._config.meta == 'soft':
-            for i, skills in enumerate(self._subdiv_skills):
-                ac_i = []
-                activation_i = []
-                for j, skill in enumerate(skills):
-                    ob_ = ob.copy()
-                    if self._config.diayn:
-                        z_name = self._actors[i][j].z_name
-                        ob_[z_name] = meta_ac[z_name]
-                    ob_ = self._ob_norms[i][j].normalize(ob_)
-                    ob_ = to_tensor(ob_, self._config.device)
-                    ac_, activation_ = self._actors[i][j].act(ob_, is_train)
-                    for k in ac_:
-                        ac_[k] = ac_[k] * (meta_ac[k][j] + 1) * 0.5
-                    ac_i.append(ac_)
-                    activation_i.append(activation_)
-
-                for k in ac_i[0]:
-                    ac[k] = sum([x[k] for x in ac_i])
-                    activation[k] = np.stack([x[k] for x in activation_i])
 
         if return_stds:
             return ac, activation, stds
@@ -128,7 +108,8 @@ class LowLevelAgent(SACAgent):
         skill_idx = 0
 
         ob_ = ob_detached.copy()
-        ob_ = self._ob_norms[skill_idx].normalize(ob_)
+        if self._config.policy == 'mlp':
+            ob_ = self._ob_norms[skill_idx].normalize(ob_)
         ob_ = to_tensor(ob_, self._config.device)
         ac_, log_probs_ = self._actors[skill_idx].act_log(ob_)
         ac.update(ac_)

@@ -14,7 +14,8 @@ class PusherPushEnv(SimplePusherEnv):
         super().__init__(**kwargs)
         self._env_config.update({
             "pos_reward": kwargs['pos_reward_coef'],
-            "exp_reward": kwargs['exp_reward']
+            "exp_reward": kwargs['exp_reward'],
+            'reward_scale': kwargs['reward_scale']
         })
 
     def _reset(self):
@@ -58,16 +59,17 @@ class PusherPushEnv(SimplePusherEnv):
         if reward_type == 'dense':
             reward_dist = -self._env_config['pos_reward'] * self._get_distance("box", "target")
             reward = reward_dist + reward_ctrl
+            reward *= self._env_config['reward_scale']
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
         elif reward_type == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
         elif reward_type == 'inverse':
-            reward_0 = 10.
-            reward_inv_dist = reward_0 / (self._get_distance('box', 'target')+1.) - reward_0 / 1.2
+            reward_0 = 100.
+            reward_inv_dist = reward_0 / (self._get_distance('box', 'target')+1.)
             reward = reward_inv_dist + reward_ctrl
             info = dict(reward_inv=reward_inv_dist, reward_ctrl=reward_ctrl)
         elif reward_type == 'exp':
-            reward_exp_dist = self._env_config['exp_reward'] * (np.exp(-self._get_distance('box', 'target')) - np.exp(-0.2))
+            reward_exp_dist = self._env_config['exp_reward'] * np.exp(-self._get_distance('box', 'target'))
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type']:

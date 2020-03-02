@@ -12,7 +12,8 @@ class SimplePusherEnv(BaseEnv):
     def __init__(self, **kwargs):
         super().__init__("simple_pusher.xml", **kwargs)
         self._env_config.update({
-            'pos_reward': kwargs['pos_reward_coef']
+            'pos_reward': kwargs['pos_reward_coef'],
+            'reward_scale': kwargs['reward_scale']
         })
 
     def _reset(self):
@@ -50,9 +51,7 @@ class SimplePusherEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qpos.flat[self.model.nu:],
                 self.sim.data.qvel.flat[:self.model.nu],
-                self._get_pos('box'),
                 self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos("target"),
                 self._get_pos('fingertip')
             ]))
         ])
@@ -60,7 +59,7 @@ class SimplePusherEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(24,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(18,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -84,8 +83,9 @@ class SimplePusherEnv(BaseEnv):
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reward_dist = -self._env_config['pos_reward'] * self._get_distance("box", "target")
+            reward_dist = - self._env_config['pos_reward'] * self._get_distance("box", "target")
             reward = reward_dist + reward_ctrl
+            reward *= self._env_config['reward_scale']
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
         elif reward_type == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
