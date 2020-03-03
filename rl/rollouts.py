@@ -268,6 +268,7 @@ class RolloutRunner(object):
 
             # Will change fingertip to variable later
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
+<<<<<<< HEAD
             target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
 
             skill_type = pi.return_skill_type(meta_ac)

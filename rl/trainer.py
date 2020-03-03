@@ -79,6 +79,7 @@ class Trainer(object):
 
 
         if config.ll_type == 'mp':
+<<<<<<< HEAD
             config.primitive_skills = ['mp']
 
         if config.hrl:
@@ -90,6 +91,25 @@ class Trainer(object):
             self._agent = LowLevelAgent(
                 config, ll_ob_space, ac_space, actor, critic, mp
             )
+=======
+            from rl.mp_agent import MpAgent
+            mp = MpAgent(config, ac_space, non_limited_idx)
+            self._mp = mp
+
+        if config.hrl:
+            if config.ll_type == 'mix':
+                from rl.low_level_mp_agent import LowLevelMpAgent
+                from rl.mp_agent import MpAgent
+                mp = MpAgent(config, ac_space, non_limited_idx)
+                self._agent = LowLevelMpAgent(
+                    config, ll_ob_space, ac_space, actor, critic, mp
+                )
+            else:
+                from rl.low_level_agent import LowLevelAgent
+                self._agent = LowLevelAgent(
+                    config, ll_ob_space, ac_space, actor, critic
+                )
+>>>>>>> f440165... add motion planner as low-level controller
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
