@@ -114,7 +114,6 @@ class RolloutRunner(object):
                 maximum = joint_space.high
                 if self._config.subgoal_type == 'joint':
                     subgoal = curr_qpos[:-2]+meta_ac['subgoal']
-                    #subgoal = meta_ac['subgoal']
                 else:
                     subgoal_cart = meta_ac['subgoal']
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)

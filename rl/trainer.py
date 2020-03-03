@@ -278,7 +278,7 @@ class Trainer(object):
             run_ep = 0
             run_step = 0
             while run_step < run_step_max and run_ep < run_ep_max:
-                if config.ll_type == 'rl':
+                if config.ll_type == 'rl' or not config.hrl:
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
                 else:

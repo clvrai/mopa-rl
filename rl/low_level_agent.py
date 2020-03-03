@@ -71,13 +71,10 @@ class LowLevelAgent(SACAgent):
         activation = OrderedDict()
         if self._config.hrl:
             skill_idx = int(meta_ac['default'][0])
-            ob_ = ob.copy()
+            #ob_ = ob.copy()
+            ob_ = ob
             if self._config.policy == 'mlp':
                 ob_ = self._ob_norms[skill_idx].normalize(ob_)
-            # if self._config.hl_type == 'subgoal':
-            #     ob_['subgoal'] = self._ob_norms[skill_idx].normalize(ob)
-
-            ob_ = to_tensor(ob_, self._config.device)
             if self._config.meta_update_target == 'HL':
                 if return_stds:
                     ac_, activation_, stds = self._actors[skill_idx].act(ob_, False, return_stds=return_stds)
@@ -99,17 +96,16 @@ class LowLevelAgent(SACAgent):
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        ob_detached = { k: v.detach().cpu().numpy() for k, v in ob.items() }
-
+        # ob_detached = { k: v.detach().cpu().numpy() for k, v in ob.items() }
+        #
         ac = OrderedDict()
         log_probs = []
         skill_idx = meta_ac['default']
         # assert np.sum(skill_idx.detach().cpu().to(int).numpy()) == 0, "multiple skills not supported"
         skill_idx = 0
 
-        ob_ = ob_detached.copy()
-        if self._config.policy == 'mlp':
-            ob_ = self._ob_norms[skill_idx].normalize(ob_)
+        #ob_ = ob_detached.copy()
+        ob_ = ob
         ob_ = to_tensor(ob_, self._config.device)
         ac_, log_probs_ = self._actors[skill_idx].act_log(ob_)
         ac.update(ac_)

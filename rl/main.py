@@ -127,6 +127,7 @@ if __name__ == '__main__':
 
     if args.debug:
         args.rollout_length = 150
+        args.start_steps = 100
 
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)
