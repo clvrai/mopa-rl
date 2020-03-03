@@ -63,7 +63,7 @@ class LowLevelAgent(SACAgent):
                         # backward compatibility to older checkpoints
                         skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'])
                     else:
-                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0][0])
+                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0])
                     skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
             skill_actor.to(config.device)
@@ -79,9 +79,6 @@ class LowLevelAgent(SACAgent):
     def act(self, ob, meta_ac, is_train=True, return_stds=False):
         if self._config.hrl:
             skill_idx = int(meta_ac['default'][0])
-            skill_idx = 0
-            # if self._config.policy == 'mlp':
-            #     ob = self._ob_norms[skill_idx].normalize(ob)
             if self._config.meta_update_target == 'HL':
                 if return_stds:
                     ac, activation, stds = self._actors[skill_idx].act(ob, False, return_stds=return_stds)

@@ -64,52 +64,32 @@ class Trainer(object):
         non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
         self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
 
-        if config.hl_type == 'subgoal':
-            # use subgoal
-            if config.policy == 'cnn':
-                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': self._meta_agent.ac_space['subgoal']})
-            elif config.policy == 'mlp':
-                ll_ob_space = spaces.Dict({'default': ob_space['default'],
-                                           'subgoal': self._meta_agent.ac_space['subgoal']})
-            else:
-                raise NotImplementedError
-        else:
-            # no subgoal, only choose which low-level controler we use
-            ll_ob_space = spaces.Dict({'default': ob_space['default']})
+        # if config.hl_type == 'subgoal':
+        #     # use subgoal
+        #     if config.policy == 'cnn':
+        #         ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': self._meta_agent.ac_space['subgoal']})
+        #     elif config.policy == 'mlp':
+        #         ll_ob_space = spaces.Dict({'default': ob_space['default'],
+        #                                    'subgoal': self._meta_agent.ac_space['subgoal']})
+        #     else:
+        #         raise NotImplementedError
+        # else:
+        #     # no subgoal, only choose which low-level controler we use
+        ll_ob_space = spaces.Dict({'default': ob_space['default']})
 
 
         if config.ll_type == 'mp':
-<<<<<<< HEAD
             config.primitive_skills = ['mp']
 
         if config.hrl:
             mp = None
-            from rl.low_level_agent import LowLevelAgent
             if config.ll_type == 'mix' or config.ll_type == 'mp':
                 from rl.mp_agent import MpAgent
                 mp = MpAgent(config, ac_space, non_limited_idx)
+            from rl.low_level_agent import LowLevelAgent
             self._agent = LowLevelAgent(
                 config, ll_ob_space, ac_space, actor, critic, mp
             )
-=======
-            from rl.mp_agent import MpAgent
-            mp = MpAgent(config, ac_space, non_limited_idx)
-            self._mp = mp
-
-        if config.hrl:
-            if config.ll_type == 'mix':
-                from rl.low_level_mp_agent import LowLevelMpAgent
-                from rl.mp_agent import MpAgent
-                mp = MpAgent(config, ac_space, non_limited_idx)
-                self._agent = LowLevelMpAgent(
-                    config, ll_ob_space, ac_space, actor, critic, mp
-                )
-            else:
-                from rl.low_level_agent import LowLevelAgent
-                self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic
-                )
->>>>>>> f440165... add motion planner as low-level controller
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
@@ -306,7 +286,7 @@ class Trainer(object):
                         self._runner.run_episode()
                 else:
                     rollout, meta_rollout, info, _ = \
-                        self._runner.run_episode()
+                        self._runner.run_episode_with_mp()
 
                 run_step += info["len"]
                 run_ep += 1
@@ -393,7 +373,7 @@ class Trainer(object):
                     self._log_test(step, info, vids, obs)
 
                     # Evaluate mp
-                    if self._config.ll_type == 'mp':
+                    if self._config.ll_type == 'mp' or self._config.ll_type == 'mix':
                         mp_rollout, mp_info, mp_vids = self._mp_evaluate(step=step, record=config.record)
                         self._log_mp_test(step, mp_info, mp_vids)
 
@@ -459,7 +439,7 @@ class Trainer(object):
         vids = []
         for i in range(self._config.num_record_samples):
             rollout, meta_rollout, info, frames = \
-                self._runner.mp_run_episode(is_train=False, record=record)
+                self._runner.run_episode_with_mp(is_train=False, record=record)
 
             if record:
                 ep_rew = info["rew"]
