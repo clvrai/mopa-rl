@@ -1,18 +1,18 @@
 #!/bin/bash
 
-workers="8"
-prefix="hl.dist_diff.coef.400.rollout.15450"
+workers="16"
+prefix="hl.mp.rl.debug"
 hrl="True"
 max_global_step="60000000"
-ll_type="mp"
+ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-pixel-v0"
+env="simple-reacher-obstacle-v0"
 hl_type="subgoal"
-gpu="0"
+gpu="1"
 rl_hid_size="128"
 meta_update_target="both"
 hrl_network_to_update="HL"
@@ -24,22 +24,24 @@ max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="128"
-lr_actor="1e-5"
-lr_critic="1e-5"
-debug="False"
-rollout_length="15450"
-batch_size="64"
+num_batches="64"
+lr_actor="6e-4"
+lr_critic="6e-4"
+debug="True"
+rollout_length="9450"
+batch_size="256"
 clip_param="0.2"
-rl_activation="relu"
-policy='cnn'
-is_rgb='True'
-ctrl_reward_coef='1e-1'
-seed='1234'
-reward_coef='400'
+rl_activation="tanh"
 reward_type='dist_diff'
+reward_coef='400'
+comment='Remove unnecessary tanh'
+seed='1234'
+ctrl_reward_coef='1.'
+primitive_skills="mp push"
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -72,9 +74,9 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --clip_param $clip_param \
     --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
-    --policy $policy \
-    --is_rgb $is_rgb \
-    --ctrl_reward_coef $ctrl_reward_coef \
-    --seed $seed \
+    --reward_type $reward_type \
     --reward_coef $reward_coef \
-    --reward_type $reward_type
+    --comment $comment \
+    --seed $seed \
+    --ctrl_reward_coef $ctrl_reward_coef \
+    --primitive_skills $primitive_skills
