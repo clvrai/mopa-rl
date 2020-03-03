@@ -16,8 +16,8 @@ class BaseAgent(object):
         return ob
 
     def act(self, ob, is_train=True, return_stds=False):
-        if self._config.policy == 'mlp':
-            ob = self.normalize(ob)
+        # if self._config.policy == 'mlp':
+        #     ob = self.normalize(ob)
         if hasattr(self, '_actor'):
             if return_stds:
                 ac, activation, stds = self._actor.act(ob, is_train=is_train, return_stds=return_stds)

@@ -70,8 +70,8 @@ class LowLevelAgent(SACAgent):
         if self._config.hrl:
             skill_idx = int(meta_ac['default'][0])
             skill_idx = 0
-            if self._config.policy == 'mlp':
-                ob = self._ob_norms[skill_idx].normalize(ob)
+            # if self._config.policy == 'mlp':
+            #     ob = self._ob_norms[skill_idx].normalize(ob)
             if self._config.meta_update_target == 'HL':
                 if return_stds:
                     ac, activation, stds = self._actors[skill_idx].act(ob, False, return_stds=return_stds)
@@ -90,7 +90,8 @@ class LowLevelAgent(SACAgent):
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        log_probs = []
+        # if self._config.policy == 'mlp':
+        #     ob_ = self._ob_norms[skill_idx].normalize(ob_)
         skill_idx = int(meta_ac['default'][0])
         return self._actors[skill_idx].act_log(ob)
 
@@ -100,3 +101,4 @@ class LowLevelAgent(SACAgent):
             super().sync_networks()
         else:
             pass
+
