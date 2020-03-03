@@ -50,17 +50,18 @@ class LowLevelAgent(SACAgent):
                                        clip_obs=config.clip_obs)
 
             if self._config.meta_update_target == 'HL':
-                path = os.path.join(config.primitive_dir, skill)
-                ckpt_path, ckpt_num = get_ckpt_path(path, None)
-                logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
-                ckpt = torch.load(ckpt_path)
+                if skill != "mp":
+                    path = os.path.join(config.primitive_dir, skill)
+                    ckpt_path, ckpt_num = get_ckpt_path(path, None)
+                    logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
+                    ckpt = torch.load(ckpt_path)
 
-                if type(ckpt['agent']['actor_state_dict']) == OrderedDict:
-                    # backward compatibility to older checkpoints
-                    skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'])
-                else:
-                    skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0][0])
-                skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
+                    if type(ckpt['agent']['actor_state_dict']) == OrderedDict:
+                        # backward compatibility to older checkpoints
+                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'])
+                    else:
+                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0][0])
+                    skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
             skill_actor.to(config.device)
             self._actors.append(skill_actor)
