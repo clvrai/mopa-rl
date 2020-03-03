@@ -90,8 +90,9 @@ class LowLevelAgent(SACAgent):
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        ac = OrderedDict()
-        log_probs = []
+        for k, v in meta_ac.items():
+            if k != 'default':
+                ob[k] = v
         skill_idx = int(meta_ac['default'][0])
         return self._actors[skill_idx].act_log(ob)
 

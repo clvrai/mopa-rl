@@ -1,6 +1,7 @@
 <mujoco model="simple_pusher">
     <include file="./common/skybox.xml"/>
-    <include file="./common/materials.xml"/> <include file="./common/visual.xml"/>
+    <include file="./common/materials.xml"/>
+    <include file="./common/visual.xml"/>
 
     <compiler angle="radian" inertiafromgeom="true" meshdir="../meshes" />
     <option gravity="0 0 -9.81" integrator="RK4" timestep="0.01"/>
