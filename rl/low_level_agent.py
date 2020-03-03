@@ -71,7 +71,7 @@ class LowLevelAgent(SACAgent):
             skill_idx = int(meta_ac['default'][0])
             skill_idx = 0
             if self._config.policy == 'mlp':
-                ob_ = self._ob_norms[skill_idx].normalize(ob)
+                ob = self._ob_norms[skill_idx].normalize(ob)
             if self._config.meta_update_target == 'HL':
                 if return_stds:
                     ac, activation, stds = self._actors[skill_idx].act(ob, False, return_stds=return_stds)
