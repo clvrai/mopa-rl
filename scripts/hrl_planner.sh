@@ -13,7 +13,7 @@ timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
 gpu="0"
-rl_hid_size="128"
+rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_step="150"
@@ -36,9 +36,12 @@ note="test"
 seed="1234"
 ctrl_reward_coef="1"
 primitive_skills="mp push"
+primitive_dir="primitives"
+actor_num_hid_layers="1"
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \
@@ -74,4 +77,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --note $note \
     --seed $seed \
     --ctrl_reward_coef $ctrl_reward_coef \
-    --primitive_skills $primitive_skills
+    --primitive_skills $primitive_skills \
+    --primitive_dir $primitive_dir \
+    --actor_num_hid_layers $actor_num_hid_layers

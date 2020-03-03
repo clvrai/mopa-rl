@@ -21,8 +21,9 @@ class LowLevelAgent(SACAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, actor, critic):
+    def __init__(self, config, ob_space, ac_space, actor, critic, mp=None):
         super().__init__(config, ob_space, ac_space, actor, critic)
+        self._mp = mp
 
     def _log_creation(self):
         if self._config.is_chef:
@@ -43,6 +44,8 @@ class LowLevelAgent(SACAgent):
         else:
             skills = ['primitive']
 
+        self._skills = skills
+
         for skill in skills:
             skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
             skill_ob_norm = Normalizer(self._ob_space,
@@ -60,19 +63,22 @@ class LowLevelAgent(SACAgent):
                         # backward compatibility to older checkpoints
                         skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'])
                     else:
-                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0][0])
+                        skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0])
                     skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
             skill_actor.to(config.device)
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
+    def plan(self, curr_qpos, target_qpos):
+        assert self._mp != None, 'Motion planner does not exist.'
+
+        traj = self._mp.plan(curr_qpos, target_qpos)
+        return traj
+
     def act(self, ob, meta_ac, is_train=True, return_stds=False):
         if self._config.hrl:
             skill_idx = int(meta_ac['default'][0])
-            skill_idx = 0
-            # if self._config.policy == 'mlp':
-            #     ob = self._ob_norms[skill_idx].normalize(ob)
             if self._config.meta_update_target == 'HL':
                 if return_stds:
                     ac, activation, stds = self._actors[skill_idx].act(ob, False, return_stds=return_stds)
@@ -89,10 +95,12 @@ class LowLevelAgent(SACAgent):
         else:
             return ac, activation
 
+    def return_skill_type(self, meta_ac):
+        skill_idx = int(meta_ac['default'][0])
+        return self._skills[skill_idx]
+
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        # if self._config.policy == 'mlp':
-        #     ob_ = self._ob_norms[skill_idx].normalize(ob_)
         for k, v in meta_ac.items():
             if k != 'default':
                 ob[k] = v

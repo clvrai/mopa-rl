@@ -63,7 +63,6 @@ class Trainer(object):
         # build up networks
         non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
         self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
-        self._mp = None
 
         if config.hl_type == 'subgoal':
             # use subgoal
@@ -78,24 +77,44 @@ class Trainer(object):
             # no subgoal, only choose which low-level controler we use
             ll_ob_space = spaces.Dict({'default': ob_space['default']})
 
+        # if config.hl_type == 'subgoal':
+        #     # use subgoal
+        #     if config.policy == 'cnn':
+        #         ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': self._meta_agent.ac_space['subgoal']})
+        #     elif config.policy == 'mlp':
+        #         ll_ob_space = spaces.Dict({'default': ob_space['default'],
+        #                                    'subgoal': self._meta_agent.ac_space['subgoal']})
+        #     else:
+        #         raise NotImplementedError
+        # else:
+        #     # no subgoal, only choose which low-level controler we use
+        ll_ob_space = spaces.Dict({'default': ob_space['default']})
+
+
+        if config.ll_type == 'mp':
+            config.primitive_skills = ['mp']
+
+        if config.ll_type == 'mp':
+            config.primitive_skills = ['mp']
 
         if config.hrl:
-                from rl.low_level_agent import LowLevelAgent
-                self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic
-                )
+            mp = None
+            from rl.low_level_agent import LowLevelAgent
+            if config.ll_type == 'mix' or config.ll_type == 'mp':
+                from rl.mp_agent import MpAgent
+                mp = MpAgent(config, ac_space, non_limited_idx)
+            self._agent = LowLevelAgent(
+                config, ll_ob_space, ac_space, actor, critic, mp
+            )
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
             )
 
-        if config.ll_type == 'mp':
-            from rl.low_level_mp_agent import LowLevelMpAgent
-            self._mp = LowLevelMpAgent(config, ll_ob_space, ac_space, non_limited_idx)
 
         # build rollout runner
         self._runner = RolloutRunner(
-            config, self._env, self._meta_agent, self._agent, self._mp
+            config, self._env, self._meta_agent, self._agent
         )
 
         # setup wandb
@@ -241,8 +260,8 @@ class Trainer(object):
         # dummy run for preventing weird
         if config.ll_type == 'rl':
             self._runner.run_episode()
-        elif config.ll_type == 'mp':
-            self._runner.mp_run_episode()
+        elif config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
+            self._runner.run_episode_with_mp()
         else:
             ValueError("Invalid low level controller type")
 
@@ -282,12 +301,8 @@ class Trainer(object):
                     rollout, meta_rollout, info, _ = \
                         self._runner.run_episode()
                 else:
-                    if self._config.mp_ratio >= np.random.rand():
-                        rollout, meta_rollout, info, _ = \
-                            self._runner.mp_run_episode()
-                    else:
-                        rollout, meta_rollout, info, _ = \
-                            self._runner.run_episode()
+                    rollout, meta_rollout, info, _ = \
+                        self._runner.run_episode_with_mp()
 
                 run_step += info["len"]
                 run_ep += 1
@@ -374,7 +389,7 @@ class Trainer(object):
                     self._log_test(step, info, vids, obs)
 
                     # Evaluate mp
-                    if self._config.ll_type == 'mp':
+                    if self._config.ll_type == 'mp' or self._config.ll_type == 'mix':
                         mp_rollout, mp_info, mp_vids = self._mp_evaluate(step=step, record=config.record)
                         self._log_mp_test(step, mp_info, mp_vids)
 
@@ -440,7 +455,7 @@ class Trainer(object):
         vids = []
         for i in range(self._config.num_record_samples):
             rollout, meta_rollout, info, frames = \
-                self._runner.mp_run_episode(is_train=False, record=record)
+                self._runner.run_episode_with_mp(is_train=False, record=record)
 
             if record:
                 ep_rew = info["rew"]

@@ -27,7 +27,7 @@ class MlpActor(Actor):
             if isinstance(space, spaces.Box):
                 self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(space), activation=activation)})
                 if not self._deterministic:
-                    self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, action_size(space), actiavtion=activation)})
+                    self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, action_size(space), activation=activation)})
             elif isinstance(space, spaces.Discrete):
                 self.fc_means.update({k: MLP(config, config.rl_hid_size, space.n, activation=activation)})
             else:
