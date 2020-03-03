@@ -64,6 +64,19 @@ class Trainer(object):
         non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
         self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
 
+        if config.hl_type == 'subgoal':
+            # use subgoal
+            if config.policy == 'cnn':
+                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': self._meta_agent.ac_space['subgoal']})
+            elif config.policy == 'mlp':
+                ll_ob_space = spaces.Dict({'default': ob_space['default'],
+                                           'subgoal': self._meta_agent.ac_space['subgoal']})
+            else:
+                raise NotImplementedError
+        else:
+            # no subgoal, only choose which low-level controler we use
+            ll_ob_space = spaces.Dict({'default': ob_space['default']})
+
         # if config.hl_type == 'subgoal':
         #     # use subgoal
         #     if config.policy == 'cnn':
@@ -81,12 +94,15 @@ class Trainer(object):
         if config.ll_type == 'mp':
             config.primitive_skills = ['mp']
 
+        if config.ll_type == 'mp':
+            config.primitive_skills = ['mp']
+
         if config.hrl:
             mp = None
+            from rl.low_level_agent import LowLevelAgent
             if config.ll_type == 'mix' or config.ll_type == 'mp':
                 from rl.mp_agent import MpAgent
                 mp = MpAgent(config, ac_space, non_limited_idx)
-            from rl.low_level_agent import LowLevelAgent
             self._agent = LowLevelAgent(
                 config, ll_ob_space, ac_space, actor, critic, mp
             )

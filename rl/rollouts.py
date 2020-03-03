@@ -111,15 +111,7 @@ class RolloutRunner(object):
                 joint_space = env.joint_space['default']
                 minimum = joint_space.low
                 maximum = joint_space.high
-                if self._config.subgoal_type == 'joint':
-                    subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
-                else:
-                    subgoal_cart = meta_ac['subgoal']
-                    subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
-                    ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
-                    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=10, progress_thresh=10000.)
-                    subgoal = result.qpos[:env.model.nu].copy()
+                subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
                 #subgoal = np.clip(subgoal, minimum, maximum)
 
@@ -140,12 +132,8 @@ class RolloutRunner(object):
                     ac = env.action_space.sample()
                     ac_before_activation = None
                     stds = None
-                    # if config.hrl and config.hl_type == 'subgoal':
-                    #     ll_ob['subgoal'] = meta_ac['subgoal']
                 else:
                     if config.hrl:
-                        # if config.hl_type == 'subgoal':
-                        #     ll_ob['subgoal'] = meta_ac['subgoal']
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
@@ -181,8 +169,8 @@ class RolloutRunner(object):
 
         # last frame
         ll_ob = ob.copy()
-        # if config.hrl and config.hl_type == 'subgoal':
-        #     ll_ob['subgoal'] = meta_ac['subgoal']
+        if config.hrl and config.hl_type == 'subgoal':
+            ll_ob['subgoal'] = meta_ac['subgoal']
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())
@@ -197,7 +185,6 @@ class RolloutRunner(object):
         ep_info['saved_qpos'] = saved_qpos
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
-
 
     def run_episode_with_mp(self, max_step=10000, is_train=True, record=False):
         config = self._config
@@ -323,7 +310,6 @@ class RolloutRunner(object):
 
                         info = OrderedDict()
                         done, info, _ = env._after_step(reward, False, info)
-
                         reward_info['episode_success'].append(False)
 
                         for key, value in info.items():
@@ -360,7 +346,6 @@ class RolloutRunner(object):
                     curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
-
                     ob, reward, done, info = env.step(ac)
 
 
