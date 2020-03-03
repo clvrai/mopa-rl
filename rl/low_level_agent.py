@@ -67,27 +67,21 @@ class LowLevelAgent(SACAgent):
             self._ob_norms.append(skill_ob_norm)
 
     def act(self, ob, meta_ac, is_train=True, return_stds=False):
-        ac = OrderedDict()
-        activation = OrderedDict()
         if self._config.hrl:
             skill_idx = int(meta_ac['default'][0])
-            #ob_ = ob.copy()
-            ob_ = ob
+            skill_idx = 0
             if self._config.policy == 'mlp':
-                ob_ = self._ob_norms[skill_idx].normalize(ob_)
+                ob_ = self._ob_norms[skill_idx].normalize(ob)
             if self._config.meta_update_target == 'HL':
                 if return_stds:
-                    ac_, activation_, stds = self._actors[skill_idx].act(ob_, False, return_stds=return_stds)
+                    ac, activation, stds = self._actors[skill_idx].act(ob, False, return_stds=return_stds)
                 else:
-                    ac_, activation_ = self._actors[skill_idx].act(ob_, False, return_stds=return_stds)
+                    ac, activation = self._actors[skill_idx].act(ob, False, return_stds=return_stds)
             else:
                 if return_stds:
-                    ac_, activation_, stds = self._actors[skill_idx].act(ob_, is_train, return_stds=return_stds)
+                    ac, activation, stds = self._actors[skill_idx].act(ob, is_train, return_stds=return_stds)
                 else:
-                    ac_, activation_ = self._actors[skill_idx].act(ob_, is_train, return_stds=return_stds)
-            ac.update(ac_)
-            activation.update(activation_)
-
+                    ac, activation = self._actors[skill_idx].act(ob, is_train, return_stds=return_stds)
 
         if return_stds:
             return ac, activation, stds
@@ -96,27 +90,10 @@ class LowLevelAgent(SACAgent):
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        # ob_detached = { k: v.detach().cpu().numpy() for k, v in ob.items() }
-        #
         ac = OrderedDict()
         log_probs = []
-        skill_idx = meta_ac['default']
-        # assert np.sum(skill_idx.detach().cpu().to(int).numpy()) == 0, "multiple skills not supported"
-        skill_idx = 0
-
-        #ob_ = ob_detached.copy()
-        ob_ = ob
-        ob_ = to_tensor(ob_, self._config.device)
-        ac_, log_probs_ = self._actors[skill_idx].act_log(ob_)
-        ac.update(ac_)
-        log_probs.append(log_probs_)
-
-        try:
-            log_probs = torch.cat(log_probs, -1).sum(-1, keepdim=True)
-        except Exception:
-            import pdb; pdb.set_trace()
-
-        return ac, log_probs
+        skill_idx = int(meta_ac['default'][0])
+        return self._actors[skill_idx].act_log(ob)
 
     def sync_networks(self):
         if self._config.meta_update_target == 'LL' or \
