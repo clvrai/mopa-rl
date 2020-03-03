@@ -40,7 +40,8 @@ ctrl_reward_coef='10'
 pos_reward_coef='10'
 inv_reward='10.'
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \

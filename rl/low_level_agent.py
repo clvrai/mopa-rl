@@ -21,8 +21,9 @@ class LowLevelAgent(SACAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, actor, critic):
+    def __init__(self, config, ob_space, ac_space, actor, critic, mp=None):
         super().__init__(config, ob_space, ac_space, actor, critic)
+        self._mp = mp
 
     def _log_creation(self):
         if self._config.is_chef:
@@ -42,6 +43,8 @@ class LowLevelAgent(SACAgent):
             skills = config.primitive_skills
         else:
             skills = ['primitive']
+
+        self._skills = skills
 
         for skill in skills:
             skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
@@ -67,6 +70,12 @@ class LowLevelAgent(SACAgent):
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
+    def plan(self, curr_qpos, target_qpos):
+        assert self._mp != None, 'Motion planner does not exist.'
+
+        traj = self._mp.plan(curr_qpos, target_qpos)
+        return traj
+
     def act(self, ob, meta_ac, is_train=True, return_stds=False):
         if self._config.hrl:
             skill_idx = int(meta_ac['default'][0])
@@ -89,10 +98,12 @@ class LowLevelAgent(SACAgent):
         else:
             return ac, activation
 
+    def return_skill_type(self, meta_ac):
+        skill_idx = int(meta_ac['default'][0])
+        return self._skills[skill_idx]
+
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        # if self._config.policy == 'mlp':
-        #     ob_ = self._ob_norms[skill_idx].normalize(ob_)
         for k, v in meta_ac.items():
             if k != 'default':
                 ob[k] = v
