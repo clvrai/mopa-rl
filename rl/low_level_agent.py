@@ -92,6 +92,9 @@ class LowLevelAgent(SACAgent):
         ''' Note: only usable for SAC agents '''
         # if self._config.policy == 'mlp':
         #     ob_ = self._ob_norms[skill_idx].normalize(ob_)
+        for k, v in meta_ac.items():
+            if k != 'default':
+                ob[k] = v
         skill_idx = int(meta_ac['default'][0])
         return self._actors[skill_idx].act_log(ob)
 

@@ -113,18 +113,18 @@ class RolloutRunner(object):
                 minimum = joint_space.low
                 maximum = joint_space.high
                 if self._config.subgoal_type == 'joint':
-                    subgoal = curr_qpos[:-2]+meta_ac['subgoal']
+                    subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
                 else:
                     subgoal_cart = meta_ac['subgoal']
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
-                    subgoal = result.qpos[:-2].copy()
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=10, progress_thresh=10000.)
+                    subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
                 #subgoal = np.clip(subgoal, minimum, maximum)
 
-                ik_env.set_state(np.concatenate([subgoal, env.goal]), env.sim.data.qvel.ravel().copy())
+                ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
 
 
@@ -141,6 +141,8 @@ class RolloutRunner(object):
                     ac = env.action_space.sample()
                     ac_before_activation = None
                     stds = None
+                    if config.hrl and config.hl_type == 'subgoal':
+                        ll_ob['subgoal'] = meta_ac['subgoal']
                 else:
                     if config.hrl:
                         if config.hl_type == 'subgoal':
@@ -259,7 +261,7 @@ class RolloutRunner(object):
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:-2], max_steps=100, trials=10, progress_thresh=10000.)
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=10, progress_thresh=10000.)
                     subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
                 #subgoal = np.clip(subgoal, minimum, maximum)
@@ -289,8 +291,8 @@ class RolloutRunner(object):
                         ll_ob['subgoal'] = meta_ac['subgoal']
 
 
-                    curr_qpos = env.sim.data.qpos[:-2].ravel().copy()
-                    ac = OrderedDict([('default', state[:-2] - curr_qpos)])
+                    curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                    ac = OrderedDict([('default', state[:env.model.nu] - curr_qpos)])
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
@@ -314,8 +316,8 @@ class RolloutRunner(object):
                         frame_info['ac'] = ac['default']
                         frame_info['states'] = 'Valid states'
                         frame_info['curr_qpos'] = curr_qpos
-                        frame_info['mp_qpos'] = state[:-2]
-                        frame_info['mp_path_qpos'] = states[i+1][:-2]
+                        frame_info['mp_qpos'] = state[:env.model.nu]
+                        frame_info['mp_path_qpos'] = states[i+1][:env.model.nu]
                         frame_info['goal'] = env.goal
                         if config.hrl:
                             frame_info['meta_ac'] = 'mp'
@@ -327,7 +329,7 @@ class RolloutRunner(object):
                                 elif k != 'default':
                                     frame_info['meta_'+k] = meta_ac[k]
 
-                        ik_env.set_state(np.concatenate((state[:-2], env.goal)), ik_env.sim.data.qvel.ravel())
+                        ik_env.set_state(np.concatenate((state[:env.model.nu], env.goal)), ik_env.sim.data.qvel.ravel())
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                         self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
@@ -404,7 +406,7 @@ class RolloutRunner(object):
     def _get_mp_body_pos(self, ik_env, postfix='dummy'):
         xpos = OrderedDict()
         xquat = OrderedDict()
-        for i in range(len(ik_env.sim.data.qpos)-2):
+        for i in range(ik_env.model.nu):
             name = 'body'+str(i)
             body_idx = ik_env.model.body_name2id(name)
             xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx].copy()
