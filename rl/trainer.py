@@ -64,19 +64,6 @@ class Trainer(object):
         non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
         self._meta_agent = MetaPPOAgent(config, ob_space, joint_space)
 
-        if config.hl_type == 'subgoal':
-            # use subgoal
-            if config.policy == 'cnn':
-                ll_ob_space = spaces.Dict({'default': ob_space['default'], 'subgoal': self._meta_agent.ac_space['subgoal']})
-            elif config.policy == 'mlp':
-                ll_ob_space = spaces.Dict({'default': ob_space['default'],
-                                           'subgoal': self._meta_agent.ac_space['subgoal']})
-            else:
-                raise NotImplementedError
-        else:
-            # no subgoal, only choose which low-level controler we use
-            ll_ob_space = spaces.Dict({'default': ob_space['default']})
-
         # if config.hl_type == 'subgoal':
         #     # use subgoal
         #     if config.policy == 'cnn':
@@ -89,10 +76,6 @@ class Trainer(object):
         # else:
         #     # no subgoal, only choose which low-level controler we use
         ll_ob_space = spaces.Dict({'default': ob_space['default']})
-
-
-        if config.ll_type == 'mp':
-            config.primitive_skills = ['mp']
 
         if config.ll_type == 'mp':
             config.primitive_skills = ['mp']
