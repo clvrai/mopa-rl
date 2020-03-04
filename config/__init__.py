@@ -32,7 +32,7 @@ def argparser():
     parser.add_argument("--max_meta_len", type=int, default=25)
 
     parser.add_argument("--ll_type", type=str, default="rl",
-                        help="low level controller choice", choices=["rl", "mp"])
+                        help="low level controller choice", choices=["rl", "mp", "mix"])
     parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])

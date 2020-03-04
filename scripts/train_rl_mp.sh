@@ -1,10 +1,10 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.ppo.inverse.v3"
+prefix="hl.mp.rl.debug"
 hrl="True"
 max_global_step="60000000"
-ll_type="mp"
+ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
@@ -19,26 +19,26 @@ hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-2"
+meta_subgoal_rew="-1"
 max_meta_len="15"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="16"
+num_batches="64"
 lr_actor="6e-4"
 lr_critic="6e-4"
-debug="False"
+debug="True"
 rollout_length="9450"
 batch_size="256"
 clip_param="0.2"
 rl_activation="tanh"
-reward_type='inverse'
+reward_type='dist_diff'
 reward_coef='400'
-comment='check ho the num batces and rolout length makes the training stable'
+comment='Remove unnecessary tanh'
 seed='1234'
-ctrl_reward_coef='10'
-pos_reward_coef='10'
-inv_reward='10.'
+ctrl_reward_coef='1.'
+primitive_skills="mp push"
+
 
 #mpiexec -n $workers
 python -m rl.main --log_root_dir ./logs \
@@ -79,5 +79,4 @@ python -m rl.main --log_root_dir ./logs \
     --comment $comment \
     --seed $seed \
     --ctrl_reward_coef $ctrl_reward_coef \
-    --pos_reward_coef $pos_reward_coef \
-    --inv_reward $inv_reward
+    --primitive_skills $primitive_skills

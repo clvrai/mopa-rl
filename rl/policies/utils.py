@@ -48,13 +48,13 @@ def fanin_init(tensor):
 
 
 class MLP(nn.Module):
-    def __init__(self, config, input_dim, output_dim, hid_dims=[], last_activation=False):
+    def __init__(self, config, input_dim, output_dim, hid_dims=[], last_activation=False, activation='relu'):
         super().__init__()
-        if config.rl_activation == 'relu':
+        if activation == 'relu':
             activation_fn = nn.ReLU()
-        elif config.rl_activation == 'tanh':
+        elif activation == 'tanh':
             activation_fn = nn.Tanh()
-        elif config.rl_acitvation == 'elu':
+        elif acitvation == 'elu':
             activation_fn = nn.Elu()
         else:
             return NotImplementedError

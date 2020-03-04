@@ -10,7 +10,7 @@ from util.gym import observation_size, action_size
 
 
 class MlpActor(Actor):
-    def __init__(self, config, ob_space, ac_space, tanh_policy, deterministic=False):
+    def __init__(self, config, ob_space, ac_space, tanh_policy, deterministic=False, activation='relu'):
         super().__init__(config, ob_space, ac_space, tanh_policy)
 
         self._ac_space = ac_space
@@ -19,19 +19,19 @@ class MlpActor(Actor):
         # observation
         input_dim = observation_size(ob_space)
 
-        self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size]*config.actor_num_hid_layers)
+        self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size]*config.actor_num_hid_layers, activation=activation)
         self.fc_means = nn.ModuleDict()
         self.fc_log_stds = nn.ModuleDict()
 
         for k, space in ac_space.spaces.items():
             if isinstance(space, spaces.Box):
-                self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(space))})
+                self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(space), activation=activation)})
                 if not self._deterministic:
-                    self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, action_size(space))})
+                    self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, action_size(space), activation=activation)})
             elif isinstance(space, spaces.Discrete):
-                self.fc_means.update({k: MLP(config, config.rl_hid_size, space.n)})
+                self.fc_means.update({k: MLP(config, config.rl_hid_size, space.n, activation=activation)})
             else:
-                self.fc_means.update({k: MLP(config, config.rl_hid_size, space)})
+                self.fc_means.update({k: MLP(config, config.rl_hid_size, space, activation=activation)})
 
     def forward(self, ob, deterministic=False):
         inp = list(ob.values())
@@ -57,14 +57,14 @@ class MlpActor(Actor):
 
 
 class MlpCritic(Critic):
-    def __init__(self, config, ob_space, ac_space=None):
+    def __init__(self, config, ob_space, ac_space=None, activation='relu'):
         super().__init__(config)
 
         input_dim = observation_size(ob_space)
         if ac_space is not None:
             input_dim += action_size(ac_space)
 
-        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
+        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2, activation=activation)
 
     def forward(self, ob, ac=None):
         inp = list(ob.values())

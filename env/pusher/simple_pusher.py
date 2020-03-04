@@ -11,10 +11,6 @@ class SimplePusherEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_pusher.xml", **kwargs)
-        self._env_config.update({
-            'pos_reward': kwargs['pos_reward_coef'],
-            'reward_scale': kwargs['reward_scale']
-        })
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -29,7 +25,7 @@ class SimplePusherEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1:
                 self.goal = goal
                 break
         return self._get_obs()
@@ -83,9 +79,8 @@ class SimplePusherEnv(BaseEnv):
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reward_dist = - self._env_config['pos_reward'] * self._get_distance("box", "target")
+            reward_dist = - self._get_distance("box", "target")
             reward = reward_dist + reward_ctrl
-            reward *= self._env_config['reward_scale']
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
         elif reward_type == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
@@ -95,7 +90,7 @@ class SimplePusherEnv(BaseEnv):
             reward = reward_inv_dist + reward_ctrl
             info = dict(reward_inv=reward_inv_dist, reward_ctrl=reward_ctrl)
         elif reward_type == 'exp':
-            reward_exp_dist = self._env_config['exp_reward'] * np.exp(-self._get_distance('box', 'target'))
+            reward_exp_dist = np.exp(-self._get_distance('box', 'target'))
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type'] == 'composition':
@@ -122,12 +117,12 @@ class SimplePusherEnv(BaseEnv):
 
         if self._env_config['reward_type'] == 'dist_diff':
             post_reward_dist = self._get_distance("box", "target")
-            reward_dist_diff = self._reward_coef * (pre_reward_dist - post_reward_dist)
+            reward_dist_diff = pre_reward_dist - post_reward_dist
             info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
             reward = reward_dist_diff + reward_ctrl
 
-        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+            done =True
+            self._success = True
         return obs, reward, done, info
 

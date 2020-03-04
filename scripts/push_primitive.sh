@@ -1,6 +1,6 @@
 #!/bin/bash
 workers="3"
-prefix="both.push.sac.reward_scale.1.wo.norm.subgoal.v1"
+prefix="ll.push.sac.reward_scale.1.wo.norm.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"

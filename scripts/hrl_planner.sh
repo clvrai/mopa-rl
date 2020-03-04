@@ -1,51 +1,50 @@
 #!/bin/bash
 
-workers="16"
-prefix="hl.ppo.inverse.v3"
+workers="4"
+prefix="hl.ppo.mp.push.terminal.v1"
 hrl="True"
 max_global_step="60000000"
-ll_type="mp"
+ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-reacher-obstacle-v0"
+env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="0"
-rl_hid_size="128"
-meta_update_target="both"
+gpu="2"
+rl_hid_size="256"
+meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-2"
+meta_subgoal_rew="-0.5"
 max_meta_len="15"
-max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="4096"
 num_batches="16"
-lr_actor="6e-4"
-lr_critic="6e-4"
+lr_actor="3e-4"
+lr_critic="3e-4"
 debug="False"
-rollout_length="9450"
+rollout_length="15360"
 batch_size="256"
 clip_param="0.2"
-rl_activation="tanh"
-reward_type='inverse'
-reward_coef='400'
-comment='check ho the num batces and rolout length makes the training stable'
-seed='1234'
-ctrl_reward_coef='10'
-pos_reward_coef='10'
-inv_reward='10.'
+reward_type="dense"
+reward_scale="1"
+comment="Initial experiments for HRL framework with terminal condition"
+seed="1234"
+ctrl_reward_coef="1"
+primitive_skills="mp push"
+primitive_dir="primitives"
+actor_num_hid_layers="1"
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
-    --max_global_step $max_global_step \
     --hrl $hrl \
+    --max_global_step $max_global_step \
     --ll_type $ll_type \
     --planner_type $planner_type \
     --planner_objective $planner_objective \
@@ -72,12 +71,11 @@ python -m rl.main --log_root_dir ./logs \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
     --clip_param $clip_param \
-    --max_grad_norm $max_grad_norm \
-    --rl_activation $rl_activation \
     --reward_type $reward_type \
-    --reward_coef $reward_coef \
+    --reward_scale $reward_scale \
     --comment $comment \
     --seed $seed \
     --ctrl_reward_coef $ctrl_reward_coef \
-    --pos_reward_coef $pos_reward_coef \
-    --inv_reward $inv_reward
+    --primitive_skills $primitive_skills \
+    --primitive_dir $primitive_dir \
+    --actor_num_hid_layers $actor_num_hid_layers

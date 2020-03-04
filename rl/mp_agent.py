@@ -9,19 +9,14 @@ from util.gym import action_size
 import time
 from motion_planners.sampling_based_planner import SamplingBasedPlanner
 
-class LowLevelMpAgent:
-    def __init__(self, config, ob_space, ac_space, non_limited_idx=None):
-        if config.planner_type != 'komo':
-            self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx)
-        else:
-            raise NotImplementedError
+class MpAgent:
+    def __init__(self, config, ac_space, non_limited_idx=None):
 
         self._config = config
-        self._ob_space = ob_space
-        self._ac_space = ac_space
+        self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx)
 
     def plan(self, start, goal):
         config = self._config
         traj, states = self.planner.plan(start, goal, config.timelimit, config.max_meta_len)
-        return traj, states
+        return traj
 
