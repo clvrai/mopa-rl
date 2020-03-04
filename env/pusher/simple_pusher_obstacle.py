@@ -57,16 +57,15 @@ class SimplePusherObstacleEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qpos.flat[self.model.nu:],
                 self.sim.data.qvel.flat[:self.model.nu],
-                self._get_obstacle_states(),
-                self._get_pos('box'),
-                self._get_pos("target")
-            ]))
+                self._get_pos("fingertip"),
+                self._get_obstacle_states()
+            ])),
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(26,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(28,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property

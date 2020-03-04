@@ -1,14 +1,14 @@
 #!/bin/bash
 workers="3"
-prefix="ll.push.sac.reward_scale.1.wo.norm.worker.3"
+prefix="both.push.sac.reward_scale.1.wo.norm.subgoal.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="0"
+gpu="1"
 rl_hid_size="256"
 meta_update_target="both"
-hrl_network_to_update="LL"
+hrl_network_to_update="both"
 hl_type='subgoal'
 max_episode_step="150"
 max_meta_len="15"
@@ -17,7 +17,7 @@ meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.1"
 buffer_size="10000"
-num_batches="150"
+num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -34,7 +34,8 @@ reward_scale='1'
 actor_num_hid_layers='1'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -67,4 +68,4 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --start_steps $start_steps \
     --reward_scale $reward_scale \
     --actor_num_hid_layers $actor_num_hid_layers \
-   # --hl_type $hl_type \
+    --hl_type $hl_type \
