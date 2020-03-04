@@ -66,6 +66,7 @@ class RolloutRunner(object):
         self._pi = pi
         self._ik_env = gym.make(config.env, **config.__dict__)
 
+
     def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
         config = self._config
         device = config.device
@@ -111,15 +112,29 @@ class RolloutRunner(object):
                 joint_space = env.joint_space['default']
                 minimum = joint_space.low
                 maximum = joint_space.high
-                subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
+                if self._config.subgoal_type == 'joint':
+                    subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
+                else:
+                    subgoal_cart = meta_ac['subgoal']
+                    subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
+                    ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
+                    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=10, progress_thresh=10000.)
+                    subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
+                #subgoal = np.clip(subgoal, minimum, maximum)
 
                 ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+
+
                 # Will change fingertip to variable later
                 subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
 
                 target_qpos = np.concatenate([subgoal, env.goal])
+
+
+
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
                 if random_exploration:
@@ -158,13 +173,11 @@ class RolloutRunner(object):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
 
-                    self._store_frame(frame_info)
+                    self._store_frame(frame_info, subgoal_site_pos)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
         ll_ob = ob.copy()
-        if config.hrl and config.hl_type == 'subgoal':
-            ll_ob['subgoal'] = meta_ac['subgoal']
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())
@@ -179,6 +192,7 @@ class RolloutRunner(object):
         ep_info['saved_qpos'] = saved_qpos
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
+
 
     def run_episode_with_mp(self, max_step=10000, is_train=True, record=False):
         config = self._config
@@ -304,6 +318,7 @@ class RolloutRunner(object):
 
                         info = OrderedDict()
                         done, info, _ = env._after_step(reward, False, info)
+
                         reward_info['episode_success'].append(False)
 
                         for key, value in info.items():
@@ -340,6 +355,7 @@ class RolloutRunner(object):
                     curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     saved_qpos.append(env.sim.get_state().qpos.copy())
+
                     ob, reward, done, info = env.step(ac)
 
 
@@ -366,7 +382,7 @@ class RolloutRunner(object):
                                 frame_info['meta_subgoal'] = meta_ac[k]
                             elif k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
-                        self._store_frame(frame_info)
+                        self._store_frame(frame_info, subgoal_site_pos)
 
                     if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break
