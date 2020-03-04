@@ -73,7 +73,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:env.model.nu]
+        return self.sim.data.qpos.ravel()[:self.model.nu]
 
     def _step(self, action):
         """
