@@ -57,10 +57,9 @@ class SimplePusherObstacleEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qpos.flat[self.model.nu:],
                 self.sim.data.qvel.flat[:self.model.nu],
-                self._get_obstacle_states(),
-                self._get_pos('box'),
-                self._get_pos("target")
-            ]))
+                self._get_pos('fingertip')
+            ])),
+            ('obstacle', self._get_obstacle_states())
         ])
 
     @property
@@ -74,7 +73,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:-4]
+        return self.sim.data.qpos.ravel()[:env.model.nu]
 
     def _step(self, action):
         """
@@ -104,27 +103,5 @@ class SimplePusherObstacleEnv(BaseEnv):
             self._do_simulation(action)
 
         obs = self._get_obs()
-        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
-        return obs, reward, done, info
-
-    def _kinematics_step(self, states):
-        info = {}
-        done = False
-
-        if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("box", "target")
-            reward = reward_dist
-            info = dict(reward_dist=reward_dist)
-        else:
-            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
-
-        states = np.concatenate((states[:self.model.nu], self.goal))
-        self.set_state(states, self.sim.data.qvel.ravel())
-        obs = self._get_obs()
-        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
         return obs, reward, done, info
 
