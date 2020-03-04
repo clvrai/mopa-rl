@@ -113,19 +113,13 @@ class RolloutRunner(object):
                 maximum = joint_space.high
                 subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
-                #subgoal = np.clip(subgoal, minimum, maximum)
 
                 ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-
-
                 # Will change fingertip to variable later
                 subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
 
                 target_qpos = np.concatenate([subgoal, env.goal])
-
-
-
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
                 if random_exploration:
@@ -164,7 +158,7 @@ class RolloutRunner(object):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
 
-                    self._store_frame(frame_info, subgoal_site_pos)
+                    self._store_frame(frame_info)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
@@ -372,7 +366,7 @@ class RolloutRunner(object):
                                 frame_info['meta_subgoal'] = meta_ac[k]
                             elif k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
-                        self._store_frame(frame_info, subgoal_site_pos)
+                        self._store_frame(frame_info)
 
                     if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break

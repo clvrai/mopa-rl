@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="4"
-prefix="hl.ppo.mp.push"
+prefix="hl.ppo.mp.push.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,27 +12,27 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="0"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-1"
+meta_subgoal_rew="-0.5"
 max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="4096"
 num_batches="16"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="15360"
 batch_size="256"
 clip_param="0.2"
 reward_type="dense"
 reward_scale="1"
-note="test"
+comment="Initial experiments for HRL framework"
 seed="1234"
 ctrl_reward_coef="1"
 primitive_skills="mp push"
@@ -40,8 +40,7 @@ primitive_dir="primitives"
 actor_num_hid_layers="1"
 
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \
@@ -74,7 +73,7 @@ python -m rl.main --log_root_dir ./logs \
     --clip_param $clip_param \
     --reward_type $reward_type \
     --reward_scale $reward_scale \
-    --note $note \
+    --comment $comment \
     --seed $seed \
     --ctrl_reward_coef $ctrl_reward_coef \
     --primitive_skills $primitive_skills \
