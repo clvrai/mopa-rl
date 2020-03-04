@@ -165,7 +165,7 @@ class RolloutRunner(object):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
 
-                    self._store_frame(frame_info, subgoal_site_pos)
+                    self._store_frame(frame_info)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
@@ -382,9 +382,6 @@ class RolloutRunner(object):
                 reward_info['meta_rew'].append(meta_rew)
         # last frame
         ll_ob = ob.copy()
-        if config.hrl and config.hl_type == 'subgoal':
-            ll_ob['subgoal'] = meta_ac['subgoal']
-
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
         saved_qpos.append(env.sim.get_state().qpos.copy())

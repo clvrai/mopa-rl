@@ -1,6 +1,6 @@
 #!/bin/bash
 workers="3"
-prefix="ll.push.sac.reward_scale.1.worker.3.debug"
+prefix="ll.push.sac.reward_scale.1.worker.3"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
@@ -20,7 +20,7 @@ buffer_size="10000"
 num_batches="150"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="1000"
 batch_size="256"
 clip_param="0.2"
@@ -34,8 +34,7 @@ reward_scale='1'
 actor_num_hid_layers='1'
 
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
