@@ -22,10 +22,9 @@ env = gym.make(args.env, **args.__dict__)
 obs = env.reset()
 
 for i in range(1000):
-    env.render(mode='rgb_array')
+    env.render(mode='human')
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
-    print(obs['default'].shape)
     if done:
         print('done')
         break
