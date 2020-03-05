@@ -81,8 +81,6 @@ class MetaPPOAgent(BaseAgent):
     def _compute_gae(self, rollouts):
         T = len(rollouts['done'])
         ob = rollouts['ob']
-        if self._config.policy == 'mlp':
-            ob = self.normalize(ob)
         ob = obs2tensor(ob, self._config.device)
         vpred = self._critic(ob).detach().cpu().numpy()[:,0]
         assert len(vpred) == T + 1
@@ -165,8 +163,6 @@ class MetaPPOAgent(BaseAgent):
 
         # pre-process observations
         o = transitions['ob']
-        if self._config.policy == 'mlp':
-            o = self.normalize(o)
 
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
@@ -246,8 +242,6 @@ class MetaPPOAgent(BaseAgent):
 
     def act(self, ob, is_train=True):
         if self._config.hrl:
-            if self._config.policy != 'cnn':
-                ob = self.normalize(ob)
             return self._actor.act(ob, is_train, return_log_prob=True)
         else:
             return [0], None, None
