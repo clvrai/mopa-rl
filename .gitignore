@@ -61,4 +61,4 @@ test_logs
 tmp
 
 motion_planners/*.so
-primitives
+./primitives

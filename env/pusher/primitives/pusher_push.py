@@ -30,14 +30,9 @@ class PusherPushEnv(SimplePusherEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and \
-                    self._get_distance('box', 'target') < 0.2 and \
-                    self._get_distance('box', 'target') < self._get_distance('target', 'fingertip') and \
-                    self._get_distance('box', 'fingertip') < 0.1 and \
-                    self._get_distance('target', 'fingertip') < 0.3 and \
-                    self._get_distance('target', 'fingertip') > 0.2 and \
-                    self._get_distance('box', 'target') < self._get_distance('target', 'link1') and \
-                    np.linalg.norm(box) > 0.1 and self._get_distance('box', 'target') > self._env_config['distance_threshold']:
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and \
+                    self._get_distance('box', 'fingertip') < 0.05 and \
+                    np.linalg.norm(box) > 0.1:
                 self.goal = goal
                 break
         return self._get_obs()
