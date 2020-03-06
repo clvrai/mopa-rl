@@ -95,6 +95,33 @@ register(
 )
 
 register(
+    id='sawyer-pick-place-single-v0',
+    entry_point='env.robosuite:SawyerPickPlaceSingleEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-pick-place-milk-v0',
+    entry_point='env.robosuite:SawyerPickPlaceMilkEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-pick-place-bread-v0',
+    entry_point='env.robosuite:SawyerPickPlaceBreadEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-pick-place-cereal-v0',
+    entry_point='env.robosuite:SawyerPickPlaceCerealEnv',
+    kwargs={}
+)
+
+register(
+    id='sawyer-pick-place-can-v0',
+    entry_point='env.robosuite:SawyerPickPlaceCanEnv',
+    kwargs={}
+)
+
+register(
     id='sawyer-push-v0',
     entry_point='env.robosuite:SawyerPushEnv',
     kwargs={}
