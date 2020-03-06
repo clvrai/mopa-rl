@@ -42,6 +42,11 @@ sh ./scripts/test_env
 ### Create Robosuite xml file
 
 The command below generates a robosuite xml file in `env/assets/xml/` folder.
+
+#### Environments currently supported
+- sawyer-pick-place-[single, milk, can, cereal]-v0
+- sawyer-move-[single, milk, can, cereal]-v0
+
 ```
 python -m env.create_robosuite_xml --env sawyer-pick-place-can-v0
 # or 
