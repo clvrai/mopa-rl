@@ -115,6 +115,8 @@ if __name__ == '__main__':
         from config.reacher import add_arguments
     elif 'pusher' in args.env:
         from config.pusher import add_arguments
+    elif 'mover' in args.env:
+        from config.mover import add_arguments
     else:
         raise ValueError('args.env (%s) is not supported' % args.env)
 

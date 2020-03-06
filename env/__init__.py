@@ -62,6 +62,37 @@ register(
     entry_point='env.robosuite:SawyerPickPlaceEnv',
     kwargs={}
 )
+register(
+    id='sawyer-move-v0',
+    entry_point='env.robosuite:SawyerMoveEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-move-single-v0',
+    entry_point='env.robosuite:SawyerMoveSingleEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-move-milk-v0',
+    entry_point='env.robosuite:SawyerMoveMilkEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-move-bread-v0',
+    entry_point='env.robosuite:SawyerMoveBreadEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-move-cereal-v0',
+    entry_point='env.robosuite:SawyerMoveCerealEnv',
+    kwargs={}
+)
+
+register(
+    id='sawyer-move-can-v0',
+    entry_point='env.robosuite:SawyerMoveCanEnv',
+    kwargs={}
+)
 
 register(
     id='sawyer-push-v0',
@@ -78,6 +109,12 @@ register(
 register(
     id='simple-pusher-v0',
     entry_point='env.pusher:SimplePusherEnv',
+    kwargs={}
+)
+
+register(
+    id='simple-mover-v0',
+    entry_point='env.mover:SimpleMoverEnv',
     kwargs={}
 )
 

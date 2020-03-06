@@ -143,7 +143,6 @@ class UniformRandomSampler(ObjectPositionSampler):
             index += 1
         return pos_arr, quat_arr
 
-
 class UniformRandomPegsSampler(ObjectPositionSampler):
     """Places all objects on top of the table uniformly random."""
 

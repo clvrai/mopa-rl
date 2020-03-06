@@ -8,10 +8,14 @@ args, unparsed = parser.parse_known_args()
 
 if 'reacher' in args.env:
     from config.reacher import add_arguments
+elif 'sawyer-move' in args.env:
+    from config.sawyer_move import add_arguments
 elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
 elif 'pusher' in args.env:
     from config.pusher import add_arguments
+elif 'mover' in args.env:
+    from config.mover import add_arguments
 else:
     raise ValueError('args.env (%s) is not supported' % args.env)
 
@@ -23,6 +27,8 @@ obs = env.reset()
 
 for i in range(1000):
     env.render(mode='human')
+    import pdb
+    pdb.set_trace()
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
     if done:

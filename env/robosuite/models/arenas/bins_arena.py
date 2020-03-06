@@ -16,7 +16,6 @@ class BinsArena(Arena):
             friction: friction parameters of the table
         """
         super().__init__(xml_path_completion("arenas/bins_arena.xml"))
-
         self.table_full_size = np.array(table_full_size)
         self.table_half_size = self.table_full_size / 2
         self.table_friction = table_friction
