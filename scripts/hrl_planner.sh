@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="4"
-prefix="hl.ppo.sst.push.composition.rew"
+prefix="hl.ppo.sst.push.composition.rew.hard_init"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -32,7 +32,7 @@ batch_size="256"
 clip_param="0.2"
 reward_type="composition"
 reward_scale="1"
-comment="Composition reward"
+comment="Composition reward with harder init"
 seed="1234"
 ctrl_reward_coef="1"
 primitive_skills="mp push"

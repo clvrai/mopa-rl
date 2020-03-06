@@ -88,12 +88,12 @@ class SimplePusherObstacleEnv(BaseEnv):
         desired_state = self.get_joint_positions + action
 
         if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("fingertip", "target")
+            reward_dist = -self._get_distance("box", "target")
             reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
         else:
-            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
