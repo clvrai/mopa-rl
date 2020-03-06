@@ -37,6 +37,7 @@ python setup.py build_ext --inlpace
 python -m env.test_env 
 # or 
 sh ./scripts/test_env
+````
 
 ### Create Robosuite xml file
 
