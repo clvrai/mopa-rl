@@ -1,14 +1,13 @@
 import env
 import gym
+import os
 from config import argparser
 import numpy as np
 
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 
-if 'reacher' in args.env:
-    from config.reacher import add_arguments
-elif 'sawyer-move' in args.env:
+if 'sawyer-move' in args.env:
     from config.sawyer_move import add_arguments
 elif 'pusher' in args.env:
     from config.pusher import add_arguments
@@ -27,13 +26,7 @@ args, unparsed = parser.parse_known_args()
 env = gym.make(args.env, **args.__dict__)
 obs = env.reset()
 
+fname = args.env.replace("-v0", "")
+fname = fname.replace("-", "_")
+env.model.save_model(os.path.join('./env/assets/xml/', fname+'.xml'))
 
-for i in range(1000):
-    env.render(mode='human')
-    import pdb
-    pdb.set_trace()
-    action = env.action_space.sample()
-    obs, reward, done, _ = env.step(action)
-    if done:
-        print('done')
-        break
