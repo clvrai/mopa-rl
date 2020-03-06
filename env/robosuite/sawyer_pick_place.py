@@ -80,12 +80,12 @@ class SawyerPickPlaceEnv(SawyerEnv):
         self.object_to_id = {"milk": 0, "bread": 1, "cereal": 2, "can": 3}
         if kwargs['object_type'] is not None:
             assert (
-                object_type in self.object_to_id.keys()
+                kwargs['object_type'] in self.object_to_id.keys()
             ), "invalid @object_type argument - choose one of {}".format(
                 list(self.object_to_id.keys())
             )
             self.object_id = self.object_to_id[
-                object_type
+                kwargs['object_type']
             ]  # use for convenient indexing
         self.obj_to_use = None
 
@@ -517,8 +517,8 @@ class SawyerPickPlaceSingleEnv(SawyerPickPlaceEnv):
     """
 
     def __init__(self, **kwargs):
-        assert "single_object_mode" not in kwargs, "invalid set of arguments"
-        super().__init__(single_object_mode=1, **kwargs)
+        kwargs['single_object_mode'] = 1
+        super().__init__(**kwargs)
 
 
 class SawyerPickPlaceMilkEnv(SawyerPickPlaceEnv):
@@ -527,10 +527,9 @@ class SawyerPickPlaceMilkEnv(SawyerPickPlaceEnv):
     """
 
     def __init__(self, **kwargs):
-        assert (
-            "single_object_mode" not in kwargs and "object_type" not in kwargs
-        ), "invalid set of arguments"
-        super().__init__(single_object_mode=2, object_type="milk", **kwargs)
+        kwargs['single_object_mode'] = 2
+        kwargs['object_type'] = 'milk'
+        super().__init__(**kwargs)
 
 
 class SawyerPickPlaceBreadEnv(SawyerPickPlaceEnv):
@@ -539,10 +538,9 @@ class SawyerPickPlaceBreadEnv(SawyerPickPlaceEnv):
     """
 
     def __init__(self, **kwargs):
-        assert (
-            "single_object_mode" not in kwargs and "object_type" not in kwargs
-        ), "invalid set of arguments"
-        super().__init__(single_object_mode=2, object_type="bread", **kwargs)
+        kwargs['single_object_mode'] = 2
+        kwargs['object_type'] = 'bread'
+        super().__init__(**kwargs)
 
 
 class SawyerPickPlaceCerealEnv(SawyerPickPlaceEnv):
@@ -551,10 +549,9 @@ class SawyerPickPlaceCerealEnv(SawyerPickPlaceEnv):
     """
 
     def __init__(self, **kwargs):
-        assert (
-            "single_object_mode" not in kwargs and "object_type" not in kwargs
-        ), "invalid set of arguments"
-        super().__init__(single_object_mode=2, object_type="cereal", **kwargs)
+        kwargs['single_object_mode'] = 2
+        kwargs['object_type'] = 'cereal'
+        super().__init__(**kwargs)
 
 
 class SawyerPickPlaceCanEnv(SawyerPickPlaceEnv):
@@ -563,7 +560,6 @@ class SawyerPickPlaceCanEnv(SawyerPickPlaceEnv):
     """
 
     def __init__(self, **kwargs):
-        assert (
-            "single_object_mode" not in kwargs and "object_type" not in kwargs
-        ), "invalid set of arguments"
-        super().__init__(single_object_mode=2, object_type="can", **kwargs)
+        kwargs['single_object_mode'] = 2
+        kwargs['object_type'] = 'can'
+        super().__init__( **kwargs)
