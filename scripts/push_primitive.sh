@@ -1,11 +1,11 @@
 #!/bin/bash
 workers="3"
-prefix="ll.push.sac.reward_scale.1.worker.3"
+prefix="ll.push.box_vel"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-obstacle-v0"
-gpu="0"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -26,11 +26,11 @@ batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
 reward_type='dense'
-comment='Primitive skilPrimitive skilll'
+comment='Primitive skill with different initialization'
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'
-reward_scale='1'
+reward_scale='3'
 actor_num_hid_layers='1'
 
 

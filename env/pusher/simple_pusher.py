@@ -25,7 +25,8 @@ class SimplePusherEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1:
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
+                    self._get_distance('fingertip', 'box') > 0.2: #make the task harder
                 self.goal = goal
                 break
         return self._get_obs()
@@ -94,12 +95,12 @@ class SimplePusherEnv(BaseEnv):
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type'] == 'composition':
-            reward_box_to_target = -self._box_to_target_coef * self._get_distance("box", "target")
-            reward_end_effector_to_box = -self._box_to_target_coef * self._get_distance("end_effector", "box")
+            reward_box_to_target = -self._get_distance("box", "target")
+            reward_fingertip_to_box = -self._get_distance("fingertip", "box")
             reward_ctrl = self._ctrl_reward(action)
-            reward = reward_box_to_target + reward_end_effector_to_box + reward_ctrl
+            reward = reward_box_to_target + reward_fingertip_to_box + reward_ctrl
             info = dict(reward_box_to_target=reward_box_to_target,
-                        reward_end_effector_to_box=reward_end_effector_to_box,
+                        reward_fingertip_to_box=reward_fingertip_to_box,
                         reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
