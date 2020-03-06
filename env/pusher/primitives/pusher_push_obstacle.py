@@ -28,7 +28,7 @@ class PusherPushObstacleEnv(SimplePusherObstacleEnv):
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and \
                     self._get_distance('box', 'fingertip') < 0.05 and \
-                    np.linalg.norm(box) > 0.1:
+                    np.linalg.norm(box) < 1.5:
                 self.goal = goal
                 break
         return self._get_obs()

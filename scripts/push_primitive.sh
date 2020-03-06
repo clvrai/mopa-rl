@@ -1,16 +1,16 @@
 #!/bin/bash
 workers="3"
-prefix="ll.push.max_step.30.change_init"
+prefix="ll.push.max_step.150.scale10.change_init"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
-env="pusher-push-v0"
-gpu="0"
+env="pusher-push-obstacle-v0"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
 hl_type='subgoal'
-max_episode_step="30"
+max_episode_step="150"
 max_meta_len="15"
 evaluate_interval="1"
 meta_tanh_policy="True"
@@ -26,11 +26,11 @@ batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
 reward_type='dense'
-comment='Primitive skill with different initialization, the distance between box and target must be shorter than the distance between target and fingertip, in order to purely learn pushing skill'
+comment='Primitive skill with different initialization, use shorter distance between box and origin'
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'
-reward_scale='3'
+reward_scale='10'
 actor_num_hid_layers='1'
 
 
