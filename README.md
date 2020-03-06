@@ -47,7 +47,7 @@ python -m env.create_robosuite_xml --env sawyer-pick-place-can-v0
 # or 
 sh ./scripts/craete_robosuite_xml.sh
 ```
-```
+
 
 ### SAC Baseline
 ```
