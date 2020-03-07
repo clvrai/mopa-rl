@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="16"
-prefix="hl.dense.init_weight.wo_norm"
+workers="4"
+prefix="hl.dense.init_weight.wo_norm.worker.4"
 hrl="True"
 max_global_step="60000000"
 ll_type="mp"
