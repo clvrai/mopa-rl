@@ -47,7 +47,7 @@ class PPOAgent(BaseAgent):
     def _compute_gae(self, rollouts):
         T = len(rollouts['done'])
         ob = rollouts['ob']
-        ob = self.normalize(ob)
+        # ob = self.normalize(ob)
         ob = obs2tensor(ob, self._config.device)
         vpred = self._critic(ob).detach().cpu().numpy()[:,0]
         assert len(vpred) == T + 1
@@ -121,7 +121,7 @@ class PPOAgent(BaseAgent):
 
         # pre-process observations
         o = transitions['ob']
-        o = self.normalize(o)
+        # o = self.normalize(o)
 
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
