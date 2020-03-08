@@ -1,11 +1,11 @@
 #!/bin/bash
-workers="3"
-prefix="ll.push.max_step.150.scale10.change_init.num_batches.450"
+workers="12"
+prefix="ll.push.max_step.150.goal_obs.v1.worker.12"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="0"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -17,7 +17,7 @@ meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.1"
 buffer_size="10000"
-num_batches="450"
+num_batches="600"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -30,7 +30,7 @@ comment='Primitive skill with different initialization, use shorter distance bet
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'
-reward_scale='10'
+reward_scale='1'
 actor_num_hid_layers='1'
 
 

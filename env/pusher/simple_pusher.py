@@ -46,17 +46,19 @@ class SimplePusherEnv(BaseEnv):
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[self.model.nu:],
+                self.sim.data.qpos.flat[-2:], # box qpos
                 self.sim.data.qvel.flat[:self.model.nu],
                 self.sim.data.qvel.flat[-2:], # box vel
                 self._get_pos('fingertip')
-            ]))
+            ])),
+            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(18,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property

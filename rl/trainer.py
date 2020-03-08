@@ -75,7 +75,8 @@ class Trainer(object):
         #         raise NotImplementedError
         # else:
         #     # no subgoal, only choose which low-level controler we use
-        ll_ob_space = spaces.Dict({'default': ob_space['default']})
+        #ll_ob_space = spaces.Dict({'default': ob_space['default']})
+        ll_ob_space = ob_space
 
         if config.ll_type == 'mp':
             config.primitive_skills = ['mp']
