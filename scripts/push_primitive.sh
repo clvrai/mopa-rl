@@ -1,11 +1,11 @@
 #!/bin/bash
 workers="12"
-prefix="ll.push.max_step.150.goal_obs.v1.worker.12.fixed_joints"
+prefix="ll.push.max_step.150.goal_obs.v1.worker.12.fixed_joints.non_terminal.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="2"
+gpu="0"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
