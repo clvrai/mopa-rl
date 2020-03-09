@@ -37,8 +37,7 @@ def argparser():
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])
     parser.add_argument("--meta_subgoal_rew", type=float, default=-100)
-
-    parser.add_argument("--kinematics", type=str2bool, default=False)
+    parser.add_argument("--goal_replace", type=str2bool, default=False)
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
@@ -111,6 +110,7 @@ def argparser():
     parser.add_argument("--rollout_length", type=int, default=1000)
     parser.add_argument("--gae_lambda", type=float, default=0.95)
     parser.add_argument("--reward_division", type=float, default=None)
+    parser.add_argument("--ppo_hid_size", type=int, default=64)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)

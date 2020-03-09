@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="4"
-prefix="hl.ppo.sst.push.composition.rew.hard_init"
+workers="8"
+prefix="hl.ppo.sst.push.composition.cart.ppo.64.v3"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,33 +12,35 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_step="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
-meta_subgoal_rew="-0.5"
+meta_subgoal_rew="-0.3"
 max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="16"
+num_batches="8"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-rollout_length="15360"
+rollout_length="7680"
 batch_size="256"
 clip_param="0.2"
 reward_type="composition"
 reward_scale="1"
-comment="Composition reward with harder init"
+comment="Fix min and max of subgoal"
 seed="1234"
 ctrl_reward_coef="1"
-primitive_skills="mp push"
+primitive_skills="mp push2"
 primitive_dir="primitives"
 actor_num_hid_layers="1"
-
+subgoal_type="cart"
+ppo_hid_size="64"
+goal_replace="True"
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -78,4 +80,7 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --ctrl_reward_coef $ctrl_reward_coef \
     --primitive_skills $primitive_skills \
     --primitive_dir $primitive_dir \
-    --actor_num_hid_layers $actor_num_hid_layers
+    --actor_num_hid_layers $actor_num_hid_layers \
+    --subgoal_type $subgoal_type \
+    --ppo_hid_size $ppo_hid_size \
+    --goal_replace $goal_replace
