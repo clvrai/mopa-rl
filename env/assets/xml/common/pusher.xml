@@ -35,7 +35,7 @@
         <geom conaffinity="0" contype="0" fromto="0 0 0 0 0 0.05" name="root" rgba="0.9 0.4 0.6 1" size=".011" type="cylinder"/>
         <body name="body0" pos="0 0 .02">
             <geom class='link' name='link0'/>
-            <joint axis="0 0 1" limited="true" range="-3.14 3.14" name="joint0" pos="0 0 0" type="hinge"/>
+            <joint axis="0 0 1" limited="false" name="joint0" pos="0 0 0" type="hinge"/>
             <body name="body1" pos="0.1 0 0">
                 <joint axis="0 0 1" limited="true" name="joint1" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
                 <geom class='link' name='link1'/>

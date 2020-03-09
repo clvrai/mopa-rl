@@ -111,6 +111,7 @@ def argparser():
     parser.add_argument("--rollout_length", type=int, default=1000)
     parser.add_argument("--gae_lambda", type=float, default=0.95)
     parser.add_argument("--reward_division", type=float, default=None)
+    parser.add_argument("--ppo_hid_size", type=int, default=64)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)

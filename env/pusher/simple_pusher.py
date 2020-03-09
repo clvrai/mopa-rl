@@ -28,14 +28,15 @@ class SimplePusherEnv(BaseEnv):
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
                     self._get_distance('fingertip', 'box') > 0.2: #make the task harder
                 self.goal = goal
+                self.box = box
                 break
         return self._get_obs()
 
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-4:-2] = goal
-            qpos[-2:] = box
+            qpos[-4:-2] = self.goal
+            qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break

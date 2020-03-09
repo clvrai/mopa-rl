@@ -143,13 +143,17 @@ class RolloutRunner(object):
                     stds = None
                 else:
                     if config.hrl:
+                        if self._config.meta_update_target == 'HL':
+                            if self._config.subgoal_type == 'joint':
+                                ll_ob['goal'] = subgoal_site_pos
+                            else:
+                                ll_ob['goal'] = subgoal_cart
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                saved_qpos.append(env.sim.get_state().qpos.copy())
-
+                saved_qpos.append(env.sim.get_state().qpos.copy()) 
                 ob, reward, done, info = env.step(ac)
 
 
@@ -266,9 +270,16 @@ class RolloutRunner(object):
                 traj = pi.plan(curr_qpos, target_qpos)
                 success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
                 if success:
+                    import pdb
+                    pdb.set_trace()
                     mp_success += 1
                     for i, state in enumerate(traj[1:]):
                         ll_ob = ob.copy()
+                        if self._config.meta_update_target == 'HL':
+                            if self._config.subgoal_type == 'joint':
+                                ll_ob['goal'] = subgoal_site_pos
+                            else:
+                                ll_ob['goal'] = subgoal_cart
 
                         curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                         ac = OrderedDict([('default', state[:env.model.nu] - curr_qpos)])
@@ -301,6 +312,7 @@ class RolloutRunner(object):
                             frame_info['skill_type'] = skill_type
                             frame_info['meta_subgoal_cart'] = subgoal_site_pos
                             frame_info['meta_subgoal_joint'] = subgoal
+                            frame_info['path_length'] = len(traj[1:])
                             for i, k in enumerate(meta_ac.keys()):
                                 if k == 'subgoal' and k != 'default':
                                     frame_info['meta_subgoal'] = meta_ac[k]
@@ -356,6 +368,11 @@ class RolloutRunner(object):
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     if config.hrl:
+                        if self._config.meta_update_target == 'HL':
+                            if self._config.subgoal_type == 'joint':
+                                ll_ob['goal'] = subgoal_site_pos
+                            else:
+                                ll_ob['goal'] = subgoal_cart
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)

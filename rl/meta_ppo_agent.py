@@ -50,9 +50,9 @@ class MetaPPOAgent(BaseAgent):
 
         # build up networks
         if config.policy == 'mlp':
-            self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy, activation='tanh')
-            self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy, activation='tanh')
-            self._critic = MlpCritic(config, ob_space, activation='tanh')
+            self._actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy, activation='tanh', rl_hid_size=config.ppo_hid_size)
+            self._old_actor = MlpActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy, activation='tanh', rl_hid_size=config.ppo_hid_size)
+            self._critic = MlpCritic(config, ob_space, activation='tanh', rl_hid_size=config.ppo_hid_size)
         elif config.policy == 'cnn':
             self._actor = CNNActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
             self._old_actor = CNNActor(config, ob_space, ac_space, tanh_policy=config.meta_tanh_policy)
