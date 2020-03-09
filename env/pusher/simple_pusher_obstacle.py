@@ -12,8 +12,7 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_pusher_obstacle.xml", **kwargs)
-        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
-
+        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names)) 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
@@ -55,18 +54,19 @@ class SimplePusherObstacleEnv(BaseEnv):
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[self.model.nu:],
+                self.sim.data.qpos.flat[-2:], # box qpos
                 self.sim.data.qvel.flat[:self.model.nu],
-                self.sim.data.qvel.flat[-2:], #box vel
-                self._get_pos("fingertip"),
-                self._get_obstacle_states()
+                self.sim.data.qvel.flat[-2:], # box vel
+                self._get_pos('fingertip')
             ])),
+            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(30,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -104,14 +104,12 @@ class SimplePusherObstacleEnv(BaseEnv):
             reward_exp_dist = np.exp(-self._get_distance('box', 'target'))
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
-        elif self._env_config['reward_type'] == 'composition':
-            reward_box_to_target = -self._get_distance("box", "target")
-            reward_fingertip_to_box = -self._get_distance("fingertip", "box")
+        elif reward_type == 'composition':
+            reward_dist = -self._get_distance("box", "target")
+            reward_near = -self._get_distance("fingertip", "box")
             reward_ctrl = self._ctrl_reward(action)
-            reward = reward_box_to_target + reward_fingertip_to_box + reward_ctrl
-            info = dict(reward_box_to_target=reward_box_to_target,
-                        reward_fingertip_to_box=reward_fingertip_to_box,
-                        reward_ctrl=reward_ctrl)
+            reward = reward_dist + 0.5*reward_near + reward_ctrl
+            info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 

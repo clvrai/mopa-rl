@@ -98,13 +98,11 @@ class SimplePusherEnv(BaseEnv):
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type'] == 'composition':
-            reward_box_to_target = -self._get_distance("box", "target")
-            reward_fingertip_to_box = -self._get_distance("fingertip", "box")
+            reward_dist = -self._get_distance("box", "target")
+            reward_near = -self._get_distance("fingertip", "box")
             reward_ctrl = self._ctrl_reward(action)
-            reward = reward_box_to_target + reward_fingertip_to_box + reward_ctrl
-            info = dict(reward_box_to_target=reward_box_to_target,
-                        reward_fingertip_to_box=reward_fingertip_to_box,
-                        reward_ctrl=reward_ctrl)
+            reward = reward_dist + 0.5*reward_near + reward_ctrl
+            info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 

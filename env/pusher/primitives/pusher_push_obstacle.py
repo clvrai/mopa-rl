@@ -62,6 +62,11 @@ class PusherPushObstacleEnv(SimplePusherObstacleEnv):
             reward_exp_dist = np.exp(-self._get_distance('box', 'target'))
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
+        elif reward_type == 'composition':
+            reward_dist = -self._get_distance("box", "target")
+            reward_near = -self._get_distance("box", 'fingertip')
+            reward = reward_dist + reward_ctrl + 0.5*reward_near
+            info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
         elif self._env_config['reward_type']:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
