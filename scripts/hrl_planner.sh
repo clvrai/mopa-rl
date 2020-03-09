@@ -40,6 +40,7 @@ primitive_dir="primitives"
 actor_num_hid_layers="1"
 subgoal_type="cart"
 ppo_hid_size="64"
+goal_replace="True"
 
 #mpiexec -n $workers
 python -m rl.main --log_root_dir ./logs \
@@ -82,4 +83,5 @@ python -m rl.main --log_root_dir ./logs \
     --primitive_dir $primitive_dir \
     --actor_num_hid_layers $actor_num_hid_layers \
     --subgoal_type $subgoal_type \
-    --ppo_hid_size $ppo_hid_size
+    --ppo_hid_size $ppo_hid_size \
+    --goal_replace $goal_replace

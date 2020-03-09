@@ -1,11 +1,11 @@
 #!/bin/bash
 workers="12"
-prefix="ll.push.max_step.150.goal_obs.v1.worker.12"
+prefix="ll.push.max_step.150.goal_obs.v1.worker.12.fixed_joints"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="3"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -26,7 +26,7 @@ batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
 reward_type='dense'
-comment='Primitive skill with different initialization, use shorter distance between box and origin'
+comment='Primitive skill with different initialization, use shorter distance between box and origin fix limited_joints'
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'

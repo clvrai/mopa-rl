@@ -143,7 +143,7 @@ class RolloutRunner(object):
                     stds = None
                 else:
                     if config.hrl:
-                        if self._config.meta_update_target == 'HL':
+                        if self._config.meta_update_target == 'HL' and self._config.goal_replace:
                             if self._config.subgoal_type == 'joint':
                                 ll_ob['goal'] = subgoal_site_pos
                             else:
@@ -270,12 +270,10 @@ class RolloutRunner(object):
                 traj = pi.plan(curr_qpos, target_qpos)
                 success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
                 if success:
-                    import pdb
-                    pdb.set_trace()
                     mp_success += 1
                     for i, state in enumerate(traj[1:]):
                         ll_ob = ob.copy()
-                        if self._config.meta_update_target == 'HL':
+                        if self._config.meta_update_target == 'HL' and self._config.goal_replace:
                             if self._config.subgoal_type == 'joint':
                                 ll_ob['goal'] = subgoal_site_pos
                             else:
@@ -368,7 +366,7 @@ class RolloutRunner(object):
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     if config.hrl:
-                        if self._config.meta_update_target == 'HL':
+                        if self._config.meta_update_target == 'HL' and self._config.goal_replace:
                             if self._config.subgoal_type == 'joint':
                                 ll_ob['goal'] = subgoal_site_pos
                             else:

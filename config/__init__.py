@@ -37,8 +37,7 @@ def argparser():
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])
     parser.add_argument("--meta_subgoal_rew", type=float, default=-100)
-
-    parser.add_argument("--kinematics", type=str2bool, default=False)
+    parser.add_argument("--goal_replace", type=str2bool, default=False)
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
