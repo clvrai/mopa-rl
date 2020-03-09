@@ -33,7 +33,8 @@ class PusherPushEnv(SimplePusherEnv):
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and \
                     self._get_distance('box', 'fingertip') < 0.05 and \
                     self._get_distance('box', 'target') < self._get_distance('fingertip', 'target') and \
-                    np.linalg.norm(box) > 0.1:
+                    np.linalg.norm(box) > 0.1 and \
+                    self._get_distance('box', 'target') > self._env_config['distance_threshold']:
                 self.goal = goal
                 break
         return self._get_obs()
