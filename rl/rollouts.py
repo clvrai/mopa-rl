@@ -231,6 +231,12 @@ class RolloutRunner(object):
         meta_ac = None
         success = False
         path_length = []
+
+        skill_count = {}
+        if self._config.hrl:
+            for skill in pi._skills:
+                skill_count[skill] = 0
+
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
@@ -266,6 +272,7 @@ class RolloutRunner(object):
             target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
 
             skill_type = pi.return_skill_type(meta_ac)
+            skill_count[skill_type] += 1
             if skill_type == 'mp':
                 traj = pi.plan(curr_qpos, target_qpos)
                 success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
@@ -416,6 +423,8 @@ class RolloutRunner(object):
 
         #ep_info = {'len': ep_len, 'rew': ep_rew, 'path_length': path_length}
         ep_info = {'len': ep_len, 'rew': ep_rew}
+        for key, val in skill_count.items():
+            ep_info[key] = val
         for key, value in reward_info.items():
             if isinstance(value[0], (int, float, bool)):
                 if '_mean' in key:

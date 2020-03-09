@@ -1,6 +1,6 @@
 #!/bin/bash
 workers="12"
-prefix="ll.push.max_step.150.goal_obs.v1.worker.12.fixed_joints.non_terminal.v1"
+prefix="ll.push.max_step.30.goal_obs.v1.worker.12.fixed_joints"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
@@ -10,7 +10,7 @@ rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
 hl_type='subgoal'
-max_episode_step="150"
+max_episode_step="30"
 max_meta_len="15"
 evaluate_interval="1"
 meta_tanh_policy="True"

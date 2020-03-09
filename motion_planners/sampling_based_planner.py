@@ -42,7 +42,7 @@ class SamplingBasedPlanner:
                         tmp_state[idx] = traj[-1][idx] + (3.14-pre_state[idx] + state[idx] + 3.14)
                     elif pre_state[idx] < 0 and state[idx] > 0:
                         tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
-            pre_state = tmp_state
+            pre_state = state
             traj.append(tmp_state)
         return np.array(traj), states
 
