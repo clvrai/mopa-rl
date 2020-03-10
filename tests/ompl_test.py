@@ -112,7 +112,7 @@ def run_mp(env, planner, i=None):
     goal = result.qpos
     print(start)
 
-    traj = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
+    traj, _ = planner.plan(start, goal,  args.timelimit, args.max_meta_len)
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
 

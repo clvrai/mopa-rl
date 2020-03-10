@@ -37,11 +37,6 @@ start_time = time.time()
 env.reset()
 qpos = env.sim.data.qpos.ravel()
 qvel = env.sim.data.qvel.ravel()
-# env.goal = [-0.25128643, 0.14829235]
-# qpos[-2:] = env.goal
-# qpos[:-2] = [0.09539838, 0.04237122, 0.05476331, -0.0676346, -0.0434791, -0.06203809, 0.03571644]
-# qvel[:-2] = [ 0.00293847, 0.00158573, 0.0018593, 0.00122192, -0.0016253, 0.00225007, 0.00001702]
-#env.set_state(qpos, qvel)
 goal = env.goal
 print("Initial Joint pos: ", qpos)
 print("Initial Vel: ", qvel)
@@ -84,7 +79,6 @@ action_frames = []
 # else:
 #     env.render(mode='human')
 #
-print(actions)
 
 for action in actions:
     if is_save_video:
@@ -92,8 +86,6 @@ for action in actions:
         action_frames.append(frame*255.)
     else:
         env_prime.render(mode='human')
-    import pdb
-    pdb.set_trace()
     env_prime.step(action)
 
 if is_save_video:
