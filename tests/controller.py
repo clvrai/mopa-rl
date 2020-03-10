@@ -91,7 +91,7 @@ def run_mp(env, planner, i=None):
     goal = result.qpos
 
     # OMPL Planning
-    traj = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
+    traj = planner.plan(start, goal,  args.timelimit, args.max_meta_len)
 
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
