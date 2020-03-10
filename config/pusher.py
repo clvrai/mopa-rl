@@ -41,6 +41,7 @@ def add_arguments(parser):
     parser.add_argument("--box_to_target_coef", type=float, default=1.)
     parser.add_argument("--end_effector_to_box_coef", type=float, default=1.)
     parser.add_argument("--exp_reward", type=float, default=10)
+    parser.add_argument("--subgoal_reward", type=str2bool, default=False)
 
 
 

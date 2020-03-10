@@ -12,6 +12,10 @@ class PusherPushObstacleEnv(SimplePusherObstacleEnv):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._env_config.update({
+            'success_reward': 10
+            #'success_reward': 30
+        })
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -90,6 +94,6 @@ class PusherPushObstacleEnv(SimplePusherObstacleEnv):
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             done = True
             self._success = True
-            #reward += self._env_config['success_reward']
+            reward += self._env_config['success_reward']
         return obs, reward, done, info
 

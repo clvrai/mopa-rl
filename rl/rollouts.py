@@ -126,14 +126,10 @@ class RolloutRunner(object):
 
                 ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-
-
-                # Will change fingertip to variable later
                 subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
-
                 target_qpos = np.concatenate([subgoal, env.goal])
 
-
+                env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
@@ -270,6 +266,7 @@ class RolloutRunner(object):
             # Will change fingertip to variable later
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
             target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
+            env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
             skill_type = pi.return_skill_type(meta_ac)
             skill_count[skill_type] += 1
