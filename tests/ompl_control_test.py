@@ -31,7 +31,8 @@ is_save_video = False
 env = gym.make(args.env, **args.__dict__)
 env_prime = gym.make(args.env, **args.__dict__)
 ik_env = gym.make(args.env, **args.__dict__)
-planner = SamplingBasedKinodynamicPlanner(args, env.xml_path, action_size(env.action_space))
+non_limited_idx = np.where(env._is_jnt_limited==0)[0]
+planner = SamplingBasedKinodynamicPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx)
 
 start_time = time.time()
 env.reset()
@@ -87,7 +88,6 @@ for action in actions:
     else:
         env_prime.render(mode='human')
     env_prime.step(action)
-
 if is_save_video:
     frame = env_prime.render(mode='rgb_array')
     action_frames.append(frame*255.)
