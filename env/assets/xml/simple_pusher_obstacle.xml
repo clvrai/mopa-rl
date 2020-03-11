@@ -1,5 +1,5 @@
 <mujoco model="pusher_obstacle">
-    <include file="./common/simple_pusher.xml" />
+    <include file="./common/simple_pusher_gripper.xml" />
 
     <default>
         <geom contype="0" friction="1 0.1 0.1" />

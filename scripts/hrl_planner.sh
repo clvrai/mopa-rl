@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="4"
-prefix="hl.ppo.sst.push.composition.cart.ppo.128.single.meta_len.15.goal_replace.subgoal_reward"
+prefix="hl.ppo.sst.push.composition.cart.ppo.128.single.meta_len.15.goal_replace.subgoal_reward.relative.iK_trials30"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="0"
+gpu="1"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
@@ -42,6 +42,7 @@ subgoal_type="cart"
 ppo_hid_size="128"
 goal_replace="True"
 subgoal_reward="True"
+relative_subgoal="True"
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -85,4 +86,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --subgoal_type $subgoal_type \
     --ppo_hid_size $ppo_hid_size \
     --goal_replace $goal_replace \
-    --subgoal_reward $subgoal_reward
+    --subgoal_reward $subgoal_reward \
+    --relative_subgoal $relative_subgoal

@@ -1,11 +1,11 @@
 #!/bin/bash
 workers="12"
-prefix="ll.push.composition.worker.12"
+prefix="ll.push.composition.worker.12.gripper.success_rew"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-obstacle-v0"
-gpu="1"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
