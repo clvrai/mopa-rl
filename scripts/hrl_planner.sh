@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="4"
-prefix="hl.ppo.sst.push.composition.cart.ppo.128.single.meta_len.15.goal_replace.subgoal_reward.relative.iK_trials30"
+prefix="hl.ppo.sst.push.composition.cart.ppo.128.single.goal_replace.subgoal_rew.relative.iK30.success_rew"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"

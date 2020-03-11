@@ -12,7 +12,8 @@ class SimplePusherEnv(BaseEnv):
     def __init__(self, **kwargs):
         super().__init__("simple_pusher.xml", **kwargs)
         self._env_config.update({
-            'subgoal_reward': kwargs['subgoal_reward']
+            'subgoal_reward': kwargs['subgoal_reward'],
+            'success_reward': 10.
         })
 
     def _reset(self):
@@ -133,5 +134,6 @@ class SimplePusherEnv(BaseEnv):
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             done =True
             self._success = True
+            reward += self._env_config['success_reward']
         return obs, reward, done, info
 
