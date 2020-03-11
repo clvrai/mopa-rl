@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from gym import spaces
 
 from rl.policies.distributions import FixedCategorical, FixedNormal, \
-    MixedDistribution
+    MixedDistribution, FixedGumbelSoftmax
 from rl.policies.utils import MLP
 from util.pytorch import to_tensor
 
@@ -35,7 +35,10 @@ class Actor(nn.Module):
                     stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
-                dists[k] = FixedCategorical(logits=means[k])
+                if self._config.meta_algo == 'sac':
+                    dists[k] = FixedGumbelSoftmax(torch.tensor(0.1), logits=means[k])
+                else:
+                    dists[k] = FixedCategorical(logits=means[k])
 
         actions = OrderedDict()
         mixed_dist = MixedDistribution(dists)
@@ -88,7 +91,10 @@ class Actor(nn.Module):
                     stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
-                dists[k] = FixedCategorical(logits=means[k])
+                if self._config.meta_algo == 'sac':
+                    dists[k] = FixedGumbelSoftmax(torch.tensor(0.1), logits=means[k])
+                else:
+                    dists[k] = FixedCategorical(logits=means[k])
 
         mixed_dist = MixedDistribution(dists)
 
@@ -117,11 +123,11 @@ class Actor(nn.Module):
 
             actions[k] = action
 
-        ents = mixed_dist.entropy()
         log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
         if activations is None:
             return actions, log_probs_
         else:
+            ents = mixed_dist.entropy()
             return log_probs_, ents
 
     def act_log_debug(self, ob, activations=None):
