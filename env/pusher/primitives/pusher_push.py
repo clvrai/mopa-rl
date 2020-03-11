@@ -96,5 +96,6 @@ class PusherPushEnv(SimplePusherEnv):
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             done = True
             self._success = True
+            reward += self._env_config['success_reward']
         return obs, reward, done, info
 

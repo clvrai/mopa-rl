@@ -120,20 +120,16 @@ class RolloutRunner(object):
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=10, progress_thresh=10000.)
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=30, progress_thresh=10000.)
                     subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
                 ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-
-
-                # Will change fingertip to variable later
                 subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
-
                 target_qpos = np.concatenate([subgoal, env.goal])
 
-
+                env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
@@ -256,11 +252,14 @@ class RolloutRunner(object):
                 if self._config.subgoal_type == 'joint':
                     subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
                 else:
-                    subgoal_cart = meta_ac['subgoal']
+                    if config.relative_subgoal:
+                        subgoal_cart = pi.curr_pos(env, meta_ac) + meta_ac['subgoal']
+                    else:
+                        subgoal_cart = meta_ac['subgoal']
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=10, progress_thresh=10000.)
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=100, trials=30, progress_thresh=20.0)
                     subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
@@ -270,6 +269,7 @@ class RolloutRunner(object):
             # Will change fingertip to variable later
             subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
             target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
+            env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
             skill_type = pi.return_skill_type(meta_ac)
             skill_count[skill_type] += 1

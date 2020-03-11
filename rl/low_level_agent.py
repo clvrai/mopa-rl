@@ -111,3 +111,11 @@ class LowLevelAgent(SACAgent):
         else:
             pass
 
+    def curr_pos(self, env, meta_ac):
+        skill = self.return_skill_type(meta_ac)
+
+        if skill == 'mp':
+            return env._get_pos('fingertip')[:2].copy()
+        else:
+            return env._get_pos('box')[:2].copy()
+

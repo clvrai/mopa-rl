@@ -91,7 +91,7 @@ def run_mp(env, planner, i=None):
     goal = result.qpos
 
     # OMPL Planning
-    traj = planner.plan(start, goal,  args.timelimit, args.max_mp_steps)
+    traj, _ = planner.plan(start, goal,  args.timelimit, args.max_meta_len)
 
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
@@ -194,7 +194,8 @@ record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
 env_prime = gym.make(args.env, **args.__dict__)
-planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space))
+non_limited_idx = np.where(env._is_jnt_limited==0)[0]
+planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx)
 
 errors = 0
 global_num_states = 0
