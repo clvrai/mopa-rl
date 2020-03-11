@@ -1,6 +1,6 @@
 #!/bin/bash
 workers="12"
-prefix="ll.push.composition.worker.12"
+prefix="ll.push.composition.diff_finger.worker.12"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
