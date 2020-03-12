@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="8"
-prefix="hl.sac.fixed_subgoal_rew.ik.trial.50"
+workers="12"
+prefix="hl.sac.rew_near.0.2.her"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,18 +12,17 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="1"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_steps="150"
-evaluate_interval="1"
-meta_tanh_policy="True"
+evaluate_interval="5"
 meta_subgoal_rew="-0.3"
 max_meta_len="15"
 entropy_loss_coef="0.01"
-buffer_size="4096"
-num_batches="400"
+buffer_size="150000"
+num_batches="600"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -39,7 +38,6 @@ primitive_skills="mp push_max_step30"
 primitive_dir="primitives"
 actor_num_hid_layers="1"
 subgoal_type="cart"
-ppo_hid_size="128"
 goal_replace="True"
 subgoal_reward="True"
 relative_subgoal="True"
@@ -64,7 +62,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --hrl_network_to_update $hrl_network_to_update \
     --max_episode_steps $max_episode_steps \
     --evaluate_interval $evaluate_interval \
-    --meta_tanh_policy $meta_tanh_policy \
     --meta_subgoal_rew $meta_subgoal_rew \
     --max_meta_len $max_meta_len \
     --entropy_loss_coef $entropy_loss_coef \
@@ -85,7 +82,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --primitive_dir $primitive_dir \
     --actor_num_hid_layers $actor_num_hid_layers \
     --subgoal_type $subgoal_type \
-    --ppo_hid_size $ppo_hid_size \
     --goal_replace $goal_replace \
     --subgoal_reward $subgoal_reward \
     --relative_subgoal $relative_subgoal \

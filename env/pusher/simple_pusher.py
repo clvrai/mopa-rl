@@ -105,7 +105,7 @@ class SimplePusherEnv(BaseEnv):
             reward_dist = -self._get_distance("box", "target")
             reward_near = -self._get_distance("fingertip", "box")
             reward_ctrl = self._ctrl_reward(action)
-            reward = reward_dist + 0.5*reward_near + reward_ctrl
+            reward = reward_dist + 0.2*reward_near + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
