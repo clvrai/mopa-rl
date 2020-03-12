@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="4"
-prefix="hl.ppo.sst.push.composition.cart.ppo.128.single.goal_replace.subgoal_rew.relative.iK30.success_rew"
+workers="8"
+prefix="hl.sac"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="1"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
@@ -23,11 +23,11 @@ meta_subgoal_rew="-0.3"
 max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="4096"
-num_batches="50"
+num_batches="400"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-rollout_length="10000"
+rollout_length="15000"
 batch_size="256"
 clip_param="0.2"
 reward_type="composition"
@@ -43,6 +43,7 @@ ppo_hid_size="128"
 goal_replace="True"
 subgoal_reward="True"
 relative_subgoal="True"
+meta_algo='sac'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -87,4 +88,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --ppo_hid_size $ppo_hid_size \
     --goal_replace $goal_replace \
     --subgoal_reward $subgoal_reward \
-    --relative_subgoal $relative_subgoal
+    --relative_subgoal $relative_subgoal \
+    --meta_algo $meta_algo
