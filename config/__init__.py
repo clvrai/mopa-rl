@@ -13,6 +13,7 @@ def argparser():
     parser.add_argument("--env", type=str, default="reacher-obstacle-v0",
                         help="environment name")
     parser.add_argument("--env_args", type=str, default=None)
+    parser.add_argument("--terminal", type=str2bool, default=True)
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",

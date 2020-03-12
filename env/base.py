@@ -52,6 +52,7 @@ class BaseEnv(gym.Env):
         self._frame_dt = kwargs['frame_dt']
         self._reward_coef = kwargs['reward_coef']
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
+        self._terminal = kwargs['terminal']
 
         if 'box_to_target_coef' in kwargs:
             self._box_to_target_coef = kwargs['box_to_target_coef']
