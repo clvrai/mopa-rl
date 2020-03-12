@@ -107,10 +107,6 @@ class SimplePusherEnv(BaseEnv):
             reward_ctrl = self._ctrl_reward(action)
             reward = reward_dist + 0.5*reward_near + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
-            # if self._env_config['subgoal_reward']:
-            #     reward_subgoal_dist = -self._get_distance("box", "subgoal")
-            #     info['reward_subgoal_dist'] = reward_subgoal_dist
-            #     reward += 0.5*reward_subgoal_dist
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
