@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.sac"
+prefix="hl.sac.fixed_subgoal_rew.v2"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="2"
+gpu="1"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
