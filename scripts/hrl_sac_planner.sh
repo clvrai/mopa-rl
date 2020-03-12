@@ -25,7 +25,7 @@ buffer_size="150000"
 num_batches="600"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="15000"
 batch_size="256"
 clip_param="0.2"
@@ -42,6 +42,7 @@ goal_replace="True"
 subgoal_reward="True"
 relative_subgoal="True"
 meta_algo='sac'
+her='True'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -85,4 +86,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --goal_replace $goal_replace \
     --subgoal_reward $subgoal_reward \
     --relative_subgoal $relative_subgoal \
-    --meta_algo $meta_algo
+    --meta_algo $meta_algo \
+    --her $her
