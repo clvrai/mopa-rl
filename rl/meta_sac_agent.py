@@ -22,7 +22,7 @@ from rl.policies import get_actor_critic_by_name
 
 
 class MetaSACAgent(SACAgent):
-    def __init__(self, config, ob_space, joint_space=None):
+    def __init__(self, config, ob_space, joint_space=None, sampler=None):
 
         if not config.hrl:
             logger.warn('Creating a dummy meta SAC agent')
@@ -50,8 +50,9 @@ class MetaSACAgent(SACAgent):
 
         super().__init__(config, ob_space, ac_space, actor, critic)
 
-        sampler = RandomSampler()
-        buffer_keys = ['ob', 'ac', 'done', 'rew']
+        if sampler is None:
+            sampler = RandomSampler()
+        buffer_keys = ['ob', 'ac', 'done', 'rew', 'ag', 'g']
         self._buffer = ReplayBuffer(buffer_keys,
                                     config.buffer_size,
                                     sampler.sample_func)

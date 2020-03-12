@@ -73,15 +73,15 @@ class Trainer(object):
         sampler = None
         if config.her:
             def reward_func(ag, g, info):
-                return env.compute_reward(ag, g, info)[0]
+                return self._env.her_compute_reward(ag, g, info)
             sampler = HERSampler(config.replay_strategy,
                                  config.replay_k,
                                  reward_func)
 
         if config.meta_algo == 'ppo':
-            self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space)
+            self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space, sampler=sampler)
         elif config.meta_algo == 'sac':
-            self._meta_agent = MetaSACAgent(config, ob_space, meta_ac_space)
+            self._meta_agent = MetaSACAgent(config, ob_space, meta_ac_space, sampler=sampler)
         else:
             raise NotImplementedError
 

@@ -54,6 +54,8 @@ class MetaRollout(object):
         batch['log_prob'] = self._history['meta_log_prob']
         batch['done'] = self._history['meta_done']
         batch['rew'] = self._history['meta_rew']
+        batch['ag'] = self._history['ag']
+        batch['g'] = self._history['g']
         self._history = defaultdict(list)
         return batch
 
@@ -433,7 +435,7 @@ class RolloutRunner(object):
         # last frame
         ll_ob = ob.copy()
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-        meta_rollout.add({'meta_ob': ob})
+        meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
         saved_qpos.append(env.sim.get_state().qpos.copy())
 
         #ep_info = {'len': ep_len, 'rew': ep_rew, 'path_length': path_length}

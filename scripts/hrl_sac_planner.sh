@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.sac.fixed_subgoal_rew.ik.trial.50"
+prefix="hl.sac.her"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,12 +12,12 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="0"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_steps="150"
-evaluate_interval="1"
+evaluate_interval="10"
 meta_tanh_policy="True"
 meta_subgoal_rew="-0.3"
 max_meta_len="15"
@@ -26,7 +26,7 @@ buffer_size="4096"
 num_batches="400"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="15000"
 batch_size="256"
 clip_param="0.2"
@@ -44,6 +44,7 @@ goal_replace="True"
 subgoal_reward="True"
 relative_subgoal="True"
 meta_algo='sac'
+her='True'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -89,4 +90,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --goal_replace $goal_replace \
     --subgoal_reward $subgoal_reward \
     --relative_subgoal $relative_subgoal \
-    --meta_algo $meta_algo
+    --meta_algo $meta_algo \
+    --her $her
