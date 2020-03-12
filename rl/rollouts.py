@@ -151,6 +151,9 @@ class RolloutRunner(object):
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 saved_qpos.append(env.sim.get_state().qpos.copy()) 
                 ob, reward, done, info = env.step(ac)
+                if config.subgoal_reward:
+                    subgoal_rew, info = env.compute_subgoal_reward('box', info)
+                    reward += subgoal_rew
 
 
                 rollout.add({'done': done, 'rew': reward})
@@ -292,6 +295,9 @@ class RolloutRunner(object):
                         saved_qpos.append(env.sim.get_state().qpos.copy())
 
                         ob, reward, done, info = env.step(ac)
+                        if config.subgoal_reward:
+                            subgoal_rew, info = env.compute_subgoal_reward('fingertip', info)
+                            reward += subgoal_rew
 
                         rollout.add({'done': done, 'rew': reward})
                         acs.append(ac)
@@ -384,6 +390,9 @@ class RolloutRunner(object):
                     saved_qpos.append(env.sim.get_state().qpos.copy())
 
                     ob, reward, done, info = env.step(ac)
+                    if config.subgoal_reward:
+                        subgoal_rew, info = env.compute_subgoal_reward('box', info)
+                        reward += subgoal_rew
 
 
                     rollout.add({'done': done, 'rew': reward})
