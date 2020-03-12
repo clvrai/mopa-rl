@@ -24,6 +24,7 @@ def argparser():
                         choices=["ppo", "sac"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
                         choices=['HL', 'LL', 'both'])
+    parser.add_argument("--her", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,

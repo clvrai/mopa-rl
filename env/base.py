@@ -431,3 +431,6 @@ class BaseEnv(gym.Env):
     def _check_success(self):
         return False
 
+    def her_compute_reward(self, achieved_goal, goal, info):
+        return -np.linalg.norm(achieved_goal-goal)
+

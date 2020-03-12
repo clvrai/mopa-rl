@@ -78,10 +78,10 @@ class RandomSampler:
 
 
 class HERSampler:
-    def __init__(self, replay_strategy, replace_future, reward_func=None):
+    def __init__(self, replay_strategy, replace_k, reward_func=None):
         self.replay_strategy = replay_strategy
         if self.replay_strategy == 'future':
-            self.future_p = replace_future
+            self.future_p = 1 - (1./1+replay_k)
         else:
             self.future_p = 0
         self.reward_func = reward_func
@@ -104,13 +104,13 @@ class HERSampler:
         transitions['r'] = np.zeros((batch_size, ))
 
         # hindsight experience replay
-        for i, (episode_idx, t) in enumerate(zip(episode_idxs, t_samples)):
             replace_goal = np.random.uniform() < self.future_p
             if replace_goal:
                 future_t = np.random.randint(t + 1, len(episode_batch['ac'][episode_idx]) + 1)
                 future_ag = episode_batch['ag'][episode_idx][future_t]
                 if self.reward_func(episode_batch['ag'][episode_idx][t], future_ag, None) < 0:
                     transitions['g'][i] = future_ag
+
             transitions['r'][i] = self.reward_func(
                 episode_batch['ag'][episode_idx][t + 1], transitions['g'][i], None)
 
