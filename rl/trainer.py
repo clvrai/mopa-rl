@@ -246,7 +246,7 @@ class Trainer(object):
                 self._config.hrl_network_to_update == 'both':
             if self._config.meta_algo == 'sac':
                 run_ep_max = 1*self._config.max_meta_len
-                run_step_max = self._config.max_episode_step * self._confing.max_meta_len
+                run_step_max = self._config.max_episode_steps * self._config.max_meta_len
 
         # dummy run for preventing weird
         if config.ll_type == 'rl':

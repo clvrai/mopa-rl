@@ -16,7 +16,7 @@ gpu="1"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
-max_episode_step="150"
+max_episode_steps="150"
 evaluate_interval="1"
 meta_tanh_policy="True"
 meta_subgoal_rew="-0.3"
@@ -61,7 +61,7 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --rl_hid_size $rl_hid_size \
     --meta_update_target $meta_update_target \
     --hrl_network_to_update $hrl_network_to_update \
-    --max_episode_step $max_episode_step \
+    --max_episode_steps $max_episode_steps \
     --evaluate_interval $evaluate_interval \
     --meta_tanh_policy $meta_tanh_policy \
     --meta_subgoal_rew $meta_subgoal_rew \
