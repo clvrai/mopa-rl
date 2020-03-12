@@ -3,6 +3,7 @@ from collections import OrderedDict
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.distributions
 
 
@@ -20,7 +21,6 @@ categorical_entropy = FixedCategorical.entropy
 FixedCategorical.entropy = lambda self: categorical_entropy(self) * 10.0 # scaling
 
 FixedCategorical.mode = lambda self: self.probs.argmax(dim=-1, keepdim=True)
-
 
 # Normal
 FixedNormal = torch.distributions.Normal
@@ -111,4 +111,49 @@ class MixedDistribution(nn.Module):
 
     def entropy(self):
         return sum([dist.entropy() for dist in self.distributions.values()])
+
+class GumbelSoftmax(torch.distributions.RelaxedOneHotCategorical):
+    '''
+    A differentiable Categorical distribution using reparametrization trick with Gumbel-Softmax
+    Explanation http://amid.fish/assets/gumbel.html
+    NOTE: use this in place PyTorch's RelaxedOneHotCategorical distribution since its log_prob is not working right (returns positive values)
+    Papers:
+    [1] The Concrete Distribution: A Continuous Relaxation of Discrete Random Variables (Maddison et al, 2017)
+    [2] Categorical Reparametrization with Gumbel-Softmax (Jang et al, 2017)
+    '''
+
+    def sample(self, sample_shape=torch.Size()):
+        '''Gumbel-softmax sampling. Note rsample is inherited from RelaxedOneHotCategorical'''
+        u = torch.empty(self.logits.size(), device=self.logits.device, dtype=self.logits.dtype).uniform_(0, 1)
+        noisy_logits = self.logits - torch.log(-torch.log(u))
+        return torch.argmax(noisy_logits, dim=-1)
+
+    def rsample(self, sample_shape=torch.Size()):
+        '''
+        Gumbel-softmax resampling using the Straight-Through trick.
+        Credit to Ian Temple for bringing this to our attention. To see standalone code of how this works, refer to https://gist.github.com/yzh119/fd2146d2aeb329d067568a493b20172f
+        '''
+        rout = super().rsample(sample_shape)  # differentiable
+        out = F.one_hot(torch.argmax(rout, dim=-1), self.logits.shape[-1]).float()
+        return (out - rout).detach() + rout
+
+    def log_prob(self, value):
+        '''value is one-hot or relaxed'''
+        if value.shape != self.logits.shape:
+            value = F.one_hot(value.long(), self.logits.shape[-1]).float()
+            assert value.shape == self.logits.shape
+        return - torch.sum(- value * F.log_softmax(self.logits, -1), -1)
+
+
+FixedGumbelSoftmax = GumbelSoftmax
+old_sample_gumbel = FixedGumbelSoftmax.sample
+FixedGumbelSoftmax.sample = lambda self: old_sample_gumbel(self).unsqueeze(-1)
+log_prob_gumbel = FixedGumbelSoftmax.log_prob
+FixedGumbelSoftmax.log_probs = lambda self, actions: log_prob_gumbel(self, actions.squeeze(-1)).unsqueeze(-1)
+gumbel_entropy = FixedGumbelSoftmax.entropy
+FixedGumbelSoftmax.entropy = lambda self: gumbel_entropy(self) * 10.0 # scaling
+FixedGumbelSoftmax.mode = lambda self: self.probs.argmax(dim=-1, keepdim=True)
+gumbel_rsample = FixedGumbelSoftmax.rsample
+FixedGumbelSoftmax.rsample = lambda self: gumbel_rsample(self).float()
+
 

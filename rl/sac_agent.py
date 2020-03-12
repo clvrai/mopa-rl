@@ -25,7 +25,6 @@ class SACAgent(BaseAgent):
 
         self._ob_space = ob_space
         self._ac_space = ac_space
-        self._action_bound = np.ones(action_size(ac_space)) * ac_space['default'].high
 
         self._target_entropy = -action_size(ac_space)
         self._log_alpha = torch.zeros(1, requires_grad=True, device=config.device)

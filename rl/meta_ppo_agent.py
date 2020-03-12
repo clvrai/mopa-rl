@@ -173,26 +173,11 @@ class MetaPPOAgent(BaseAgent):
         adv = _to_tensor(transitions['adv']).reshape(bs, 1)
 
         old_log_pi = _to_tensor(transitions['log_prob']).reshape(bs, 1)
-
-
         log_pi, ent = self._actor.act_log(o, z)
-
-        # need to fix here
-        # if (log_pi - old_log_pi).max() > 20:
-        #     print('(log_pi - old_log_pi) is too large', (log_pi - old_log_pi).max())
-        #     import ipdb; ipdb.set_trace()
-
 
         # the actor loss
         entropy_loss = self._config.entropy_loss_coeff * ent.mean()
 
-        # actor_loss = OrderedDict()
-        # for k in log_pi.keys():
-        #     ratio = torch.exp(torch.clamp(log_pi[k]-old_log_pi[k], -20, 20))
-        #     surr1 = ratio * adv
-        #     surr2 = ratio = torch.clamp(ratio, 1.0 - self._config.clip_param,
-        #                                       1.0 + self._config.clip_param) * adv
-        #     actor_loss[k] = -torch.min(surr1, surr2).mean()
         ratio = torch.exp(torch.clamp(log_pi - old_log_pi, -20, 20))
         surr1 = ratio * adv
         surr2 = torch.clamp(ratio, 1.0 - self._config.clip_param,

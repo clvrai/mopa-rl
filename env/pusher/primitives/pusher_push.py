@@ -93,7 +93,7 @@ class PusherPushEnv(SimplePusherEnv):
             info = dict(reward_dist_diff=reward_dist_diff, reward_ctrl=reward_ctrl)
             reward = reward_dist_diff + reward_ctrl
 
-        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._env_config['terminal']:
             done = True
             self._success = True
             reward += self._env_config['success_reward']

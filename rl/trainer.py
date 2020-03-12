@@ -17,6 +17,7 @@ from sklearn.externals import joblib
 
 from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
+from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
@@ -67,7 +68,14 @@ class Trainer(object):
             meta_ac_space = joint_space
         else:
             meta_ac_space = spaces.Dict({'default': spaces.Box(shape=(2,), low=-0.5, high=0.5)})
-        self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space)
+
+
+        if config.meta_algo == 'ppo':
+            self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space)
+        elif config.meta_algo == 'sac':
+            self._meta_agent = MetaSACAgent(config, ob_space, meta_ac_space)
+        else:
+            raise NotImplementedError
 
         ll_ob_space = ob_space
 
@@ -234,6 +242,12 @@ class Trainer(object):
         elif self._config.algo == "sac":
             run_step_max = 10000
 
+        if self._config.hrl_network_to_update == 'HL' or \
+                self._config.hrl_network_to_update == 'both':
+            if self._config.meta_algo == 'sac':
+                run_ep_max = 1*self._config.max_meta_len
+                run_step_max = self._config.max_episode_steps * self._config.max_meta_len
+
         # dummy run for preventing weird
         if config.ll_type == 'rl':
             self._runner.run_episode()
@@ -251,7 +265,7 @@ class Trainer(object):
         if step == 0:
             if config.hrl:
                 if self._config.hrl_network_to_update == 'LL' or \
-                        self._config.hrl_network_to_update == 'both':
+                        self._config.hrl_network_to_update == 'both' or self._config.meta_algo=='sac':
                     while init_step < self._config.start_steps:
                         rollout, meta_rollout, info, _ = \
                             self._runner.run_episode(random_exploration=True)

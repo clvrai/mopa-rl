@@ -13,12 +13,15 @@ def argparser():
     parser.add_argument("--env", type=str, default="reacher-obstacle-v0",
                         help="environment name")
     parser.add_argument("--env_args", type=str, default=None)
+    parser.add_argument("--terminal", type=str2bool, default=True)
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",
                         choices=["sac", "ppo", "ddpg", "td3"])
     parser.add_argument("--policy", type=str, default="mlp",
                         choices=["mlp", "cnn"])
+    parser.add_argument("--meta_algo", type=str, default="ppo",
+                        choices=["ppo", "sac"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
                         choices=['HL', 'LL', 'both'])
 
