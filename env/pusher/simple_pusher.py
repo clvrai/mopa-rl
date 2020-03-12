@@ -137,4 +137,3 @@ class SimplePusherEnv(BaseEnv):
         reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
         info['reward_subgoal_dist'] = reward_subgoal_dist
         return reward_subgoal_dist, info
-

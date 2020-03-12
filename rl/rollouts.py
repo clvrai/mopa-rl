@@ -334,7 +334,9 @@ class RolloutRunner(object):
 
                         if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                             break
-                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                    ag = env._get_pos("fingertip").copy()
+                    g = env._get_pos('subgoal').copy()
+                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                     reward_info['meta_rew'].append(meta_rew)
                 else:
                     for i in range(self._config.max_meta_len):
@@ -370,7 +372,9 @@ class RolloutRunner(object):
                             self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
                         if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                             break
-                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                    ag = env._get_pos("fingertip").copy()
+                    g = env._get_pos('subgoal').copy()
+                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                     reward_info['meta_rew'].append(meta_rew)
             else:
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
@@ -422,7 +426,9 @@ class RolloutRunner(object):
 
                     if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break
-                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                ag = env._get_pos("box").copy()
+                g = env._get_pos('subgoal').copy()
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                 reward_info['meta_rew'].append(meta_rew)
         # last frame
         ll_ob = ob.copy()
