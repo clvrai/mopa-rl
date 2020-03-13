@@ -39,6 +39,7 @@ build/
 
 ## Jupyter Notebook
 .ipynb_checkpoints
+**/*.ipynb
 
 ## virtualenv
 .venv
@@ -50,8 +51,8 @@ venv/
 ## Wandb
 wandb/
 
-## Jupyter notebook
-**/*.ipynb
+## PyCharm
+.idea/
 
 ## flake8
 .flake8
