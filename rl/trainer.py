@@ -19,6 +19,7 @@ from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
 from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
+from rl.dataset import HERSampler
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
@@ -69,11 +70,18 @@ class Trainer(object):
         else:
             meta_ac_space = spaces.Dict({'default': spaces.Box(shape=(2,), low=-0.5, high=0.5)})
 
+        sampler = None
+        if config.her:
+            def reward_func(ag, g, info):
+                return self._env.her_compute_reward(ag, g, info)
+            sampler = HERSampler(config.replay_strategy,
+                                 config.replay_k,
+                                 reward_func)
 
         if config.meta_algo == 'ppo':
-            self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space)
+            self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space, sampler=sampler)
         elif config.meta_algo == 'sac':
-            self._meta_agent = MetaSACAgent(config, ob_space, meta_ac_space)
+            self._meta_agent = MetaSACAgent(config, ob_space, meta_ac_space, sampler=sampler)
         else:
             raise NotImplementedError
 

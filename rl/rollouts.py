@@ -54,6 +54,8 @@ class MetaRollout(object):
         batch['log_prob'] = self._history['meta_log_prob']
         batch['done'] = self._history['meta_done']
         batch['rew'] = self._history['meta_rew']
+        batch['ag'] = self._history['ag']
+        batch['g'] = self._history['g']
         self._history = defaultdict(list)
         return batch
 
@@ -334,7 +336,9 @@ class RolloutRunner(object):
 
                         if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                             break
-                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                    ag = env._get_pos("fingertip").copy()
+                    g = env._get_pos('subgoal').copy()
+                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                     reward_info['meta_rew'].append(meta_rew)
                 else:
                     for i in range(self._config.max_meta_len):
@@ -370,7 +374,9 @@ class RolloutRunner(object):
                             self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
                         if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                             break
-                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                    ag = env._get_pos("fingertip").copy()
+                    g = env._get_pos('subgoal').copy()
+                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                     reward_info['meta_rew'].append(meta_rew)
             else:
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
@@ -422,12 +428,14 @@ class RolloutRunner(object):
 
                     if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                         break
-                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                ag = env._get_pos("box").copy()
+                g = env._get_pos('subgoal').copy()
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                 reward_info['meta_rew'].append(meta_rew)
         # last frame
         ll_ob = ob.copy()
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-        meta_rollout.add({'meta_ob': ob})
+        meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
         saved_qpos.append(env.sim.get_state().qpos.copy())
 
         #ep_info = {'len': ep_len, 'rew': ep_rew, 'path_length': path_length}

@@ -78,15 +78,15 @@ class RandomSampler:
 
 
 class HERSampler:
-    def __init__(self, replay_strategy, replace_future, reward_func=None):
+    def __init__(self, replay_strategy, replay_k, reward_func=None):
         self.replay_strategy = replay_strategy
         if self.replay_strategy == 'future':
-            self.future_p = replace_future
+            self.future_p = 1 - (1./1+replay_k)
         else:
             self.future_p = 0
         self.reward_func = reward_func
 
-    def sample_her_transitions(self, episode_batch, batch_size_in_transitions):
+    def sample_func(self, episode_batch, batch_size_in_transitions):
         rollout_batch_size = len(episode_batch['ac'])
         batch_size = batch_size_in_transitions
 
@@ -111,6 +111,7 @@ class HERSampler:
                 future_ag = episode_batch['ag'][episode_idx][future_t]
                 if self.reward_func(episode_batch['ag'][episode_idx][t], future_ag, None) < 0:
                     transitions['g'][i] = future_ag
+
             transitions['r'][i] = self.reward_func(
                 episode_batch['ag'][episode_idx][t + 1], transitions['g'][i], None)
 

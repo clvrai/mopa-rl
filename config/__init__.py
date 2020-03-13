@@ -24,6 +24,9 @@ def argparser():
                         choices=["ppo", "sac"])
     parser.add_argument("--meta_update_target", type=str, default="HL",
                         choices=['HL', 'LL', 'both'])
+    parser.add_argument("--her", type=str2bool, default=False)
+    parser.add_argument("--replay_strategy", type=str, default='future')
+    parser.add_argument("--replay_k", type=int, default=4)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,

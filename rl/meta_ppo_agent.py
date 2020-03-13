@@ -19,7 +19,7 @@ from gym import spaces
 
 
 class MetaPPOAgent(BaseAgent):
-    def __init__(self, config, ob_space, joint_space=None):
+    def __init__(self, config, ob_space, joint_space=None, sampler=None):
         super().__init__(config, ob_space)
 
         if not config.hrl:
@@ -63,9 +63,10 @@ class MetaPPOAgent(BaseAgent):
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_actor)
         self._critic_optim = optim.Adam(self._critic.parameters(), lr=config.lr_critic)
 
-        sampler = RandomSampler()
+        if sampler is None:
+            sampler = RandomSampler()
         self._buffer = ReplayBuffer(['ob', 'ac', 'done', 'rew', 'ret', 'adv',
-                                     'ac_before_activation', 'log_prob'],
+                                     'ac_before_activation', 'log_prob', 'ag', 'g'],
                                     config.buffer_size,
                                     sampler.sample_func)
 
