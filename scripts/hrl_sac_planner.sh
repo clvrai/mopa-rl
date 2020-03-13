@@ -1,7 +1,6 @@
 #!/bin/bash
 
-workers="12"
-prefix="hl.sac.rew_near.0.2.her"
+workers="12" prefix="hl.sac.rew_near.0.2.her"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
