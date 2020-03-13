@@ -270,16 +270,26 @@ class Trainer(object):
 
         init_step = 0
         init_ep = 0
+
+        # If it does not previously learned data and use SAC, then we firstly fill the experieince replay with the specified number of samples
         if step == 0:
             if config.hrl:
                 if self._config.hrl_network_to_update == 'LL' or \
-                        self._config.hrl_network_to_update == 'both' or self._config.meta_algo=='sac':
+                        self._config.hrl_network_to_update == 'both':
                     while init_step < self._config.start_steps:
                         rollout, meta_rollout, info, _ = \
                             self._runner.run_episode(random_exploration=True)
                         init_step += info["len"]
                         init_ep += 1
                         self._agent.store_episode(rollout)
+                        logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
+                elif self._config.hrl_network_to_update == 'HL' and self._config.meta_algo == 'sac':
+                    while init_step < self._config.start_steps:
+                        rollout, meta_rollout, info, _ = \
+                            self._runner.run_episode_with_mp(random_exploration=True)
+                        init_step += info["len"]
+                        init_ep += 1
+                        self._meta_agent.store_episode(rollout)
                         logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
             elif config.algo == 'sac':
                 while init_step < self._config.start_steps:

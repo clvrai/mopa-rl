@@ -110,6 +110,7 @@ class RolloutRunner(object):
             curr_qpos = env.sim.data.qpos.ravel().copy()
             subgoal_site_pos = None
 
+            # Subgoal prediction + IK
             if self._config.hrl and 'subgoal' in meta_ac.keys():
                 joint_space = env.joint_space['default']
                 minimum = joint_space.low
@@ -117,7 +118,7 @@ class RolloutRunner(object):
 
                 if self._config.subgoal_type == 'joint':
                     subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
-                else:
+                else: # cart
                     subgoal_cart = meta_ac['subgoal']
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
@@ -135,7 +136,7 @@ class RolloutRunner(object):
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
-                if random_exploration:
+                if random_exploration: # Random exploration for SAC
                     ac = env.action_space.sample()
                     ac_before_activation = None
                     stds = None
@@ -151,12 +152,11 @@ class RolloutRunner(object):
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                saved_qpos.append(env.sim.get_state().qpos.copy()) 
+                saved_qpos.append(env.sim.get_state().qpos.copy())
                 ob, reward, done, info = env.step(ac)
                 if config.subgoal_reward:
                     subgoal_rew, info = env.compute_subgoal_reward('box', info)
                     reward += subgoal_rew
-
 
                 rollout.add({'done': done, 'rew': reward})
                 acs.append(ac)
@@ -239,8 +239,13 @@ class RolloutRunner(object):
                 skill_count[skill] = 0
 
         while not done and ep_len < max_step:
-            meta_ac, meta_ac_before_activation, meta_log_prob =\
-                    meta_pi.act(ob, is_train=is_train)
+            if random_exploration: # Random exploration for SAC
+                meta_ac = meta_pi.sample_action()
+                meta_ac_before_activation = None
+                meta_log_prob = None
+            else:
+                meta_ac, meta_ac_before_activation, meta_log_prob =\
+                        meta_pi.act(ob, is_train=is_train)
 
             meta_rollout.add({
                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -278,7 +283,8 @@ class RolloutRunner(object):
 
             skill_type = pi.return_skill_type(meta_ac)
             skill_count[skill_type] += 1
-            if skill_type == 'mp':
+
+            if skill_type == 'mp': # Use motion planner
                 traj = pi.plan(curr_qpos, target_qpos)
                 success = len(np.unique(traj)) != 1 and traj.shape[0] != 1 and ik_env.sim.data.ncon == 0
                 if success:
@@ -378,7 +384,7 @@ class RolloutRunner(object):
                     g = env._get_pos('subgoal').copy()
                     meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
                     reward_info['meta_rew'].append(meta_rew)
-            else:
+            else: # Use other skills
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     if config.hrl:
@@ -399,7 +405,6 @@ class RolloutRunner(object):
                     if config.subgoal_reward:
                         subgoal_rew, info = env.compute_subgoal_reward('box', info)
                         reward += subgoal_rew
-
 
                     rollout.add({'done': done, 'rew': reward})
                     acs.append(ac)
