@@ -1,22 +1,22 @@
 #!/bin/bash
 workers="8"
-prefix="ll.push.composition.worker.8.gripper.non_terminal"
+prefix="ll.push.dense.contact"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-v0"
-gpu="0"
+gpu="1"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
 hl_type='subgoal'
-max_episode_steps="30"
+max_episode_steps="50"
 max_meta_len="15"
-evaluate_interval="1"
+evaluate_interval="5"
 meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.1"
-buffer_size="10000"
+buffer_size="30000"
 num_batches="400"
 lr_actor="3e-4"
 lr_critic="3e-4"
@@ -25,17 +25,18 @@ rollout_length="1000"
 batch_size="256"
 clip_param="0.2"
 rl_activation="relu"
-reward_type='composition'
+reward_type='dense'
 comment='Primitive skill with different initialization, use shorter distance between box and origin fix limited_joints use smaller ctrl reward'
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'
 reward_scale='1'
 actor_num_hid_layers='1'
-terminal='False'
+terminal='True'
 
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \

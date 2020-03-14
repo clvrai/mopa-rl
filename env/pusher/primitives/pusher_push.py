@@ -1,5 +1,6 @@
 import re
 from collections import OrderedDict
+from itertools import combinations
 
 import numpy as np
 from gym import spaces
@@ -54,8 +55,13 @@ class PusherPushEnv(SimplePusherEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reward_dist = -self._get_distance("box", "target")
+            bodies = ['link0', 'link1', 'link2', "fingertip"]
+            num_contacts = 0
+            for body1, body2 in combinations(bodies, 2):
+                num_contacts += int(self.on_collision(body1, body2))
+            reward_contact = -1e-1 * float(num_contacts)
             reward = reward_dist + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl, reward_contact=reward_contact)
         elif reward_type == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
         elif reward_type == 'inverse':
