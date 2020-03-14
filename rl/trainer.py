@@ -289,7 +289,7 @@ class Trainer(object):
                             self._runner.run_episode_with_mp(random_exploration=True)
                         init_step += info["len"]
                         init_ep += 1
-                        self._meta_agent.store_episode(rollout)
+                        self._meta_agent.store_episode(meta_rollout)
                         logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
             elif config.algo == 'sac':
                 while init_step < self._config.start_steps:

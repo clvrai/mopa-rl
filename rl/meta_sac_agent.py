@@ -59,6 +59,11 @@ class MetaSACAgent(SACAgent):
 
         self._log_creation()
 
+    def sample_action(self):
+        ac = self.ac_space.sample()
+        ac['default'] = np.array([ac['default']])
+        return ac
+
     def _log_creation(self):
         if self._config.is_chef:
             logger.info('creating a meta sac agent')
