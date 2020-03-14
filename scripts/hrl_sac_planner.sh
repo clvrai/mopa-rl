@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="1"
-prefix="hl.sac.her.rew.0.5.single.150"
+prefix="hl.sac.her.rew.0.5.single.150.debug"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -25,7 +25,7 @@ buffer_size="150000"
 num_batches="150"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="15000"
 batch_size="256"
 clip_param="0.2"
