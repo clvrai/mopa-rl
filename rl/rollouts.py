@@ -199,7 +199,7 @@ class RolloutRunner(object):
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
 
-    def run_episode_with_mp(self, max_step=10000, is_train=True, record=False):
+    def run_episode_with_mp(self, max_step=10000, is_train=True, record=False, random_exploration=False):
         config = self._config
         device = config.device
         env = self._env
