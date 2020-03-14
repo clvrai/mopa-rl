@@ -1,7 +1,7 @@
 #!/bin/bash
 
-workers="12"
-prefix="hl.sac.rew_near.0.5.her.rew.0.5"
+workers="1"
+prefix="hl.sac.her.rew.0.5.single.150"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-v0"
 hl_type="subgoal"
-gpu="1"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
@@ -22,7 +22,7 @@ meta_subgoal_rew="-0.5"
 max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="150000"
-num_batches="600"
+num_batches="150"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -44,7 +44,8 @@ relative_subgoal="True"
 meta_algo='sac'
 her='True'
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \
