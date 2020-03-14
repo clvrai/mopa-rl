@@ -8,9 +8,6 @@
     <default>
         <joint armature="1" damping="1" limited="true"/>
         <geom contype="0" friction="1 0.1 0.1"/>
-        <default class="ground">
-            <geom material="grid" type="plane" contype="0" conaffinity="0"/>
-        </default>
         <default class="link">
             <geom contype="1" conaffinity="1" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule" />
         </default>
@@ -20,13 +17,16 @@
         <default class="link-goal">
             <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.6 0.4 0. 0" size=".01" type="capsule" />
         </default>
+        <default class="ground">
+            <geom material="grid" type="plane" contype="0" conaffinity="0"/>
+        </default>
 
     </default>
 
     <worldbody>
         <!-- Arena -->
         <light cutoff="100" diffuse="0.05 0.05 0.05" dir="0 -0.5 -2.0" directional="true" exponent="1" pos="0 0.5 2.0" specular=".1 .1 .1" />
-        <geom name="ground" class="ground" pos="0 0 0" size="4 4 1" friction="1 0.005 0.0001"/>
+        <geom name="ground" class="ground" pos="0 0 0" size="4 4 1" friction="1 0.005 0.0001" conaffinity="0" contype="0" type="plane"/>
         <camera name="cam0" pos="-0.1 0.1 0.0" quat="0.707 0.707 0 0" />
         <camera name="cam1" pos="-0.1 0.1 0.0" quat="0.707 0.707 0 0" />
         <!--
