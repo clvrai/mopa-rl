@@ -347,9 +347,11 @@ class RolloutRunner(object):
                         elif k != 'default':
                             frame_info['meta_'+k] = meta_ac[k]
 
-                    ik_env.set_state(np.concatenate((traj[meta_len][:env.model.nu], env.sim.data.qpos[env.model.nu:])), ik_env.sim.data.qvel.ravel())
-                    xpos, xquat = self._get_mp_body_pos(ik_env)
-                    vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                    vis_pos=None
+                    if skill_type == 'mp' and success:
+                        ik_env.set_state(np.concatenate((traj[meta_len][:env.model.nu], env.sim.data.qpos[env.model.nu:])), ik_env.sim.data.qvel.ravel())
+                        xpos, xquat = self._get_mp_body_pos(ik_env)
+                        vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                     self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
 
                 if done or ep_len >= max_step or meta_len >= config.max_meta_len:
