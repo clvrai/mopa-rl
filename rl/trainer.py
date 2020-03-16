@@ -236,33 +236,29 @@ class Trainer(object):
             pbar = tqdm(initial=step, total=config.max_global_step, desc=config.run_name)
             ep_info = defaultdict(list)
 
-        # decide how many episodes or how long rollout to collect
-        run_ep_max = 1
-        run_step_max = self._config.rollout_length
-        if self._config.hrl:
-            if (config.hrl_network_to_update == "LL" or \
-                config.hrl_network_to_update == "both"):
-                run_step_max = 10000
-            else:
-                run_ep_max = 1000
-        elif self._config.algo == "ppo":
-            run_ep_max = 1000
-        elif self._config.algo == "sac":
-            run_step_max = 10000
-
-        if self._config.hrl_network_to_update == 'HL' or \
-                self._config.hrl_network_to_update == 'both':
-            if self._config.meta_algo == 'sac':
-                run_ep_max = max(1*self._config.max_meta_len // self._config.num_workers, 1)
-                run_step_max = self._config.max_episode_steps * run_ep_max
-
         # dummy run for preventing weird
-        if config.ll_type == 'rl':
-            self._runner.run_episode()
-        elif config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
-            self._runner.run_episode_with_mp()
+        runner = None
+        random_runner = None
+        if config.hrl:
+            if config.hrl_network_to_update == "LL":
+                runner = self._runner.run(every_steps=1)
+            elif config.hrl_network_to_update == 'HL':
+                if config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
+                    if config.meta_algo == 'sac':
+                        runner = self._runner.run_with_mp(every_steps=1)
+                        random_runner = self._runner.run_with_mp(every_steps=1, random_exploration=True)
+                    else:
+                        self._runner.run_episode_with_mp(every_steps=self._config.rollout_length)
+                elif config.ll_type == 'rl':
+                    runner = self._runner.run(every_steps=1)
+            else:
+                raise NotImplementedError
         else:
-            ValueError("Invalid low level controller type")
+            if config.algo == 'sac':
+                runner = self._runner.run(every_steps=1)
+                random_runner = self._runner.run(every_steps=1, random_exploration=True)
+            elif config.algp == 'ppo':
+                runner = self._runner.run(every_steps=self._config.rollout_length)
 
         st_time = time()
         st_step = step
@@ -273,63 +269,35 @@ class Trainer(object):
 
         # If it does not previously learned data and use SAC, then we firstly fill the experieince replay with the specified number of samples
         if step == 0 and not config.debug:
-            if config.hrl:
-                if self._config.hrl_network_to_update == 'LL' or \
-                        self._config.hrl_network_to_update == 'both':
-                    while init_step < self._config.start_steps:
-                        rollout, meta_rollout, info, _ = \
-                            self._runner.run_episode(random_exploration=True)
-                        init_step += info["len"]
-                        init_ep += 1
-                        self._agent.store_episode(rollout)
-                        logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
-                elif self._config.hrl_network_to_update == 'HL' and self._config.meta_algo == 'sac':
-                    while init_step < self._config.start_steps:
-                        rollout, meta_rollout, info, _ = \
-                            self._runner.run_episode_with_mp(random_exploration=True)
-                        init_step += info["len"]
-                        init_ep += 1
-                        self._meta_agent.store_episode(meta_rollout)
-                        logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
-            elif config.algo == 'sac':
+            if random_runner is not None:
                 while init_step < self._config.start_steps:
-                    rollout, meta_rollout, info, _ = \
-                        self._runner.run_episode(random_exploration=True)
-                    init_step += info["len"]
-                    init_ep += 1
-                    self._agent.store_episode(rollout)
-                    logger.info("Ep: %d rollout: %s", init_ep, {k: v for k, v in info.items() if not "qpos" in k})
+                    rollout, meta_rollout, info = next(random_runner)
+                    step_per_batch = mpi_sum(len(rollout['ac']))
+                    init_step += step_per_batch
 
-
-
-        while step < config.max_global_step:
-            run_ep = 0
-            run_step = 0
-            while run_step < run_step_max and run_ep < run_ep_max:
-                if config.ll_type == 'rl' or not config.hrl:
-                    rollout, meta_rollout, info, _ = \
-                        self._runner.run_episode()
-                else:
-                    rollout, meta_rollout, info, _ = \
-                        self._runner.run_episode_with_mp()
-
-                run_step += info["len"]
-                run_ep += 1
-                global_run_ep += 1
-                #self._save_success_qpos(info)
-                logger.info("Ep: %d rollout: %s", run_ep, {k: v for k, v in info.items() if not "qpos" in k})
-                if config.hrl:
                     if (config.hrl_network_to_update == "HL" or \
                         config.hrl_network_to_update == "both"):
                         self._meta_agent.store_episode(meta_rollout)
                     if (config.hrl_network_to_update == "LL" or \
                         config.hrl_network_to_update == "both"):
                         self._agent.store_episode(rollout)
-                else:
+
+        while step < config.max_global_step:
+            # collect rollouts
+            rollout, meta_rollout, info = next(runner)
+            if config.hrl:
+                if (config.hrl_network_to_update == "HL" or \
+                    config.hrl_network_to_update == "both"):
+                    self._meta_agent.store_episode(meta_rollout)
+                if (config.hrl_network_to_update == "LL" or \
+                    config.hrl_network_to_update == "both"):
                     self._agent.store_episode(rollout)
+            else:
+                self._agent.store_episode(rollout)
 
-            step_per_batch = mpi_sum(run_step)
+            step_per_batch = mpi_sum(len(rollout['ac']))
 
+            # train an agent
             logger.info("Update networks %d", update_iter)
             if config.hrl:
                 if (config.hrl_network_to_update == "HL" or \
@@ -353,8 +321,8 @@ class Trainer(object):
 
             logger.info("Update networks done")
 
-            if step < config.max_ob_norm_step and self._config.policy != 'cnn':
-                self._update_normalizer(rollout, meta_rollout)
+            # if step < config.max_ob_norm_step and self._config.policy != 'cnn':
+            #     self._update_normalizer(rollout, meta_rollout)
 
             step += step_per_batch
             update_iter += 1
