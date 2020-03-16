@@ -10,6 +10,7 @@ from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_
 from util.logger import logger
 from util.env import joint_convert
 from util.gym import action_size
+from util.info import Info
 
 
 class Rollout(object):
@@ -195,6 +196,177 @@ class RolloutRunner(object):
         ep_info['saved_qpos'] = saved_qpos
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
+
+    def run_with_mp(self, max_step=10000, is_train=True, record=False, random_exploration=False, every_steps=None, every_episodes=None):
+        if every_steps is None and every_episodes is None:
+            raise ValueError("Both every_steps and every_episodes cannot be None")
+
+        config = self._config
+        device = config.device
+        env = self._env
+        max_step = env.max_episode_steps
+        meta_pi = self._meta_pi
+        pi = self._pi
+        ik_env = self._ik_env
+        ik_env.reset()
+
+        rollout = Rollout()
+        meta_rollout = MetaRollout()
+        reward_info = Info()
+        ep_info = Info()
+        episode = 0
+        step = 0
+
+        while True:
+            done = False
+            ep_len = 0
+            ep_rew = 0
+            mp_success = 0
+            meta_ac = None
+            success = False
+            skill_count = {}
+            if self._config.hrl:
+                for skill in pi._skills:
+                    skill_count[skill] = 0
+
+            ob = env.reset()
+
+            while not done and ep_len < max_step:
+                if random_exploration: # Random exploration for SAC
+                    meta_ac = meta_pi.sample_action()
+                    meta_ac_before_activation = None
+                    meta_log_prob = None
+                else:
+                    meta_ac, meta_ac_before_activation, meta_log_prob =\
+                            meta_pi.act(ob, is_train=is_train)
+
+                meta_rollout.add({
+                    'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                })
+                meta_len = 0
+                meta_rew = 0
+                mp_len = 0
+
+                curr_qpos = env.sim.data.qpos.ravel().copy()
+
+                if self._config.hrl and 'subgoal' in meta_ac.keys():
+                    joint_space = env.joint_space['default']
+                    minimum = joint_space.low
+                    maximum = joint_space.high
+                    if self._config.subgoal_type == 'joint':
+                        subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
+                    else:
+                        if config.relative_subgoal:
+                            subgoal_cart = pi.curr_pos(env, meta_ac) + meta_ac['subgoal']
+                        else:
+                            subgoal_cart = meta_ac['subgoal']
+                        subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
+                        ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
+                        result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
+                                                              joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=50, progress_thresh=20.0)
+                        subgoal = result.qpos[:env.model.nu].copy()
+                    subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
+
+                ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
+                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+
+                # Will change fingertip to variable later
+                subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
+                target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
+                env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
+
+                skill_type = pi.return_skill_type(meta_ac)
+                skill_count[skill_type] += 1
+                if skill_type == 'mp': # Use motion planner
+                    traj, success = pi.plan(curr_qpos, target_qpos)
+                    if success:
+                        mp_success += 1
+
+                info = OrderedDict()
+                while not done and ep_len < max_step and meta_len < config.max_meta_len:
+                    ll_ob = ob.copy()
+                    if self._config.hrl and self._config.meta_update_target == 'HL' and self._config.goal_replace:
+                        if self._config.subgoal_type == 'joint':
+                            ll_ob['goal'] = subgoal_site_pos
+                        else:
+                            ll_ob['goal'] = subgoal_cart
+                    if skill_type == 'mp':
+                        if success:
+                            curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                            ac = OrderedDict([('default', traj[meta_len][:env.model.nu] - curr_qpos)])
+                            ac_before_activation = None
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                            ob, reward, done, info = env.step(ac)
+                            if config.subgoal_reward:
+                                subgoal_rew, info = env.compute_subgoal_reward('box', info)
+                                reward += subgoal_rew
+                            rollout.add({'done': done, 'rew': reward})
+                        else:
+                            reward = self._config.meta_subgoal_rew
+                            done, info, _ = env._after_step(reward, False, info)
+                    else:
+                        if config.hrl:
+                            ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                        else:
+                            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                        curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+
+                        ob, reward, done, info = env.step(ac)
+                        if config.subgoal_reward:
+                            subgoal_rew, info = env.compute_subgoal_reward('box', info)
+                            reward += subgoal_rew
+                        rollout.add({'done': done, 'rew': reward})
+
+                    ep_rew += reward
+                    meta_rew += reward
+
+                    reward_info.add(info)
+
+                    meta_len += 1
+                    ep_len += 1
+                    step += 1
+
+                    if done or ep_len >= max_step or meta_len >= config.max_meta_len:
+                        break
+                ag = env._get_pos("fingertip").copy()
+                g = env._get_pos('subgoal').copy()
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
+                reward_info.add({'meta_rew': meta_rew})
+
+                if every_steps is not None and step % every_steps == 0:
+                    print('ep_len: ', ep_len)
+                    ll_ob = ob.copy()
+                    if self._config.hrl and self._config.meta_update_target == 'HL' and self._config.goal_replace:
+                        if self._config.subgoal_type == 'joint':
+                            ll_ob['goal'] = subgoal_site_pos
+                        else:
+                            ll_ob['goal'] = subgoal_cart
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                    meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
+                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+            ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
+            ep_info.add(skill_count)
+            reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
+            ep_info.add(reward_info_dict)
+            ep_info_dict = ep_info.get_dict(reduction='sum', only_scalar=True)
+            logger.info('Ep %d rollout: %s', episode,
+                        {k: v for k, v in ep_info_dict.items()
+                         if not 'qpos' in k and np.isscalar(v)})
+
+            episode += 1
+            if every_episodes is not None and episode % every_episodes == 0:
+                ll_ob = ob.copy()
+                if self._config.hrl and self._config.meta_update_target == 'HL' and self._config.goal_replace:
+                    if self._config.subgoal_type == 'joint':
+                        ll_ob['goal'] = subgoal_site_pos
+                    else:
+                        ll_ob['goal'] = subgoal_cart
+                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
+                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
 
 
     def run_episode_with_mp(self, max_step=10000, is_train=True, record=False, random_exploration=False):

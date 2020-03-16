@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.sac.only.push.hard"
+prefix="hl.sac.only.push.hard.debug"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -17,7 +17,7 @@ rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
 max_episode_steps="150"
-evaluate_interval="5"
+evaluate_interval="100"
 meta_subgoal_rew="-0.5"
 max_meta_len="15"
 entropy_loss_coef="0.01"
@@ -25,7 +25,7 @@ buffer_size="5000"
 num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="15000"
 batch_size="32"
 clip_param="0.2"
@@ -34,7 +34,7 @@ reward_scale="1"
 comment="Fix min and max of subgoal"
 seed="1234"
 ctrl_reward_coef="1e-3"
-primitive_skills="push_max_step30"
+primitive_skills="mp push_max_step30"
 primitive_dir="primitives"
 actor_num_hid_layers="1"
 subgoal_type="cart"
@@ -45,7 +45,8 @@ meta_algo='sac'
 her='True'
 start_steps='600'
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+#mpiexec -n $workers
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \
