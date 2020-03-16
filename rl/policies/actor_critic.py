@@ -36,7 +36,7 @@ class Actor(nn.Module):
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
                 if self._config.meta_algo == 'sac':
-                    dists[k] = FixedGumbelSoftmax(torch.tensor(1.0), logits=means[k])
+                    dists[k] = FixedGumbelSoftmax(torch.tensor(0.1), logits=means[k])
                 else:
                     dists[k] = FixedCategorical(logits=means[k])
 
@@ -92,7 +92,7 @@ class Actor(nn.Module):
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
                 if self._config.meta_algo == 'sac':
-                    dists[k] = FixedGumbelSoftmax(torch.tensor(1.0), logits=means[k])
+                    dists[k] = FixedGumbelSoftmax(torch.tensor(0.1), logits=means[k])
                 else:
                     dists[k] = FixedCategorical(logits=means[k])
 
@@ -104,6 +104,7 @@ class Actor(nn.Module):
             activations_ = mixed_dist.mode()
         else:
             activations_ = activations
+
 
         #activations_ = mixed_dist.rsample() if activations is None else activations
         for k in activations_.keys():

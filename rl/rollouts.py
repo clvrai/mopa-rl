@@ -132,7 +132,7 @@ class RolloutRunner(object):
                         subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                         ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                         result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                              joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=50, progress_thresh=20.)
+                                                              joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=10, progress_thresh=20.)
                         subgoal = result.qpos[:env.model.nu].copy()
                     subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
@@ -265,7 +265,7 @@ class RolloutRunner(object):
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=50, progress_thresh=20.)
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=10, progress_thresh=20.)
                     subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
@@ -405,7 +405,7 @@ class RolloutRunner(object):
                         subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                         ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                         result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                              joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=50, progress_thresh=20.0)
+                                                              joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=10, progress_thresh=20.0)
                         subgoal = result.qpos[:env.model.nu].copy()
                     subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
@@ -491,9 +491,9 @@ class RolloutRunner(object):
             ep_info.add(skill_count)
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
-            logger.info('Ep %d rollout: %s', episode,
+            logger.info('Ep %d rollout: %s %s', episode,
                         {k: v for k, v in reward_info_dict.items()
-                         if not 'qpos' in k and np.isscalar(v)})
+                         if not 'qpos' in k and np.isscalar(v)}, {k: v for k, v in skill_count.items()})
 
             episode += 1
             if every_episodes is not None and episode % every_episodes == 0:
@@ -578,7 +578,7 @@ class RolloutRunner(object):
                     subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
                     ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], self._env._get_pos('subgoal')[2]])
                     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=50, progress_thresh=20.0)
+                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=10, progress_thresh=20.0)
                     subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
