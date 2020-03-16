@@ -320,8 +320,8 @@ class Trainer(object):
 
             logger.info("Update networks done")
 
-            if step < config.max_ob_norm_step and self._config.policy != 'cnn':
-                self._update_normalizer(rollout, meta_rollout)
+            # if step < config.max_ob_norm_step and self._config.policy != 'cnn':
+            #     self._update_normalizer(rollout, meta_rollout)
 
             step += step_per_batch
             update_iter += 1
