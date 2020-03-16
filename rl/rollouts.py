@@ -491,9 +491,8 @@ class RolloutRunner(object):
             ep_info.add(skill_count)
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
-            ep_info_dict = ep_info.get_dict(reduction='sum', only_scalar=True)
             logger.info('Ep %d rollout: %s', episode,
-                        {k: v for k, v in ep_info_dict.items()
+                        {k: v for k, v in reward_info_dict.items()
                          if not 'qpos' in k and np.isscalar(v)})
 
             episode += 1
