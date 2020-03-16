@@ -30,7 +30,7 @@ class SimplePusherEnv(BaseEnv):
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
-                    self._get_distance('fingertip', 'box') > 0.2: #make the task harder
+                    self._get_distance('fingertip', 'box') > 0.3: #make the task harder
                 self.goal = goal
                 self.box = box
                 break

@@ -139,6 +139,8 @@ class GumbelSoftmax(torch.distributions.RelaxedOneHotCategorical):
 
     def log_prob(self, value):
         '''value is one-hot or relaxed'''
+        if self.logits.shape[-1] == 1:
+            value = torch.zeros_like(value)
         if value.shape != self.logits.shape:
             value = F.one_hot(value.long(), self.logits.shape[-1]).float()
             assert value.shape == self.logits.shape

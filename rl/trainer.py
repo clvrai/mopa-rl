@@ -253,8 +253,8 @@ class Trainer(object):
         if self._config.hrl_network_to_update == 'HL' or \
                 self._config.hrl_network_to_update == 'both':
             if self._config.meta_algo == 'sac':
-                run_ep_max = 1*self._config.max_meta_len
-                run_step_max = self._config.max_episode_steps * self._config.max_meta_len
+                run_ep_max = max(1*self._config.max_meta_len // self._config.num_workers, 1)
+                run_step_max = self._config.max_episode_steps * run_ep_max
 
         # dummy run for preventing weird
         if config.ll_type == 'rl':
@@ -272,7 +272,7 @@ class Trainer(object):
         init_ep = 0
 
         # If it does not previously learned data and use SAC, then we firstly fill the experieince replay with the specified number of samples
-        if step == 0:
+        if step == 0 and not config.debug:
             if config.hrl:
                 if self._config.hrl_network_to_update == 'LL' or \
                         self._config.hrl_network_to_update == 'both':

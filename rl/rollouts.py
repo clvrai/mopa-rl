@@ -212,8 +212,6 @@ class RolloutRunner(object):
         rollout = Rollout()
         meta_rollout = MetaRollout()
         reward_info = defaultdict(list)
-        acs = []
-
         done = False
         ep_len = 0
         ep_rew = 0
@@ -250,6 +248,7 @@ class RolloutRunner(object):
             })
             meta_len = 0
             meta_rew = 0
+            mp_len = 0
 
             curr_qpos = env.sim.data.qpos.ravel().copy()
 
@@ -283,6 +282,8 @@ class RolloutRunner(object):
             skill_count[skill_type] += 1
             if skill_type == 'mp': # Use motion planner
                 traj, success = pi.plan(curr_qpos, target_qpos)
+                if success:
+                    mp_success += 1
 
             info = OrderedDict()
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
@@ -294,7 +295,6 @@ class RolloutRunner(object):
                         ll_ob['goal'] = subgoal_cart
                 if skill_type == 'mp':
                     if success:
-                        mp_success += 1
                         curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                         ac = OrderedDict([('default', traj[meta_len][:env.model.nu] - curr_qpos)])
                         ac_before_activation = None
@@ -321,10 +321,7 @@ class RolloutRunner(object):
                         reward += subgoal_rew
                     rollout.add({'done': done, 'rew': reward})
 
-                acs.append(ac)
-                ep_len += 1
                 ep_rew += reward
-                meta_len += 1
                 meta_rew += reward
 
                 for key, value in info.items():
@@ -347,12 +344,14 @@ class RolloutRunner(object):
                         elif k != 'default':
                             frame_info['meta_'+k] = meta_ac[k]
 
-                    vis_pos=None
+                    vis_pos=[]
                     if skill_type == 'mp' and success:
                         ik_env.set_state(np.concatenate((traj[meta_len][:env.model.nu], env.sim.data.qpos[env.model.nu:])), ik_env.sim.data.qvel.ravel())
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                     self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
+                meta_len += 1
+                ep_len += 1
 
                 if done or ep_len >= max_step or meta_len >= config.max_meta_len:
                     break
