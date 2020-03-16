@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.sac.only.push.hard.debug"
+prefix="hl.sac.step_update.init.0.4"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -22,10 +22,10 @@ meta_subgoal_rew="-0.5"
 max_meta_len="15"
 entropy_loss_coef="0.01"
 buffer_size="5000"
-num_batches="50"
+num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="32"
 clip_param="0.2"
@@ -43,10 +43,9 @@ subgoal_reward="True"
 relative_subgoal="True"
 meta_algo='sac'
 her='True'
-start_steps='600'
+start_steps='150000'
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \

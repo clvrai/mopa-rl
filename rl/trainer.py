@@ -273,6 +273,7 @@ class Trainer(object):
                 while init_step < self._config.start_steps:
                     rollout, meta_rollout, info = next(random_runner)
                     step_per_batch = mpi_sum(len(rollout['ac']))
+                    init_step += step_per_batch
 
                     if (config.hrl_network_to_update == "HL" or \
                         config.hrl_network_to_update == "both"):
