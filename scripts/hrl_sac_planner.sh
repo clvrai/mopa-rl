@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="16"
-prefix="hl.sac.only.push"
+prefix="hl.sac.only.push.hard"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
