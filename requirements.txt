@@ -7,6 +7,8 @@ imageio
 colorlog
 pyquaternion
 tqdm
+mpi4py
+sklearn
 h5py
 ipdb
 scikit-image
