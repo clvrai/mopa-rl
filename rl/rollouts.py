@@ -671,7 +671,7 @@ class RolloutRunner(object):
         ll_ob = ob.copy()
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
-        saved_qpos.append(env.sim.get_state().qpos.copy())
+        #saved_qpos.append(env.sim.get_state().qpos.copy())
 
         ep_info = {'len': ep_len, 'rew': ep_rew}
         for key, val in skill_count.items():
@@ -682,7 +682,7 @@ class RolloutRunner(object):
                     ep_info[key] = np.mean(value)
                 else:
                     ep_info[key] = np.sum(value)
-        ep_info['saved_qpos'] = saved_qpos
+        #ep_info['saved_qpos'] = saved_qpos
         ep_info['mp_success'] = mp_success
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
@@ -699,31 +699,31 @@ class RolloutRunner(object):
 
         return xpos, xquat
 
-    def _store_frame(self, info={}, subgoal=None, vis_pos=[]):
+    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[]):
         color = (200, 200, 200)
 
-        text = "{:4} {}".format(self._env._episode_length,
-                                self._env._episode_reward)
+        text = "{:4} {}".format(env._episode_length,
+                                env._episode_reward)
 
         if self._config.hl_type == 'subgoal' and subgoal is not None:
-            self._env._set_pos('subgoal', [subgoal[0], subgoal[1], self._env._get_pos('subgoal')[2]])
-            self._env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
+            env._set_pos('subgoal', [subgoal[0], subgoal[1], env._get_pos('subgoal')[2]])
+            env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
 
         for xpos, xquat in vis_pos:
             for k in xpos.keys():
-                self._env._set_pos(k, xpos[k])
-                self._env._set_quat(k, xquat[k])
-                color = self._env._get_color(k)
+                env._set_pos(k, xpos[k])
+                env._set_quat(k, xquat[k])
+                color = env._get_color(k)
                 color[-1] = 0.3
-                self._env._set_color(k, color)
+                env._set_color(k, color)
 
-        frame = self._env.render('rgb_array') * 255.0
-        self._env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
+        frame = env.render('rgb_array') * 255.0
+        env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
         for xpos, xquat in vis_pos:
             for k in xpos.keys():
-                color = self._env._get_color(k)
+                color = env._get_color(k)
                 color[-1] = 0.
-                self._env._set_color(k, color)
+                env._set_color(k, color)
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
