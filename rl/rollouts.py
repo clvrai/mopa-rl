@@ -232,7 +232,7 @@ class RolloutRunner(object):
         ik_env.reset()
         ob = env.reset()
         self._record_frames = []
-        if record: self._store_frame()
+        if record: self._store_frame(env)
 
         # buffer to save qpos
         saved_qpos = []
@@ -320,7 +320,7 @@ class RolloutRunner(object):
                             if k != 'default':
                                 frame_info['meta_'+k] = meta_ac[k]
 
-                    self._store_frame(frame_info)
+                    self._store_frame(env, frame_info)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
@@ -530,7 +530,7 @@ class RolloutRunner(object):
 
         ob = env.reset()
         self._record_frames = []
-        if record: self._store_frame()
+        if record: self._store_frame(env)
 
         # Run rollout
         meta_ac = None
@@ -657,7 +657,7 @@ class RolloutRunner(object):
                         ik_env.set_state(np.concatenate((traj[meta_len][:env.model.nu], env.sim.data.qpos[env.model.nu:])), ik_env.sim.data.qvel.ravel())
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                    self._store_frame(frame_info, subgoal_site_pos, vis_pos=vis_pos)
+                    self._store_frame(env, frame_info, subgoal_site_pos, vis_pos=vis_pos)
                 meta_len += 1
                 ep_len += 1
 
