@@ -5,14 +5,16 @@ import numpy as np
 from gym import spaces
 
 from env.base import BaseEnv
+from skimage import color, transform
 
 
-class SimplePusherObstacleEnv(BaseEnv):
+class SimplePusherObstaclePixelEnv(BaseEnv):
     """ Pusher with Obstacles environment. """
 
     def __init__(self, **kwargs):
         super().__init__("simple_pusher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        self.memory = np.zeros((self._img_height, self._img_width, 4))
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': 10.
@@ -54,25 +56,32 @@ class SimplePusherObstacleEnv(BaseEnv):
         return np.concatenate([obstacle_states, obstacle_size])
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
-        return OrderedDict([
-            ('default', np.concatenate([
-                np.cos(theta),
-                np.sin(theta),
-                self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.model.nu],
-                self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos('fingertip')
-            ])),
-            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
-        ])
+        img = self.sim.render(camera_name=self._camera_name,
+                              width=self._img_height, # try this  later
+                              height=self._img_width,
+                              depth=False)
+        img = np.flipud(img)
+        if self._env_config['is_rgb']:
+            # img = transform.resize(img, (self._img_height, self._img_width))
+            return OrderedDict([('default', img.transpose((2, 0, 1))/255.)])
+        else:
+            gray = color.rgb2gray(img)
+            gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+            self.memory[:, :, 1:] = self.memory[:, :, 0:3]
+            self.memory[:, :, 0] = gray_resized
+            return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
 
     @property
     def observation_space(self):
-        return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
-            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
-        ])
+        if self._env_config['is_rgb']:
+            return spaces.Dict([
+                ('default', spaces.Box(shape=(3, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
+            ])
+        else:
+            return spaces.Dict([
+                ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
+            ])
+
 
     @property
     def get_joint_positions(self):

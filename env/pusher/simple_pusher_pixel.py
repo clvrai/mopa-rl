@@ -3,27 +3,27 @@ from collections import OrderedDict
 
 import numpy as np
 from gym import spaces
-
 from env.base import BaseEnv
+from skimage import color, transform
 
 
-class SimplePusherObstacleEnv(BaseEnv):
+class SimplePusherPixelEnv(BaseEnv):
     """ Pusher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("simple_pusher_obstacle.xml", **kwargs)
-        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        super().__init__("simple_pusher.xml", **kwargs)
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': 10.
         })
+        self.memory = np.zeros((self._img_height, self._img_width, 4))
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-0.2, high=.2, size=2)
-            box = np.random.uniform(low=-0.2, high=.2, size=2)
+            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
+            box = np.random.uniform(low=-0.2, high=0.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
@@ -31,48 +31,49 @@ class SimplePusherObstacleEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
+                    self._get_distance('fingertip', 'box') > 0.4: #make the task harder
                 self.goal = goal
+                self.box = box
                 break
         return self._get_obs()
 
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-4:-2] = goal
-            qpos[-2:] = box
+            qpos[-4:-2] = self.goal
+            qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
 
-    def _get_obstacle_states(self):
-        obstacle_states = []
-        obstacle_size = []
-        for name in self.obstacle_names:
-            obstacle_states.extend(self._get_pos(name)[:2])
-            obstacle_size.extend(self._get_size(name)[:2])
-        return np.concatenate([obstacle_states, obstacle_size])
-
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
-        return OrderedDict([
-            ('default', np.concatenate([
-                np.cos(theta),
-                np.sin(theta),
-                self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.model.nu],
-                self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos('fingertip')
-            ])),
-            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
-        ])
+        img = self.sim.render(camera_name=self._camera_name,
+                              width=self._img_height, # try this  later
+                              height=self._img_width,
+                              depth=False)
+        img = np.flipud(img)
+        if self._env_config['is_rgb']:
+            # img = transform.resize(img, (self._img_height, self._img_width))
+            return OrderedDict([('default', img.transpose((2, 0, 1))/255.)])
+        else:
+            gray = color.rgb2gray(img)
+            gray_resized = transform.resize(gray, (self._img_height, self._img_width))
+            self.memory[:, :, 1:] = self.memory[:, :, 0:3]
+            self.memory[:, :, 0] = gray_resized
+            return OrderedDict([('default', self.memory.transpose((2, 0, 1)))])
 
     @property
     def observation_space(self):
-        return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
-            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
-        ])
+        if self._env_config['is_rgb']:
+            return spaces.Dict([
+                ('default', spaces.Box(shape=(3, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
+            ])
+        else:
+            return spaces.Dict([
+                ('default', spaces.Box(shape=(4, self._img_height, self._img_width), low=0, high=1., dtype=np.float32)),
+            ])
+
 
     @property
     def get_joint_positions(self):
@@ -109,7 +110,7 @@ class SimplePusherObstacleEnv(BaseEnv):
             reward_exp_dist = np.exp(-self._get_distance('box', 'target'))
             reward = reward_exp_dist + reward_ctrl
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
-        elif reward_type == 'composition':
+        elif self._env_config['reward_type'] == 'composition':
             reward_dist = -self._get_distance("box", "target")
             reward_near = -self._get_distance("fingertip", "box")
             reward_ctrl = self._ctrl_reward(action)
@@ -141,4 +142,7 @@ class SimplePusherObstacleEnv(BaseEnv):
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 
-
+    def compute_subgoal_reward(self, name, info):
+        reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
+        info['reward_subgoal_dist'] = reward_subgoal_dist
+        return reward_subgoal_dist, info

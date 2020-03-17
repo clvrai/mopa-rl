@@ -140,14 +140,20 @@ register(
 )
 
 register(
-    id='simple-mover-v0',
-    entry_point='env.mover:SimpleMoverEnv',
+    id='simple-pusher-pixel-v0',
+    entry_point='env.pusher:SimplePusherPixelEnv',
     kwargs={}
 )
 
 register(
     id='pusher-push-v0',
     entry_point='env.pusher.primitives.pusher_push:PusherPushEnv',
+    kwargs={}
+)
+
+register(
+    id='pusher-push-pixel-v0',
+    entry_point='env.pusher.primitives.pusher_push_pixel:PusherPushPixelEnv',
     kwargs={}
 )
 
@@ -160,5 +166,17 @@ register(
 register(
     id='simple-pusher-obstacle-v0',
     entry_point='env.pusher:SimplePusherObstacleEnv',
+    kwargs={}
+)
+
+register(
+    id='pusher-push-obstacle-pixel-v0',
+    entry_point="env.pusher.primitives.pusher_push_obstacle_pixel:PusherPushObstaclePixelEnv",
+    kwargs={}
+)
+
+register(
+    id='simple-pusher-obstacle-pixel-v0',
+    entry_point='env.pusher:SimplePusherObstaclePixelEnv',
     kwargs={}
 )

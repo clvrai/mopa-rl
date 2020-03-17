@@ -29,9 +29,7 @@ obs = env.reset()
 
 
 for i in range(1000):
-    env.render(mode='human')
-    import pdb
-    pdb.set_trace()
+    env.render(mode='rgb_array')
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
     if done:
