@@ -4,6 +4,7 @@ from collections import defaultdict, OrderedDict
 import gzip
 import pickle
 import h5py
+import copy
 
 import torch
 import wandb
@@ -24,6 +25,7 @@ from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
 from util.gym import observation_size, action_size
+
 
 
 def get_agent_by_name(algo, use_ae=False):
@@ -52,6 +54,7 @@ class Trainer(object):
 
         # create a new environment
         self._env = gym.make(config.env, **config.__dict__)
+        self._env_eval = gym.make(config.env, **copy.copy(config).__dict__) if self._is_chef else None
         self._config._xml_path = self._env.xml_path
         config.nq = self._env.model.nq
 
@@ -107,7 +110,7 @@ class Trainer(object):
 
         # build rollout runner
         self._runner = RolloutRunner(
-            config, self._env, self._meta_agent, self._agent
+            config, self._env, self._env_eval, self._meta_agent, self._agent
         )
 
         # setup wandb
@@ -242,6 +245,7 @@ class Trainer(object):
         if config.hrl:
             if config.hrl_network_to_update == "LL":
                 runner = self._runner.run(every_steps=1)
+                random_runner = self._runner.run(every_steps=1, random_exploration=True)
             elif config.hrl_network_to_update == 'HL':
                 if config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
                     if config.meta_algo == 'sac':
@@ -268,7 +272,7 @@ class Trainer(object):
         init_ep = 0
 
         # If it does not previously learned data and use SAC, then we firstly fill the experieince replay with the specified number of samples
-        if step == 0 and not config.debug:
+        if step == 0:
             if random_runner is not None:
                 while init_step < self._config.start_steps:
                     rollout, meta_rollout, info = next(random_runner)
@@ -336,7 +340,6 @@ class Trainer(object):
                             ep_info[k].extend(v)
                         else:
                             ep_info[k].append(v)
-                    ep_info['num_episode'] = global_run_ep
                     train_info.update({
                         "sec": (time() - st_time) / config.log_interval,
                         "steps_per_sec": (step - st_step) / (time() - st_time),
@@ -348,7 +351,7 @@ class Trainer(object):
                     ep_info = defaultdict(list)
 
                 ## Evaluate both MP and RL
-                if update_iter % config.evaluate_interval == 0:
+                if update_iter % config.evaluate_interval == 1:
                     logger.info("Evaluate at %d", update_iter)
                     rollout, info, vids = self._evaluate(step=step, record=config.record)
                     obs = None
@@ -421,7 +424,7 @@ class Trainer(object):
                 break
 
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
-        self._save_success_qpos(info)
+        # self._save_success_qpos(info)
         return rollout, info, np.array(vids)
 
     def _mp_evaluate(self, step=None, record=False, idx=None):
@@ -447,7 +450,7 @@ class Trainer(object):
                 break
 
         logger.info("mp rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
-        self._save_success_qpos(info, prefix="mp_")
+        # self._save_success_qpos(info, prefix="mp_")
         return rollout, info, np.array(vids)
 
 

@@ -1,28 +1,28 @@
 #!/bin/bash
 workers="8"
-prefix="ll.push.dense.contact"
+prefix="ll.push.dense.worker.8"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
-env="pusher-push-v0"
+env="pusher-push-obstacle-v0"
 gpu="1"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
 hl_type='subgoal'
-max_episode_steps="50"
+max_episode_steps="150"
 max_meta_len="15"
-evaluate_interval="5"
+evaluate_interval="1500"
 meta_tanh_policy="True"
 max_grad_norm="0.5"
 entropy_loss_coef="0.1"
-buffer_size="30000"
-num_batches="400"
+buffer_size="50000"
+num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="1000"
-batch_size="256"
+batch_size="128"
 clip_param="0.2"
 rl_activation="relu"
 reward_type='dense'
@@ -35,8 +35,7 @@ actor_num_hid_layers='1'
 terminal='True'
 
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
