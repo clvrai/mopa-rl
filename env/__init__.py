@@ -140,6 +140,12 @@ register(
 )
 
 register(
+    id='pusher-v0',
+    entry_point='env.pusher:PusherEnv',
+    kwargs={}
+)
+
+register(
     id='simple-pusher-pixel-v0',
     entry_point='env.pusher:SimplePusherPixelEnv',
     kwargs={}
@@ -166,6 +172,12 @@ register(
 register(
     id='simple-pusher-obstacle-v0',
     entry_point='env.pusher:SimplePusherObstacleEnv',
+    kwargs={}
+)
+
+register(
+    id='pusher-obstacle-v0',
+    entry_point='env.pusher:PusherObstacleEnv',
     kwargs={}
 )
 

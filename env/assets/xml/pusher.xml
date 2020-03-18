@@ -1,0 +1,4 @@
+<mujoco model="pusher">
+    <include file="./common/pusher.xml" />
+</mujoco>
+

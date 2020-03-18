@@ -1,19 +1,20 @@
 import re
 from collections import OrderedDict
+from itertools import combinations
 
 import numpy as np
 from gym import spaces
 
 from env.base import BaseEnv
-from env.pusher.pusher_obstacle import PusherObstacleEnv
+from env.pusher.simple_pusher import SimplePusherEnv
 
-class PusherPushObstacleEnv(PusherObstacleEnv):
+class SimplePusherPushEnv(SimplePusherEnv):
     """ Pusher push primitive environment. """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._env_config.update({
-            'success_reward': 10
+            'success_reward': 1.
             #'success_reward': 30
         })
 
@@ -31,9 +32,10 @@ class PusherPushObstacleEnv(PusherObstacleEnv):
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and \
-                    self._get_distance('box', 'fingertip') < 0.03 and \
-                    self._get_distance('box', 'target') < 0.2 and \
-                    np.linalg.norm(box) > 0.1:
+                    self._get_distance('box', 'fingertip') < 0.05 and \
+                    self._get_distance('box', 'target') < self._get_distance('fingertip', 'target') and \
+                    np.linalg.norm(box) > 0.1 and \
+                    self._get_distance('box', 'target') > self._env_config['distance_threshold']:
                 self.goal = goal
                 break
         return self._get_obs()
@@ -53,8 +55,13 @@ class PusherPushObstacleEnv(PusherObstacleEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reward_dist = -self._get_distance("box", "target")
+            bodies = ['link0', 'link1', 'link2', "fingertip"]
+            num_contacts = 0
+            for body1, body2 in combinations(bodies, 2):
+                num_contacts += int(self.on_collision(body1, body2))
+            reward_contact = -1e-1 * float(num_contacts)
             reward = reward_dist + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl, reward_contact=reward_contact)
         elif reward_type == 'dist_diff':
             pre_reward_dist = self._get_distance("box", "target")
         elif reward_type == 'inverse':
@@ -68,10 +75,11 @@ class PusherPushObstacleEnv(PusherObstacleEnv):
             info = dict(reward_exp_dist=reward_exp_dist, reward_ctrl=reward_ctrl)
         elif reward_type == 'composition':
             reward_dist = -self._get_distance("box", "target")
-            reward_near = -self._get_distance("box", 'fingertip')
-            reward = reward_dist + reward_ctrl + 0.5*reward_near
+            reward_near = -self._get_distance("fingertip", "box")
+            reward_ctrl = self._ctrl_reward(action)
+            reward = reward_dist + 0.5*reward_near + reward_ctrl
             info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
-        elif self._env_config['reward_type']:
+        else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
 
@@ -92,8 +100,9 @@ class PusherPushObstacleEnv(PusherObstacleEnv):
             reward = reward_dist_diff + reward_ctrl
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-            done = True
-            self._success = True
+            # encourage to stay at the goal
+            if self._episode_length == self._env_config['max_episode_steps']-1:
+                self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 

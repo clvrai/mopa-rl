@@ -6,9 +6,9 @@ import numpy as np
 from gym import spaces
 
 from env.base import BaseEnv
-from env.pusher.simple_pusher import SimplePusherEnv
+from env.pusher.pusher import PusherEnv
 
-class PusherPushEnv(SimplePusherEnv):
+class PusherPushEnv(PusherEnv):
     """ Pusher push primitive environment. """
 
     def __init__(self, **kwargs):
