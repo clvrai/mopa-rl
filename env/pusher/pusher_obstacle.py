@@ -22,8 +22,8 @@ class PusherObstacleEnv(BaseEnv):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-0.2, high=.2, size=2)
-            box = np.random.uniform(low=-0.2, high=.2, size=2)
+            goal = np.random.uniform(low=-0.4, high=.4, size=2)
+            box = np.random.uniform(low=-0.4, high=.4, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
