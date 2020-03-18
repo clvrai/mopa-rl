@@ -176,7 +176,7 @@ register(
 
 register(
     id='simple-pusher-push-obstacle-v0',
-    entry_point="env.pusher.primitives.simple-pusher_push_obstacle:SimplePusherPushObstacleEnv",
+    entry_point="env.pusher.primitives.simple_pusher_push_obstacle:SimplePusherPushObstacleEnv",
     kwargs={}
 )
 

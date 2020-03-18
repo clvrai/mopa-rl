@@ -13,7 +13,7 @@ class PusherPushObstacleEnv(PusherObstacleEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._env_config.update({
-            'success_reward': 10
+            'success_reward': 1
             #'success_reward': 30
         })
 
@@ -92,8 +92,9 @@ class PusherPushObstacleEnv(PusherObstacleEnv):
             reward = reward_dist_diff + reward_ctrl
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-            done = True
-            self._success = True
+            # encourage to stay at the goal
+            if self._episode_length == self._env_config['max_episode_steps']-1:
+                self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 
