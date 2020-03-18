@@ -1,11 +1,11 @@
 #!/bin/bash
 workers="8"
-prefix="ll.push.dense.worker.8.v2"
+prefix="ll.push.composition.worker.8.no_terminal"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
 env="pusher-push-obstacle-v0"
-gpu="1"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -25,7 +25,7 @@ rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
 rl_activation="relu"
-reward_type='dense'
+reward_type='composition'
 comment='Primitive skill with different initialization, use shorter distance between box and origin fix limited_joints use smaller ctrl reward'
 seed='1234'
 ctrl_reward_coef='1'
