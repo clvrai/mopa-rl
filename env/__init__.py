@@ -156,6 +156,11 @@ register(
     entry_point='env.pusher.primitives.pusher_push:PusherPushEnv',
     kwargs={}
 )
+register(
+    id='simple-pusher-push-v0',
+    entry_point='env.pusher.primitives.simple_pusher_push:SimplePusherPushEnv',
+    kwargs={}
+)
 
 register(
     id='pusher-push-pixel-v0',
@@ -166,6 +171,12 @@ register(
 register(
     id='pusher-push-obstacle-v0',
     entry_point="env.pusher.primitives.pusher_push_obstacle:PusherPushObstacleEnv",
+    kwargs={}
+)
+
+register(
+    id='simple-pusher-push-obstacle-v0',
+    entry_point="env.pusher.primitives.simple-pusher_push_obstacle:SimplePusherPushObstacleEnv",
     kwargs={}
 )
 
