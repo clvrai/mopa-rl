@@ -70,7 +70,7 @@ class PusherObstacleEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('default', spaces.Box(shape=(28,), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
