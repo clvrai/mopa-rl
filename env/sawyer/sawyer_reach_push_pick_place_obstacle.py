@@ -400,7 +400,7 @@ class SawyerReachPushPickPlaceObstacleEnv(SawyerXYZEnv):
                 return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
                 # Object on the ground, far away from the goal, and from the gripper
                 #Can tweak the margin limits
-           
+
             def objGrasped(thresh = 0):
                 sensorData = self.data.sensordata
                 return (sensorData[0]>thresh) and (sensorData[1]> thresh)

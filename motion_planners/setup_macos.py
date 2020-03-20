@@ -8,9 +8,9 @@ import platform
 
 # export MACOSX_DEPLOYMENT_TARGET=10.13
 
-prefix_path = '/Users/gautam/'
-ompl_lib_path = os.path.join(prefix_path, 'HRLPlanner/ompl/lib/libompl.dylib')
-eigen_include_path = '/opt/local/include/eigen3'
+prefix_path = '/Users/yamadajun/'
+ompl_lib_path = os.path.join(prefix_path, '/usr/local/lib/libompl.dylib')
+eigen_include_path = '/usr/local/include/eigen3'
 
 extensions = [
     Extension('planner', ['planner.pyx', 'KinematicPlanner.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',

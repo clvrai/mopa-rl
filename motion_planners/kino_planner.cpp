@@ -7,18 +7,22 @@
             "include/KinodynamicPlanner.h"
         ],
         "extra_compile_args": [
-            "-std=c++11"
+            "-std=c++11",
+            "-stdlib=libc++"
         ],
         "extra_objects": [
-            "/usr/local/lib/libompl.so",
-            "/home/jun/.mujoco/mujoco200/bin/libmujoco200.so"
+            "/Users/gautam/HRLPlanner/ompl/lib/libompl.dylib",
+            "/Users/gautam/.mujoco/mujoco200/bin/libmujoco200.dylib"
         ],
         "include_dirs": [
             "./include/",
-            "/usr/local/include/eigen3",
+            "/opt/local/include",
+            "/opt/local/include/eigen3",
             "./3rd_party/include/",
-            "/home/jun/.mujoco/mujoco200/include/",
-            "/usr/local/include/ompl"
+            "/opt/local/include/boost/",
+            "/Users/gautam/.mujoco/mujoco200/include/",
+            "/usr/local/include/ompl",
+            "/usr/local/include"
         ],
         "language": "c++",
         "name": "kino_planner",

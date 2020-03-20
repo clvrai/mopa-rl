@@ -4,7 +4,9 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <memory> #include <random> #include <stdexcept>
+#include <memory>
+#include <random>
+#include <stdexcept>
 #include <string>
 
 
