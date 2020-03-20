@@ -32,6 +32,7 @@ class MujocoEnv(gym.Env):
             self.model = mujoco_py.load_model_from_path(fullpath)
             self.sim = mujoco_py.MjSim(self.model)
             self.data = self.sim.data
+            self.joint_names = list(self.model.joint_names)[:9]
             self.viewer = None
             self._viewers = {}
 

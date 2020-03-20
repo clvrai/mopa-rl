@@ -21,7 +21,6 @@ args, unparsed = parser.parse_known_args()
 env = gym.make(args.env, **args.__dict__)
 obs = env.reset()
 
-
 #for i in range(10000):
 while True:
     env.render(mode='human')
