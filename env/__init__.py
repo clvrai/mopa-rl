@@ -234,3 +234,9 @@ register(
     entry_point='env.robosuite:SawyerStackEnv',
     kwargs={}
 )
+
+register(
+    id='sawyer-test-robosuite-v0',
+    entry_point='env.robosuite:SawyerTestEnv',
+    kwargs={}
+)

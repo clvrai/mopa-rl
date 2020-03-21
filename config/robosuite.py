@@ -6,25 +6,6 @@ def add_arguments(parser):
     Adds a list of arguments to argparser for the sawyer environment.
     """
     # sawyer
-    parser.add_argument("--single_object_mode", type=int, default=0)
-    parser.add_argument("--object_type", type=str, default=None)
-    parser.add_argument("--table_full_size", nargs=3, default=(0.39, 0.49, 0.82))
-    parser.add_argument("--table_friction", nargs=3, default=(1, 0.005, 0.0001))
-    parser.add_argument("--gripper_visualization", type=str2bool, default=False)
-    parser.add_argument("--use_object_obs", type=str2bool, default=True)
-    parser.add_argument("--reward_shaping", type=str2bool, default=False)
-    parser.add_argument("--gripper_type", type=str, default="TwoFingerGripper")
-    parser.add_argument("--use_indicator_object", type=str2bool, default=False)
-    parser.add_argument("--control_freq", type=int, default=10)
-    parser.add_argument("--horizon", type=int, default=1000)
-    parser.add_argument("--has_renderer", type=str2bool, default=False)
-    parser.add_argument("--has_offscreen_renderer", type=str2bool, default=True)
-    parser.add_argument("--render_collision_mesh", type=str2bool, default=True)
-    parser.add_argument("--render_visual_mesh", type=str2bool, default=True)
-    parser.add_argument("--use_camera_obs", type=str2bool, default=True)
-    parser.add_argument("--camera_name", type=str, default='frontview')
-    parser.add_argument("--placement_initializer", type=str, default=None)
-    #parser.add_argument("--distance_threshold", type=float, default=0.01)
 
     parser.add_argument("--reward_type", type=str, default="dense",
                         choices=["dense", "sparse"])

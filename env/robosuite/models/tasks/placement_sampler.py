@@ -3,7 +3,6 @@ import numpy as np
 
 from env.robosuite.utils import RandomizationError
 
-
 class ObjectPositionSampler:
     """Base class of object placement sampler."""
 

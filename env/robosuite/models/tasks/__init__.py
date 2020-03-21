@@ -1,6 +1,6 @@
 from .task import Task
 
-from .placement_sampler import (
+from env.robosuite.models.tasks.placement_sampler import (
     ObjectPositionSampler,
     UniformRandomSampler,
     UniformRandomPegsSampler,
@@ -9,5 +9,6 @@ from .placement_sampler import (
 from .pick_place_task import PickPlaceTask
 from .nut_assembly_task import NutAssemblyTask
 from .table_top_task import TableTopTask
+from .table_top_test_task import TableTopTestTask
 from .push_task import PushTask
 from .move_task import MoveTask
