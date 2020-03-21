@@ -160,7 +160,7 @@ register(
 )
 
 register(
-    id='sawyer-pick-place-v0',
+    id='sawyer-pick-place-v1',
     entry_point='env.robosuite:SawyerPickPlaceEnv',
     kwargs={}
 )
