@@ -2,6 +2,7 @@ import os, sys
 import numpy as np
 
 from env.robosuite_base import RobosuiteBaseEnv
+import env.robosuite.utils.transform_utils as T
 
 from env.robosuite.models.grippers import gripper_factory
 from env.robosuite.models.robots import Sawyer

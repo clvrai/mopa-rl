@@ -53,6 +53,7 @@ class RobosuiteBaseEnv(gym.Env):
         self.render_visual_mesh = kwargs['render_visual_mesh']
         self.viewer = None
         self.model = None
+        self.horizon = kwargs['max_episode_steps']
 
         self.use_camera_obs = kwargs['use_camera_obs']
         if self.use_camera_obs and not self.has_offscreen_renderer:
@@ -68,6 +69,7 @@ class RobosuiteBaseEnv(gym.Env):
 
         self._reset_internal()
         self._camera_id = self.sim.model.camera_names.index(self.camera_name)
+        self.joint_names = list(self.sim.model.joint_names[:8])
 
     def initialize_time(self, control_freq):
         """
@@ -126,16 +128,13 @@ class RobosuiteBaseEnv(gym.Env):
         logger.info('initial qvel: {}'.format(self.sim.data.qvel.ravel()))
 
         # Action
-        num_actions = self.sim.model.nu
-        is_limited = self.sim.model.actuator_ctrllimited.ravel().astype(np.bool)
-        control_range = self.sim.model.actuator_ctrlrange
-        minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
-        maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
-        minimum[is_limited], maximum[is_limited] = control_range[is_limited].T
+        num_actions = self.dof
+        is_limited = np.array([True] * self.dof)
+        minimum = np.ones(self.dof) * -1.
+        maximum = np.ones(self.dof) * 1.
         self._minimum = minimum
         self._maximum = maximum
         logger.info('is_limited: {}'.format(is_limited))
-        logger.info('control_range: {}'.format(control_range[is_limited].T))
         self.action_space = spaces.Dict([
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
@@ -168,13 +167,15 @@ class RobosuiteBaseEnv(gym.Env):
         return self.sim.model.nu
 
     def reset(self):
-        self.sim.reset()
-        if self.render_mode == 'human':
-            self._viewer = self._get_viewer()
-            self._reset_internal()
-        ob = self._reset()
+        self._destroy_viewer()
+        self._reset_internal()
+        self.sim.forward()
+        ob = self._get_observation()
         self._after_reset()
         return ob
+
+    def _get_observation(self):
+        return OrderedDict()
 
     def _init_random(self, size):
         r = self._env_config["init_randomness"]
@@ -187,7 +188,39 @@ class RobosuiteBaseEnv(gym.Env):
         self._destroy_viewer()
         self._reset_internal()
         self.sim.forward()
-        return self._get_obs()
+        return self._get_observation()
+
+    def step(self, action):
+        """Takes a step in simulation with control command @action."""
+        if self.done:
+            raise ValueError("executing action in terminated episode")
+        if isinstance(action, list):
+            action = {key: val for ac_i in action for key, val in ac_i.items()}
+        if isinstance(action, OrderedDict):
+            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
+
+        self.timestep += 1
+        self._before_step()
+        self._pre_action(action)
+        end_time = self.cur_time + self.control_timestep
+        while self.cur_time < end_time:
+            self.sim.step()
+            self.cur_time += self.model_timestep
+        reward, done, info = self._post_action(action)
+        done, info, _ = self._after_step(reward, done, info)
+        return self._get_observation(), reward, done, info
+
+    def _pre_action(self, action):
+        """Do any preprocessing before taking an action."""
+        self.sim.data.ctrl[:] = action
+
+    def _post_action(self, action):
+        """Do any housekeeping after taking an action."""
+        reward = self.reward(action)
+
+        # done if number of elapsed timesteps is greater than horizon
+        self.done = (self.timestep >= self.horizon) and not self.ignore_done
+        return reward, self.done, {}
 
     def _after_reset(self):
         self._episode_reward = 0
@@ -201,18 +234,6 @@ class RobosuiteBaseEnv(gym.Env):
         #with self.model.disable('actuation'):
         #    self.forward()
 
-    def step(self, action):
-        self.timestep += 1
-        self._before_step()
-        if isinstance(action, list):
-            action = {key: val for ac_i in action for key, val in ac_i.items()}
-        if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
-
-        self._do_simulation(action)
-        ob, reward, done, info = self._step(action)
-        done, info, penalty = self._after_step(reward, done, info)
-        return ob, reward + penalty, done, info
 
     def _before_step(self):
         pass
@@ -461,4 +482,21 @@ class RobosuiteBaseEnv(gym.Env):
         # if there is an active viewer window, destroy it
         if self.viewer is not None:
             self.viewer = None
-
+    def find_contacts(self, geoms_1, geoms_2):
+        """
+        Finds contact between two geom groups.
+        Args:
+            geoms_1: a list of geom names (string)
+            geoms_2: another list of geom names (string)
+        Returns:
+            iterator of all contacts between @geoms_1 and @geoms_2
+        """
+        for contact in self.sim.data.contact[0 : self.sim.data.ncon]:
+            # check contact geom in geoms
+            c1_in_g1 = self.sim.model.geom_id2name(contact.geom1) in geoms_1
+            c2_in_g2 = self.sim.model.geom_id2name(contact.geom2) in geoms_2
+            # check contact geom in geoms (flipped)
+            c2_in_g1 = self.sim.model.geom_id2name(contact.geom2) in geoms_1
+            c1_in_g2 = self.sim.model.geom_id2name(contact.geom1) in geoms_2
+            if (c1_in_g1 and c2_in_g2) or (c1_in_g2 and c2_in_g1):
+                yield contact
