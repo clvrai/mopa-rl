@@ -25,7 +25,20 @@ np.set_printoptions(suppress=True)
 class RobosuiteBaseEnv(gym.Env):
     """ Base class for MuJoCo environments. """
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                has_renderer=False,
+                has_offscreen_renderer=True,
+                render_collision_mesh=False,
+                render_visual_mesh=True,
+                control_freq=10,
+                horizon=1000,
+                ignore_done=False,
+                use_camera_obs=False,
+                camera_name="frontview",
+                camera_height=256,
+                camera_width=256,
+                camera_depth=False,
+                **kwargs):
         """ Initializes class with configuration. """
         # default env config
         self._env_config = {
@@ -46,30 +59,39 @@ class RobosuiteBaseEnv(gym.Env):
         self._img_height = kwargs['img_height']
         self._img_width = kwargs['img_width']
 
-        self.control_freq = kwargs['control_freq']
-        self.has_renderer = kwargs['has_renderer']
-        self.has_offscreen_renderer = kwargs['has_offscreen_renderer']
-        self.render_collision_mesh = kwargs['render_collision_mesh']
-        self.render_visual_mesh = kwargs['render_visual_mesh']
+        self.control_freq = control_freq
+        self.has_renderer = has_renderer
+        self.has_offscreen_renderer = has_offscreen_renderer
+        self.render_collision_mesh = render_collision_mesh
+        self.render_visual_mesh = render_visual_mesh
         self.viewer = None
         self.model = None
-        self.horizon = kwargs['max_episode_steps']
+        self.horizon = horizon
 
-        self.use_camera_obs = kwargs['use_camera_obs']
+        self.use_camera_obs = use_camera_obs
         if self.use_camera_obs and not self.has_offscreen_renderer:
             raise ValueError("Camera observations require an offscreen renderer.")
 
-        self.camera_name = kwargs['camera_name']
+        self.camera_name = camera_name
         if self.use_camera_obs and self.camera_name is None:
             raise ValueError("Must specify camera name when using camera obs")
 
-        self.camera_height = kwargs['camera_height']
-        self.camera_width = kwargs['camera_width']
-        self.camera_depth = kwargs['camera_depth']
+        self.camera_height = camera_height
+        self.camera_width = camera_width
+        self.camera_depth = camera_depth
 
         self._reset_internal()
         self._camera_id = self.sim.model.camera_names.index(self.camera_name)
         self.joint_names = list(self.sim.model.joint_names[:8])
+
+        xml_name = kwargs['env'].replace("-v0", "")
+        xml_name = xml_name.replace("-", "_")
+        xml_path = os.path.join(os.path.dirname(__file__), 'assets', 'xml', xml_name+'.xml')
+        self.model.save_model(xml_path)
+        self.xml_path = xml_path
+
+
+
 
     def initialize_time(self, control_freq):
         """
@@ -124,6 +146,7 @@ class RobosuiteBaseEnv(gym.Env):
         self.timestep = 0
         self.done = False
 
+        # Action
         logger.info('initial qpos: {}'.format(self.sim.data.qpos.ravel()))
         logger.info('initial qvel: {}'.format(self.sim.data.qvel.ravel()))
 
@@ -132,6 +155,7 @@ class RobosuiteBaseEnv(gym.Env):
         is_limited = np.array([True] * self.dof)
         minimum = np.ones(self.dof) * -1.
         maximum = np.ones(self.dof) * 1.
+
         self._minimum = minimum
         self._maximum = maximum
         logger.info('is_limited: {}'.format(is_limited))
@@ -139,8 +163,19 @@ class RobosuiteBaseEnv(gym.Env):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-        self.joint_sapce = spaces.Dict([
-            ('default', spaces.Box(low=-3, high=-3, shape=(self.sim.model.nq,), dtype=np.float32))
+
+        jnt_range = self.sim.model.jnt_range[:num_actions]
+        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
+        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
+        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
+        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+        self._is_jnt_limited = is_jnt_limited
+
+
+        self.joint_space = spaces.Dict([
+            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
 
@@ -156,7 +191,7 @@ class RobosuiteBaseEnv(gym.Env):
 
     @property
     def max_episode_steps(self):
-        return self._env_config["max_episode_steps"]
+        return self.horizon
 
     @property
     def observation_space(self):
@@ -280,9 +315,6 @@ class RobosuiteBaseEnv(gym.Env):
     def set_env_config(self, env_config):
         self._env_config.update(env_config)
 
-    def _render_callback(self):
-        self.sim.forward()
-
     def _set_camera_position(self, cam_id, cam_pos):
         self.sim.model.cam_pos[cam_id] = cam_pos.copy()
 
@@ -295,9 +327,11 @@ class RobosuiteBaseEnv(gym.Env):
         q = T.lookat_to_quat(-forward, up)
         self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to='wxyz')
 
-    def render(self, mode='human', close=False):
-        self._render_callback() # sim.forward()
+    def reward(self, action):
+        """Reward should be a function of state and action."""
+        return 0
 
+    def render(self, mode='human', close=False):
         if mode == 'rgb_array':
             camera_obs = self.sim.render(camera_name=self.camera_name,
                                          width=self.camera_width,
@@ -311,20 +345,24 @@ class RobosuiteBaseEnv(gym.Env):
             return None
         return None
 
+    def _get_viewer(self):
+        if self.viewer is None:
+            self.viewer = MujocoPyRenderer(self.sim)
+            self.viewer.viewer.vopt.geomgroup[0] = (
+                1 if self.render_collision_mesh else 0
+            )
+            self.viewer.viewer.vopt.geomgroup[1] = 1 if self.render_visual_mesh else 0
+
+            # hiding the overlay speeds up rendering significantly
+            self.viewer.viewer._hide_overlay = True
+        return self.viewer
+
+
     def _viewer_reset(self):
         pass
 
     def _get_current_error(self, current_state, desired_state):
         return desired_state - current_state
-
-    def _get_viewer(self):
-        if self.viewer is None:
-            self.viewer = mujoco_py.MjViewer(self.sim)
-            self.viewer.cam.fixedcamid = self._camera_id
-            self.viewer.cam.type = mujoco_py.generated.const.CAMERA_FIXED
-            #self.has_renderer = True
-            #self._reset_internal()
-        return self.viewer
 
     def close(self):
         if self._viewer is not None:

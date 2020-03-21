@@ -180,7 +180,9 @@ args, unparsed = parser.parse_known_args()
 
 if 'reacher' in args.env:
     from config.reacher import add_arguments
-if 'sawyer' in args.env:
+elif 'robosuite' in args.env:
+    from config.robosuite import add_arguments
+elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
 else:
     raise ValueError('args.env (%s) is not supported' % args.env)

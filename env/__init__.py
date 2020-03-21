@@ -160,77 +160,77 @@ register(
 )
 
 register(
-    id='sawyer-pick-place-v1',
+    id='sawyer-pick-place-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceEnv',
     kwargs={}
 )
 register(
-    id='sawyer-move-v0',
+    id='sawyer-move-robosuite-v0',
     entry_point='env.robosuite:SawyerMoveEnv',
     kwargs={}
 )
 register(
-    id='sawyer-move-single-v0',
+    id='sawyer-move-single-robosuite-v0',
     entry_point='env.robosuite:SawyerMoveSingleEnv',
     kwargs={}
 )
 register(
-    id='sawyer-move-milk-v0',
+    id='sawyer-move-milk-robosuite-v0',
     entry_point='env.robosuite:SawyerMoveMilkEnv',
     kwargs={}
 )
 register(
-    id='sawyer-move-bread-v0',
+    id='sawyer-move-bread-robosuite-v0',
     entry_point='env.robosuite:SawyerMoveBreadEnv',
     kwargs={}
 )
 register(
-    id='sawyer-move-cereal-v0',
+    id='sawyer-move-cereal-robosuite-v0',
     entry_point='env.robosuite:SawyerMoveCerealEnv',
     kwargs={}
 )
 
 register(
-    id='sawyer-move-can-v0',
+    id='sawyer-move-can-robosuite-v0',
     entry_point='env.robosuite:SawyerMoveCanEnv',
     kwargs={}
 )
 
 register(
-    id='sawyer-pick-place-single-v0',
+    id='sawyer-pick-place-single-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceSingleEnv',
     kwargs={}
 )
 register(
-    id='sawyer-pick-place-milk-v0',
+    id='sawyer-pick-place-milk-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceMilkEnv',
     kwargs={}
 )
 register(
-    id='sawyer-pick-place-bread-v0',
+    id='sawyer-pick-place-bread-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceBreadEnv',
     kwargs={}
 )
 register(
-    id='sawyer-pick-place-cereal-v0',
+    id='sawyer-pick-place-cereal-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceCerealEnv',
     kwargs={}
 )
 
 register(
-    id='sawyer-pick-place-can-v0',
+    id='sawyer-pick-place-can-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceCanEnv',
     kwargs={}
 )
 
 register(
-    id='sawyer-push-v0',
+    id='sawyer-push-robosuite-v0',
     entry_point='env.robosuite:SawyerPushEnv',
     kwargs={}
 )
 
 register(
-    id='sawyer-stack-v0',
+    id='sawyer-stack-robosuite-v0',
     entry_point='env.robosuite:SawyerStackEnv',
     kwargs={}
 )
