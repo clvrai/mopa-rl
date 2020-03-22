@@ -31,6 +31,8 @@ class SamplingBasedPlanner:
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
         states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, max_steps))
+        if np.unique(states).size == 1 and states[0][0] == -1:
+            return states, states
 
         traj = [start]
         pre_state = states[0]

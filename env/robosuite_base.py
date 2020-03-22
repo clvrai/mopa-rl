@@ -3,6 +3,7 @@ import time
 import logging
 import traceback
 from collections import OrderedDict
+from env.robosuite.utils.mjcf_utils import new_joint, array_to_string
 
 try:
     import mujoco_py
@@ -16,6 +17,7 @@ from gym import spaces, error
 from mujoco_py import MjSim, MjRenderContextOffscreen
 from mujoco_py import load_model_from_xml
 from env.robosuite.utils import SimulationError, XMLError, MujocoPyRenderer
+from env.robosuite.models.robots import Sawyer, SawyerVisual
 
 import env.transform_utils as T
 from util.logger import logger
@@ -393,7 +395,6 @@ class RobosuiteBaseEnv(gym.Env):
         self.sim.step()
 
     def _get_pos(self, name):
-        print(name)
         if name in self.sim.model.body_names:
             return self.sim.data.get_body_xpos(name).copy()
         if name in self.sim.model.geom_names:
@@ -546,3 +547,14 @@ class RobosuiteBaseEnv(gym.Env):
         current robot joint positions.
         """
         return np.array(self._joint_positions)
+
+    def add_visual_sawyer(self):
+        sawyer_mjcf = SawyerVisual()
+        self.model.merge_asset(sawyer_mjcf)
+        obj = sawyer_mjcf.get_visual(name='sawyer_visual', site=False)
+        offset = self.model.robot.bottom_offset
+        offset[2] *= -1
+        obj.set("pos", array_to_string(offset))
+        self.model.worldbody.append(obj)
+
+

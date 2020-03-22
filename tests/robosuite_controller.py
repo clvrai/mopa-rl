@@ -56,21 +56,29 @@ def run_mp(env, planner, i=None):
     env.reset()
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
-    controller = SawyerIKController(
-                bullet_data_path=os.path.join('env/assets/robosuite', "bullet_data"),
-                robot_jpos_getter=env._robot_jpos_getter,
-            )
-    qpos = env.sim.data.qpos.ravel()
-    qvel = env.sim.data.qvel.ravel()
-    success = False
-    env.set_state(qpos, qvel)
+    ik_env = gym.make(args.env, **args.__dict__)
+    ik_env.reset()
+    ik_env._set_pos('target', env._get_pos('target'))
 
-    controller.sync_ik_robot(controller.robot_jpos_getter())
-    result = controller.inverse_kinematics(env._get_pos('target'), env._get_quat('target'))
+    # controller = SawyerIKController(
+    #             bullet_data_path=os.path.join('env/assets/robosuite', "bullet_data"),
+    #             robot_jpos_getter=env._robot_jpos_getter,
+    #         )
+    qpos = env.sim.data.qpos.ravel().copy()
+    qvel = env.sim.data.qvel.ravel().copy()
+    success = False
+    mp_env.set_state(qpos, qvel)
+    ik_env.set_state(qpos, qvel)
+
+    # controller.sync_ik_robot(controller.robot_jpos_getter())
+    # result = controller.inverse_kinematics(env._get_pos('target'), env._get_quat('target'))
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=300)
 
     start = env.sim.data.qpos.ravel().copy()
-    goal = start.copy()
-    goal[:len(result)] = result
+    goal = result.qpos
+    goal[len(env.model.robot.joints):] = start[len(env.model.robot.joints)]
+    ik_env.set_state(goal, qvel)
+    #ik_env.render(mode='human')
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, 40)
 
@@ -91,6 +99,12 @@ def run_mp(env, planner, i=None):
             # Update dummy reacher
             if step % 1 == 0:
                 mp_env.set_state(np.concatenate((traj[step + 1][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
+                for joint in env.model.sawyer_visual.joints:
+                    body_idx = env.sim.model.body_name2id(joint)
+                    pos = mp_env.sim.data.body_xpos[body_idx]
+                    quat = mp_env.sim.data.body_xpos[body_idx]
+                    env._set_pos(joint, pos)
+                    env._set_quat(joint, pos)
                 # for l in range(len(env.sim.data.qpos[:-2])):
                 #     body_idx = mp_env.sim.model.body_name2id('body' + str(l))
                 #     pos = mp_env.sim.data.body_xpos[body_idx]
@@ -104,24 +118,6 @@ def run_mp(env, planner, i=None):
                 env.render(mode='human')
 
             env.step(state[:-2]-env.sim.data.qpos[:-2])
-            # prev_state = env.sim.data.qpos
-            # target_vel = (state - prev_state) / edge_dt
-            # for t in range(n_inner_loop):
-            #     p_term = Kp * (state[:-2] - env.sim.data.qpos[:-2])
-            #     d_term = Kd * (target_vel[:-2] * 0 - env.sim.data.qvel[:-2])
-            #     i_term = alpha * i_term + Ki * (prev_state[:-2] - env.sim.data.qpos[:-2])
-            #
-            #     # print('p term ', np.linalg.norm(p_term))
-            #     # print('d term ', np.linalg.norm(d_term))
-            #     # print('i term ', np.linalg.norm(i_term))
-            #     action = p_term + d_term + i_term
-            #
-            #     env.sim.data.ctrl[:] = action
-            #     env.sim.forward()
-            #     env.sim.step()
-            #     # env.step(action)
-            #
-            #     env.render(mode='human')
 
             error += np.sqrt((env.sim.data.qpos - state) ** 2)
             end_error += np.sqrt((env.data.get_site_xpos('grip_site') - mp_env.data.get_site_xpos('grip_site')) ** 2)
@@ -164,7 +160,7 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 # Save video or not
-is_save_video = True
+is_save_video = False
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)

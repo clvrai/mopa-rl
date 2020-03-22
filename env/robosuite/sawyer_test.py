@@ -6,7 +6,7 @@ from env.robosuite.sawyer import SawyerEnv
 
 from env.robosuite.models.arenas.table_arena import TableArena
 from env.robosuite.models.objects import BoxObject, CylinderObject, MujocoXMLObject
-from env.robosuite.models.robots import Sawyer
+from env.robosuite.models.robots import Sawyer, SawyerVisual
 from env.robosuite.models.tasks import TableTopTestTask, UniformRandomSampler
 
 class TargetVisualObject(MujocoXMLObject):
@@ -175,6 +175,8 @@ class SawyerTestEnv(SawyerEnv):
 
         self.model.place_objects()
         self.model.place_visual()
+        self.add_visual_sawyer()
+
 
     def _get_reference(self):
         """
