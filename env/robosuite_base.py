@@ -434,8 +434,8 @@ class RobosuiteBaseEnv(gym.Env):
 
     def _set_quat(self, name, quat):
         if name in self.sim.model.body_names:
-            body_idx = self.model.body_name2id(name)
-            self.model.body_quat[body_idx] = quat[:]
+            body_idx = self.sim.model.body_name2id(name)
+            self.sim.model.body_quat[body_idx] = quat[:]
             return
         if name in self.sim.model.geom_names:
             geom_idx = self.sim.model.geom_name2id(name)
@@ -550,11 +550,12 @@ class RobosuiteBaseEnv(gym.Env):
 
     def add_visual_sawyer(self):
         sawyer_mjcf = SawyerVisual()
+        self.sawyer_visual = sawyer_mjcf
         self.model.merge_asset(sawyer_mjcf)
         obj = sawyer_mjcf.get_visual(name='sawyer_visual', site=False)
         offset = self.model.robot.bottom_offset
         offset[2] *= -1
-        obj.set("pos", array_to_string(offset))
+        obj.set("pos", array_to_string(offset+0.1))
         self.model.worldbody.append(obj)
 
 
