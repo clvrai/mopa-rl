@@ -31,3 +31,4 @@ class Arena(MujocoXML):
         )
         body.append(new_joint(type="free", name="pos_indicator"))
         self.worldbody.append(body)
+

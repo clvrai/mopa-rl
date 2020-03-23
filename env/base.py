@@ -48,8 +48,7 @@ class BaseEnv(gym.Env):
         self._ki = kwargs['ki']
         self._frame_dt = 1.
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
-        if 'camera_name' in kwargs:
-            self._camera_name = kwargs['camera_name']
+        self._camera_name = kwargs['camera_name']
 
         if 'box_to_target_coef' in kwargs:
             self._box_to_target_coef = kwargs['box_to_target_coef']
@@ -147,6 +146,7 @@ class BaseEnv(gym.Env):
             self._viewer = self._get_viewer()
             self._viewer_reset()
         ob = self._reset()
+        self.sim.forward()
         self._after_reset()
         return ob
 
@@ -354,7 +354,7 @@ class BaseEnv(gym.Env):
         raise ValueError
 
     def _get_distance(self, name1, name2):
-        pos1 = self._get_pos(name1)
+        pos1 = self._(name1)
         pos2 = self._get_pos(name2)
         return np.linalg.norm(pos1 - pos2)
 

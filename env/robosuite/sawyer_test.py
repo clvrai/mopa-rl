@@ -7,7 +7,7 @@ from env.robosuite.sawyer import SawyerEnv
 from env.robosuite.models.arenas.table_arena import TableArena
 from env.robosuite.models.objects import BoxObject, CylinderObject, MujocoXMLObject
 from env.robosuite.models.robots import Sawyer, SawyerVisual
-from env.robosuite.models.tasks import TableTopTestTask, UniformRandomSampler
+from env.robosuite.models.tasks import TableTopTargetTask, UniformRandomSampler
 
 class TargetVisualObject(MujocoXMLObject):
     def __init__(self):
@@ -154,6 +154,7 @@ class SawyerTestEnv(SawyerEnv):
         if self.use_indicator_object:
             self.mujoco_arena.add_pos_indicator()
 
+
         # The sawyer robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
 
@@ -161,22 +162,68 @@ class SawyerTestEnv(SawyerEnv):
         # initialize objects of interest
         #target = TargetObject()
         box = BoxObject()
-        self.visual_objects = [('target', TargetVisualObject())]
         self.mujoco_objects = OrderedDict()
 
         # task includes arena, robot, and objects of interest
-        self.model = TableTopTestTask(
+        self.model = TableTopTargetTask(
             self.mujoco_arena,
             self.mujoco_robot,
             self.mujoco_objects,
-            self.visual_objects,
             initializer=self.placement_initializer,
         )
 
         self.model.place_objects()
-        self.model.place_visual()
-        self.add_visual_sawyer()
+        # self.add_visual_sawyer()
 
+    def _pre_action(self, action):
+        """
+        Overrides the superclass method to actuate the robot with the 
+        passed joint velocities and gripper control.
+        Args:
+            action (numpy array): The control to apply to the robot. The first
+                @self.mujoco_robot.dof dimensions should be the desired 
+                normalized joint velocities and if the robot has 
+                a gripper, the next @self.gripper.dof dimensions should be
+                actuation controls for the gripper.
+        """
+
+        # clip actions into valid range
+        assert len(action) == self.dof, "environment got invalid action dimension"
+        low, high = self.action_spec
+        action = np.clip(action, low, high)
+
+        if self.has_gripper:
+            arm_action = action[: self.mujoco_robot.dof]
+            gripper_action_in = action[
+                self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
+            ]
+            gripper_action_actual = self.gripper.format_action(gripper_action_in)
+            action = np.concatenate([arm_action, gripper_action_actual])
+
+        # rescale normalized action to control ranges
+        ctrl_range = self.sim.model.actuator_ctrlrange
+        bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
+        weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
+        applied_action = bias + weight * action
+        self.sim.data.ctrl[:] = applied_action
+
+        # gravity compensation
+        self.sim.data.qfrc_applied[
+            self._ref_joint_vel_indexes
+        ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes]
+
+        self.sim.data.qfrc_applied[
+            self._ref_target_vel_low : self._ref_target_vel_high+1
+        ] = self.sim.data.qfrc_bias[
+            self._ref_target_vel_low : self._ref_target_vel_high+1
+        ]
+
+        if self.use_indicator_object:
+            self.sim.data.qfrc_applied[
+                self._ref_indicator_vel_low : self._ref_indicator_vel_high
+            ] = self.sim.data.qfrc_bias[
+                self._ref_indicator_vel_low : self._ref_indicator_vel_high
+            ]
 
     def _get_reference(self):
         """
@@ -191,6 +238,13 @@ class SawyerTestEnv(SawyerEnv):
         self.r_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.right_finger_geoms
         ]
+        ind_qpos = (self.sim.model.get_joint_qpos_addr("target_x"), self.sim.model.get_joint_qpos_addr('target_z'))
+        self._ref_target_pos_low, self._ref_target_pos_high = ind_qpos
+
+        ind_qvel = (self.sim.model.get_joint_qvel_addr("target_x"), self.sim.model.get_joint_qvel_addr('target_z'))
+        self._ref_target_vel_low, self._ref_target_vel_high = ind_qvel
+
+        self.target_id = self.sim.model.body_name2id("target")
 
     def _reset_internal(self):
         """
