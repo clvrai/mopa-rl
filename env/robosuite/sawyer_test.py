@@ -6,7 +6,7 @@ from env.robosuite.sawyer import SawyerEnv
 
 from env.robosuite.models.arenas.table_arena import TableArena
 from env.robosuite.models.objects import BoxObject, CylinderObject, MujocoXMLObject
-from env.robosuite.models.robots import Sawyer, SawyerVisual
+from env.robosuite.models.robots import Sawyer, SawyerIndicator
 from env.robosuite.models.tasks import TableTopTargetTask, UniformRandomSampler
 
 class TargetVisualObject(MujocoXMLObject):
@@ -42,6 +42,7 @@ class SawyerTestEnv(SawyerEnv):
         camera_height=256,
         camera_width=256,
         camera_depth=False,
+        use_robot_indicator=True,
         **kwargs):
         """
         Args:
@@ -118,6 +119,7 @@ class SawyerTestEnv(SawyerEnv):
             camera_height=camera_height,
             camera_width=camera_width,
             camera_depth=camera_depth,
+            use_robot_indicator=use_robot_indicator,
             **kwargs
         )
 
@@ -146,6 +148,8 @@ class SawyerTestEnv(SawyerEnv):
         """
         super()._load_model()
         self.mujoco_robot.set_base_xpos([0, 0, 0])
+        if self.use_robot_indicator:
+            self.mujoco_robot_indicator.set_base_xpos([0, 0, 0])
 
         # load model for table top workspace
         self.mujoco_arena = TableArena(
@@ -170,6 +174,7 @@ class SawyerTestEnv(SawyerEnv):
             self.mujoco_robot,
             self.mujoco_objects,
             initializer=self.placement_initializer,
+            mujoco_robot_indicator=self.mujoco_robot_indicator
         )
 
         self.model.place_objects()
