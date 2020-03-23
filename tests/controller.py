@@ -180,6 +180,10 @@ args, unparsed = parser.parse_known_args()
 
 if 'reacher' in args.env:
     from config.reacher import add_arguments
+elif 'robosuite' in args.env:
+    from config.robosuite import add_arguments
+elif 'sawyer' in args.env:
+    from config.sawyer import add_arguments
 else:
     raise ValueError('args.env (%s) is not supported' % args.env)
 
@@ -189,7 +193,7 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 # Save video or not
-is_save_video = True
+is_save_video = False
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)

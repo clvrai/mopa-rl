@@ -25,5 +25,9 @@ class Sawyer(Robot):
         return ["right_j{}".format(x) for x in range(7)]
 
     @property
+    def bodies(self):
+        return ["right_l{}".format(x) for x in range(7)]
+
+    @property
     def init_qpos(self):
         return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])

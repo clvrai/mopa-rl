@@ -65,6 +65,13 @@ or on macOS
 python setup_macos.py build_ext --inplace
 ```
 
+### Install metaworld
+```
+git clone https://github.com/rlworkgroup/metaworld.git
+cd metaworld
+pip install -e .
+```
+
 ## Usage
 ### Test environment
 Run this line to start the test environment. You might face [this libGL problem](https://github.com/openai/mujoco-py/issues/268) on Ubuntu.

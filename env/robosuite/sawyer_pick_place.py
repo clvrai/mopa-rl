@@ -25,7 +25,30 @@ from env.robosuite.models.tasks import PickPlaceTask, UniformRandomSampler
 
 class SawyerPickPlaceEnv(SawyerEnv):
     def __init__(
-        self, **kwargs):
+        self,
+        gripper_type="TwoFingerGripper",
+        table_full_size=(0.39, 0.49, 0.82),
+        table_friction=(1, 0.005, 0.0001),
+        use_camera_obs=True,
+        use_object_obs=True,
+        reward_shaping=False,
+        placement_initializer=None,
+        single_object_mode=0,
+        object_type=None,
+        gripper_visualization=False,
+        use_indicator_object=False,
+        has_renderer=False,
+        has_offscreen_renderer=True,
+        render_collision_mesh=False,
+        render_visual_mesh=True,
+        control_freq=10,
+        horizon=1000,
+        ignore_done=False,
+        camera_name="frontview",
+        camera_height=256,
+        camera_width=256,
+        camera_depth=False,
+        **kwargs):
         """
         Args:
             gripper_type (str): type of gripper, used to instantiate
@@ -76,33 +99,49 @@ class SawyerPickPlaceEnv(SawyerEnv):
         """
 
         # task settings
-        self.single_object_mode = kwargs['single_object_mode']
+        self.single_object_mode = single_object_mode
         self.object_to_id = {"milk": 0, "bread": 1, "cereal": 2, "can": 3}
-        if kwargs['object_type'] is not None:
+        if object_type is not None:
             assert (
-                kwargs['object_type'] in self.object_to_id.keys()
+                object_type in self.object_to_id.keys()
             ), "invalid @object_type argument - choose one of {}".format(
                 list(self.object_to_id.keys())
             )
             self.object_id = self.object_to_id[
-                kwargs['object_type']
+                object_type
             ]  # use for convenient indexing
         self.obj_to_use = None
 
         # settings for table top
-        self.table_full_size = kwargs['table_full_size']
-        self.table_friction = kwargs['table_friction']
+        self.table_full_size = table_full_size
+        self.table_friction = table_friction
 
         # whether to show visual aid about where is the gripper
-        self.gripper_visualization = kwargs['gripper_visualization']
+        self.gripper_visualization = gripper_visualization
 
         # whether to use ground-truth object states
-        self.use_object_obs = kwargs['use_object_obs']
+        self.use_object_obs = use_object_obs
 
-        super().__init__(**kwargs)
+        super().__init__(
+            gripper_type=gripper_type,
+            gripper_visualization=gripper_visualization,
+            use_indicator_object=use_indicator_object,
+            has_renderer=has_renderer,
+            has_offscreen_renderer=has_offscreen_renderer,
+            render_collision_mesh=render_collision_mesh,
+            render_visual_mesh=render_visual_mesh,
+            control_freq=control_freq,
+            horizon=horizon,
+            ignore_done=ignore_done,
+            use_camera_obs=use_camera_obs,
+            camera_name=camera_name,
+            camera_height=camera_height,
+            camera_width=camera_width,
+            camera_depth=camera_depth,
+            **kwargs)
 
         # reward configuration
-        self.reward_shaping = kwargs['reward_shaping']
+        self.reward_shaping = reward_shaping
 
         # information of objects
         self.object_names = list(self.mujoco_objects.keys())

@@ -3,6 +3,7 @@ import time
 import logging
 import traceback
 from collections import OrderedDict
+from env.robosuite.utils.mjcf_utils import new_joint, array_to_string
 
 try:
     import mujoco_py
@@ -16,6 +17,7 @@ from gym import spaces, error
 from mujoco_py import MjSim, MjRenderContextOffscreen
 from mujoco_py import load_model_from_xml
 from env.robosuite.utils import SimulationError, XMLError, MujocoPyRenderer
+from env.robosuite.models.robots import Sawyer, SawyerVisual
 
 import env.transform_utils as T
 from util.logger import logger
@@ -25,7 +27,20 @@ np.set_printoptions(suppress=True)
 class RobosuiteBaseEnv(gym.Env):
     """ Base class for MuJoCo environments. """
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                has_renderer=False,
+                has_offscreen_renderer=True,
+                render_collision_mesh=False,
+                render_visual_mesh=True,
+                control_freq=10,
+                horizon=1000,
+                ignore_done=False,
+                use_camera_obs=False,
+                camera_name="frontview",
+                camera_height=256,
+                camera_width=256,
+                camera_depth=False,
+                **kwargs):
         """ Initializes class with configuration. """
         # default env config
         self._env_config = {
@@ -46,28 +61,39 @@ class RobosuiteBaseEnv(gym.Env):
         self._img_height = kwargs['img_height']
         self._img_width = kwargs['img_width']
 
-        self.control_freq = kwargs['control_freq']
-        self.has_renderer = kwargs['has_renderer']
-        self.has_offscreen_renderer = kwargs['has_offscreen_renderer']
-        self.render_collision_mesh = kwargs['render_collision_mesh']
-        self.render_visual_mesh = kwargs['render_visual_mesh']
+        self.control_freq = control_freq
+        self.has_renderer = has_renderer
+        self.has_offscreen_renderer = has_offscreen_renderer
+        self.render_collision_mesh = render_collision_mesh
+        self.render_visual_mesh = render_visual_mesh
         self.viewer = None
         self.model = None
+        self.horizon = horizon
 
-        self.use_camera_obs = kwargs['use_camera_obs']
+        self.use_camera_obs = use_camera_obs
         if self.use_camera_obs and not self.has_offscreen_renderer:
             raise ValueError("Camera observations require an offscreen renderer.")
 
-        self.camera_name = kwargs['camera_name']
+        self.camera_name = camera_name
         if self.use_camera_obs and self.camera_name is None:
             raise ValueError("Must specify camera name when using camera obs")
 
-        self.camera_height = kwargs['camera_height']
-        self.camera_width = kwargs['camera_width']
-        self.camera_depth = kwargs['camera_depth']
+        self.camera_height = camera_height
+        self.camera_width = camera_width
+        self.camera_depth = camera_depth
 
         self._reset_internal()
         self._camera_id = self.sim.model.camera_names.index(self.camera_name)
+        self.joint_names = list(self.sim.model.joint_names[:8])
+
+        xml_name = kwargs['env'].replace("-v0", "")
+        xml_name = xml_name.replace("-", "_")
+        xml_path = os.path.join(os.path.dirname(__file__), 'assets', 'xml', xml_name+'.xml')
+        self.model.save_model(xml_path)
+        self.xml_path = xml_path
+
+
+
 
     def initialize_time(self, control_freq):
         """
@@ -122,26 +148,36 @@ class RobosuiteBaseEnv(gym.Env):
         self.timestep = 0
         self.done = False
 
+        # Action
         logger.info('initial qpos: {}'.format(self.sim.data.qpos.ravel()))
         logger.info('initial qvel: {}'.format(self.sim.data.qvel.ravel()))
 
         # Action
-        num_actions = self.sim.model.nu
-        is_limited = self.sim.model.actuator_ctrllimited.ravel().astype(np.bool)
-        control_range = self.sim.model.actuator_ctrlrange
-        minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
-        maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
-        minimum[is_limited], maximum[is_limited] = control_range[is_limited].T
+        num_actions = self.dof
+        is_limited = np.array([True] * self.dof)
+        minimum = np.ones(self.dof) * -1.
+        maximum = np.ones(self.dof) * 1.
+
         self._minimum = minimum
         self._maximum = maximum
         logger.info('is_limited: {}'.format(is_limited))
-        logger.info('control_range: {}'.format(control_range[is_limited].T))
         self.action_space = spaces.Dict([
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-        self.joint_sapce = spaces.Dict([
-            ('default', spaces.Box(low=-3, high=-3, shape=(self.sim.model.nq,), dtype=np.float32))
+
+        jnt_range = self.sim.model.jnt_range[:num_actions]
+        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
+        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
+        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
+        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+        self._is_jnt_limited = is_jnt_limited
+
+
+        self.joint_space = spaces.Dict([
+            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
 
@@ -157,7 +193,7 @@ class RobosuiteBaseEnv(gym.Env):
 
     @property
     def max_episode_steps(self):
-        return self._env_config["max_episode_steps"]
+        return self.horizon
 
     @property
     def observation_space(self):
@@ -168,13 +204,15 @@ class RobosuiteBaseEnv(gym.Env):
         return self.sim.model.nu
 
     def reset(self):
-        self.sim.reset()
-        if self.render_mode == 'human':
-            self._viewer = self._get_viewer()
-            self._reset_internal()
-        ob = self._reset()
+        self._destroy_viewer()
+        self._reset_internal()
+        self.sim.forward()
+        ob = self._get_observation()
         self._after_reset()
         return ob
+
+    def _get_observation(self):
+        return OrderedDict()
 
     def _init_random(self, size):
         r = self._env_config["init_randomness"]
@@ -187,7 +225,39 @@ class RobosuiteBaseEnv(gym.Env):
         self._destroy_viewer()
         self._reset_internal()
         self.sim.forward()
-        return self._get_obs()
+        return self._get_observation()
+
+    def step(self, action):
+        """Takes a step in simulation with control command @action."""
+        if self.done:
+            raise ValueError("executing action in terminated episode")
+        if isinstance(action, list):
+            action = {key: val for ac_i in action for key, val in ac_i.items()}
+        if isinstance(action, OrderedDict):
+            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
+
+        self.timestep += 1
+        self._before_step()
+        self._pre_action(action)
+        end_time = self.cur_time + self.control_timestep
+        while self.cur_time < end_time:
+            self.sim.step()
+            self.cur_time += self.model_timestep
+        reward, done, info = self._post_action(action)
+        done, info, _ = self._after_step(reward, done, info)
+        return self._get_observation(), reward, done, info
+
+    def _pre_action(self, action):
+        """Do any preprocessing before taking an action."""
+        self.sim.data.ctrl[:] = action
+
+    def _post_action(self, action):
+        """Do any housekeeping after taking an action."""
+        reward = self.reward(action)
+
+        # done if number of elapsed timesteps is greater than horizon
+        self.done = (self.timestep >= self.horizon) and not self.ignore_done
+        return reward, self.done, {}
 
     def _after_reset(self):
         self._episode_reward = 0
@@ -201,18 +271,6 @@ class RobosuiteBaseEnv(gym.Env):
         #with self.model.disable('actuation'):
         #    self.forward()
 
-    def step(self, action):
-        self.timestep += 1
-        self._before_step()
-        if isinstance(action, list):
-            action = {key: val for ac_i in action for key, val in ac_i.items()}
-        if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
-
-        self._do_simulation(action)
-        ob, reward, done, info = self._step(action)
-        done, info, penalty = self._after_step(reward, done, info)
-        return ob, reward + penalty, done, info
 
     def _before_step(self):
         pass
@@ -259,9 +317,6 @@ class RobosuiteBaseEnv(gym.Env):
     def set_env_config(self, env_config):
         self._env_config.update(env_config)
 
-    def _render_callback(self):
-        self.sim.forward()
-
     def _set_camera_position(self, cam_id, cam_pos):
         self.sim.model.cam_pos[cam_id] = cam_pos.copy()
 
@@ -274,9 +329,11 @@ class RobosuiteBaseEnv(gym.Env):
         q = T.lookat_to_quat(-forward, up)
         self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to='wxyz')
 
-    def render(self, mode='human', close=False):
-        self._render_callback() # sim.forward()
+    def reward(self, action):
+        """Reward should be a function of state and action."""
+        return 0
 
+    def render(self, mode='human', close=False):
         if mode == 'rgb_array':
             camera_obs = self.sim.render(camera_name=self.camera_name,
                                          width=self.camera_width,
@@ -290,20 +347,24 @@ class RobosuiteBaseEnv(gym.Env):
             return None
         return None
 
+    def _get_viewer(self):
+        if self.viewer is None:
+            self.viewer = MujocoPyRenderer(self.sim)
+            self.viewer.viewer.vopt.geomgroup[0] = (
+                1 if self.render_collision_mesh else 0
+            )
+            self.viewer.viewer.vopt.geomgroup[1] = 1 if self.render_visual_mesh else 0
+
+            # hiding the overlay speeds up rendering significantly
+            self.viewer.viewer._hide_overlay = True
+        return self.viewer
+
+
     def _viewer_reset(self):
         pass
 
     def _get_current_error(self, current_state, desired_state):
         return desired_state - current_state
-
-    def _get_viewer(self):
-        if self.viewer is None:
-            self.viewer = mujoco_py.MjViewer(self.sim)
-            self.viewer.cam.fixedcamid = self._camera_id
-            self.viewer.cam.type = mujoco_py.generated.const.CAMERA_FIXED
-            #self.has_renderer = True
-            #self._reset_internal()
-        return self.viewer
 
     def close(self):
         if self._viewer is not None:
@@ -325,7 +386,7 @@ class RobosuiteBaseEnv(gym.Env):
             self._fail = True
 
     def set_state(self, qpos, qvel):
-        assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
+        assert qpos.shape == (self.sim.model.nq,) and qvel.shape == (self.sim.model.nv,)
         old_state = self.sim.get_state()
         new_state = mujoco_py.MjSimState(old_state.time, qpos, qvel,
                                          old_state.act, old_state.udd_state)
@@ -334,51 +395,51 @@ class RobosuiteBaseEnv(gym.Env):
         self.sim.step()
 
     def _get_pos(self, name):
-        if name in self.model.body_names:
-            return self.data.get_body_xpos(name).copy()
-        if name in self.model.geom_names:
+        if name in self.sim.model.body_names:
+            return self.sim.data.get_body_xpos(name).copy()
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xpos(name).copy()
         raise ValueError
 
     def _set_pos(self, name, pos):
-        if name in self.model.body_names:
-            body_idx = self.model.body_name2id(name)
-            self.model.body_pos[body_idx] = pos[:]
+        if name in self.sim.model.body_names:
+            body_idx = self.sim.model.body_name2id(name)
+            self.sim.model.body_pos[body_idx] = pos[:]
             return
-        if name in self.model.geom_names:
-            geom_idx = self.model.geom_name2id(name)
-            self.model.geom_pos[geom_idx][0:3] = pos[:]
+        if name in self.sim.model.geom_names:
+            geom_idx = self.sim.model.geom_name2id(name)
+            self.sim.model.geom_pos[geom_idx][0:3] = pos[:]
             return
         raise ValueError
 
     def _get_quat(self, name):
-        if name in self.model.body_names:
+        if name in self.sim.model.body_names:
             return self.data.get_body_xquat(name).copy()
         raise ValueError
 
     def _get_right_vector(self, name):
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xmat(name)[0].copy()
         raise ValueError
 
     def _get_forward_vector(self, name):
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xmat(name)[1].copy()
         raise ValueError
 
     def _get_up_vector(self, name):
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xmat(name)[2].copy()
         raise ValueError
 
     def _set_quat(self, name, quat):
-        if name in self.model.body_names:
-            body_idx = self.model.body_name2id(name)
-            self.model.body_quat[body_idx] = quat[:]
+        if name in self.sim.model.body_names:
+            body_idx = self.sim.model.body_name2id(name)
+            self.sim.model.body_quat[body_idx] = quat[:]
             return
-        if name in self.model.geom_names:
-            geom_idx = self.model.geom_name2id(name)
-            self.model.geom_quat[geom_idx][0:4] = quat[:]
+        if name in self.sim.model.geom_names:
+            geom_idx = self.sim.model.geom_name2id(name)
+            self.sim.model.geom_quat[geom_idx][0:4] = quat[:]
             return
         raise ValueError
 
@@ -388,28 +449,28 @@ class RobosuiteBaseEnv(gym.Env):
         return np.linalg.norm(pos1 - pos2)
 
     def _get_size(self, name):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                return self.model.geom_size[geom_idx, :].copy()
+                return self.sim.model.geom_size[geom_idx, :].copy()
 
     def _set_size(self, name, size):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.model.geom_size[geom_idx, :] = size
+                self.sim.model.geom_size[geom_idx, :] = size
 
     def _get_geom_type(self, name):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                return self.model.geom_type[geom_idx].copy()
+                return self.sim.model.geom_type[geom_idx].copy()
 
     def _set_geom_type(self, name, geom_type):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.model.geom_type[geom_idx] = geom_type
+                self.sim.model.geom_type[geom_idx] = geom_type
 
     def _get_qpos(self, name):
         object_qpos = self.data.get_joint_qpos(name)
@@ -423,13 +484,13 @@ class RobosuiteBaseEnv(gym.Env):
         self.data.set_joint_qpos(name, object_qpos)
 
     def _set_color(self, name, color):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.model.geom_rgba[geom_idx, 0:len(color)] = color
+                self.sim.model.geom_rgba[geom_idx, 0:len(color)] = color
 
     def _mass_center(self):
-        mass = np.expand_dims(self.model.body_mass, axis=1)
+        mass = np.expand_dims(self.sim.model.body_mass, axis=1)
         xpos = self.data.xipos
         return (np.sum(mass * xpos, 0) / np.sum(mass))
 
@@ -438,8 +499,8 @@ class RobosuiteBaseEnv(gym.Env):
         ncon = self.data.ncon
         for i in range(ncon):
             ct = mjcontacts[i]
-            g1 = self.model.geom_id2name(ct.geom1)
-            g2 = self.model.geom_id2name(ct.geom2)
+            g1 = self.sim.model.geom_id2name(ct.geom1)
+            g2 = self.sim.model.geom_id2name(ct.geom2)
             if g1 is None or g2 is None:
                 continue # geom_name can be None
             if geom_name is not None:
@@ -461,4 +522,40 @@ class RobosuiteBaseEnv(gym.Env):
         # if there is an active viewer window, destroy it
         if self.viewer is not None:
             self.viewer = None
+    def find_contacts(self, geoms_1, geoms_2):
+        """
+        Finds contact between two geom groups.
+        Args:
+            geoms_1: a list of geom names (string)
+            geoms_2: another list of geom names (string)
+        Returns:
+            iterator of all contacts between @geoms_1 and @geoms_2
+        """
+        for contact in self.sim.data.contact[0 : self.sim.data.ncon]:
+            # check contact geom in geoms
+            c1_in_g1 = self.sim.model.geom_id2name(contact.geom1) in geoms_1
+            c2_in_g2 = self.sim.model.geom_id2name(contact.geom2) in geoms_2
+            # check contact geom in geoms (flipped)
+            c2_in_g1 = self.sim.model.geom_id2name(contact.geom2) in geoms_1
+            c1_in_g2 = self.sim.model.geom_id2name(contact.geom1) in geoms_2
+            if (c1_in_g1 and c2_in_g2) or (c1_in_g2 and c2_in_g1):
+                yield contact
+
+    def _robot_jpos_getter(self):
+        """
+        Helper function to pass to the ik controller for access to the
+        current robot joint positions.
+        """
+        return np.array(self._joint_positions)
+
+    def add_visual_sawyer(self):
+        sawyer_mjcf = SawyerVisual()
+        self.sawyer_visual = sawyer_mjcf
+        self.model.merge_asset(sawyer_mjcf)
+        obj = sawyer_mjcf.get_visual(name='sawyer_visual', site=False)
+        offset = self.model.robot.bottom_offset
+        offset[2] *= -1
+        obj.set("pos", array_to_string(offset+0.1))
+        self.model.worldbody.append(obj)
+
 

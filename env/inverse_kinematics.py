@@ -11,7 +11,7 @@ IKResult = collections.namedtuple(
 def indexer(env, names):
     indices = []
     for name in names:
-        indices.append(env.model.joint_name2id(name))
+        indices.append(env.sim.model.joint_name2id(name))
 
     return indices
 
@@ -43,10 +43,10 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             raise ValueError('At least one of `target_pos` or `target_quat` must be specified')
 
 
-    non_movable_joint_names = list(set(env.model.joint_names) - set(joint_names))
+    non_movable_joint_names = list(set(env.sim.model.joint_names) - set(joint_names))
     non_movable_joint_indices = indexer(env, non_movable_joint_names)
 
-    update_nv = np.zeros(env.model.nv, dtype=dtype)
+    update_nv = np.zeros(env.sim.model.nv, dtype=dtype)
     #for i, name in zip(non_movable_joint_indices, non_movable_joint_names):
     #    update_nv[i] = env._get_qpos(name)
 
@@ -88,8 +88,8 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             success =True
             break
         else:
-            jac_pos = env.data.get_site_jacp(site).reshape((3, env.model.nv))
-            jac_rot = env.data.get_site_jacr(site).reshape((3, env.model.nv))
+            jac_pos = env.data.get_site_jacp(site).reshape((3, env.sim.model.nv))
+            jac_rot = env.data.get_site_jacr(site).reshape((3, env.sim.model.nv))
             jac = np.concatenate((jac_pos, jac_rot))
             jac_joints = jac[:, dof_indices]
 
@@ -153,10 +153,10 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 raise ValueError('At least one of `target_pos` or `target_quat` must be specified')
 
 
-        non_movable_joint_names = list(set(env.model.joint_names) - set(joint_names))
+        non_movable_joint_names = list(set(env.sim.model.joint_names) - set(joint_names))
         non_movable_joint_indices = indexer(env, non_movable_joint_names)
 
-        update_nv = np.zeros(env.model.nv, dtype=dtype)
+        update_nv = np.zeros(env.sim.model.nv, dtype=dtype)
         #for i, name in zip(non_movable_joint_indices, non_movable_joint_names):
         #    update_nv[i] = env._get_qpos(name)
 
@@ -199,8 +199,8 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 success =True
                 break
             else:
-                jac_pos = env.data.get_site_jacp(site).reshape((3, env.model.nv))
-                jac_rot = env.data.get_site_jacr(site).reshape((3, env.model.nv))
+                jac_pos = env.data.get_site_jacp(site).reshape((3, env.sim.model.nv))
+                jac_rot = env.data.get_site_jacr(site).reshape((3, env.sim.model.nv))
                 jac = np.concatenate((jac_pos, jac_rot))
                 jac_joints = jac[:, dof_indices]
 
@@ -232,7 +232,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
         if env.sim.data.ncon == 0 or tried > trials:
             return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
         else:
-            env.initalize_joints()
+            env.initialize_joints()
             tried += 1
 
 
