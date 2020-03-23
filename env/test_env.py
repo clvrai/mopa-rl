@@ -26,10 +26,13 @@ if 'robosuite' in args.env:
 obs = env.reset()
 
 #for i in range(10000):
+timestep = 0
 while True:
     env.render(mode='human')
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
+    print(timestep)
+    timestep += 1
     if done:
         print('done')
         break
