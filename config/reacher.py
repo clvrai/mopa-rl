@@ -35,6 +35,7 @@ def add_arguments(parser):
     parser.add_argument("--ctrl_reward_coef", type=float, default=1)
     parser.add_argument("--pos_reward_coef", type=float, default=10.)
     parser.add_argument("--inv_reward", type=float, default=100.)
+    parser.add_argument("--camera_name", type=str, default='cam0')
 
 
 def get_default_config():
