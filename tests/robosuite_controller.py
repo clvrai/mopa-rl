@@ -15,7 +15,8 @@ from util.misc import save_video
 from util.gym import action_size
 import time
 import cv2
-
+from mujoco_py import GlfwContext
+GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
