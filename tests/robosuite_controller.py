@@ -89,25 +89,13 @@ def run_mp(env, planner, i=None):
 
         for step, state in enumerate(traj[1:]):
 
-            # Update dummy reacher
-            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
-            # for body, body_visual in zip(env.model.robot.bodies, env.sawyer_visual.bodies):
-            #     body_idx = mp_env.sim.model.body_name2id(body)
-            #     pos = mp_env.sim.data.body_xpos[body_idx]
-            #     quat = mp_env.sim.data.body_xquat[body_idx]
-            #     # pos = mp_env.sim.data.get_mocap_pos(body)
-            #     # quat = mp_env.sim.data.get_mocap_quat(body)
-            #     env._set_pos(body_visual, pos)
-            #     env._set_quat(body_visual, quat)
-            #     # env.sim.data.set_mocap_pos(body_visual, pos)
-            #     # env.sim.data.set_mocap_quat(body_visual, quat)
-
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
                 env.render(mode='human')
 
-            #env.set_state(np.concatenate((state[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
+            # Change indicator robot position
+            env.set_robot_indicator_joint_positions(state[:len(env.model.robot.joints)])
 
             action = state-env.sim.data.qpos.copy()
             action = action[:len(env.model.robot.joints)+1]

@@ -7,7 +7,7 @@ import env.robosuite.utils.transform_utils as T
 from mujoco_py import MjSim, MjRenderContextOffscreen
 from mujoco_py import load_model_from_xml
 from env.robosuite.models.grippers import gripper_factory
-from env.robosuite.models.robots import Sawyer, SawyerVisual
+from env.robosuite.models.robots import Sawyer, SawyerIndicator
 from env.robosuite.utils.mjcf_utils import new_joint, array_to_string
 
 from collections import OrderedDict
@@ -31,6 +31,7 @@ class SawyerEnv(BaseEnv):
         img_height=256,
         img_width=256,
         img_depth=False,
+        use_robot_indicator=False,
         **kwargs):
         """
         Args:
@@ -66,6 +67,7 @@ class SawyerEnv(BaseEnv):
         self.gripper_visualization = gripper_visualization
         self.use_indicator_object = use_indicator_object
         self.control_freq = control_freq
+        self.use_robot_indicator = use_robot_indicator
 
         xml_name = kwargs['env'].replace("-v0", "")
         xml_name = xml_name.replace("-", "_")
@@ -119,6 +121,11 @@ class SawyerEnv(BaseEnv):
         """
         super()._load_model()
         self.mujoco_robot = Sawyer()
+        if self.use_robot_indicator:
+            self.mujoco_robot_indicator = SawyerIndicator()
+        else:
+            self.mujoco_robot_indicator = None
+
         if self.has_gripper:
             self.gripper = gripper_factory(self.gripper_type)
             if not self.gripper_visualization:
@@ -169,6 +176,15 @@ class SawyerEnv(BaseEnv):
 
         # indices for joints in qpos, qvel
         self.robot_joints = list(self.mujoco_robot.joints)
+        if self.use_robot_indicator:
+            self.robot_indicator_joints = list(self.mujoco_robot_indicator.joints)
+            self.ref_indicator_joint_pos_indexes = [
+                self.sim.model.get_joint_qpos_addr(x) for x in self.robot_indicator_joints
+            ]
+            self.ref_indicator_joint_vel_indexes = [
+                self.sim.model.get_joint_qvel_addr(x) for x in self.robot_indicator_joints
+            ]
+
         self.ref_joint_pos_indexes = [
             self.sim.model.get_joint_qpos_addr(x) for x in self.robot_joints
         ]
@@ -390,6 +406,11 @@ class SawyerEnv(BaseEnv):
         self.sim.data.qpos[self.ref_joint_pos_indexes] = jpos
         self.sim.forward()
 
+    def set_robot_indicator_joint_positions(self, jpos):
+        assert self.use_robot_indicator == True, "use_robot_indicator must be True."
+        self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = jpos
+        self.sim.forward()
+
     @property
     def _right_hand_joint_cartesian_pose(self):
         """
@@ -428,16 +449,6 @@ class SawyerEnv(BaseEnv):
         eef_lin_vel = Jp_joint.dot(self._joint_velocities)
         eef_rot_vel = Jr_joint.dot(self._joint_velocities)
         return np.concatenate([eef_lin_vel, eef_rot_vel])
-
-    def add_visual_sawyer(self):
-        sawyer_mjcf = SawyerVisual()
-        self.sawyer_visual = sawyer_mjcf
-        self.model.merge_asset(sawyer_mjcf)
-        obj = sawyer_mjcf.get_visual(name='sawyer_visual', site=False)
-        offset = self.model.robot.bottom_offset
-        offset[2] *= -1
-        obj.set("pos", array_to_string(offset))
-        self.model.worldbody.append(obj)
 
     def _robot_jpos_getter(self):
         """
