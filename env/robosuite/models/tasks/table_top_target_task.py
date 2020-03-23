@@ -11,7 +11,7 @@ class TableTopTargetTask(Task):
     arena, and the objetcts into a single MJCF model.
     """
 
-    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, initializer=None):
+    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, initializer=None, mujoco_robot_indicator=None):
         """
         Args:
             mujoco_arena: MJCF model of robot workspace
@@ -23,6 +23,8 @@ class TableTopTargetTask(Task):
 
         self.merge_arena(mujoco_arena)
         self.merge_robot(mujoco_robot)
+        if mujoco_robot_indicator is not None:
+            self.merge_robot(mujoco_robot_indicator)
         self.merge_objects(mujoco_objects)
         self.add_target()
         if initializer is None:
