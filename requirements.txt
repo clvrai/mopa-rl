@@ -16,3 +16,4 @@ opencv-python
 dm_control
 gym==0.15.4
 mujoco-py==2.0.2.5
+pybullet==1.9.5
