@@ -68,23 +68,30 @@ print('# mujoco robot dof', env.mujoco_robot.dof)
 print('dt', env.dt)
 print('control_freq', env.control_freq)
 print(env.mujoco_robot.dof)
+print('control_timestep', env.control_timestep)
+print('mujoco timestep', env.sim.model.opt.timestep)
 
-outer_dt = 1.0
-inner_dt = 0.002
+
+outer_dt = env.control_timestep
+inner_dt = env.sim.model.opt.timestep
 
 n_inner_loop = int(outer_dt / inner_dt)
 
 # create a dummy trajectory
 q_0 = np.zeros(env.mujoco_robot.dof)
 q_f = np.zeros(env.mujoco_robot.dof)
-q_f[0] = 1.0
+q_f -= 0.3
 
-N = 10
+gripper_0 = np.zeros(len(env.ref_gripper_joint_pos_indexes))
+gripper_f = np.array([-0.01, 0.01])
+
+N = 50
 traj = np.linspace(q_0, q_f, N)
-Kp = 5.0
-Kd = 0.1
-Ki = .0
-alpha = 0.99
+gripper_traj = np.linspace(gripper_0, gripper_f, N)
+Kp = 300.0
+Kd = 5.
+Ki = 5.0
+alpha = 0.95
 
 error = 0
 x_traj_prev = traj[0, :]
@@ -94,6 +101,12 @@ x_prev = env.sim.data.qpos[env.ref_joint_pos_indexes]
 for t in range(1, N):
     x_traj = traj[t, :]
     xd_traj = (x_traj - x_traj_prev) / outer_dt
+
+    gripper_action = gripper_traj[t, :]
+
+    env.set_robot_indicator_joint_positions(x_traj)
+    env.sim.data.qfrc_applied[env.ref_indicator_joint_pos_indexes] = env.sim.data.qfrc_bias[
+        env.ref_indicator_joint_pos_indexes]
 
     for i in range(n_inner_loop):
         # gravity compensation
@@ -109,63 +122,20 @@ for t in range(1, N):
         action = p_term + d_term + i_term
 
         # add gripper command to action
-        gripper_action = env.gripper.format_action(np.array([0.0]))
-        action = np.concatenate([action, gripper_action ])
+        # gripper_action = env.gripper.format_action(np.array([0.01]))
+        action = np.concatenate([action, -gripper_action])
 
         env.sim.data.ctrl[:] = action[:]
-        # env._do_simulation(action)
         env.sim.forward()
         env.sim.step()
 
         print('x_traj', x_traj)
         print('x_t', env.sim.data.qpos[env.ref_joint_pos_indexes])
         print('action', action)
+        print('gipper_action', gripper_action)
+        print('gripper_state', env.sim.data.qpos[env.ref_gripper_joint_pos_indexes])
 
         env.render()
         time.sleep(inner_dt)
 
     x_prev = np.copy(env.sim.data.qpos[env.ref_joint_pos_indexes])
-
-        # p_term = Kp * (state[:-2] - env.sim.data.qpos[:-2])
-        #     d_term = Kd * (target_vel[:-2] * 0 - env.sim.data.qvel[:-2])
-        #     i_term = alpha * i_term + Ki * (prev_state[:-2] - env.sim.data.qpos[:-2])
-        #
-        #     # print('p term ', np.linalg.norm(p_term))
-        #     # print('d term ', np.linalg.norm(d_term))
-        #     # print('i term ', np.linalg.norm(i_term))
-        #     action = p_term + d_term + i_term
-        #
-        #     env.sim.data.ctrl[:] = action
-        #     env.sim.forward()
-        #     env.sim.step()
-        #     # env.step(action)
-        #
-        #     env.render(mode='human')
-
-        # error += np.sqrt((x_traj - env.sim.data.qpos[env.ref_joint_pos_indexes]) ** 2)
-        # end_error += np.sqrt((env.data.get_site_xpos('fingertip') - mp_env.data.get_site_xpos('fingertip')) ** 2)
-        # prev_state = state
-
-# while True:
-#     state = env.sim.get_state()
-#     env.step(action=action)
-#     action = np.zeros(9)
-#     print('# state', env.sim.get_state())
-#     env.render()
-
-# errors = 0
-# global_num_states = 0
-# global_end_error = 0
-# N = 1
-# num_success = 0
-# for i in range(N):
-#     error, num_states, end_error, success = run_mp(env, planner, i)
-#     errors += error
-#     global_end_error += end_error
-#     global_num_states += num_states
-#     if success:
-#         num_success += 1
-#
-# print(num_success)
-# print('End effector error: ', global_end_error/N)
-# print('Joint state error: ', errors/N)
