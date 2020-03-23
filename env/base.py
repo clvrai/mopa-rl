@@ -181,11 +181,12 @@ class BaseEnv(gym.Env):
 
 
     def step(self, action):
-        self._pre_action(action)
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
             action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
+
+        self._pre_action(action)
         ob, reward, done, info = self._step(action)
         done, info, penalty = self._after_step(reward, done, info)
         return ob, reward + penalty, done, info
@@ -194,7 +195,7 @@ class BaseEnv(gym.Env):
         pass
 
     def _pre_action(self, action):
-        pass
+        p
 
     def _after_step(self, reward, terminal, info):
         step_log = dict(info)
@@ -280,11 +281,12 @@ class BaseEnv(gym.Env):
         if self._viewer is not None:
             self._viewer = None
 
-    def _do_simulation(self, a):
+    def _do_simulation(self, a=None):
         try:
-            self.data.ctrl[:] = a
+            if a is not None:
+                self.data.ctrl[:] = a
             for _ in range(self._frame_skip):
-                self.sim.forward()
+                # self.sim.forward()
                 self.sim.step()
         except Exception as e:
             logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
