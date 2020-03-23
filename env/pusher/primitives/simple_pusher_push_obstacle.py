@@ -35,6 +35,7 @@ class SimplePusherPushObstacleEnv(SimplePusherObstacleEnv):
                     self._get_distance('box', 'target') < 0.2 and \
                     np.linalg.norm(box) > 0.1:
                 self.goal = goal
+                self.box = box
                 break
         return self._get_obs()
 

@@ -31,16 +31,17 @@ class SimplePusherObstacleEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1:
                 self.goal = goal
+                self.box = box
                 break
         return self._get_obs()
 
     def initalize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-4:-2] = goal
-            qpos[-2:] = box
+            qpos[-4:-2] = self.goal
+            qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
@@ -136,8 +137,10 @@ class SimplePusherObstacleEnv(BaseEnv):
             reward = reward_dist_diff + reward_ctrl
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-            done =True
-            self._success = True
+            # encourage to stay at the goal
+            done = True
+            if self._episode_length == self._env_config['max_episode_steps']-1:
+                self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 

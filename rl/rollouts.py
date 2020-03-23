@@ -142,6 +142,9 @@ class RolloutRunner(object):
                     subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
                     target_qpos = np.concatenate([subgoal, env.goal])
 
+                    if self._config.hrl and self._config.subgoal_type == 'cart':
+                        subgoal_site_pos = np.array([subgoal_cart[0], subgoal_cart[1]])
+
                     env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
@@ -276,6 +279,9 @@ class RolloutRunner(object):
                 subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
                 target_qpos = np.concatenate([subgoal, env.goal])
 
+                if self._config.hrl and self._config.subgoal_type == 'cart':
+                    subgoal_site_pos = np.array([subgoal_cart[0], subgoal_cart[1]])
+
                 env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
@@ -408,13 +414,16 @@ class RolloutRunner(object):
                         subgoal = result.qpos[:env.model.nu].copy()
                     subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
-                ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
-                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+                    ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
+                    goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
 
-                # Will change fingertip to variable later
-                subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
-                target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
-                env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
+                    # Will change fingertip to variable later
+                    subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
+                    target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
+                    if self._config.subgoal_type == 'cart':
+                        subgoal_site_pos = np.array([subgoal_cart[0], subgoal_cart[1]])
+
+                    env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
@@ -578,13 +587,16 @@ class RolloutRunner(object):
                     subgoal = result.qpos[:env.model.nu].copy()
                 subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
 
-            ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
-            goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+                ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
+                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
 
-            # Will change fingertip to variable later
-            subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
-            target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
-            env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
+                # Will change fingertip to variable later
+                subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
+                target_qpos = np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:].copy()])
+                if self._config.subgoal_type == 'cart':
+                    subgoal_site_pos = np.array([subgoal_cart[0], subgoal_cart[1]])
+
+                env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
 
             skill_type = pi.return_skill_type(meta_ac)
             skill_count[skill_type] += 1

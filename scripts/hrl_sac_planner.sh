@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.sac.step_update.gumbel.0.1.worker.8.v1"
+prefix="hl.sac.simple_pusher_push_obstacle_easier.terminal"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -10,9 +10,9 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-pusher-v0"
+env="simple-pusher-obstacle-v0"
 hl_type="subgoal"
-gpu="2"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
@@ -27,23 +27,24 @@ lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
 rollout_length="15000"
-batch_size="128"
+batch_size="64"
 clip_param="0.2"
-reward_type="composition"
-reward_scale="1"
+reward_type="dense"
+reward_scale="3"
 comment="Fix rollout"
 seed="1234"
 ctrl_reward_coef="1e-1"
-primitive_skills="mp push_max_step30"
+primitive_skills="mp simple_pusher_push_obstacle_easier"
 primitive_dir="primitives"
-actor_num_hid_layers="1"
+actor_num_hid_layers="2"
 subgoal_type="cart"
 goal_replace="True"
-subgoal_reward="True"
+subgoal_reward="False"
 relative_subgoal="True"
 meta_algo='sac'
 her='True'
 start_steps='150000'
+distance_threshold='0.06'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -89,4 +90,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --relative_subgoal $relative_subgoal \
     --meta_algo $meta_algo \
     --her $her \
-    --start_steps $start_steps
+    --start_steps $start_steps \
+    --distance_threshold $distance_threshold

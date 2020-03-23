@@ -1,11 +1,11 @@
 #!/bin/bash
 workers="8"
-prefix="ll.push.composition.worker.8.no_terminal"
+prefix="ll.push.dense.easier"
 hrl="True"
 max_global_step="60000000"
 ll_type="rl"
-env="pusher-push-obstacle-v0"
-gpu="3"
+env="simple-pusher-push-obstacle-v0"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="both"
 hrl_network_to_update="LL"
@@ -25,14 +25,16 @@ rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
 rl_activation="relu"
-reward_type='composition'
+reward_type='dense'
 comment='Primitive skill with different initialization, use shorter distance between box and origin fix limited_joints use smaller ctrl reward'
 seed='1234'
 ctrl_reward_coef='1'
 start_steps='10000'
-reward_scale='1'
-actor_num_hid_layers='1'
-terminal='True'
+reward_scale='3'
+actor_num_hid_layers='2'
+subgoal_type='cart'
+ckpt_interval='10000'
+distance_threshold='0.06'
 
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
@@ -69,4 +71,6 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --reward_scale $reward_scale \
     --actor_num_hid_layers $actor_num_hid_layers \
     --hl_type $hl_type \
-    --terminal $terminal
+    --subgoal_type $subgoal_type \
+    --ckpt_interval $ckpt_interval \
+    --distance_threshold $distance_threshold
