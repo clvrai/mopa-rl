@@ -209,8 +209,8 @@ class SawyerTestEnv(SawyerEnv):
 
         # gravity compensation
         self.sim.data.qfrc_applied[
-            self._ref_joint_vel_indexes
-        ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes]
+            self.ref_joint_vel_indexes
+        ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
 
         self.sim.data.qfrc_applied[
             self._ref_target_vel_low : self._ref_target_vel_high+1
@@ -259,12 +259,12 @@ class SawyerTestEnv(SawyerEnv):
         # reset joint positions
         init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
 
     def initialize_joints(self):
         init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
 
 
     def reward(self, action):

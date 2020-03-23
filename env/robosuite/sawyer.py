@@ -153,11 +153,11 @@ class SawyerEnv(BaseEnv):
 
         self._get_reference()
 
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = self.mujoco_robot.init_qpos
 
         if self.has_gripper:
             self.sim.data.qpos[
-                self._ref_gripper_joint_pos_indexes
+                self.ref_gripper_joint_pos_indexes
             ] = self.gripper.init_qpos
 
 
@@ -169,10 +169,10 @@ class SawyerEnv(BaseEnv):
 
         # indices for joints in qpos, qvel
         self.robot_joints = list(self.mujoco_robot.joints)
-        self._ref_joint_pos_indexes = [
+        self.ref_joint_pos_indexes = [
             self.sim.model.get_joint_qpos_addr(x) for x in self.robot_joints
         ]
-        self._ref_joint_vel_indexes = [
+        self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.robot_joints
         ]
 
@@ -188,10 +188,10 @@ class SawyerEnv(BaseEnv):
         # indices for grippers in qpos, qvel
         if self.has_gripper:
             self.gripper_joints = list(self.gripper.joints)
-            self._ref_gripper_joint_pos_indexes = [
+            self.ref_gripper_joint_pos_indexes = [
                 self.sim.model.get_joint_qpos_addr(x) for x in self.gripper_joints
             ]
-            self._ref_gripper_joint_vel_indexes = [
+            self.ref_gripper_joint_vel_indexes = [
                 self.sim.model.get_joint_qvel_addr(x) for x in self.gripper_joints
             ]
 
@@ -228,6 +228,7 @@ class SawyerEnv(BaseEnv):
             self.sim.data.qpos[index : index + 3] = pos
 
     def _pre_action(self, action):
+        pass
         """
         Overrides the superclass method to actuate the robot with the 
         passed joint velocities and gripper control.
@@ -240,42 +241,65 @@ class SawyerEnv(BaseEnv):
         """
 
         # clip actions into valid range
-        assert len(action) == self.dof, "environment got invalid action dimension"
-        low, high = self.action_spec
-        action = np.clip(action, low, high)
-
-        if self.has_gripper:
-            arm_action = action[: self.mujoco_robot.dof]
-            gripper_action_in = action[
-                self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
-            ]
-            gripper_action_actual = self.gripper.format_action(gripper_action_in)
-            action = np.concatenate([arm_action, gripper_action_actual])
-
-        # rescale normalized action to control ranges
-        ctrl_range = self.sim.model.actuator_ctrlrange
-        bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
-        weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
-        applied_action = bias + weight * action
-        self.sim.data.ctrl[:] = applied_action
-
-        # gravity compensation
-        self.sim.data.qfrc_applied[
-            self._ref_joint_vel_indexes
-        ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes]
-
-        if self.use_indicator_object:
-            self.sim.data.qfrc_applied[
-                self._ref_indicator_vel_low : self._ref_indicator_vel_high
-            ] = self.sim.data.qfrc_bias[
-                self._ref_indicator_vel_low : self._ref_indicator_vel_high
-            ]
+        # assert len(action) == self.dof, "environment got invalid action dimension"
+        # low, high = self.action_spec
+        # action = np.clip(action, low, high)
+        #
+        # if self.has_gripper:
+        #     arm_action = action[: self.mujoco_robot.dof]
+        #     gripper_action_in = action[
+        #         self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
+        #     ]
+        #     gripper_action_actual = self.gripper.format_action(gripper_action_in)
+        #     action = np.concatenate([arm_action, gripper_action_actual])
+        #
+        # # rescale normalized action to control ranges
+        # ctrl_range = self.sim.model.actuator_ctrlrange
+        # bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
+        # weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
+        # applied_action = bias + weight * action
+        # self.sim.data.ctrl[:] = applied_action
+        #
+        # # gravity compensation
+        # self.sim.data.qfrc_applied[
+        #     self.ref_joint_vel_indexes
+        # ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
+        #
+        # if self.use_indicator_object:
+        #     self.sim.data.qfrc_applied[
+        #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
+        #     ] = self.sim.data.qfrc_bias[
+        #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
+        #     ]
 
     def _step(self, action):
         """
         (Optional) does gripper visualization after actions.
         """
-        self._do_simulation()
+        assert len(action) == self.dof, "environment got invalid action dimension"
+
+        n_inner_loop = int(self._frame_dt / self.dt)
+        #
+        # desired_state = self.sim.data.qpos[self._ref_joint_pos_indexes] + action[:self.mujoco_robot.dof]
+        #
+        # # target_vel = (desired_state - prev_state) / 0.1
+        #
+        # for t in range(n_inner_loop):
+        #     # gravity compensation
+        #     self.sim.data.qfrc_applied[
+        #         self.ref_joint_vel_indexes
+        #     ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
+        #
+        #     arm_action = self._get_control(desired_state, prev_state, target_vel)
+        #
+        #     gripper_action_in = action[self.mujoco_robot.dof: self.mujoco_robot.dof + self.gripper.dof]
+        #     gripper_action_actual = self.gripper.format_action(gripper_action_in)
+        #     action = np.concatenate([arm_action, gripper_action_actual])
+        #
+        #     self._do_simulation(action)
+
+
+
         reward = self.reward(action)
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
@@ -291,10 +315,10 @@ class SawyerEnv(BaseEnv):
         di = super()._get_obs()
         # proprioceptive features
         di["joint_pos"] = np.array(
-            [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes]
+            [self.sim.data.qpos[x] for x in self.ref_joint_pos_indexes]
         )
         di["joint_vel"] = np.array(
-            [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
+            [self.sim.data.qvel[x] for x in self.ref_joint_vel_indexes]
         )
 
         robot_states = [
@@ -305,10 +329,10 @@ class SawyerEnv(BaseEnv):
 
         if self.has_gripper:
             di["gripper_qpos"] = np.array(
-                [self.sim.data.qpos[x] for x in self._ref_gripper_joint_pos_indexes]
+                [self.sim.data.qpos[x] for x in self.ref_gripper_joint_pos_indexes]
             )
             di["gripper_qvel"] = np.array(
-                [self.sim.data.qvel[x] for x in self._ref_gripper_joint_vel_indexes]
+                [self.sim.data.qvel[x] for x in self.ref_gripper_joint_vel_indexes]
             )
 
             di["eef_pos"] = np.array(self.sim.data.site_xpos[self.eef_site_id])
@@ -363,7 +387,7 @@ class SawyerEnv(BaseEnv):
         """
         Helper method to force robot joint positions to the passed values.
         """
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = jpos
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = jpos
         self.sim.forward()
 
     @property
@@ -396,10 +420,10 @@ class SawyerEnv(BaseEnv):
 
         # Use jacobian to translate joint velocities to end effector velocities.
         Jp = self.sim.data.get_body_jacp("right_hand").reshape((3, -1))
-        Jp_joint = Jp[:, self._ref_joint_vel_indexes]
+        Jp_joint = Jp[:, self.ref_joint_vel_indexes]
 
         Jr = self.sim.data.get_body_jacr("right_hand").reshape((3, -1))
-        Jr_joint = Jr[:, self._ref_joint_vel_indexes]
+        Jr_joint = Jr[:, self.ref_joint_vel_indexes]
 
         eef_lin_vel = Jp_joint.dot(self._joint_velocities)
         eef_rot_vel = Jr_joint.dot(self._joint_velocities)
@@ -459,7 +483,7 @@ class SawyerEnv(BaseEnv):
         Returns a numpy array of joint positions.
         Sawyer robots have 7 joints and positions are in rotation angles.
         """
-        return self.sim.data.qpos[self._ref_joint_pos_indexes]
+        return self.sim.data.qpos[self.ref_joint_pos_indexes]
 
     @property
     def _joint_velocities(self):
@@ -467,7 +491,7 @@ class SawyerEnv(BaseEnv):
         Returns a numpy array of joint velocities.
         Sawyer robots have 7 joints and velocities are angular velocities.
         """
-        return self.sim.data.qvel[self._ref_joint_vel_indexes]
+        return self.sim.data.qvel[self.ref_joint_vel_indexes]
 
     def _gripper_visualization(self):
         """
