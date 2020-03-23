@@ -18,10 +18,10 @@ class SimpleReacherEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=-0.2, high=.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[self.model.nu:] = goal
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
-            qvel[self.model.nu:] = 0
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
+            qpos[self.sim.model.nu:] = goal
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
+            qvel[self.sim.model.nu:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 self.goal = goal
@@ -30,20 +30,20 @@ class SimpleReacherEnv(BaseEnv):
 
     def initalize_joints(self):
         while True:
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
-            qpos[self.model.nu:] = self.goal
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
+            qpos[self.sim.model.nu:] = self.goal
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
+        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[self.model.nu:],
-                self.sim.data.qvel.flat[:self.model.nu]
+                self.sim.data.qpos.flat[self.sim.model.nu:],
+                self.sim.data.qvel.flat[:self.sim.model.nu]
             ]))
         ])
 
@@ -59,7 +59,7 @@ class SimpleReacherEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:self.model.nu]
+        return self.sim.data.qpos.ravel()[:self.sim.model.nu]
 
     def _step(self, action):
         """
@@ -82,7 +82,7 @@ class SimpleReacherEnv(BaseEnv):
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[:self.model.nu].copy()
+        prev_state = self.sim.data.qpos[:self.sim.model.nu].copy()
         target_vel = (desired_state-prev_state) / self._frame_dt
         for t in range(n_inner_loop):
             action = self._get_control(desired_state, prev_state, target_vel)

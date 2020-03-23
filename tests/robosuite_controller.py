@@ -58,27 +58,19 @@ def run_mp(env, planner, i=None):
     mp_env.reset()
     ik_env = gym.make(args.env, **args.__dict__)
     ik_env.reset()
-    ik_env._set_pos('target', env._get_pos('target'))
 
-    # controller = SawyerIKController(
-    #             bullet_data_path=os.path.join('env/assets/robosuite', "bullet_data"),
-    #             robot_jpos_getter=env._robot_jpos_getter,
-    #         )
     qpos = env.sim.data.qpos.ravel().copy()
     qvel = env.sim.data.qvel.ravel().copy()
     success = False
     mp_env.set_state(qpos, qvel)
     ik_env.set_state(qpos, qvel)
 
-    # controller.sync_ik_robot(controller.robot_jpos_getter())
-    # result = controller.inverse_kinematics(env._get_pos('target'), env._get_quat('target'))
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=300)
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=1000)
 
     start = env.sim.data.qpos.ravel().copy()
     goal = result.qpos
     goal[len(env.model.robot.joints):] = start[len(env.model.robot.joints)]
-    ik_env.set_state(goal, qvel)
-    #ik_env.render(mode='human')
+    ik_env.set_state(np.concatenate((result.qpos[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, 40)
 
@@ -89,6 +81,7 @@ def run_mp(env, planner, i=None):
     frames = []
     action_frames = []
     step = 0
+
     if success:
         goal = env.sim.data.qpos[-2:]
         prev_state = traj[0, :]
@@ -97,18 +90,24 @@ def run_mp(env, planner, i=None):
         for step, state in enumerate(traj[1:]):
 
             # Update dummy reacher
-            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel(), env.sim.data.qvel.ravel())
-            for body, body_visual in zip(env.model.robot.bodies, env.sawyer_visual.bodies):
-                body_idx = mp_env.sim.model.body_name2id(body)
-                pos = mp_env.sim.data.body_xpos[body_idx]
-                quat = mp_env.sim.data.body_xquat[body_idx]
-                env._set_pos(body_visual, pos)
-                env._set_quat(body_visual, quat)
+            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
+            # for body, body_visual in zip(env.model.robot.bodies, env.sawyer_visual.bodies):
+            #     body_idx = mp_env.sim.model.body_name2id(body)
+            #     pos = mp_env.sim.data.body_xpos[body_idx]
+            #     quat = mp_env.sim.data.body_xquat[body_idx]
+            #     # pos = mp_env.sim.data.get_mocap_pos(body)
+            #     # quat = mp_env.sim.data.get_mocap_quat(body)
+            #     env._set_pos(body_visual, pos)
+            #     env._set_quat(body_visual, quat)
+            #     # env.sim.data.set_mocap_pos(body_visual, pos)
+            #     # env.sim.data.set_mocap_quat(body_visual, quat)
 
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
                 env.render(mode='human')
+
+            #env.set_state(np.concatenate((state[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
 
             action = state-env.sim.data.qpos.copy()
             action = action[:len(env.model.robot.joints)+1]
