@@ -262,8 +262,7 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         # reset joint positions
         self.sim.forward()
-        pos = self._get_pos('box')
-        result = qpos_from_site_pose_sampling(self, 'grip_site', target_pos=[pos[0], pos[1], pos[2]+0.005], target_quat=np.array([0., 0., 1., 0.]), joint_names=self.model.robot.joints, max_steps=100)
+        result = qpos_from_site_pose_sampling(self, 'grip_site', target_pos=self._get_pos('box'), target_quat=np.array([0., 0., 1., 0.]), joint_names=self.model.robot.joints, max_steps=100)
         self.sim.forward()
 
         # while True:
