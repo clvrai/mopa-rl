@@ -90,13 +90,14 @@ traj = np.linspace(q_0, q_f, N)
 gripper_traj = np.linspace(gripper_0, gripper_f, N)
 Kp = 300.0
 Kd = 5.
-Ki = 5.0
+Ki = 0.0 #5.0
 alpha = 0.95
 
 error = 0
 x_traj_prev = traj[0, :]
 i_term = np.zeros_like(x_traj_prev)
 x_prev = env.sim.data.qpos[env.ref_joint_pos_indexes]
+use_step = False
 
 for t in range(1, N):
     x_traj = traj[t, :]
@@ -108,34 +109,41 @@ for t in range(1, N):
     env.sim.data.qfrc_applied[env.ref_indicator_joint_pos_indexes] = env.sim.data.qfrc_bias[
         env.ref_indicator_joint_pos_indexes]
 
-    for i in range(n_inner_loop):
-        # gravity compensation
-        env.sim.data.qfrc_applied[env.ref_joint_vel_indexes] = env.sim.data.qfrc_bias[env.ref_joint_vel_indexes]
-
-        p_term = Kp * (x_traj - env.sim.data.qpos[env.ref_joint_pos_indexes])
-        d_term = Kd * (xd_traj * 0 - env.sim.data.qvel[env.ref_joint_pos_indexes])
-        i_term = alpha * i_term + Ki * (x_prev - env.sim.data.qpos[env.ref_joint_pos_indexes])
-
-        print('p term ', np.linalg.norm(p_term))
-        print('d term ', np.linalg.norm(d_term))
-        print('i term ', np.linalg.norm(i_term))
-        action = p_term + d_term + i_term
-
-        # add gripper command to action
-        # gripper_action = env.gripper.format_action(np.array([0.01]))
-        action = np.concatenate([action, -gripper_action])
-
-        env.sim.data.ctrl[:] = action[:]
-        env.sim.forward()
-        env.sim.step()
-
-        print('x_traj', x_traj)
-        print('x_t', env.sim.data.qpos[env.ref_joint_pos_indexes])
-        print('action', action)
-        print('gipper_action', gripper_action)
-        print('gripper_state', env.sim.data.qpos[env.ref_gripper_joint_pos_indexes])
+    if use_step:
+        action = traj[t, :] - traj[t-1, :]
+        action = np.append(action, gripper_action[0])
+        env.step(action=action)
 
         env.render()
-        time.sleep(inner_dt)
+        time.sleep(outer_dt)
+    else:
+        for i in range(n_inner_loop):
+            # gravity compensation
+            env.sim.data.qfrc_applied[env.ref_joint_vel_indexes] = env.sim.data.qfrc_bias[env.ref_joint_vel_indexes]
+
+            p_term = Kp * (x_traj - env.sim.data.qpos[env.ref_joint_pos_indexes])
+            d_term = Kd * (xd_traj * 0 - env.sim.data.qvel[env.ref_joint_pos_indexes])
+            i_term = alpha * i_term + Ki * (x_prev - env.sim.data.qpos[env.ref_joint_pos_indexes])
+
+            print('p term ', np.linalg.norm(p_term))
+            print('d term ', np.linalg.norm(d_term))
+            print('i term ', np.linalg.norm(i_term))
+            action = p_term + d_term + i_term
+
+            # add gripper command to action
+            # gripper_action = env.gripper.format_action(np.array([0.01]))
+            action = np.concatenate([action, -gripper_action])
+
+            env.sim.data.ctrl[:] = action[:]
+            env.sim.forward()
+            env.sim.step()
+
+            env.render()
+            time.sleep(inner_dt)
+
+    print('x_traj', x_traj)
+    print('x_t', env.sim.data.qpos[env.ref_joint_pos_indexes])
+    print('gipper_action', gripper_action)
+    print('gripper_state', env.sim.data.qpos[env.ref_gripper_joint_pos_indexes])
 
     x_prev = np.copy(env.sim.data.qpos[env.ref_joint_pos_indexes])
