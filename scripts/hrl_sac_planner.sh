@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.sac.simple_pusher_push_obstacle_easier.terminal"
+prefix="hl.sac.simple_pusher_push_obstacle_easier.terminal.v1"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"

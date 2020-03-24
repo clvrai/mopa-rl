@@ -15,7 +15,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
-            'success_reward': 10.
+            'success_reward': 100.
         })
 
     def _reset(self):
@@ -37,7 +37,7 @@ class SimplePusherObstacleEnv(BaseEnv):
                 break
         return self._get_obs()
 
-    def initalize_joints(self):
+    def initialize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = self.goal
@@ -139,8 +139,8 @@ class SimplePusherObstacleEnv(BaseEnv):
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             # encourage to stay at the goal
             done = True
-            if self._episode_length == self._env_config['max_episode_steps']-1:
-                self._success = True
+            # if self._episode_length == self._env_config['max_episode_steps']-1:
+            self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 
