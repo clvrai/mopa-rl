@@ -153,14 +153,14 @@ class BaseEnv(gym.Env):
     def _get_reference(self):
         pass
 
-    def _get_control(self, state, prev_state, target_vel):
-        alpha = 0.95
-        p_term = self._kp * (state - self.sim.data.qpos[:self.sim.model.nu])
-        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.sim.model.nu])
-        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.sim.model.nu])
-        action = p_term + d_term + self._i_term
-
-        return action
+    # def _get_control(self, state, prev_state, target_vel):
+    #     alpha = 0.95
+    #     p_term = self._kp * (state - self.sim.data.qpos[:self.sim.model.nu])
+    #     d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.sim.model.nu])
+    #     self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.sim.model.nu])
+    #     action = p_term + d_term + self._i_term
+    #
+    #     return action
 
     def _init_random(self, size):
         r = self._env_config["init_randomness"]
@@ -177,7 +177,7 @@ class BaseEnv(gym.Env):
         self._terminal = False
         self._success = False
         self._fail = False
-        self._i_term = np.zeros_like(self.sim.data.qpos[:self.sim.model.nu])
+        # self._i_term = np.zeros_like(self.sim.data.qpos[:self.sim.model.nu])
 
 
     def step(self, action):
@@ -285,9 +285,9 @@ class BaseEnv(gym.Env):
         try:
             if a is not None:
                 self.data.ctrl[:] = a
-            for _ in range(self._frame_skip):
-                # self.sim.forward()
-                self.sim.step()
+
+            self.sim.forward()
+            self.sim.step()
         except Exception as e:
             logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
             logger.warn(e)

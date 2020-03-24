@@ -24,14 +24,14 @@ def add_arguments(parser):
                         help="includes object pose in observation")
     parser.add_argument("--visual_ob", type=str2bool, default=False,
                         help="includes camera image in observation")
-    parser.add_argument("--frame_skip", type=int, default=5,
+    parser.add_argument("--frame_skip", type=int, default=1,
                         help="Numer of skip frames")
     parser.add_argument("--action_repeat", type=int, default=5)
     parser.add_argument("--ctrl_reward_coef", type=float, default=0)
 
-    parser.add_argument("--kp", type=float, default=150.)
-    parser.add_argument("--kd", type=float, default=20.)
-    parser.add_argument("--ki", type=float, default=0.1)
+    parser.add_argument("--kp", type=float, default=300.)  # 150.)
+    parser.add_argument("--kd", type=float, default=5.)  # 20.)
+    parser.add_argument("--ki", type=float, default=0.)  # 0.1)
 
 def get_default_config():
     """
