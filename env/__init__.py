@@ -165,8 +165,8 @@ register(
     kwargs={}
 )
 register(
-    id='sawyer-move-robosuite-v0',
-    entry_point='env.robosuite:SawyerMoveEnv',
+    id='sawyer-pick-move-robosuite-v0',
+    entry_point='env.robosuite:SawyerPickMoveEnv',
     kwargs={}
 )
 register(

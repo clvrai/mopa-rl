@@ -5,8 +5,10 @@ def add_arguments(parser):
     """
     Adds a list of arguments to argparser for the reacher environment.
     """
-    # reacher
     parser.add_argument("--frame_skip", type=int, default=5)
+    parser.add_argument("--kp", type=float, default=150.)
+    parser.add_argument("--kd", type=float, default=20.)
+    parser.add_argument("--ki", type=float, default=0.1)
 
 
 def get_default_config():
