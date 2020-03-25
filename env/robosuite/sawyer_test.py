@@ -348,24 +348,9 @@ class SawyerTestEnv(SawyerEnv):
 
         # color the gripper site appropriately based on distance to nearest object
         if self.gripper_visualization:
-            # find closest object
-            square_dist = lambda x: np.sum(
-                np.square(x - self.sim.data.get_site_xpos("grip_site"))
-            )
-            dists = np.array(list(map(square_dist, self.sim.data.site_xpos)))
-            dists[self.eef_site_id] = np.inf  # make sure we don't pick the same site
-            dists[self.eef_cylinder_id] = np.inf
-            ob_dists = dists[
-                self.object_site_ids
-            ]  # filter out object sites we care about
-            min_dist = np.min(ob_dists)
-
-            # set RGBA for the EEF site here
-            max_dist = 0.1
-            scaled = (1.0 - min(min_dist / max_dist, 1.)) ** 15
             rgba = np.zeros(4)
-            rgba[0] = 1 - scaled
-            rgba[1] = scaled
+            rgba[0] = 1
+            rgba[1] = 0
             rgba[3] = 0.5
 
             self.sim.model.site_rgba[self.eef_site_id] = rgba
