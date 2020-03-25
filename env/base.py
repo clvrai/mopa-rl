@@ -195,7 +195,7 @@ class BaseEnv(gym.Env):
         pass
 
     def _pre_action(self, action):
-        p
+        pass
 
     def _after_step(self, reward, terminal, info):
         step_log = dict(info)
