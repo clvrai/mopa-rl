@@ -52,7 +52,8 @@ class MetaSACAgent(SACAgent):
 
         if sampler is None:
             sampler = RandomSampler()
-        buffer_keys = ['ob', 'ac', 'done', 'rew', 'ag', 'g']
+        #buffer_keys = ['ob', 'ac', 'done', 'rew', 'ag', 'g']
+        buffer_keys = ['ob', 'ac', 'done', 'rew']
         self._buffer = ReplayBuffer(buffer_keys,
                                     config.buffer_size,
                                     sampler.sample_func)

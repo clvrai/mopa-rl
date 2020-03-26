@@ -146,9 +146,9 @@ class Trainer(object):
         replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
         with gzip.open(replay_path, "wb") as f:
             if self._config.hrl:
-                if self._config.hrl_network_to_update == "HL":
+                if self._config.meta_update_target == "HL":
                     replay_buffers = {"replay": self._meta_agent.replay_buffer()}
-                elif self._config.hrl_network_to_update == "LL":
+                elif self._config.meta_update_target == "LL":
                     replay_buffers = {"replay": self._agent.replay_buffer()}
                 else: # both
                     replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
@@ -178,9 +178,9 @@ class Trainer(object):
                     replay_buffers = pickle.load(f)
                     #replay_buffers = joblib.load(f)
                     if self._config.hrl:
-                        if self._config.hrl_network_to_update == "HL":
+                        if self._config.meta_update_target == "HL":
                             self._meta_agent.load_replay_buffer(replay_buffers["replay"])
-                        elif self._config.hrl_network_to_update == "LL":
+                        elif self._config.meta_update_target == "LL":
                             self._agent.load_replay_buffer(replay_buffers["replay"])
                         else: # both
                             self._meta_agent.load_replay_buffer(replay_buffers["hl_replay"])
@@ -243,10 +243,10 @@ class Trainer(object):
         runner = None
         random_runner = None
         if config.hrl:
-            if config.hrl_network_to_update == "LL":
+            if config.meta_update_target == "LL":
                 runner = self._runner.run(every_steps=1)
                 random_runner = self._runner.run(every_steps=1, random_exploration=True)
-            elif config.hrl_network_to_update == 'HL':
+            elif config.meta_update_target == 'HL':
                 if config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
                     if config.meta_algo == 'sac':
                         runner = self._runner.run_with_mp(every_steps=1)
@@ -255,8 +255,13 @@ class Trainer(object):
                         self._runner.run_episode_with_mp(every_steps=self._config.rollout_length)
                 elif config.ll_type == 'rl':
                     runner = self._runner.run(every_steps=1)
+            elif config.meta_update_target == 'both' and config.subgoal_predictor:
+                if config.meta_algo == 'sac':
+                    runner = self._runner.run_with_subgoal_predictor(every_steps=1)
+                    random_runner = self._runner.run_with_subgoal_predictor(every_steps=1, random_exploration=True)
             else:
                 raise NotImplementedError
+
         else:
             if config.algo == 'sac':
                 runner = self._runner.run(every_steps=1)
@@ -279,22 +284,22 @@ class Trainer(object):
                     step_per_batch = mpi_sum(len(rollout['ac']))
                     init_step += step_per_batch
 
-                    if (config.hrl_network_to_update == "HL" or \
-                        config.hrl_network_to_update == "both"):
+                    if (config.meta_update_target == "HL" or \
+                        config.meta_update_target == "both"):
                         self._meta_agent.store_episode(meta_rollout)
-                    if (config.hrl_network_to_update == "LL" or \
-                        config.hrl_network_to_update == "both"):
+                    if (config.meta_update_target == "LL" or \
+                        config.meta_update_target == "both"):
                         self._agent.store_episode(rollout)
 
         while step < config.max_global_step:
             # collect rollouts
             rollout, meta_rollout, info = next(runner)
             if config.hrl:
-                if (config.hrl_network_to_update == "HL" or \
-                    config.hrl_network_to_update == "both"):
+                if (config.meta_update_target == "HL" or \
+                    config.meta_update_target == "both"):
                     self._meta_agent.store_episode(meta_rollout)
-                if (config.hrl_network_to_update == "LL" or \
-                    config.hrl_network_to_update == "both"):
+                if (config.meta_update_target == "LL" or \
+                    config.meta_update_target == "both"):
                     self._agent.store_episode(rollout)
             else:
                 self._agent.store_episode(rollout)
@@ -304,19 +309,19 @@ class Trainer(object):
             # train an agent
             logger.info("Update networks %d", update_iter)
             if config.hrl:
-                if (config.hrl_network_to_update == "HL" or \
-                    config.hrl_network_to_update == "both"):
+                if (config.meta_update_target == "HL" or \
+                    config.meta_update_target == "both"):
                     train_info = self._meta_agent.train()
                     hl_train_info = train_info
                 else:
                     hl_train_info = None
-                if (config.hrl_network_to_update == "LL" or \
-                    config.hrl_network_to_update == "both"):
+                if (config.meta_update_target == "LL" or \
+                    config.meta_update_target == "both"):
                     train_info = self._agent.train()
                     ll_train_info = train_info
                 else:
                     ll_train_info = None
-                if config.hrl_network_to_update == "both":
+                if config.meta_update_target == "both":
                     train_info = {}
                     train_info.update({k + "_hl": v for k, v in hl_train_info.items()})
                     train_info.update({k + "_ll": v for k, v in ll_train_info.items()})
@@ -370,8 +375,12 @@ class Trainer(object):
 
                     # Evaluate mp
                     if self._config.ll_type == 'mp' or self._config.ll_type == 'mix':
-                        mp_rollout, mp_info, mp_vids = self._mp_evaluate(step=step, record=config.record)
-                        self._log_mp_test(step, mp_info, mp_vids)
+                        if self._config.subgoal_predictor:
+                            mp_rollout, mp_info, mp_vids = self._mp_subgoal_predictor_evaluate(step=step, record=config.record)
+                            self._log_mp_test(step, mp_info, mp_vids)
+                        else:
+                            mp_rollout, mp_info, mp_vids = self._mp_evaluate(step=step, record=config.record)
+                            self._log_mp_test(step, mp_info, mp_vids)
 
 
                 if update_iter % config.ckpt_interval == 0:
@@ -452,6 +461,34 @@ class Trainer(object):
         logger.info("mp rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         # self._save_success_qpos(info, prefix="mp_")
         return rollout, info, np.array(vids)
+
+
+    def _mp_subgoal_predictor_evaluate(self, step=None, record=False, idx=None):
+        """ Run one rollout if in eval mode
+            Run num_record_samples rollouts if in train mode
+            Evaluation for Motion Planner
+        """
+        vids = []
+        for i in range(self._config.num_record_samples):
+            rollout, meta_rollout, info, frames = \
+                self._runner.run_episode_with_subgoal_predictor(is_train=False, record=record)
+
+            if record:
+                ep_rew = info["rew"]
+                ep_success = "s" if info["episode_success"] else "f"
+                fname = "{}_step_{:011d}_{}_r_{}_{}_mp.mp4".format(
+                    self._config.env, step, idx if idx is not None else i,
+                    ep_rew, ep_success)
+                self._save_video(fname, frames)
+                vids.append(frames)
+
+            if idx is not None:
+                break
+
+        logger.info("mp rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
+        # self._save_success_qpos(info, prefix="mp_")
+        return rollout, info, np.array(vids)
+
 
 
     def evaluate(self):

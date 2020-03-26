@@ -70,11 +70,20 @@ class LowLevelAgent(SACAgent):
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
-    def plan(self, curr_qpos, target_qpos):
+    def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True):
         assert self._mp != None, 'Motion planner does not exist.'
 
-        traj = self._mp.plan(curr_qpos, target_qpos)
-        return traj
+        if target_qpos is None:
+            assert ob is not None and meta_ac is not None, "Invalid arguments"
+            skill_idx = int(meta_ac['default'][0])
+
+            assert "mp" in self.return_skill_type(meta_ac), "Skill is expected to be motion planner"
+            target_qpos, activation = self._actors[skill_idx].act(ob, is_train)
+            traj, success = self._mp.plan(curr_qpos, target_qpos['default'])
+            return traj, success, target_qpos
+        else:
+            traj, success = self._mp.plan(curr_qpos, target_qpos)
+            return traj, success
 
     def act(self, ob, meta_ac, is_train=True, return_stds=False):
         if self._config.hrl:
@@ -101,8 +110,18 @@ class LowLevelAgent(SACAgent):
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        skill_idx = int(meta_ac['default'][0])
-        return self._actors[skill_idx].act_log(ob)
+        if len(meta_ac['default']) == 1:
+            skill_idx = int(meta_ac['default'][0])
+            return self._actors[skill_idx].act_log(ob)
+        else:
+            actions = torch.zeros(len(meta_ac['default']), action_size(self._ac_space)).to(self._config.device)
+            log_pis = torch.zeros_like(meta_ac['default']).to(self._config.device)
+            for i in range(len(self._skills)):
+                ac, log_pi = self._actors[i].act_log(ob)
+                actions +=  ac['default'] * (meta_ac['default'] == i).float()
+                log_pis += log_pi * (meta_ac['default'] == i).float()
+
+            return OrderedDict([('default', actions)]), log_pis
 
     def sync_networks(self):
         if self._config.meta_update_target == 'LL' or \
@@ -115,7 +134,7 @@ class LowLevelAgent(SACAgent):
         skill = self.return_skill_type(meta_ac)
 
         if skill == 'mp':
-            return env._get_pos('fingertip')[:2].copy()
+            return env._get_pos('fingertip')[:env.sim.model.nu].copy()
         else:
-            return env._get_pos('box')[:2].copy()
+            return env._get_pos('box')[:env.sim.model.nu].copy()
 

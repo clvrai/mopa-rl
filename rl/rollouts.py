@@ -699,6 +699,334 @@ class RolloutRunner(object):
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
+    def run_with_subgoal_predictor(self, max_step=10000, is_train=True, random_exploration=False, every_steps=None, every_episodes=None):
+        if every_steps is None and every_episodes is None:
+            raise ValueError("Both every_steps and every_episodes cannot be None")
+
+        config = self._config
+        device = config.device
+        env = self._env if is_train else self._env_eval
+        max_step = env.max_episode_steps
+        meta_pi = self._meta_pi
+        pi = self._pi
+        ik_env = self._ik_env
+        ik_env.reset()
+
+        rollout = Rollout()
+        meta_rollout = MetaRollout()
+        reward_info = Info()
+        ep_info = Info()
+        episode = 0
+        step = 0
+
+        while True:
+            done = False
+            ep_len = 0
+            ep_rew = 0
+            mp_success = 0
+            meta_ac = None
+            success = False
+            skill_count = {}
+            if self._config.hrl:
+                for skill in pi._skills:
+                    skill_count[skill] = 0
+
+            ob = env.reset()
+
+            while not done and ep_len < max_step:
+                if random_exploration: # Random exploration for SAC
+                    meta_ac = meta_pi.sample_action()
+                    meta_ac_before_activation = None
+                    meta_log_prob = None
+                else:
+                    meta_ac, meta_ac_before_activation, meta_log_prob =\
+                            meta_pi.act(ob, is_train=is_train)
+
+                meta_len = 0
+                meta_rew = 0
+                mp_len = 0
+
+                curr_qpos = env.sim.data.qpos.ravel().copy()
+
+
+                skill_type = pi.return_skill_type(meta_ac)
+                skill_count[skill_type] += 1
+                if skill_type == 'mp': # Use motion planner
+                    traj, success, target_qpos = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
+                    if success:
+                        mp_success += 1
+
+                info = OrderedDict()
+                while not done and ep_len < max_step and meta_len < config.max_meta_len:
+                    ll_ob = ob.copy()
+                    if skill_type == 'mp':
+                        if success:
+                            for next_qpos in traj:
+                                meta_rollout.add({
+                                    'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                                })
+                                ll_ob = ob.copy()
+                                curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                                ac = OrderedDict([('default', next_qpos[:env.model.nu] - curr_qpos)])
+                                ac_before_activation = None
+                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': ac_before_activation})
+                                ob, reward, done, info = env.step(ac)
+                                rollout.add({'done': done, 'rew': reward})
+                                ep_len += 1
+                                step += 1
+                                ep_rew += reward
+                                meta_len += 1
+                                reward_info.add(info)
+                                meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+
+                                if every_steps is not None and step % every_steps == 0:
+                                    # last frame
+                                    ll_ob = ob.copy()
+                                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                    meta_rollout.add({'meta_ob': ob})
+                                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+                        else:
+                            meta_rollout.add({
+                                'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                            })
+                            reward = self._config.meta_subgoal_rew
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': None})
+                            done, info, _ = env._after_step(reward, False, info)
+                            rollout.add({'done': done, 'rew': reward})
+                            ep_len += 1
+                            step += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            reward_info.add(info)
+                            meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                            if every_steps is not None and step % every_steps == 0:
+                                # last frame
+                                ll_ob = ob.copy()
+                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                meta_rollout.add({'meta_ob': ob})
+                                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                    else:
+                        meta_rollout.add({
+                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                        })
+                        if config.hrl:
+                            ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                        else:
+                            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                        curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+
+                        ob, reward, done, info = env.step(ac)
+                        rollout.add({'done': done, 'rew': reward})
+
+                        ep_len += 1
+                        step += 1
+                        ep_rew += reward
+                        meta_len += 1
+                        meta_rew += reward
+                        reward_info.add(info)
+                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        if every_steps is not None and step % every_steps == 0:
+                            # last frame
+                            ll_ob = ob.copy()
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            meta_rollout.add({'meta_ob': ob})
+                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+
+            ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
+            ep_info.add(skill_count)
+            reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
+            ep_info.add(reward_info_dict)
+            logger.info('Ep %d rollout: %s %s', episode,
+                        {k: v for k, v in reward_info_dict.items()
+                         if not 'qpos' in k and np.isscalar(v)}, {k: v for k, v in skill_count.items()})
+            episode += 1
+
+    def run_episode_with_subgoal_predictor(self, max_step=10000, is_train=True, record=False, random_exploration=False):
+        config = self._config
+        device = config.device
+        env = self._env if is_train else self._env_eval
+        max_step = env.max_episode_steps
+        meta_pi = self._meta_pi
+        pi = self._pi
+        ik_env = self._ik_env
+        ik_env.reset()
+
+        self._record_frames = []
+        if record: self._store_frame(env)
+
+        rollout = Rollout()
+        meta_rollout = MetaRollout()
+        reward_info = Info()
+        ep_info = Info()
+        episode = 0
+        step = 0
+
+        done = False
+        ep_len = 0
+        ep_rew = 0
+        mp_success = 0
+        meta_ac = None
+        success = False
+        skill_count = {}
+        if self._config.hrl:
+            for skill in pi._skills:
+                skill_count[skill] = 0
+
+        ob = env.reset()
+
+        while not done and ep_len < max_step:
+            if random_exploration: # Random exploration for SAC
+                meta_ac = meta_pi.sample_action()
+                meta_ac_before_activation = None
+                meta_log_prob = None
+            else:
+                meta_ac, meta_ac_before_activation, meta_log_prob =\
+                        meta_pi.act(ob, is_train=is_train)
+
+            meta_len = 0
+            meta_rew = 0
+            mp_len = 0
+
+            curr_qpos = env.sim.data.qpos.ravel().copy()
+
+
+            skill_type = pi.return_skill_type(meta_ac)
+            skill_count[skill_type] += 1
+            goal_xpos = None
+            goal_xquat = None
+            if skill_type == 'mp': # Use motion planner
+                traj, success, target_qpos = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
+                ik_env.set_state(np.concatenate([target_qpos['default'], env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
+                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+                if success:
+                    mp_success += 1
+
+            info = OrderedDict()
+
+
+            while not done and ep_len < max_step and meta_len < config.max_meta_len:
+                ll_ob = ob.copy()
+                if skill_type == 'mp':
+                    if success:
+                        for next_qpos in traj:
+                            meta_rollout.add({
+                                'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                            })
+                            ll_ob = ob.copy()
+                            curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                            ac = OrderedDict([('default', next_qpos[:env.model.nu] - curr_qpos)])
+                            ac_before_activation = None
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': ac_before_activation})
+                            ob, reward, done, info = env.step(ac)
+                            rollout.add({'done': done, 'rew': reward})
+
+                            ep_len += 1
+                            step += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            reward_info.add(info)
+                            meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+
+                            if record:
+                                frame_info = info.copy()
+                                frame_info['ac'] = ac['default']
+                                frame_info['states'] = 'Valid states'
+                                frame_info['curr_qpos'] = curr_qpos
+                                if skill_type == 'mp' and success:
+                                    frame_info['mp_path_qpos'] = next_qpos[:env.model.nu]
+                                frame_info['goal'] = env.goal
+                                frame_info['skill_type'] = skill_type
+                                for i, k in enumerate(meta_ac.keys()):
+                                    if k == 'subgoal' and k != 'default':
+                                        frame_info['meta_subgoal'] = meta_ac[k]
+                                    elif k != 'default':
+                                        frame_info['meta_'+k] = meta_ac[k]
+
+                                vis_pos=[]
+                                if skill_type == 'mp' and success:
+                                    ik_env.set_state(np.concatenate((next_qpos[:env.model.nu], env.sim.data.qpos[env.model.nu:])), ik_env.sim.data.qvel.ravel())
+                                    xpos, xquat = self._get_mp_body_pos(ik_env)
+                                    vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                                self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+
+                    else:
+                        meta_rollout.add({
+                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                        })
+                        reward = self._config.meta_subgoal_rew
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': None})
+                        done, info, _ = env._after_step(reward, False, info)
+                        rollout.add({'done': done, 'rew': reward})
+                        ep_len += 1
+                        step += 1
+                        ep_rew += reward
+                        meta_len += 1
+                        reward_info.add(info)
+                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        if record:
+                            frame_info = info.copy()
+                            frame_info['ac'] = ac['default']
+                            frame_info['states'] = 'Invalid states'
+                            frame_info['curr_qpos'] = curr_qpos
+                            frame_info['goal'] = env.goal
+                            frame_info['skill_type'] = skill_type
+                            for i, k in enumerate(meta_ac.keys()):
+                                if k == 'subgoal' and k != 'default':
+                                    frame_info['meta_subgoal'] = meta_ac[k]
+                                elif k != 'default':
+                                    frame_info['meta_'+k] = meta_ac[k]
+
+                            vis_pos=[]
+                            self._store_frame(env, frame_info, None, vis_pos=[])
+                else:
+                    meta_rollout.add({
+                        'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                    })
+                    if config.hrl:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                    else:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                    curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+
+                    ob, reward, done, info = env.step(ac)
+                    rollout.add({'done': done, 'rew': reward})
+
+                    ep_len += 1
+                    step += 1
+                    ep_rew += reward
+                    meta_len += 1
+                    meta_rew += reward
+                    reward_info.add(info)
+                    meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                    if record:
+                        frame_info = info.copy()
+                        frame_info['ac'] = ac['default']
+                        frame_info['curr_qpos'] = curr_qpos
+                        frame_info['goal'] = env.goal
+                        frame_info['skill_type'] = skill_type
+                        for i, k in enumerate(meta_ac.keys()):
+                            if k == 'subgoal' and k != 'default':
+                                frame_info['meta_subgoal'] = meta_ac[k]
+                            elif k != 'default':
+                                frame_info['meta_'+k] = meta_ac[k]
+
+                        vis_pos=[]
+                        self._store_frame(env, frame_info, None, vis_pos=[])
+
+
+        ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
+        ep_info.add(skill_count)
+        reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
+        ep_info.add(reward_info_dict)
+        # last frame
+        ll_ob = ob.copy()
+        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+        meta_rollout.add({'meta_ob': ob})
+        return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
     def _get_mp_body_pos(self, ik_env, postfix='dummy'):
         xpos = OrderedDict()
@@ -732,10 +1060,11 @@ class RolloutRunner(object):
         frame = env.render('rgb_array') * 255.0
         env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
         for xpos, xquat in vis_pos:
-            for k in xpos.keys():
-                color = env._get_color(k)
-                color[-1] = 0.
-                env._set_color(k, color)
+            if xpos is not None and xquat is not None:
+                for k in xpos.keys():
+                    color = env._get_color(k)
+                    color[-1] = 0.
+                    env._set_color(k, color)
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
