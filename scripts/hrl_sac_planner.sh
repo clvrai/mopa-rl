@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hl.sac.simple_pusher_push_obstacle_easier.terminal.v1"
+prefix="hl.sac.simple_pusher_push_obstacle_easier.success_rew.1.subgoal"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -12,7 +12,7 @@ threshold="0.5"
 timelimit="0.2"
 env="simple-pusher-obstacle-v0"
 hl_type="subgoal"
-gpu="3"
+gpu="1"
 rl_hid_size="256"
 meta_update_target="HL"
 hrl_network_to_update="HL"
@@ -39,12 +39,13 @@ primitive_dir="primitives"
 actor_num_hid_layers="2"
 subgoal_type="cart"
 goal_replace="True"
-subgoal_reward="False"
+subgoal_reward="True"
 relative_subgoal="True"
 meta_algo='sac'
 her='True'
 start_steps='150000'
 distance_threshold='0.06'
+success_reward='1.'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -91,4 +92,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --meta_algo $meta_algo \
     --her $her \
     --start_steps $start_steps \
-    --distance_threshold $distance_threshold
+    --distance_threshold $distance_threshold \
+    --success_reward $success_reward
