@@ -786,6 +786,8 @@ class RolloutRunner(object):
                                     meta_rollout.add({'meta_ob': ob})
                                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
+                                if done or ep_len >= max_step:
+                                    break
                         else:
                             meta_rollout.add({
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -855,7 +857,6 @@ class RolloutRunner(object):
         ik_env.reset()
 
         self._record_frames = []
-        if record: self._store_frame(env)
 
         rollout = Rollout()
         meta_rollout = MetaRollout()
@@ -876,6 +877,7 @@ class RolloutRunner(object):
                 skill_count[skill] = 0
 
         ob = env.reset()
+        if record: self._store_frame(env)
 
         while not done and ep_len < max_step:
             if random_exploration: # Random exploration for SAC
@@ -905,7 +907,6 @@ class RolloutRunner(object):
                     mp_success += 1
 
             info = OrderedDict()
-
 
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()

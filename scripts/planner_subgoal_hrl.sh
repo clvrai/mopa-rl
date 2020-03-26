@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hrl.subgoal_predictor.debug"
+prefix="hrl.subgoal_predictor"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -10,8 +10,8 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-pusher-v0"
-gpu="1"
+env="simple-pusher-obstacle-v0"
+gpu="2"
 rl_hid_size="256"
 meta_update_target="both"
 max_episode_steps="150"
@@ -23,7 +23,7 @@ buffer_size="120000"
 num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="512"
 clip_param="0.2"
@@ -36,15 +36,14 @@ subgoal_type="joint"
 subgoal_reward="True"
 relative_subgoal="True"
 meta_algo='sac'
-start_steps='150000'
+start_steps='10000'
 distance_threshold='0.06'
 success_reward='1.'
 primitive_skills="mp push"
 subgoal_predictor="True"
 seed="1234"
 
-#mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \
