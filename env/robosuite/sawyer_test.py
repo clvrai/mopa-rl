@@ -29,7 +29,7 @@ class SawyerTestEnv(SawyerEnv):
         placement_initializer=None,
         single_object_mode=0,
         object_type=None,
-        gripper_visualization=False,
+        gripper_visualization=True,
         use_indicator_object=False,
         has_renderer=False,
         has_offscreen_renderer=True,
