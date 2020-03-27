@@ -320,6 +320,19 @@ class SawyerEnv(BaseEnv):
             # gravity compensation
             self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
 
+            self.sim.data.qfrc_applied[
+                self._ref_target_vel_low : self._ref_target_vel_high+1
+            ] = self.sim.data.qfrc_bias[
+                self._ref_target_vel_low : self._ref_target_vel_high+1
+            ]
+
+            if self.use_indicator_object:
+                self.sim.data.qfrc_applied[
+                    self._ref_indicator_vel_low : self._ref_indicator_vel_high
+                ] = self.sim.data.qfrc_bias[
+                    self._ref_indicator_vel_low : self._ref_indicator_vel_high
+                ]
+
             arm_action = self._get_control(desired_state, self._prev_state, target_vel)
             gripper_action = self.gripper.format_action(np.array([action[-1]]))
 
