@@ -6,7 +6,7 @@ import os
 import sys
 import platform
 
-prefix_path = '$HOME'
+prefix_path = os.environ['HOME']
 extensions = [
     Extension('planner', ['planner.pyx', 'KinematicPlanner.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
                           ],
