@@ -165,7 +165,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         box = BoxObject(size=[0.01, 0.01, 0.01],
                         rgba=[1, 0, 0, 1])
         self.mujoco_objects = OrderedDict([('box', box)])
-        #self.mujoco_objects = OrderedDict()
+        # self.mujoco_objects = OrderedDict()
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTargetTask(
@@ -191,43 +191,43 @@ class SawyerPickMoveEnv(SawyerEnv):
                 actuation controls for the gripper.
         """
 
-        # clip actions into valid range
-        assert len(action) == self.dof, "environment got invalid action dimension"
-        low, high = self.action_spec
-        action = np.clip(action, low, high)
-
-        if self.has_gripper:
-            arm_action = action[: self.mujoco_robot.dof]
-            gripper_action_in = action[
-                self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
-            ]
-            gripper_action_actual = self.gripper.format_action(gripper_action_in)
-            action = np.concatenate([arm_action, gripper_action_actual])
-
-        # rescale normalized action to control ranges
-        ctrl_range = self.sim.model.actuator_ctrlrange
-        bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
-        weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
-        applied_action = bias + weight * action
-        self.sim.data.ctrl[:] = applied_action
-
-        # gravity compensation
-        self.sim.data.qfrc_applied[
-            self.ref_joint_vel_indexes
-        ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
-
-        self.sim.data.qfrc_applied[
-            self._ref_target_vel_low : self._ref_target_vel_high+1
-        ] = self.sim.data.qfrc_bias[
-            self._ref_target_vel_low : self._ref_target_vel_high+1
-        ]
-
-        if self.use_indicator_object:
-            self.sim.data.qfrc_applied[
-                self._ref_indicator_vel_low : self._ref_indicator_vel_high
-            ] = self.sim.data.qfrc_bias[
-                self._ref_indicator_vel_low : self._ref_indicator_vel_high
-            ]
+        # # clip actions into valid range
+        # assert len(action) == self.dof, "environment got invalid action dimension"
+        # low, high = self.action_spec
+        # action = np.clip(action, low, high)
+        #
+        # if self.has_gripper:
+        #     arm_action = action[: self.mujoco_robot.dof]
+        #     gripper_action_in = action[
+        #         self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
+        #     ]
+        #     gripper_action_actual = self.gripper.format_action(gripper_action_in)
+        #     action = np.concatenate([arm_action, gripper_action_actual])
+        #
+        # # rescale normalized action to control ranges
+        # ctrl_range = self.sim.model.actuator_ctrlrange
+        # bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
+        # weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
+        # applied_action = bias + weight * action
+        # self.sim.data.ctrl[:] = applied_action
+        #
+        # # gravity compensation
+        # self.sim.data.qfrc_applied[
+        #     self.ref_joint_vel_indexes
+        # ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
+        #
+        # self.sim.data.qfrc_applied[
+        #     self._ref_target_vel_low : self._ref_target_vel_high+1
+        # ] = self.sim.data.qfrc_bias[
+        #     self._ref_target_vel_low : self._ref_target_vel_high+1
+        # ]
+        #
+        # if self.use_indicator_object:
+        #     self.sim.data.qfrc_applied[
+        #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
+        #     ] = self.sim.data.qfrc_bias[
+        #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
+        #     ]
 
     def _get_reference(self):
         """
