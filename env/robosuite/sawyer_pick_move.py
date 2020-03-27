@@ -165,7 +165,6 @@ class SawyerPickMoveEnv(SawyerEnv):
         box = BoxObject(size=[0.01, 0.01, 0.01],
                         rgba=[1, 0, 0, 1])
         self.mujoco_objects = OrderedDict([('box', box)])
-        # self.mujoco_objects = OrderedDict()
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTargetTask(
@@ -229,6 +228,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
         #     ]
 
+
     def _get_reference(self):
         """
         Sets up references to important components. A reference is typically an
@@ -262,7 +262,9 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         # reset joint positions
         self.sim.forward()
+        target_qpos = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1].copy()
         result = qpos_from_site_pose_sampling(self, 'grip_site', target_pos=self._get_pos('box'), target_quat=np.array([0., 0., 1., 0.]), joint_names=self.model.robot.joints, max_steps=100)
+        self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1] = target_qpos
         self.sim.forward()
 
         # while True:

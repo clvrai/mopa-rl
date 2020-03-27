@@ -165,12 +165,12 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
         bounds.setHigh(joint.range[1]);
 
         ob::RealVectorBounds se3bounds(3);
-        se3bounds.setLow(0, -10.0);
-        se3bounds.setLow(1, -10.0);
-        se3bounds.setLow(2, -10.0);
-        se3bounds.setHigh(0, 10.0);
-        se3bounds.setHigh(1, 10.0);
-        se3bounds.setHigh(2, 10.0);
+        se3bounds.setLow(0, -0.00001);
+        se3bounds.setLow(1, -0.00001);
+        se3bounds.setLow(2, -0.00001);
+        se3bounds.setHigh(0, 0.00001);
+        se3bounds.setHigh(1, 0.00001);
+        se3bounds.setHigh(2, 0.00001);
 
         // Check that our assumptions are ok
         if (joint.qposadr != next_qpos) {

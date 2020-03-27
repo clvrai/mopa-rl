@@ -165,7 +165,6 @@ class SawyerTestEnv(SawyerEnv):
 
         # initialize objects of interest
         #target = TargetObject()
-        box = BoxObject()
         self.mujoco_objects = OrderedDict()
 
         # task includes arena, robot, and objects of interest
