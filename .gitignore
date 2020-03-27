@@ -61,6 +61,9 @@ z.log.global
 test_logs
 tmp
 
+## Eigen
+eigen-3.3.7/
+
 motion_planners/*.so
 primitives/*/*pt
 
