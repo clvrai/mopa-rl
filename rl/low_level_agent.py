@@ -70,7 +70,7 @@ class LowLevelAgent(SACAgent):
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
-    def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True):
+    def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True, random_exploration=False):
         assert self._mp != None, 'Motion planner does not exist.'
 
         if target_qpos is None:
@@ -78,7 +78,10 @@ class LowLevelAgent(SACAgent):
             skill_idx = int(meta_ac['default'][0])
 
             assert "mp" in self.return_skill_type(meta_ac), "Skill is expected to be motion planner"
-            target_qpos, activation = self._actors[skill_idx].act(ob, is_train)
+            if random_exploration:
+                target_qpos = self._ac_space.sample()
+            else:
+                target_qpos, activation = self._actors[skill_idx].act(ob, is_train)
             traj, success = self._mp.plan(curr_qpos, target_qpos['default'])
             return traj, success, target_qpos
         else:
