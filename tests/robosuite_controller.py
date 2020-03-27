@@ -66,8 +66,11 @@ def run_mp(env, planner, i=None):
     mp_env.set_state(qpos, qvel)
     ik_env.set_state(qpos, qvel)
 
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'),
-    target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
+    goal_site = 'target'
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
+    target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
+
+    print("IK for %s successful? %s. Err_norm %.3f" % (goal_site, result.success, result.err_norm))
 
     start = env.sim.data.qpos.ravel().copy()
     goal = result.qpos
@@ -79,6 +82,7 @@ def run_mp(env, planner, i=None):
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
+        print("Planner succeeded in planning trajectory to %s!" % goal_site)
 
     frames = []
     action_frames = []
