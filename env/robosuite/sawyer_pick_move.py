@@ -228,6 +228,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
         #     ]
 
+
     def _get_reference(self):
         """
         Sets up references to important components. A reference is typically an
