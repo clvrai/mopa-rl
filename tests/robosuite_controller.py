@@ -66,11 +66,12 @@ def run_mp(env, planner, i=None):
     mp_env.set_state(qpos, qvel)
     ik_env.set_state(qpos, qvel)
 
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=1000)
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'),
+    target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
 
     start = env.sim.data.qpos.ravel().copy()
     goal = result.qpos
-    goal[len(env.model.robot.joints):] = start[len(env.model.robot.joints)]
+    goal[len(env.model.robot.joints):] = start[len(env.model.robot.joints):]
     ik_env.set_state(np.concatenate((result.qpos[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, 40)
@@ -144,7 +145,7 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 # Save video or not
-is_save_video = False
+is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
