@@ -194,7 +194,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 err_norm += np.linalg.norm(err_rot) * rot_weight
 
             if err_norm < tol:
-                print('success')
+                print('IK success')
                 success =True
                 break
             else:
@@ -225,8 +225,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
                 #env.step(update_nv[:-2])
                 if steps % 10 == 0 and logging:
-                    print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
-                          steps, err_norm, update_norm)
+                    print('Step %2i: err_norm=%-10.3f update_norm=%-10.3f'% (steps, err_norm, update_norm))
 
         if env.sim.data.ncon == 0 or tried > trials:
             return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
