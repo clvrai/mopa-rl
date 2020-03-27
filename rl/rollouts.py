@@ -752,7 +752,7 @@ class RolloutRunner(object):
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
                 if skill_type == 'mp': # Use motion planner
-                    traj, success, target_qpos = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
+                    traj, success, target_qpos = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(), random_exploration=random_exploration)
                     if success:
                         mp_success += 1
 
@@ -812,10 +812,15 @@ class RolloutRunner(object):
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
-                        if config.hrl:
-                            ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                        if random_exploration: # Random exploration for SAC
+                            ac = env.action_space.sample()
+                            ac_before_activation = None
+                            stds = None
                         else:
-                            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                            if config.hrl:
+                                ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                            else:
+                                ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
                         curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
