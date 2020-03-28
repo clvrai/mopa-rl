@@ -39,7 +39,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         camera_height=256,
         camera_width=256,
         camera_depth=False,
-        use_robot_indicator=True,
+        use_robot_indicator=False,
         **kwargs):
         """
         Args:
