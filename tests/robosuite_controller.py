@@ -54,6 +54,8 @@ def render_frame(env, step, info={}):
 def run_mp(env, planner, i=None):
     error = 0
     end_error = 0
+
+    # Setup environments and states
     env.reset()
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
@@ -66,15 +68,20 @@ def run_mp(env, planner, i=None):
     mp_env.set_state(qpos, qvel)
     ik_env.set_state(qpos, qvel)
 
+    # Obtain start and goal joint positions. Do IK to get joint positions for goal_site.
     goal_site = 'target'
     result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
     target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
 
     print("IK for %s successful? %s. Err_norm %.3f" % (goal_site, result.success, result.err_norm))
-
     start = env.sim.data.qpos.ravel().copy()
     goal = result.qpos
-    goal[len(env.model.robot.joints):] = start[len(env.model.robot.joints):]
+
+    # Equate qpos components not affected by planner
+    mask = np.ones(start.shape, bool)
+    mask[env.ref_joint_pos_indexes] = False # don't equate state vars where planner operates
+    goal[mask] = start[mask]
+
     ik_env.set_state(np.concatenate((result.qpos[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, 40)
