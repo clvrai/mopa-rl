@@ -27,6 +27,7 @@
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
 #include <ompl/base/SpaceInformation.h>
+#include <ompl/base/StateSpace.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/StateCostIntegralObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
@@ -36,6 +37,7 @@
 #include <cxxopts.hpp>
 #include "mujoco_wrapper.h"
 #include "mujoco_ompl_interface.h"
+#include "compound_state_projector.h"
 
 namespace ob = ompl::base;
 namespace oc = ompl::control;
@@ -200,18 +202,29 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         //     ss->simplifySolution(simplified_duration);
         // }
         og::PathGeometric p = ss->getSolutionPath();
-        p.interpolate(max_steps);
+        // ss->getSolutionPath().print(std::cout);
+        // p.interpolate(max_steps);
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
         std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));
 
         for (unsigned int i=0; i < n; ++i)
         {
-            const ob::CompoundState* cState = states[i]->as<ob::CompoundState>();
-            solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
-
-            for (unsigned int j=1; j < start_vec.size();  ++j){
-                solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
+            auto cState(states[i]->as<ob::CompoundState>());
+            // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
+            auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
+            for (unsigned int j=0; j < start_vec.size();  ++j){
+                auto subspace(css->getSubspace(j));
+                switch (subspace->getType()) {
+                    case ob::STATE_SPACE_REAL_VECTOR:
+                        solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
+                        break;
+                    case ob::STATE_SPACE_SO2:
+                        solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         // Write solution to file
