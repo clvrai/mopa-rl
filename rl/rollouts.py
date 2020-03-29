@@ -752,7 +752,7 @@ class RolloutRunner(object):
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
                 if skill_type == 'mp': # Use motion planner
-                    traj, success, target_qpos = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(), random_exploration=random_exploration)
+                    traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(), random_exploration=random_exploration)
                     if success:
                         mp_success += 1
 
@@ -769,7 +769,7 @@ class RolloutRunner(object):
                                 curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                                 ac = OrderedDict([('default', next_qpos[:env.model.nu] - curr_qpos)])
                                 ac_before_activation = None
-                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': ac_before_activation})
+                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                                 ob, reward, done, info = env.step(ac)
                                 rollout.add({'done': done, 'rew': reward})
                                 ep_len += 1
@@ -793,7 +793,7 @@ class RolloutRunner(object):
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                             })
                             reward = self._config.meta_subgoal_rew
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': None})
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': None})
                             done, info, _ = env._after_step(reward, False, info)
                             rollout.add({'done': done, 'rew': reward})
                             ep_len += 1
@@ -905,8 +905,8 @@ class RolloutRunner(object):
             goal_xpos = None
             goal_xquat = None
             if skill_type == 'mp': # Use motion planner
-                traj, success, target_qpos = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
-                ik_env.set_state(np.concatenate([target_qpos['default'], env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
+                traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
+                ik_env.set_state(np.concatenate([target_qpos, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                 if success:
                     mp_success += 1
@@ -925,7 +925,7 @@ class RolloutRunner(object):
                             curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                             ac = OrderedDict([('default', next_qpos[:env.model.nu] - curr_qpos)])
                             ac_before_activation = None
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': ac_before_activation})
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac)
                             rollout.add({'done': done, 'rew': reward})
 
@@ -963,7 +963,7 @@ class RolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         reward = self._config.meta_subgoal_rew
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': target_qpos, 'ac_before_activation': None})
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': None})
                         done, info, _ = env._after_step(reward, False, info)
                         rollout.add({'done': done, 'rew': reward})
                         ep_len += 1

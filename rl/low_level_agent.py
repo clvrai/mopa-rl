@@ -79,11 +79,12 @@ class LowLevelAgent(SACAgent):
 
             assert "mp" in self.return_skill_type(meta_ac), "Skill is expected to be motion planner"
             if random_exploration:
-                target_qpos = self._ac_space.sample()
+                ac = self._ac_space.sample()
             else:
-                target_qpos, activation = self._actors[skill_idx].act(ob, is_train)
-            traj, success = self._mp.plan(curr_qpos, target_qpos['default'])
-            return traj, success, target_qpos
+                ac, activation = self._actors[skill_idx].act(ob, is_train)
+            target_qpos = curr_qpos + ac['default']
+            traj, success = self._mp.plan(curr_qpos, target_qpos)
+            return traj, success, target_qpos, ac
         else:
             traj, success = self._mp.plan(curr_qpos, target_qpos)
             return traj, success

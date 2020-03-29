@@ -137,8 +137,12 @@ class SimplePusherEnv(BaseEnv):
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             self._success = True
             # done = True
-            if self._episode_length == self._env_config['max_episode_steps']-1:
+            if self._env_config['has_terminal']:
+                self.done = True
                 self._success = True
+            else:
+                if self._episode_length == self._env_config['max_episode_steps']-1:
+                    self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 
