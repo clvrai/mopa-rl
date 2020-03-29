@@ -11,9 +11,9 @@ def add_arguments(parser):
                         choices=["dense", "sparse"])
     parser.add_argument("--distance_threshold", type=float, default=0.03)
     parser.add_argument("--max_episode_steps", type=int, default=1000)
-    parser.add_argument("--camera_width", type=int, default=500,
+    parser.add_argument("--screen_width", type=int, default=500,
                         help="width of camera image")
-    parser.add_argument("--camera_height", type=int, default=500,
+    parser.add_argument("--screen_height", type=int, default=500,
                         help="height of camera image")
     parser.add_argument("--camera_depth", type=str2bool, default=False)
 
@@ -27,11 +27,11 @@ def add_arguments(parser):
     parser.add_argument("--frame_skip", type=int, default=5,
                         help="Numer of skip frames")
     parser.add_argument("--action_repeat", type=int, default=5)
-    parser.add_argument("--img_height", type=int, default=84,
-                        help="Image observation height")
-    parser.add_argument("--img_width", type=int, default=84,
-                        help="Image observation width")
+    parser.add_argument("--ctrl_reward_coef", type=float, default=0)
 
+    parser.add_argument("--kp", type=float, default=150.)
+    parser.add_argument("--kd", type=float, default=20.)
+    parser.add_argument("--ki", type=float, default=0.1)
 
 def get_default_config():
     """
