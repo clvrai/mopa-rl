@@ -26,7 +26,6 @@ class TableTopTargetTask(Task):
         if mujoco_robot_indicator is not None:
             self.robot_indicator = mujoco_robot_indicator
             self.merge(mujoco_robot_indicator)
-
         self.merge_objects(mujoco_objects)
         self.add_target()
         if initializer is None:
