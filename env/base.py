@@ -153,14 +153,14 @@ class BaseEnv(gym.Env):
     def _get_reference(self):
         pass
 
-    # def _get_control(self, state, prev_state, target_vel):
-    #     alpha = 0.95
-    #     p_term = self._kp * (state - self.sim.data.qpos[:self.sim.model.nu])
-    #     d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.sim.model.nu])
-    #     self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.sim.model.nu])
-    #     action = p_term + d_term + self._i_term
-    #
-    #     return action
+    def _get_control(self, state, prev_state, target_vel):
+        alpha = 0.95
+        p_term = self._kp * (state - self.sim.data.qpos[:self.sim.model.nu])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.sim.model.nu])
+        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.sim.model.nu])
+        action = p_term + d_term + self._i_term
+
+        return action
 
     def _init_random(self, size):
         r = self._env_config["init_randomness"]
@@ -285,10 +285,6 @@ class BaseEnv(gym.Env):
         try:
             if a is not None:
                 self.data.ctrl[:] = a
-<<<<<<< HEAD
-=======
-
->>>>>>> 4a297c7... integrated sawyer trajectory controller in step functiion
             self.sim.forward()
             self.sim.step()
         except Exception as e:
@@ -357,7 +353,7 @@ class BaseEnv(gym.Env):
         raise ValueError
 
     def _get_distance(self, name1, name2):
-        pos1 = self._(name1)
+        pos1 = self._get_pos(name1)
         pos2 = self._get_pos(name2)
         return np.linalg.norm(pos1 - pos2)
 

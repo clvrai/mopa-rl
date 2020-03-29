@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 <mujoco model="simple_pusher_two_finger_gripper">
-=======
-<mujoco model="simple_pusher_gripper">
->>>>>>> a9243a4... fix motion planenr
     <include file="./common/skybox.xml"/>
     <include file="./common/materials.xml"/>
     <include file="./common/visual.xml"/>
@@ -52,11 +48,6 @@
                     <body name="fingertip" pos="0.11 0 0">
                             <!-- <geom contype="1" conaffinity="1" name="fingertip" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/> -->
                             <site name='fingertip' />
-<<<<<<< HEAD
-                            <!-- <geom fromto="0 &#45;0.03 0 0 0.03 0" contype="1" conaffinity="1" name="fingertip0" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/> -->
-                            <!-- <geom fromto="0 &#45;0.03 0 0.03 &#45;0.03 0" contype="1" conaffinity="1" name="fingertip1" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/> -->
-                            <!-- <geom fromto="0 0.03 0 0.03 0.03 0" contype="1" conaffinity="1" name="fingertip2" pos="0 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule"/> -->
-
                         <body name="right_gripper_base" pos="0 0 0.005" quat="0 0.7071068 0 0.7071068">
                             <inertial diaginertia="3e-08 2e-08 2e-08" mass="0.3" pos="0 0 0" quat="-0.5 0.5 0.5 0.5" />
                             <geom quat="0 0 0.707107 0.707107" size="0.01 0.035" rgba="0.0 0.4 0.6 1" type="cylinder" />
@@ -125,11 +116,8 @@
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint0"/>
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint1"/>
         <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint2"/>
-<<<<<<< HEAD
         <position ctrllimited="true" ctrlrange="-0.0115 0.020833" forcelimited="true" forcerange="-20 20" joint="gripper_r_finger_joint" kp="10000"/>
         <position ctrllimited="true" ctrlrange="-0.020833 0.0115" forcelimited="true" forcerange="-20 20" joint="gripper_l_finger_joint" kp="10000"/>
-=======
->>>>>>> a9243a4... fix motion planenr
     </actuator>
 </mujoco>
 

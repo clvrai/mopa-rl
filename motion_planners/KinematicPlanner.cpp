@@ -202,6 +202,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         //     ss->simplifySolution(simplified_duration);
         // }
         og::PathGeometric p = ss->getSolutionPath();
+        // ss->getSolutionPath().print(std::cout);
+        // p.interpolate(max_steps);
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
         std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));

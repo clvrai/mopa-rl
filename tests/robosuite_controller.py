@@ -93,13 +93,11 @@ def run_mp(env, planner, i=None):
     action_frames = []
     step = 0
 
-
     if success:
         # goal = env.sim.data.qpos[-2:]
         # prev_state = traj[0, :]
         # i_term = np.zeros_like(env.sim.data.qpos[:-2])
         for step, state in enumerate(traj[1:]):
-            # Update dummy reacher
             mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
             if is_save_video:
                 frames.append(render_frame(env, step))
@@ -107,8 +105,7 @@ def run_mp(env, planner, i=None):
                 env.render(mode='human')
 
             # Change indicator robot position
-            env.set_robot_indicator_joint_positions(state[:len(env.model.robot.joints)])
-
+            # env.set_robot_indicator_joint_positions(state[env.ref_joint_pos_indexes])
             action = state-env.sim.data.qpos.copy()
             action = np.concatenate([action[env.ref_joint_pos_indexes], np.array([0])])
 
