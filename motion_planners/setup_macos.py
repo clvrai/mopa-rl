@@ -8,7 +8,7 @@ import platform
 
 # export MACOSX_DEPLOYMENT_TARGET=10.13
 
-prefix_path = '/Users/yamadajun/'
+prefix_path = os.environ['HOME']
 ompl_lib_path = os.path.join(prefix_path, '/usr/local/lib/libompl.dylib')
 eigen_include_path = '/usr/local/include/eigen3'
 
