@@ -325,6 +325,8 @@ class SawyerEnv(BaseEnv):
             ] = self.sim.data.qfrc_bias[
                 self._ref_target_vel_low : self._ref_target_vel_high+1
             ]
+=======
+>>>>>>> 3c9a5cc... added draft for sawyer controller
 
             if self.use_indicator_object:
                 self.sim.data.qfrc_applied[
@@ -354,7 +356,30 @@ class SawyerEnv(BaseEnv):
         """
         (Optional) does gripper visualization after actions.
         """
-        self._do_simulation()
+        assert len(action) == self.dof, "environment got invalid action dimension"
+
+        n_inner_loop = int(self._frame_dt / self.dt)
+        #
+        # desired_state = self.sim.data.qpos[self._ref_joint_pos_indexes] + action[:self.mujoco_robot.dof]
+        #
+        # # target_vel = (desired_state - prev_state) / 0.1
+        #
+        # for t in range(n_inner_loop):
+        #     # gravity compensation
+        #     self.sim.data.qfrc_applied[
+        #         self.ref_joint_vel_indexes
+        #     ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
+        #
+        #     arm_action = self._get_control(desired_state, prev_state, target_vel)
+        #
+        #     gripper_action_in = action[self.mujoco_robot.dof: self.mujoco_robot.dof + self.gripper.dof]
+        #     gripper_action_actual = self.gripper.format_action(gripper_action_in)
+        #     action = np.concatenate([arm_action, gripper_action_actual])
+        #
+        #     self._do_simulation(action)
+
+
+
         reward = self.reward(action)
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
