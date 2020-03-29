@@ -27,6 +27,7 @@ def argparser():
     parser.add_argument("--her", type=str2bool, default=False)
     parser.add_argument("--replay_strategy", type=str, default='future')
     parser.add_argument("--replay_k", type=int, default=4)
+    parser.add_argument("--subgoal_predictor", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -108,6 +109,7 @@ def argparser():
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")
     parser.add_argument("--start_steps", type=int, default=1e4)
+    parser.add_argument("--temperature", type=float, default=1.0, help="Temperature for Gumbel Softmax")
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)

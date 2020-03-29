@@ -15,7 +15,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
-            'success_reward': 100.
+            'success_reward': 1.
         })
         self.joint_names = ["joint0", "joint1", "joint2"]
         self.ref_joint_pos_indexes = [
@@ -38,7 +38,7 @@ class SimplePusherObstacleEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1:
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and self._get_distance('fingertip', 'box') > 0.1:
                 self.goal = goal
                 self.box = box
                 break
@@ -145,10 +145,14 @@ class SimplePusherObstacleEnv(BaseEnv):
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             # encourage to stay at the goal
-            done = True
-            # if self._episode_length == self._env_config['max_episode_steps']-1:
-            self._success = True
+            # done = True
+            if self._episode_length == self._env_config['max_episode_steps']-1:
+                self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 
 
+    def compute_subgoal_reward(self, name, info):
+        reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
+        info['reward_subgoal_dist'] = reward_subgoal_dist
+        return reward_subgoal_dist, info

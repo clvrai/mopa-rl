@@ -237,10 +237,9 @@ class SACAgent(BaseAgent):
             info.update(self._actors[0].info)
         else:
             constructed_info = {}
-            for i, _agent in enumerate(self._actors):
-                for j, _actor in enumerate(_agent):
-                    for k, v in _actor.info:
-                        constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
+            for i, _actor in enumerate(self._actors):
+                for k, v in _actor.info:
+                    constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
             info.update(constructed_info)
 
         return mpi_average(info)
