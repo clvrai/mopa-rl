@@ -71,7 +71,7 @@ def run_mp(env, planner, i=None):
     # Obtain start and goal joint positions. Do IK to get joint positions for goal_site.
     goal_site = 'target'
     result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
-    target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
+                                            target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
 
     print("IK for %s successful? %s. Err_norm %.3f" % (goal_site, result.success, result.err_norm))
     start = env.sim.data.qpos.ravel().copy()
@@ -93,11 +93,25 @@ def run_mp(env, planner, i=None):
     action_frames = []
     step = 0
 
+
     if success:
         # goal = env.sim.data.qpos[-2:]
         # prev_state = traj[0, :]
         # i_term = np.zeros_like(env.sim.data.qpos[:-2])
         for step, state in enumerate(traj[1:]):
+            # Update dummy reacher
+            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
+            # for body, body_visual in zip(env.model.robot.bodies, env.sawyer_visual.bodies):
+            #     body_idx = mp_env.sim.model.body_name2id(body)
+            #     pos = mp_env.sim.data.body_xpos[body_idx]
+            #     quat = mp_env.sim.data.body_xquat[body_idx]
+            #     # pos = mp_env.sim.data.get_mocap_pos(body)
+            #     # quat = mp_env.sim.data.get_mocap_quat(body)
+            #     env._set_pos(body_visual, pos)
+            #     env._set_quat(body_visual, quat)
+            #     # env.sim.data.set_mocap_pos(body_visual, pos)
+            #     # env.sim.data.set_mocap_quat(body_visual, quat)
+
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
@@ -105,6 +119,8 @@ def run_mp(env, planner, i=None):
 
             # Change indicator robot position
             # env.set_robot_indicator_joint_positions(state[env.ref_joint_pos_indexes])
+            #env.set_state(np.concatenate((state[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
+
             action = state-env.sim.data.qpos.copy()
             action = np.concatenate([action[env.ref_joint_pos_indexes], np.array([0])])
 
