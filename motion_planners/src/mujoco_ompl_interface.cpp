@@ -163,14 +163,21 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
         ob::RealVectorBounds bounds(1);
         bounds.setLow(joint.range[0]);
         bounds.setHigh(joint.range[1]);
+        std::cout << "Limit: " << joint.range[0] << "  " << joint.range[1] << "  " << std::endl;
 
         ob::RealVectorBounds se3bounds(3);
-        se3bounds.setLow(0, -0.00001);
-        se3bounds.setLow(1, -0.00001);
-        se3bounds.setLow(2, -0.00001);
-        se3bounds.setHigh(0, 0.00001);
-        se3bounds.setHigh(1, 0.00001);
-        se3bounds.setHigh(2, 0.00001);
+        // se3bounds.setLow(0, -0.00001);
+        // se3bounds.setLow(1, -0.00001);
+        // se3bounds.setLow(2, -0.00001);
+        // se3bounds.setHigh(0, 0.00001);
+        // se3bounds.setHigh(1, 0.00001);
+        // se3bounds.setHigh(2, 0.00001);
+        se3bounds.setLow(0, -10.);
+        se3bounds.setLow(1, -10.);
+        se3bounds.setLow(2, -10.);
+        se3bounds.setHigh(0, 10.);
+        se3bounds.setHigh(1, 10.);
+        se3bounds.setHigh(2, 10.);
 
         // Check that our assumptions are ok
         if (joint.qposadr != next_qpos) {

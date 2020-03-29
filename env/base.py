@@ -285,7 +285,6 @@ class BaseEnv(gym.Env):
         try:
             if a is not None:
                 self.data.ctrl[:] = a
-
             self.sim.forward()
             self.sim.step()
         except Exception as e:

@@ -52,6 +52,15 @@ def run_mp(env, planner, i=None):
     error = 0
     end_error = 0
     env.reset()
+    init_qpos = np.array([1.14, -1.91, -1, 0., 0., -0.068, -0.1, 0.0851, -0.125])
+    env.set_state(init_qpos, np.zeros_like(env.sim.data.qvel.ravel().copy()))
+    env.render('human')
+    ac = np.zeros(4)
+    ac[-1] = 1.
+    while True:
+        env.step(ac)
+        env.render('human')
+
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
     qpos = env.sim.data.qpos.ravel()
@@ -68,27 +77,15 @@ def run_mp(env, planner, i=None):
     env_prime.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
 
     # IK to find a goal state
-    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.sim.model.joint_names[:-2], max_steps=300)
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.sim.model.joint_names[:3], max_steps=300)
     ik_env.set_state(result.qpos, ik_env.sim.data.qvel.ravel())
 
     # Update dummy reacher states (goal state and ompl states)
-    for l in range(len(env.sim.data.qpos[:-2])):
-        body_idx = ik_env.sim.model.body_name2id('body'+str(l))
-        pos = ik_env.sim.data.body_xpos[body_idx]
-        quat = ik_env.sim.data.body_xquat[body_idx]
-        env._set_pos('body'+str(l)+'-goal', pos)
-        env._set_quat('body'+str(l)+'-goal', quat)
 
-    for l in range(len(env.sim.data.qpos[:-2])):
-        body_idx = env.sim.model.body_name2id('body'+str(l))
-        pos = env.sim.data.body_xpos[body_idx]
-        quat = env.sim.data.body_xquat[body_idx]
-        env._set_pos('body'+str(l)+'-dummy', pos)
-        env._set_quat('body'+str(l)+'-dummy', quat)
+    start = env.sim.data.qpos.ravel().copy()
+    goal = start.copy()
+    goal[:3] = result.qpos[:3]
 
-
-    start = env.sim.data.qpos.ravel()
-    goal = result.qpos
 
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, args.max_meta_len)
@@ -119,22 +116,18 @@ def run_mp(env, planner, i=None):
             # Update dummy reacher
             if step % 1 == 0:
                 mp_env.set_state(np.concatenate((traj[step + 1][:-2], goal)).ravel(), env.sim.data.qvel.ravel())
-                for l in range(len(env.sim.data.qpos[:-2])):
-                    body_idx = mp_env.sim.model.body_name2id('body' + str(l))
-                    pos = mp_env.sim.data.body_xpos[body_idx]
-                    quat = mp_env.sim.data.body_xquat[body_idx]
-                    env._set_pos('body' + str(l) + '-dummy', pos)
-                    env._set_quat('body' + str(l) + '-dummy', quat)
 
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
                 env.render(mode='human')
 
-            env.step(state[:-2]-env.sim.data.qpos[:-2])
+            ac = np.ones(4)
+            ac[:3] = state[:3] - env.sim.data.qpos[:3].copy()
+            env.step(ac)
 
             error += np.sqrt((env.sim.data.qpos - state) ** 2)
-            end_error += np.sqrt((env.data.get_site_xpos('fingertip') - mp_env.data.get_site_xpos('fingertip')) ** 2)
+            end_error += np.sqrt((env.data.get_site_xpos('grip_site') - mp_env.data.get_site_xpos('grip_site')) ** 2)
             prev_state = state
 
     if is_save_video:
@@ -160,14 +153,10 @@ def run_mp(env, planner, i=None):
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 
-if 'reacher' in args.env:
-    from config.reacher import add_arguments
-elif 'robosuite' in args.env:
-    from config.robosuite import add_arguments
-elif 'sawyer' in args.env:
-    from config.sawyer import add_arguments
+if 'mover' in args.env:
+    from config.mover import add_arguments
 else:
-    raise ValueError('args.env (%s) is not supported' % args.env)
+    raise ValueError('args.env (%s) is not supported for this test script' % args.env)
 
 
 add_arguments(parser)
@@ -182,6 +171,8 @@ env = gym.make(args.env, **args.__dict__)
 env_prime = gym.make(args.env, **args.__dict__)
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx)
+box_geom_id = env.sim.model.geom_name2id('box')
+planner.remove_collision(box_geom_id, 0, 0)
 
 errors = 0
 global_num_states = 0

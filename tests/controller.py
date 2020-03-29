@@ -70,6 +70,7 @@ def run_mp(env, planner, i=None):
     # IK to find a goal state
     result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.sim.model.joint_names[:-2], max_steps=300)
     ik_env.set_state(result.qpos, ik_env.sim.data.qvel.ravel())
+    ik_env.render(mode='human')
 
     # Update dummy reacher states (goal state and ompl states)
     for l in range(len(env.sim.data.qpos[:-2])):
