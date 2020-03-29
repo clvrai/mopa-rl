@@ -6,11 +6,11 @@ from gym import spaces
 from env.base import BaseEnv
 
 
-class SimpleMoverEnv(BaseEnv):
+class SimpleMoverObstacleEnv(BaseEnv):
     """ Mover with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("simple_mover.xml", **kwargs)
+        super().__init__("simple_mover_obstacle.xml", **kwargs)
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward'],

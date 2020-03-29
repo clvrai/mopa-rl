@@ -72,7 +72,7 @@ register(
 
 register(
     id='simple-mover-obstacle-v0',
-    entry_point='env.mover:SimpleObstacleEnv',
+    entry_point='env.mover:SimpleMoverObstacleEnv',
     kwargs={}
 )
 
