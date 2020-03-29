@@ -101,7 +101,6 @@ class SawyerEnv(BaseEnv):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-
         jnt_range = self.sim.model.jnt_range[:num_actions]
         is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
         jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
@@ -114,6 +113,8 @@ class SawyerEnv(BaseEnv):
         end_time = self.cur_time + self.control_timestep
         self._frame_skip = int(end_time / self.model_timestep)
 
+        self._prev_state = None
+        self._i_term = None
 
     def _load_model(self):
         """
@@ -288,37 +289,52 @@ class SawyerEnv(BaseEnv):
         #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
         #     ]
 
+    def _get_control(self, state, prev_state, target_vel):
+        alpha = 0.95
+
+        p_term = self._kp * (state - self.sim.data.qpos[self.ref_joint_pos_indexes])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[self.ref_joint_pos_indexes])
+        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[self.ref_joint_pos_indexes])
+        action = p_term + d_term + self._i_term
+
+        return action
+
     def _step(self, action):
         """
         (Optional) does gripper visualization after actions.
         """
         assert len(action) == self.dof, "environment got invalid action dimension"
 
-        n_inner_loop = int(self._frame_dt / self.dt)
-        #
-        # desired_state = self.sim.data.qpos[self._ref_joint_pos_indexes] + action[:self.mujoco_robot.dof]
-        #
-        # # target_vel = (desired_state - prev_state) / 0.1
-        #
-        # for t in range(n_inner_loop):
-        #     # gravity compensation
-        #     self.sim.data.qfrc_applied[
-        #         self.ref_joint_vel_indexes
-        #     ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
-        #
-        #     arm_action = self._get_control(desired_state, prev_state, target_vel)
-        #
-        #     gripper_action_in = action[self.mujoco_robot.dof: self.mujoco_robot.dof + self.gripper.dof]
-        #     gripper_action_actual = self.gripper.format_action(gripper_action_in)
-        #     action = np.concatenate([arm_action, gripper_action_actual])
-        #
-        #     self._do_simulation(action)
+        if self._prev_state is None:
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes]
 
+        if self._i_term is None:
+            self._i_term = np.zeros_like(self.mujoco_robot.dof)
 
+        n_inner_loop = int(self.dt / self.sim.model.opt.timestep)
+
+        desired_state = self._prev_state + action[:self.mujoco_robot.dof]
+        target_vel = action[:self.mujoco_robot.dof] / self.dt
+
+        for t in range(n_inner_loop):
+            # gravity compensation
+            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
+
+            arm_action = self._get_control(desired_state, self._prev_state, target_vel)
+            gripper_action = self.gripper.format_action(np.array([action[-1]]))
+
+            action = np.concatenate([arm_action, -gripper_action])
+            self._do_simulation(action)
+
+        # 1) RL policy
+        # self._prev_state = None
+        # 2) Planner policy
+        self._prev_state = np.copy(desired_state)
 
         reward = self.reward(action)
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
+
         return self._get_obs(), reward, self._terminal, {}
 
     def _get_obs(self):
