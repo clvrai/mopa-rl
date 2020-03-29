@@ -10,7 +10,8 @@
 #include <string>
 
 
-#include <ompl/control/SimpleSetup.h> #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/control/SimpleSetup.h>
+#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/pdst/PDST.h>
@@ -51,7 +52,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
                  double Threshold, double _Range, double constructTime)
 {
     // std::string xml_filename = XML_filename;
-    ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
+    // ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;
@@ -195,6 +196,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
     }
     solved = ss->solve(timelimit);
+    std::cout << "Collision " << mj->d->ncon << std::endl;
 
     if (solved) {
         // ss.getSolutionPath().print(std::cout);
