@@ -34,7 +34,6 @@ class BaseEnv(gym.Env):
             "unstable_penalty": 0,
             "reward_type": kwargs['reward_type'],
             "distance_threshold": kwargs['distance_threshold'],
-            "is_rgb": kwargs['is_rgb']
         }
 
         logger.setLevel(logging.INFO)
@@ -44,14 +43,13 @@ class BaseEnv(gym.Env):
         self._screen_height = kwargs['screen_height']
         self._seed = kwargs['seed']
         self._gym_disable_underscore_compat = True
-        self._img_height = kwargs['img_height']
-        self._img_width = kwargs['img_width']
         self._kp = kwargs['kp']
         self._kd = kwargs['kd']
         self._ki = kwargs['ki']
-        self._frame_dt = kwargs['frame_dt']
-        self._reward_coef = kwargs['reward_coef']
+        self._frame_dt = 1.
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
+        if 'camera_name' in kwargs:
+            self._camera_name = kwargs['camera_name']
 
         if 'box_to_target_coef' in kwargs:
             self._box_to_target_coef = kwargs['box_to_target_coef']
@@ -60,13 +58,19 @@ class BaseEnv(gym.Env):
 
 
         # Load model
-        self._load_model(xml_path)
+        self._reset_internal()
+        self._load_model_from_path(xml_path)
 
         self._init_qpos = self.sim.data.qpos.ravel().copy()
         self._init_qvel = self.sim.data.qvel.ravel().copy()
 
+    def _load_model(self):
+        pass
 
-    def _load_model(self, xml_path):
+    def _reset_internal(self):
+        pass
+
+    def _load_model_from_path(self, xml_path):
         if not xml_path.startswith('/'):
             xml_path = os.path.join(os.path.dirname(__file__), 'assets', 'xml', xml_path)
 
@@ -77,7 +81,6 @@ class BaseEnv(gym.Env):
 
         self._frame_skip = self._env_config["frame_skip"]
         self.sim = mujoco_py.MjSim(model, nsubsteps=self._frame_skip)
-        self.model = self.sim.model
         self.data = self.sim.data
         self._viewer = None
         self.xml_path = xml_path
@@ -102,8 +105,8 @@ class BaseEnv(gym.Env):
         ])
 
 
-        jnt_range = self.model.jnt_range[:num_actions]
-        is_jnt_limited = self.model.jnt_limited[:num_actions].astype(np.bool)
+        jnt_range = self.sim.model.jnt_range[:num_actions]
+        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
         jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
         jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
         jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
@@ -117,15 +120,13 @@ class BaseEnv(gym.Env):
         ])
 
         # Camera
-        self._camera_name = 'cam0'
-        self._obs_camera_name = 'cam1'
+        # self._obs_camera_name = 'cam1'
         self._camera_id = self.sim.model.camera_names.index(self._camera_name)
-        self._obs_camera_id = self.sim.model.camera_names.index(self._obs_camera_name)
-
+        # self._obs_camera_id = self.sim.model.camera_names.index(self._obs_camera_name)
 
     @property
     def dt(self):
-        return self.model.opt.timestep * self._frame_skip
+        return self.sim.model.opt.timestep * self._frame_skip
 
     @property
     def max_episode_steps(self):
@@ -141,6 +142,7 @@ class BaseEnv(gym.Env):
 
     def reset(self):
         self.sim.reset()
+        self._reset_internal()
         if self.render_mode == 'human':
             self._viewer = self._get_viewer()
             self._viewer_reset()
@@ -148,11 +150,14 @@ class BaseEnv(gym.Env):
         self._after_reset()
         return ob
 
+    def _get_reference(self):
+        pass
+
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
-        p_term = self._kp * (state - self.sim.data.qpos[:self.model.nu])
-        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.model.nu])
-        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.model.nu])
+        p_term = self._kp * (state - self.sim.data.qpos[:self.sim.model.nu])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.sim.model.nu])
+        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.sim.model.nu])
         action = p_term + d_term + self._i_term
 
         return action
@@ -162,7 +167,7 @@ class BaseEnv(gym.Env):
         return np.random.uniform(low=-r, high=r, size=size)
 
     def _reset(self):
-        raise NotImplementedError
+        pass
 
     def _after_reset(self):
         self._episode_reward = 0
@@ -174,11 +179,9 @@ class BaseEnv(gym.Env):
         self._fail = False
         self._i_term = np.zeros_like(self.sim.data.qpos[self.ref_joint_pos_indexes])
 
-        #with self.model.disable('actuation'):
-        #    self.forward()
 
     def step(self, action):
-        self._before_step()
+        self._pre_action(action)
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
@@ -187,11 +190,11 @@ class BaseEnv(gym.Env):
         done, info, penalty = self._after_step(reward, done, info)
         return ob, reward + penalty, done, info
 
-    def _before_step(self):
+    def _step(self, action):
         pass
 
-    def _step(self, action):
-        raise NotImplementedError
+    def _pre_action(self, action):
+        pass
 
     def _after_step(self, reward, terminal, info):
         step_log = dict(info)
@@ -223,7 +226,7 @@ class BaseEnv(gym.Env):
         return ctrl_reward
 
     def _get_obs(self):
-        raise NotImplementedError
+        return OrderedDict()
 
     def set_env_config(self, env_config):
         self._env_config.update(env_config)
@@ -291,7 +294,7 @@ class BaseEnv(gym.Env):
             self._fail = True
 
     def set_state(self, qpos, qvel):
-        assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
+        assert qpos.shape == (self.sim.model.nq,) and qvel.shape == (self.sim.model.nv,)
         old_state = self.sim.get_state()
         new_state = mujoco_py.MjSimState(old_state.time, qpos, qvel,
                                          old_state.act, old_state.udd_state)
@@ -300,51 +303,51 @@ class BaseEnv(gym.Env):
         self.sim.step()
 
     def _get_pos(self, name):
-        if name in self.model.body_names:
+        if name in self.sim.model.body_names:
             return self.data.get_body_xpos(name).copy()
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xpos(name).copy()
         raise ValueError
 
     def _set_pos(self, name, pos):
-        if name in self.model.body_names:
-            body_idx = self.model.body_name2id(name)
-            self.model.body_pos[body_idx] = pos[:]
+        if name in self.sim.model.body_names:
+            body_idx = self.sim.model.body_name2id(name)
+            self.sim.model.body_pos[body_idx] = pos[:]
             return
-        if name in self.model.geom_names:
-            geom_idx = self.model.geom_name2id(name)
-            self.model.geom_pos[geom_idx][0:3] = pos[:]
+        if name in self.sim.model.geom_names:
+            geom_idx = self.sim.model.geom_name2id(name)
+            self.sim.model.geom_pos[geom_idx][0:3] = pos[:]
             return
         raise ValueError
 
     def _get_quat(self, name):
-        if name in self.model.body_names:
+        if name in self.sim.model.body_names:
             return self.data.get_body_xquat(name).copy()
         raise ValueError
 
     def _get_right_vector(self, name):
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xmat(name)[0].copy()
         raise ValueError
 
     def _get_forward_vector(self, name):
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xmat(name)[1].copy()
         raise ValueError
 
     def _get_up_vector(self, name):
-        if name in self.model.geom_names:
+        if name in self.sim.model.geom_names:
             return self.data.get_geom_xmat(name)[2].copy()
         raise ValueError
 
     def _set_quat(self, name, quat):
-        if name in self.model.body_names:
-            body_idx = self.model.body_name2id(name)
-            self.model.body_quat[body_idx] = quat[:]
+        if name in self.sim.model.body_names:
+            body_idx = self.sim.model.body_name2id(name)
+            self.sim.model.body_quat[body_idx] = quat[:]
             return
-        if name in self.model.geom_names:
-            geom_idx = self.model.geom_name2id(name)
-            self.model.geom_quat[geom_idx][0:4] = quat[:]
+        if name in self.sim.model.geom_names:
+            geom_idx = self.sim.model.geom_name2id(name)
+            self.sim.model.geom_quat[geom_idx][0:4] = quat[:]
             return
         raise ValueError
 
@@ -354,28 +357,28 @@ class BaseEnv(gym.Env):
         return np.linalg.norm(pos1 - pos2)
 
     def _get_size(self, name):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                return self.model.geom_size[geom_idx, :].copy()
+                return self.sim.model.geom_size[geom_idx, :].copy()
 
     def _set_size(self, name, size):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.model.geom_size[geom_idx, :] = size
+                self.sim.model.geom_size[geom_idx, :] = size
 
     def _get_geom_type(self, name):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                return self.model.geom_type[geom_idx].copy()
+                return self.sim.model.geom_type[geom_idx].copy()
 
     def _set_geom_type(self, name, geom_type):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.model.geom_type[geom_idx] = geom_type
+                self.sim.model.geom_type[geom_idx] = geom_type
 
     def _get_qpos(self, name):
         object_qpos = self.data.get_joint_qpos(name)
@@ -389,20 +392,20 @@ class BaseEnv(gym.Env):
         self.data.set_joint_qpos(name, object_qpos)
 
     def _set_color(self, name, color):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.model.geom_rgba[geom_idx, 0:len(color)] = color
+                self.sim.model.geom_rgba[geom_idx, 0:len(color)] = color
 
     def _get_color(self, name):
-        body_idx1 = self.model.body_name2id(name)
-        for geom_idx, body_idx2 in enumerate(self.model.geom_bodyid):
+        body_idx1 = self.sim.model.body_name2id(name)
+        for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                return self.model.geom_rgba[geom_idx]
+                return self.sim.model.geom_rgba[geom_idx]
         raise ValueError
 
     def _mass_center(self):
-        mass = np.expand_dims(self.model.body_mass, axis=1)
+        mass = np.expand_dims(self.sim.model.body_mass, axis=1)
         xpos = self.data.xipos
         return (np.sum(mass * xpos, 0) / np.sum(mass))
 
@@ -411,8 +414,8 @@ class BaseEnv(gym.Env):
         ncon = self.data.ncon
         for i in range(ncon):
             ct = mjcontacts[i]
-            g1 = self.model.geom_id2name(ct.geom1)
-            g2 = self.model.geom_id2name(ct.geom2)
+            g1 = self.sim.model.geom_id2name(ct.geom1)
+            g2 = self.sim.model.geom_id2name(ct.geom2)
             if g1 is None or g2 is None:
                 continue # geom_name can be None
             if geom_name is not None:
@@ -433,3 +436,21 @@ class BaseEnv(gym.Env):
     def her_compute_reward(self, achieved_goal, goal, info):
         return -np.linalg.norm(achieved_goal-goal)
 
+    def find_contacts(self, geoms_1, geoms_2):
+        """
+        Finds contact between two geom groups.
+        Args:
+            geoms_1: a list of geom names (string)
+            geoms_2: another list of geom names (string)
+        Returns:
+            iterator of all contacts between @geoms_1 and @geoms_2
+        """
+        for contact in self.sim.data.contact[0 : self.sim.data.ncon]:
+            # check contact geom in geoms
+            c1_in_g1 = self.sim.model.geom_id2name(contact.geom1) in geoms_1
+            c2_in_g2 = self.sim.model.geom_id2name(contact.geom2) in geoms_2
+            # check contact geom in geoms (flipped)
+            c2_in_g1 = self.sim.model.geom_id2name(contact.geom2) in geoms_1
+            c1_in_g2 = self.sim.model.geom_id2name(contact.geom1) in geoms_2
+            if (c1_in_g1 and c2_in_g2) or (c1_in_g2 and c2_in_g1):
+                yield contact

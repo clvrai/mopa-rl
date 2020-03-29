@@ -1,13 +1,22 @@
 import os, sys
 import numpy as np
 
-from env.robosuite_base import RobosuiteBaseEnv
+from env.base import BaseEnv
 import env.robosuite.utils.transform_utils as T
 
+from mujoco_py import MjSim, MjRenderContextOffscreen
+from mujoco_py import load_model_from_xml
 from env.robosuite.models.grippers import gripper_factory
-from env.robosuite.models.robots import Sawyer
+from env.robosuite.models.robots import Sawyer, SawyerVisual
+from env.robosuite.utils.mjcf_utils import new_joint, array_to_string
 
-class SawyerEnv(RobosuiteBaseEnv):
+from collections import OrderedDict
+
+import gym
+from gym import spaces, error
+
+
+class SawyerEnv(BaseEnv):
     """Initializes a Sawyer robot environment."""
 
     def __init__(
@@ -15,18 +24,13 @@ class SawyerEnv(RobosuiteBaseEnv):
         gripper_type=None,
         gripper_visualization=False,
         use_indicator_object=False,
-        has_renderer=False,
-        has_offscreen_renderer=True,
-        render_collision_mesh=False,
-        render_visual_mesh=True,
         control_freq=10,
-        horizon=1000,
+        max_episode_steps=1000,
         ignore_done=False,
-        use_camera_obs=False,
         camera_name="frontview",
-        camera_height=256,
-        camera_width=256,
-        camera_depth=False,
+        img_height=256,
+        img_width=256,
+        img_depth=False,
         **kwargs):
         """
         Args:
@@ -61,20 +65,50 @@ class SawyerEnv(RobosuiteBaseEnv):
         self.gripper_type = gripper_type
         self.gripper_visualization = gripper_visualization
         self.use_indicator_object = use_indicator_object
+        self.control_freq = control_freq
+
+        xml_name = kwargs['env'].replace("-v0", "")
+        xml_name = xml_name.replace("-", "_")
+        xml_path = os.path.join(os.path.dirname(__file__), '../assets', 'xml', xml_name+'.xml')
+        self.xml_path = xml_path
+        self._load_model()
+        self.model.save_model(self.xml_path)
+
+
         super().__init__(
-            has_renderer=has_renderer,
-            has_offscreen_renderer=has_offscreen_renderer,
-            render_collision_mesh=render_collision_mesh,
-            render_visual_mesh=render_visual_mesh,
+            self.xml_path,
             control_freq=control_freq,
-            horizon=horizon,
+            max_episode_steps=max_episode_steps,
             ignore_done=ignore_done,
-            use_camera_obs=use_camera_obs,
             camera_name=camera_name,
-            camera_height=camera_height,
-            camera_width=camera_width,
-            camera_depth=camera_depth,
+            img_height=img_height,
+            img_width=img_width,
+            img_depth=img_depth,
             **kwargs)
+
+
+        # Action
+        num_actions = self.dof
+        is_limited = np.array([True] * self.dof)
+        minimum = np.ones(self.dof) * -1.
+        maximum = np.ones(self.dof) * 1.
+
+        self._minimum = minimum
+        self._maximum = maximum
+        self.action_space = spaces.Dict([
+            ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
+        ])
+
+
+        jnt_range = self.sim.model.jnt_range[:num_actions]
+        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
+        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
+        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
+        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+        self._is_jnt_limited = is_jnt_limited
+
 
     def _load_model(self):
         """
@@ -88,17 +122,41 @@ class SawyerEnv(RobosuiteBaseEnv):
                 self.gripper.hide_visualization()
             self.mujoco_robot.add_gripper("right_hand", self.gripper)
 
+    def initialize_time(self, control_freq):
+        """
+        Initializes the time constants used for simulation.
+        """
+        self.cur_time = 0
+        self.model_timestep = self.sim.model.opt.timestep
+        if self.model_timestep <= 0:
+            raise XMLError("xml model defined non-positive time step")
+        self.control_freq = control_freq
+        if control_freq <= 0:
+            raise SimulationError(
+                "control frequency {} is invalid".format(control_freq)
+            )
+        self.control_timestep = 1. / control_freq
+
     def _reset_internal(self):
         """
         Sets initial pose of arm and grippers.
         """
+        self._load_model()
         super()._reset_internal()
+        self.mjpy_model = self.model.get_model(mode="mujoco_py")
+        self.sim = MjSim(self.mjpy_model)
+        self.data = self.sim.data
+        self.initialize_time(self.control_freq)
+
+        self._get_reference()
+
         self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos
 
         if self.has_gripper:
             self.sim.data.qpos[
                 self._ref_gripper_joint_pos_indexes
             ] = self.gripper.init_qpos
+
 
     def _get_reference(self):
         """
@@ -166,6 +224,24 @@ class SawyerEnv(RobosuiteBaseEnv):
             index = self._ref_indicator_pos_low
             self.sim.data.qpos[index : index + 3] = pos
 
+    def step(self, action):
+        """Takes a step in simulation with control command @action."""
+        if self._terminal:
+            raise ValueError("executing action in terminated episode")
+        if isinstance(action, list):
+            action = {key: val for ac_i in action for key, val in ac_i.items()}
+        if isinstance(action, OrderedDict):
+            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
+
+        self._pre_action(action)
+        end_time = self.cur_time + self.control_timestep
+        while self.cur_time < end_time:
+            self.sim.step()
+            self.cur_time += self.model_timestep
+        obs, reward, done, info = self._step(action)
+        done, info, _ = self._after_step(reward, done, info)
+        return obs, reward, done, info
+
     def _pre_action(self, action):
         """
         Overrides the superclass method to actuate the robot with the 
@@ -210,22 +286,23 @@ class SawyerEnv(RobosuiteBaseEnv):
                 self._ref_indicator_vel_low : self._ref_indicator_vel_high
             ]
 
-    def _post_action(self, action):
+    def _step(self, action):
         """
         (Optional) does gripper visualization after actions.
         """
-        ret = super()._post_action(action)
+        reward = self.reward(action)
+        # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
-        return ret
+        return self._get_obs(), reward, self._terminal, {}
 
-    def _get_observation(self):
+    def _get_obs(self):
         """
         Returns an OrderedDict containing observations [(name_string, np.array), ...].
         Important keys:
             robot-state: contains robot-centric information.
         """
 
-        di = super()._get_observation()
+        di = super()._get_obs()
         # proprioceptive features
         di["joint_pos"] = np.array(
             [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes]
@@ -341,6 +418,24 @@ class SawyerEnv(RobosuiteBaseEnv):
         eef_lin_vel = Jp_joint.dot(self._joint_velocities)
         eef_rot_vel = Jr_joint.dot(self._joint_velocities)
         return np.concatenate([eef_lin_vel, eef_rot_vel])
+
+    def add_visual_sawyer(self):
+        sawyer_mjcf = SawyerVisual()
+        self.sawyer_visual = sawyer_mjcf
+        self.model.merge_asset(sawyer_mjcf)
+        obj = sawyer_mjcf.get_visual(name='sawyer_visual', site=False)
+        offset = self.model.robot.bottom_offset
+        offset[2] *= -1
+        obj.set("pos", array_to_string(offset))
+        self.model.worldbody.append(obj)
+
+    def _robot_jpos_getter(self):
+        """
+        Helper function to pass to the ik controller for access to the
+        current robot joint positions.
+        """
+        return np.array(self._joint_positions)
+
 
     @property
     def _right_hand_pos(self):

@@ -232,7 +232,7 @@ class SawyerTestEnv(SawyerEnv):
 
         return 0
 
-    def _get_observation(self):
+    def _get_obs(self):
         """
         Returns an OrderedDict containing observations [(name_string, np.array), ...].
         Important keys:
@@ -244,7 +244,7 @@ class SawyerTestEnv(SawyerEnv):
             depth: requires @self.use_camera_obs and @self.camera_depth to be True.
                 contains a rendered depth map from the simulation
         """
-        di = super()._get_observation()
+        di = super()._get_obs()
         if self.use_camera_obs:
             camera_obs = self.sim.render(
                 camera_name=self.camera_name,
