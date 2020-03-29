@@ -48,7 +48,8 @@ class BaseEnv(gym.Env):
         self._ki = kwargs['ki']
         self._frame_dt = 1.
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
-        self._camera_name = kwargs['camera_name']
+        if 'camera_name' in kwargs:
+            self._camera_name = kwargs['camera_name']
 
         if 'box_to_target_coef' in kwargs:
             self._box_to_target_coef = kwargs['box_to_target_coef']
@@ -181,6 +182,7 @@ class BaseEnv(gym.Env):
 
 
     def step(self, action):
+        self._pre_action(action)
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
