@@ -172,7 +172,7 @@ class BaseEnv(gym.Env):
         self._terminal = False
         self._success = False
         self._fail = False
-        self._i_term = np.zeros_like(self.sim.data.qpos[:self.model.nu])
+        self._i_term = np.zeros_like(self.sim.data.qpos[self.ref_joint_pos_indexes])
 
         #with self.model.disable('actuation'):
         #    self.forward()
