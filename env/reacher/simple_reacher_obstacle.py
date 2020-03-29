@@ -12,6 +12,14 @@ class SimpleReacherObstacleEnv(BaseEnv):
         super().__init__("simple_reacher_obstacle.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
 
+        self.joint_names = ["joint0", "joint1", "joint2"]
+        self.ref_joint_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x) for x in self.joint_names
+        ]
+        self.ref_joint_vel_indexes = [
+            self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
+        ]
+
         self._env_config.update({
             'inv_reward': kwargs['inv_reward']
         })
