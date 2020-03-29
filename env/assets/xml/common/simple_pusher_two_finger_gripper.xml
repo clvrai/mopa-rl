@@ -1,4 +1,4 @@
-<mujoco model="simple_mover">
+<mujoco model="simple_pusher_two_finger_gripper">
     <include file="./common/skybox.xml"/>
     <include file="./common/materials.xml"/>
     <include file="./common/visual.xml"/>

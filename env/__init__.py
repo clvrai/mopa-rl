@@ -65,6 +65,18 @@ register(
 )
 
 register(
+    id='simple-mover-v0',
+    entry_point='env.mover:SimpleMoverEnv',
+    kwargs={}
+)
+
+register(
+    id='simple-mover-obstacle-v0',
+    entry_point='env.mover:SimpleObstacleEnv',
+    kwargs={}
+)
+
+register(
     id='pusher-v0',
     entry_point='env.pusher:PusherEnv',
     kwargs={}
