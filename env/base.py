@@ -182,7 +182,6 @@ class BaseEnv(gym.Env):
 
 
     def step(self, action):
-        self._pre_action(action)
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
@@ -197,7 +196,7 @@ class BaseEnv(gym.Env):
         pass
 
     def _pre_action(self, action):
-        pass
+        p
 
     def _after_step(self, reward, terminal, info):
         step_log = dict(info)
@@ -287,7 +286,6 @@ class BaseEnv(gym.Env):
         try:
             if a is not None:
                 self.data.ctrl[:] = a
-
             self.sim.forward()
             self.sim.step()
         except Exception as e:

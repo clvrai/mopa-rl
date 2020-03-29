@@ -244,24 +244,6 @@ class SawyerEnv(BaseEnv):
             index = self._ref_indicator_pos_low
             self.sim.data.qpos[index : index + 3] = pos
 
-    def step(self, action):
-        """Takes a step in simulation with control command @action."""
-        if self._terminal:
-            raise ValueError("executing action in terminated episode")
-        if isinstance(action, list):
-            action = {key: val for ac_i in action for key, val in ac_i.items()}
-        if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
-
-        self._pre_action(action)
-        end_time = self.cur_time + self.control_timestep
-        while self.cur_time < end_time:
-            self.sim.step()
-            self.cur_time += self.model_timestep
-        obs, reward, done, info = self._step(action)
-        done, info, _ = self._after_step(reward, done, info)
-        return obs, reward, done, info
-
     def _pre_action(self, action):
         pass
         """
@@ -372,6 +354,7 @@ class SawyerEnv(BaseEnv):
         """
         (Optional) does gripper visualization after actions.
         """
+        self._do_simulation()
         reward = self.reward(action)
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
