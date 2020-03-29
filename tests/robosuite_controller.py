@@ -75,14 +75,12 @@ def run_mp(env, planner, i=None):
 
     print("IK for %s successful? %s. Err_norm %.3f" % (goal_site, result.success, result.err_norm))
     start = env.sim.data.qpos.ravel().copy()
-    goal = result.qpos
+    goal = start.copy()
+    goal[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
 
     # Equate qpos components not affected by planner
-    mask = np.ones(start.shape, bool)
-    mask[env.ref_joint_pos_indexes] = False # don't equate state vars where planner operates
-    goal[mask] = start[mask]
 
-    ik_env.set_state(np.concatenate((result.qpos[:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
+    ik_env.set_state(goal, env.sim.data.qvel.ravel())
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, 40)
 
@@ -96,24 +94,24 @@ def run_mp(env, planner, i=None):
     step = 0
 
     if success:
-        goal = env.sim.data.qpos[-2:]
-        prev_state = traj[0, :]
-        i_term = np.zeros_like(env.sim.data.qpos[:-2])
-
+        # goal = env.sim.data.qpos[-2:]
+        # prev_state = traj[0, :]
+        # i_term = np.zeros_like(env.sim.data.qpos[:-2])
         for step, state in enumerate(traj[1:]):
-
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
                 env.render(mode='human')
 
             # Change indicator robot position
-            env.set_robot_indicator_joint_positions(state[:len(env.model.robot.joints)])
-
+            # env.set_robot_indicator_joint_positions(state[env.ref_joint_pos_indexes])
             action = state-env.sim.data.qpos.copy()
-            action = action[:len(env.model.robot.joints)+1]
-            action[-1] = 0.
-            env.step(action)
+            action = np.concatenate([action[env.ref_joint_pos_indexes], np.array([0])])
+
+            # env.step(action)
+            pos = start.copy()
+            pos[env.ref_joint_pos_indexes] = state[env.ref_joint_pos_indexes]
+            env.set_state(pos, env.sim.data.qpos)
 
             error += np.sqrt((env.sim.data.qpos - state) ** 2)
             end_error += np.sqrt((env.data.get_site_xpos('grip_site') - mp_env.data.get_site_xpos('grip_site')) ** 2)
