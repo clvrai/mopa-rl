@@ -13,7 +13,8 @@ class SimplePusherEnv(BaseEnv):
         super().__init__("simple_pusher.xml", **kwargs)
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
-            'success_reward': kwargs['success_reward']
+            'success_reward': kwargs['success_reward'],
+            'has_terminal': kwargs['has_terminal']
         })
         self.joint_names = ["joint0", "joint1", "joint2"]
         self.ref_joint_pos_indexes = [
@@ -138,7 +139,7 @@ class SimplePusherEnv(BaseEnv):
             self._success = True
             # done = True
             if self._env_config['has_terminal']:
-                self.done = True
+                done = True
                 self._success = True
             else:
                 if self._episode_length == self._env_config['max_episode_steps']-1:

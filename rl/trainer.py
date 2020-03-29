@@ -284,11 +284,14 @@ class Trainer(object):
                     step_per_batch = mpi_sum(len(rollout['ac']))
                     init_step += step_per_batch
 
-                    if (config.meta_update_target == "HL" or \
-                        config.meta_update_target == "both"):
-                        self._meta_agent.store_episode(meta_rollout)
-                    if (config.meta_update_target == "LL" or \
-                        config.meta_update_target == "both"):
+                    if config.hrl:
+                        if (config.meta_update_target == "HL" or \
+                            config.meta_update_target == "both"):
+                            self._meta_agent.store_episode(meta_rollout)
+                        if (config.meta_update_target == "LL" or \
+                            config.meta_update_target == "both"):
+                            self._agent.store_episode(rollout)
+                    else:
                         self._agent.store_episode(rollout)
 
         while step < config.max_global_step:

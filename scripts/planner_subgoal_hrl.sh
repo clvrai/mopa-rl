@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hrl.subgoal_predictor.sm.batch.gumbel.0.3"
+prefix="hrl.sac.subgoal_predictor.terminal"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -39,11 +39,12 @@ relative_subgoal="True"
 meta_algo='sac'
 start_steps='10000'
 distance_threshold='0.06'
-success_reward='1.'
+success_reward='10.'
 primitive_skills="mp push"
 subgoal_predictor="True"
 seed="1234"
 temperature='0.3'
+has_terminal='True'
 
 mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --wandb True \
@@ -88,4 +89,5 @@ mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
     --success_reward $success_reward \
     --primitive_skills $primitive_skills \
     --subgoal_predictor $subgoal_predictor \
-    --temperature $temperature
+    --temperature $temperature \
+    --has_terminal $has_terminal

@@ -29,7 +29,7 @@ obs = env.reset()
 
 #for i in range(10000):
 while True:
-    env.render(mode='human')
+    # env.render(mode='human')
     action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
     if done:

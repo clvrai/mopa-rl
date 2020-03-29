@@ -26,6 +26,14 @@ class SimpleMoverEnv(BaseEnv):
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
 
+        self.l_finger_geom_ids = [
+            self.sim.model.geom_name2id(x) for x in self.left_finger_geoms
+        ]
+        self.r_finger_geom_ids = [
+            self.sim.model.geom_name2id(x) for x in self.right_finger_geoms
+        ]
+
+
         num_actions = self.dof
         is_limited = np.array([True] * self.dof)
         minimum = np.ones(self.dof) * -1.
@@ -79,16 +87,29 @@ class SimpleMoverEnv(BaseEnv):
             if self.sim.data.ncon == 0:
                 break
 
+    @property
+    def left_finger_geoms(self):
+        return ["l_finger_g0", "l_finger_g1"]
+
+    @property
+    def right_finger_geoms(self):
+        return ["r_finger_g0", "r_finger_g1"]
+
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
+        theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.model.nu],
+                self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos('fingertip')
+                self.sim.data.get_site_xpos('grip_site')[:2]
+                #self._get_pos('grip_site')[:2]
+            ])),
+            ('gripper', np.concatenate([
+                self.sim.data.qpos.flat[len(self.ref_joint_pos_indexes):len(self.ref_joint_pos_indexes)+2],
+                self.sim.data.qvel.flat[len(self.ref_joint_vel_indexes):len(self.ref_joint_vel_indexes)+2]
             ])),
             ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
         ])
@@ -105,7 +126,8 @@ class SimpleMoverEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('default', spaces.Box(shape=(15,), low=-1, high=1, dtype=np.float32)),
+            ('gripper', spaces.Box(shape=(4,), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
@@ -130,15 +152,32 @@ class SimpleMoverEnv(BaseEnv):
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reward_dist = - self._get_distance("box", "target")
-            reward = reward_dist + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
-        elif self._env_config['reward_type'] == 'composition':
             reward_dist = -self._get_distance("box", "target")
             reward_near = -self._get_distance("fingertip", "box")
             reward_ctrl = self._ctrl_reward(action)
-            reward = reward_dist + 0.5*reward_near + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
+            reward_grasp = 0.
+
+            touch_left_finger = False
+            touch_right_finger = False
+            box_geom_id = self.sim.model.geom_name2id('box')
+            for i in range(self.sim.data.ncon):
+                c = self.sim.data.contact[i]
+                if c.geom1 == box_geom_id:
+                    if c.geom2 in self.l_finger_geom_ids:
+                        touch_left_finger = True
+                    if c.geom2 in self.r_finger_geom_ids:
+                        touch_right_finger = True
+                elif c.geom2 == box_geom_id:
+                    if c.geom1 in self.l_finger_geom_ids:
+                        touch_left_finger = True
+                    if c.geom1 in self.r_finger_geom_ids:
+                        touch_right_finger = True
+
+            if touch_left_finger and touch_right_finger:
+                reward_grasp += 0.1
+
+            reward = reward_dist + 0.5*reward_near + reward_ctrl + reward_grasp
+            info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_grasp=reward_grasp, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
@@ -170,7 +209,7 @@ class SimpleMoverEnv(BaseEnv):
         obs = self._get_obs()
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-            if self._env.config['has_terminal']:
+            if self._env_config['has_terminal']:
                 done = True
                 self._success = True
             else:

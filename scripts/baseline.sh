@@ -1,22 +1,22 @@
 #!/bin/bash
 
 workers="8"
-prefix="baseline.sac.num_batch.50.hid1.v3.debug"
+prefix="baseline.sac.v1"
 max_global_step="60000000"
-env="pusher-push-v0"
+env="simple-mover-v0"
 gpu="2"
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="100"
 max_grad_norm="0.5"
 entropy_loss_coef="0.1"
-buffer_size="10000"
-num_batches="50"
+buffer_size="125000"
+num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="1000"
-batch_size="256"
+batch_size="128"
 clip_param="0.2"
 rl_activation="relu"
 algo='sac'
@@ -26,6 +26,9 @@ reward_type='dense'
 comment='sac baseline for reacher'
 start_steps='10000'
 actor_num_hid_layers='1'
+success_reward='10.'
+has_terminal='True'
+ckpt_interval='100000'
 
 #mpiexec -n $workers
 python -m rl.main --log_root_dir ./logs \
@@ -54,4 +57,6 @@ python -m rl.main --log_root_dir ./logs \
     --reward_type $reward_type \
     --comment $comment \
     --start_steps $start_steps \
-    --actor_num_hid_layers $actor_num_hid_layers
+    --actor_num_hid_layers $actor_num_hid_layers \
+    --success_reward $success_reward \
+    --has_terminal $has_terminal

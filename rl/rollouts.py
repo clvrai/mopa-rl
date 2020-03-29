@@ -906,7 +906,7 @@ class RolloutRunner(object):
             goal_xquat = None
             if skill_type == 'mp': # Use motion planner
                 traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
-                ik_env.set_state(np.concatenate([target_qpos, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
+                ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                 if success:
                     mp_success += 1

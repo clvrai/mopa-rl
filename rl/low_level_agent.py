@@ -82,7 +82,8 @@ class LowLevelAgent(SACAgent):
                 ac = self._ac_space.sample()
             else:
                 ac, activation = self._actors[skill_idx].act(ob, is_train)
-            target_qpos = curr_qpos + ac['default']
+            target_qpos = curr_qpos.copy()
+            target_qpos[:action_size(self._ac_space)] += ac['default']
             traj, success = self._mp.plan(curr_qpos, target_qpos)
             return traj, success, target_qpos, ac
         else:
