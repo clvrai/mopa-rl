@@ -45,8 +45,10 @@ subgoal_predictor="True"
 seed="1234"
 temperature='0.3'
 has_terminal='True'
+log_root_dir='/data/jun/projects/hrl-planner/logs'
 
-mpiexec -n $workers python -m rl.main --log_root_dir ./logs \
+mpiexec -n $workers python -m rl.main \
+    --log_root_dir  $log_root_dir \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \

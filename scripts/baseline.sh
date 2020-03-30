@@ -29,9 +29,11 @@ actor_num_hid_layers='1'
 success_reward='10.'
 has_terminal='True'
 ckpt_interval='100000'
+log_root_dir="/data/jun/projects/hrl-planner/logs"
 
 #mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+python -m rl.main \
+    --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
