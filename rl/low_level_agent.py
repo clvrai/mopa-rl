@@ -6,6 +6,7 @@ import torch
 
 from rl.sac_agent import SACAgent
 from rl.normalizer import Normalizer
+from rl.mp_agent import MpAgent
 from util.logger import logger
 from util.pytorch import to_tensor, get_ckpt_path
 from util.gym import action_size, observation_size
@@ -13,6 +14,7 @@ from env.action_spec import ActionSpec
 
 from gym import spaces
 
+from util.logger import logger
 
 class LowLevelAgent(SACAgent):
     ''' Low level agent that includes skill sets for each agent, their
@@ -21,9 +23,9 @@ class LowLevelAgent(SACAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, actor, critic, mp=None):
+    def __init__(self, config, ob_space, ac_space, actor, critic, non_limited_idx=None):
+        self._non_limited_idx = non_limited_idx
         super().__init__(config, ob_space, ac_space, actor, critic)
-        self._mp = mp
 
     def _log_creation(self):
         if self._config.is_chef:
@@ -35,8 +37,10 @@ class LowLevelAgent(SACAgent):
         # parse body parts and skills
         self._actors = []
         self._ob_norms = []
+        self._planners = []
 
         # load networks
+        #mp = MpAgent(config, ac_space, non_limited_idx)
 
         # Change here !!!!!!
         if config.primitive_skills:
@@ -45,6 +49,7 @@ class LowLevelAgent(SACAgent):
             skills = ['primitive']
 
         self._skills = skills
+        planner_i = 0
 
         for skill in skills:
             skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
@@ -66,16 +71,27 @@ class LowLevelAgent(SACAgent):
                         skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0])
                     skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
+            if skill == 'mp':
+                planner = MpAgent(config, self._ac_space, self._non_limited_idx)
+                if config.ignored_contact_geoms is not None and config.ignored_contact_geoms_ids[planner_i] != None:
+                    planner.remove_collision(config.ignored_contact_geom_ids[planner_i])
+                self._planners.append(planner)
+                planner_i += 1
+            else:
+                self._planners.append(None)
+
             skill_actor.to(config.device)
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
     def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True, random_exploration=False):
-        assert self._mp != None, 'Motion planner does not exist.'
+        assert len(self._planners) != 0, "No planner exists"
 
         if target_qpos is None:
             assert ob is not None and meta_ac is not None, "Invalid arguments"
+
             skill_idx = int(meta_ac['default'][0])
+            assert self._planners[skill_idx] is not None
 
             assert "mp" in self.return_skill_type(meta_ac), "Skill is expected to be motion planner"
             if random_exploration:
@@ -84,10 +100,10 @@ class LowLevelAgent(SACAgent):
                 ac, activation = self._actors[skill_idx].act(ob, is_train)
             target_qpos = curr_qpos.copy()
             target_qpos[:action_size(self._ac_space)] += ac['default']
-            traj, success = self._mp.plan(curr_qpos, target_qpos)
+            traj, success = self._planners[skill_idx].plan(curr_qpos, target_qpos)
             return traj, success, target_qpos, ac
         else:
-            traj, success = self._mp.plan(curr_qpos, target_qpos)
+            traj, success = self._planners[0].plan(curr_qpos, target_qpos)
             return traj, success
 
     def act(self, ob, meta_ac, is_train=True, return_stds=False):

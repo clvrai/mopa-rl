@@ -44,6 +44,7 @@ def run(config):
         logger.warning('Received signal %s: exiting', signal)
         sys.exit(128+signal)
 
+
     signal.signal(signal.SIGHUP, shutdown)
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)

@@ -7,7 +7,7 @@ from libcpp.vector cimport vector
 
 cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
   cdef cppclass KinematicPlanner:
-        KinematicPlanner(string, string, int, double, double, string, double, double, double) except +
+        KinematicPlanner(char*, string, string, int, double, double, string, double, double, double) except +
         string xml_filename
         string opt
         int num_actions
@@ -24,8 +24,8 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
 
 cdef class PyKinematicPlanner:
     cdef KinematicPlanner *thisptr
-    def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):
-        self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
+    def __cinit__(self, char* root_dir, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):
+        self.thisptr = new KinematicPlanner(root_dir, xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
 
     def __dealloc__(self):
         del self.thisptr

@@ -12,7 +12,7 @@ from util.env import joint_convert
 class SamplingBasedPlanner:
     def __init__(self, config, xml_path, num_actions, non_limited_idx=None):
         self.config = config
-        self.planner = PyKinematicPlanner(xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions,
+        self.planner = PyKinematicPlanner(os.environ['HOME'].encode('utf-8'), xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions,
                                  config.sst_selection_radius,
                                  config.sst_selection_radius,
                                  config.planner_objective.encode('utf-8'),

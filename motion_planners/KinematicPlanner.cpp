@@ -48,11 +48,11 @@ namespace og = ompl::geometric;
 using namespace MotionPlanner;
 
 
-KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
+KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
                  double Threshold, double _Range, double constructTime)
 {
     // std::string xml_filename = XML_filename;
-    // ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
+    ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;
@@ -63,7 +63,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     constructTime = constructTime;
     is_construct = true;
 
-    mjkey_filename = strcat(getenv("HOME"), "/.mujoco/mjkey.txt");
+    std::cout << mjkey_filename << std::endl;
+    mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
     // Get xml file name

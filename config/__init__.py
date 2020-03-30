@@ -69,6 +69,7 @@ def argparser():
 
     # motion planning
     parser.add_argument("--use_ik", type=str2bool, default=False)
+    parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
