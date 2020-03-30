@@ -57,9 +57,8 @@ def run_mp(env, planner, i=None):
     env.render('human')
     ac = np.zeros(4)
     ac[-1] = 1.
-    while True:
+    for _ in range(2):
         env.step(ac)
-        env.render('human')
 
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
@@ -83,6 +82,7 @@ def run_mp(env, planner, i=None):
     # Update dummy reacher states (goal state and ompl states)
 
     start = env.sim.data.qpos.ravel().copy()
+    start[2:4] = np.clip(start[2:4], env.sim.model.jnt_range[2:4][0], env.sim.model.jnt_range[2:4][1])
     goal = start.copy()
     goal[:3] = result.qpos[:3]
 
@@ -93,6 +93,12 @@ def run_mp(env, planner, i=None):
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
+        print("Success")
+    else:
+        print("Failure")
+
+
+
 
     frames = []
     action_frames = []
@@ -164,7 +170,7 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 # Save video or not
-is_save_video = False
+is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
