@@ -51,19 +51,21 @@
                             <geom quat="0 0 0.707107 0.707107" size="0.01 0.035" rgba="0.0 0.4 0.6 1" type="cylinder" />
                             <body name="right_gripper" pos="0 0 0.045">
                                 <inertial diaginertia="0 0 0" mass="0.0001" pos="0 0 0" />
-                                <site group="1" name="grip_site" pos="0 0 0" rgba="1 0 0 1" size="0.01 0.01 0.01" type="sphere" />
+                                <site group="1" name="grip_site" pos="0 0 0" rgba="1 0 0 0" size="0.01 0.01 0.01" type="sphere" />
                                 <site group="1" name="grip_site_cylinder" pos="0 0 0" rgba="0 1 0 0" size="0.005 10" type="cylinder" />
                             </body>
 
                             <body name="r_gripper_l_finger" pos="0 0.01 0.01">
                                 <inertial diaginertia="0.01 0.01 0.01" mass="0.02" pos="0 0 0" quat="0 0 0 -1" />
-                                <joint axis="0 1 0" damping="100" limited="true" name="gripper_l_finger_joint" pos="0 0 0" range="-0.0125 0.008833" type="slide" />
+                                <!-- <joint axis="0 1 0" damping="100" limited="true" name="gripper_l_finger_joint" pos="0 0 0" range="&#45;0.0132 0.008833" type="slide" /> -->
+                                <joint axis="0 1 0" limited="true" name="gripper_l_finger_joint" pos="0 0 0" range="-0.02 0.008833" type="slide" />
                                 <geom conaffinity="1" contype="0" friction="0 0 0" name="l_finger_g0" rgba="0.0 0.4 0.6 1" pos="0 0.01725 0.0275" quat="0 0 0 -1" size="0.005 0.00675 0.025" type="box" />
                                 <geom conaffinity="1" contype="0" friction="0 0 0" name="l_finger_g1" rgba="0.0 0.4 0.6 1" pos="-0.005 -0.003 0.0083" quat="0 0 0 -1" size="0.005 0.025 0.0085" type="box" />
                             </body>
                             <body name="r_gripper_r_finger" pos="0 -0.01 0.01">
                                 <inertial diaginertia="0.01 0.01 0.01" mass="0.02" pos="0 0 0" />
-                                <joint axis="0 1 0" damping="100" limited="true" name="gripper_r_finger_joint" pos="0 0 0" range="-0.008833 0.0125" type="slide" />
+                                <!-- <joint axis="0 1 0" damping="100" limited="true" name="gripper_r_finger_joint" pos="0 0 0" range="&#45;0.008833 0.0132" type="slide" /> -->
+                                <joint axis="0 1 0" limited="true" name="gripper_r_finger_joint" pos="0 0 0" range="-0.00833 0.02" type="slide" />
                                 <geom conaffinity="1" contype="0" friction="0 0 0" name="r_finger_g0" rgba="0.0 0.4 0.6 1" pos="0 -0.01725 0.0275" size="0.005 0.00675 0.025" type="box" />
                                 <geom conaffinity="1" contype="0" friction="0 0 0" name="r_finger_g1" rgba="0.0 0.4 0.6 1" pos="0.005 0.003 0.0083" size="0.005 0.025 0.0085" type="box" />
                             </body>
@@ -102,11 +104,11 @@
             <geom conaffinity="0" contype="0" name="subgoal_geom" pos="0 0 0" rgba="0.2 0.9 0.2 0" size=".020 .005 .002" type="cylinder"/>
         </body>
 
-        <body name='box' pos=".1 -.1 .02" euler="0 0 0">
-            <inertial pos="0 0 0" mass="1" diaginertia="0.0001296 0.0001296 0.0001296" />
-            <joint armature="0" axis="1 0 0" damping="1" limited="true" name="box_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide" />
-            <joint armature="0" axis="0 1 0" damping="1" limited="true" name="box_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide" />
-            <geom conaffinity="1" contype="1" name="box" pos="0 0 0" rgba="0.2 0.9 0.2 1" size=".01 .01 .01" type="box" friction="1 0.005 0.0001"/>
+        <body name='box' pos=".1 -.1 .025" euler="0 0 0">
+            <inertial pos="0 0 0" mass="50" />
+            <joint armature="0" axis="1 0 0" damping="10" limited="true" name="box_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide" />
+            <joint armature="0" axis="0 1 0" damping="10" limited="true" name="box_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide" />
+            <geom conaffinity="1" contype="1" name="box" pos="0 0 0" rgba="0.2 0.9 0.2 1" size=".01 .01 .01" type="box" />
         </body>
     </worldbody>
 

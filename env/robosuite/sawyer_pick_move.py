@@ -8,12 +8,9 @@ from env.robosuite.models.arenas.table_arena import TableArena
 from env.robosuite.models.objects import BoxObject, CylinderObject, MujocoXMLObject
 from env.robosuite.models.robots import Sawyer, SawyerIndicator
 from env.robosuite.models.tasks import TableTopTargetTask, UniformRandomSampler
+from env.inverse_kinematics import qpos_from_site_pose, qpos_from_site_pose_sampling
 
-class TargetVisualObject(MujocoXMLObject):
-    def __init__(self):
-        super().__init__("./env/assets/xml/common/target.xml")
-
-class SawyerTestEnv(SawyerEnv):
+class SawyerPickMoveEnv(SawyerEnv):
     """
     This class corresponds to the stacking task for the Sawyer robot arm.
     """
@@ -29,7 +26,7 @@ class SawyerTestEnv(SawyerEnv):
         placement_initializer=None,
         single_object_mode=0,
         object_type=None,
-        gripper_visualization=True,
+        gripper_visualization=False,
         use_indicator_object=False,
         has_renderer=False,
         has_offscreen_renderer=True,
@@ -165,7 +162,9 @@ class SawyerTestEnv(SawyerEnv):
 
         # initialize objects of interest
         #target = TargetObject()
-        self.mujoco_objects = OrderedDict()
+        box = BoxObject(size=[0.01, 0.01, 0.01],
+                        rgba=[1, 0, 0, 1])
+        self.mujoco_objects = OrderedDict([('box', box)])
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTargetTask(
@@ -180,7 +179,6 @@ class SawyerTestEnv(SawyerEnv):
         # self.add_visual_sawyer()
 
     def _pre_action(self, action):
-        pass
         """
         Overrides the superclass method to actuate the robot with the 
         passed joint velocities and gripper control.
@@ -230,6 +228,7 @@ class SawyerTestEnv(SawyerEnv):
         #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
         #     ]
 
+
     def _get_reference(self):
         """
         Sets up references to important components. A reference is typically an
@@ -262,9 +261,19 @@ class SawyerTestEnv(SawyerEnv):
         # self.model.place_visual()
 
         # reset joint positions
-        init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-        self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
+        self.sim.forward()
+        target_qpos = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1].copy()
+        result = qpos_from_site_pose_sampling(self, 'grip_site', target_pos=self._get_pos('box'), target_quat=np.array([0., 0., 1., 0.]), joint_names=self.model.robot.joints, max_steps=100)
+        self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1] = target_qpos
+        self.sim.forward()
+
+        # while True:
+        #     init_pos = np.random.uniform(low=-3, high=3, size=init_pos.shape[0])
+        #     self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
+        #     dist = np.linalg.norm(self.sim.data.get_site_xpos('box')-self.sim.data.get_site_xpos('grip_site'))
+        #     if dist < 0.02:
+        #         break
+
 
     def initialize_joints(self):
         init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
@@ -347,9 +356,24 @@ class SawyerTestEnv(SawyerEnv):
 
         # color the gripper site appropriately based on distance to nearest object
         if self.gripper_visualization:
+            # find closest object
+            square_dist = lambda x: np.sum(
+                np.square(x - self.sim.data.get_site_xpos("grip_site"))
+            )
+            dists = np.array(list(map(square_dist, self.sim.data.site_xpos)))
+            dists[self.eef_site_id] = np.inf  # make sure we don't pick the same site
+            dists[self.eef_cylinder_id] = np.inf
+            ob_dists = dists[
+                self.object_site_ids
+            ]  # filter out object sites we care about
+            min_dist = np.min(ob_dists)
+
+            # set RGBA for the EEF site here
+            max_dist = 0.1
+            scaled = (1.0 - min(min_dist / max_dist, 1.)) ** 15
             rgba = np.zeros(4)
-            rgba[0] = 1
-            rgba[1] = 0
+            rgba[0] = 1 - scaled
+            rgba[1] = scaled
             rgba[3] = 0.5
 
             self.sim.model.site_rgba[self.eef_site_id] = rgba

@@ -46,7 +46,7 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
     non_movable_joint_names = list(set(env.sim.model.joint_names) - set(joint_names))
     non_movable_joint_indices = indexer(env, non_movable_joint_names)
 
-    update_nv = np.zeros(env.sim.model.nv, dtype=dtype)
+    update_nv = np.zeros(len(env.sim.data.qpos), dtype=dtype)
     #for i, name in zip(non_movable_joint_indices, non_movable_joint_names):
     #    update_nv[i] = env._get_qpos(name)
 
@@ -111,7 +111,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
                 update_joints *= max_update_norm / update_norm
 
             update_nv[dof_indices] = update_joints
-
             env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
             site_xpos = env._get_pos(site)
             site_xmat = env.data.get_body_xmat(site).ravel()
@@ -156,7 +155,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
         non_movable_joint_names = list(set(env.sim.model.joint_names) - set(joint_names))
         non_movable_joint_indices = indexer(env, non_movable_joint_names)
 
-        update_nv = np.zeros(env.sim.model.nv, dtype=dtype)
+        update_nv = np.zeros(len(env.sim.data.qpos), dtype=dtype)
         #for i, name in zip(non_movable_joint_indices, non_movable_joint_names):
         #    update_nv[i] = env._get_qpos(name)
 
@@ -195,7 +194,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 err_norm += np.linalg.norm(err_rot) * rot_weight
 
             if err_norm < tol:
-                print('success')
+                print('IK success')
                 success =True
                 break
             else:
@@ -226,8 +225,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
                 #env.step(update_nv[:-2])
                 if steps % 10 == 0 and logging:
-                    print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
-                          steps, err_norm, update_norm)
+                    print('Step %2i: err_norm=%-10.3f update_norm=%-10.3f'% (steps, err_norm, update_norm))
 
         if env.sim.data.ncon == 0 or tried > trials:
             return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)

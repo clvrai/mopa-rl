@@ -163,6 +163,21 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
         ob::RealVectorBounds bounds(1);
         bounds.setLow(joint.range[0]);
         bounds.setHigh(joint.range[1]);
+        std::cout << "Limit: " << joint.range[0] << "  " << joint.range[1] << "  " << std::endl;
+
+        ob::RealVectorBounds se3bounds(3);
+        // se3bounds.setLow(0, -0.00001);
+        // se3bounds.setLow(1, -0.00001);
+        // se3bounds.setLow(2, -0.00001);
+        // se3bounds.setHigh(0, 0.00001);
+        // se3bounds.setHigh(1, 0.00001);
+        // se3bounds.setHigh(2, 0.00001);
+        se3bounds.setLow(0, -10.);
+        se3bounds.setLow(1, -10.);
+        se3bounds.setLow(2, -10.);
+        se3bounds.setHigh(0, 10.);
+        se3bounds.setHigh(1, 10.);
+        se3bounds.setHigh(2, 10.);
 
         // Check that our assumptions are ok
         if (joint.qposadr != next_qpos) {
@@ -177,11 +192,9 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
         switch(joint.type) {
           case mjJNT_FREE:
             joint_space = make_shared<ob::SE3StateSpace>();
+            joint_space->as<ob::SE3StateSpace>()->setBounds(se3bounds);
             vel_spaces.push_back(make_shared<ob::RealVectorStateSpace>(6));
             next_qpos += 6;
-            cerr << "Error: FREE joints are not yet supported!" << endl;
-            throw invalid_argument(
-                "FREE joints are not yet supported.");
             break;
 
           case mjJNT_BALL:

@@ -1,5 +1,6 @@
 from env.robosuite.models.world import MujocoWorldBase
-
+from env.robosuite.utils.mjcf_utils import new_joint, array_to_string, new_geom, new_body
+import numpy as np
 
 class Task(MujocoWorldBase):
     """
@@ -34,3 +35,22 @@ class Task(MujocoWorldBase):
     def place_visual(self):
         """Places visual objects randomly until no collisions or max iterations hit."""
         pass
+
+    def add_target(self):
+        body = new_body(name='target', pos=np.array([0.6, 0, 1.2]))
+        body.append(new_joint(type='slide', axis='1 0 0',  name='target_x', pos='0 0 0', limited='true', range='-1 1', ref='0.6'))
+        body.append(new_joint(type='slide', axis='0 1 0',  name='target_y', pos='0 0 0', limited='true', range='-1 1', ref='0'))
+        body.append(new_joint(type='slide', axis='0 0 1',  name='target_z', pos='0 0 0', limited='true', range='-1 1.5', ref='1.2'))
+        body.append(
+            new_geom(
+                'sphere',
+                [0.02],
+                rgba=[0, 1, 0, 0.5],
+                group=1,
+                contype="0",
+                conaffinity="0",
+                pos=np.array([0, 0, 0]),
+                name='target_geom'
+            )
+        )
+        self.worldbody.append(body)

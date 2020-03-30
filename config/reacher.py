@@ -18,16 +18,12 @@ def add_arguments(parser):
                         help="includes object pose in observation")
     parser.add_argument("--visual_ob", type=str2bool, default=False,
                         help="includes camera image in observation")
-    parser.add_argument("--screen_width", type=int, default=500,
+    parser.add_argument("--screen_width", type=int, default=64,
                         help="width of camera image")
-    parser.add_argument("--screen_height", type=int, default=500,
+    parser.add_argument("--screen_height", type=int, default=64,
                         help="height of camera image")
     parser.add_argument("--frame_skip", type=int, default=1,
                         help="Numer of skip frames")
-    parser.add_argument("--img_height", type=int, default=64,
-                        help="Image observation height")
-    parser.add_argument("--img_width", type=int, default=64,
-                        help="Image observation width")
     parser.add_argument("--is_rgb", type=str2bool, default=False)
     parser.add_argument("--action_min", type=float, default=-1)
     parser.add_argument("--action_max", type=float, default=1)
@@ -39,6 +35,7 @@ def add_arguments(parser):
     parser.add_argument("--ctrl_reward_coef", type=float, default=1)
     parser.add_argument("--pos_reward_coef", type=float, default=10.)
     parser.add_argument("--inv_reward", type=float, default=100.)
+    parser.add_argument("--camera_name", type=str, default='cam0')
 
 
 def get_default_config():

@@ -10,7 +10,8 @@
 #include <string>
 
 
-#include <ompl/control/SimpleSetup.h> #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/control/SimpleSetup.h>
+#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/pdst/PDST.h>
@@ -27,6 +28,7 @@
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
 #include <ompl/base/SpaceInformation.h>
+#include <ompl/base/StateSpace.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/StateCostIntegralObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
@@ -36,6 +38,7 @@
 #include <cxxopts.hpp>
 #include "mujoco_wrapper.h"
 #include "mujoco_ompl_interface.h"
+#include "compound_state_projector.h"
 
 namespace ob = ompl::base;
 namespace oc = ompl::control;
@@ -49,7 +52,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
                  double Threshold, double _Range, double constructTime)
 {
     // std::string xml_filename = XML_filename;
-    ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
+    // ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;
@@ -193,6 +196,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
     }
     solved = ss->solve(timelimit);
+    std::cout << "Collision " << mj->d->ncon << std::endl;
 
     if (solved) {
         // ss.getSolutionPath().print(std::cout);
@@ -200,6 +204,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         //     ss->simplifySolution(simplified_duration);
         // }
         og::PathGeometric p = ss->getSolutionPath();
+        // ss->getSolutionPath().print(std::cout);
         // p.interpolate(max_steps);
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
@@ -207,11 +212,21 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
         for (unsigned int i=0; i < n; ++i)
         {
-            const ob::CompoundState* cState = states[i]->as<ob::CompoundState>();
-            solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
-
-            for (unsigned int j=1; j < start_vec.size();  ++j){
-                solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
+            auto cState(states[i]->as<ob::CompoundState>());
+            // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
+            auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
+            for (unsigned int j=0; j < start_vec.size();  ++j){
+                auto subspace(css->getSubspace(j));
+                switch (subspace->getType()) {
+                    case ob::STATE_SPACE_REAL_VECTOR:
+                        solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
+                        break;
+                    case ob::STATE_SPACE_SO2:
+                        solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         // Write solution to file
@@ -264,3 +279,74 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     return failedSolutions;
 }
 
+
+void KinematicPlanner::removeCollision(int geom_id, int contype, int conaffinity){
+    mj->m->geom_contype[geom_id] = contype;
+    mj->m->geom_conaffinity[geom_id] = conaffinity;
+    mj_step(mj->m, mj->d);
+    // Setup OMPL environment
+    si = MjOmpl::createSpaceInformationKinematic(mj->m);
+    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false));
+
+    rrt_planner = std::make_shared<og::RRTstar>(si);
+    sst_planner = std::make_shared<og::SST>(si);
+    pdst_planner = std::make_shared<og::PDST>(si);
+    est_planner = std::make_shared<og::EST>(si);
+    kpiece_planner = std::make_shared<og::KPIECE1>(si);
+    rrt_connect_planner = std::make_shared<og::RRTConnect>(si);
+    prm_star_planner = std::make_shared<og::PRMstar>(si);
+    spars_planner = std::make_shared<og::SPARS>(si);
+
+    si->setup();
+    ss = std::make_shared<og::SimpleSetup>(si);
+
+    if (algo == "sst") {
+        sst_planner->setSelectionRadius(sst_selection_radius); // default 0.2
+        sst_planner->setPruningRadius(sst_pruning_radius); // default 0.1
+        sst_planner->setRange(_range);
+        ss->setPlanner(sst_planner);
+
+        std::cout << "Using SST planner with selection radius ["
+             << sst_selection_radius
+             << "] and pruning radius ["
+             << sst_pruning_radius
+             << "]" << std::endl;
+    } else if (algo == "pdst") {
+        ss->setPlanner(pdst_planner);
+    } else if (algo == "est") {
+        est_planner->setRange(_range);
+        ss->setPlanner(est_planner);
+        est_planner->setup();
+    } else if (algo == "kpiece") {
+        kpiece_planner->setRange(_range);
+        ss->setPlanner(kpiece_planner);
+    } else if (algo == "rrt"){
+        rrt_planner->setRange(_range);
+        ss->setPlanner(rrt_planner);
+    } else if (algo == "rrt_connect"){
+        rrt_connect_planner->setRange(_range);
+        ss->setPlanner(rrt_connect_planner);
+    } else if (algo == "prm_star"){
+        ss->setPlanner(prm_star_planner);
+        ss->setup();
+        ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
+        std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
+    } else if (algo == "spars"){
+        ss->setPlanner(spars_planner);
+        ss->setup();
+        ss->getPlanner()->as<og::SPARS>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
+        std::cout << "Milestone: " << ss->getPlanner()->as<og::SPARS>()->milestoneCount() << std::endl;
+    }
+
+    if (opt == "maximize_min_clearance") {
+        auto opt_obj(std::make_shared<ob::MaximizeMinClearanceObjective>(si));
+        ss->setOptimizationObjective(opt_obj);
+    } else if (opt == "path_length") {
+        auto opt_obj(std::make_shared<ob::PathLengthOptimizationObjective>(si));
+        ss->setOptimizationObjective(opt_obj);
+    } else if (opt == "state_cost_integral") {
+        auto opt_obj(std::make_shared<ob::StateCostIntegralObjective>(si));
+        std::cout << "Cost: " << opt_obj->getCostThreshold().value() << std::endl;
+        ss->setOptimizationObjective(opt_obj);
+    }
+}

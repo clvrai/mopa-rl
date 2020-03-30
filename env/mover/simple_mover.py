@@ -64,10 +64,10 @@ class SimpleMoverEnv(BaseEnv):
         while True:
             goal = np.random.uniform(low=-0.2, high=0.2, size=2)
             box = np.random.uniform(low=-0.2, high=0.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
@@ -111,7 +111,7 @@ class SimpleMoverEnv(BaseEnv):
                 self.sim.data.qpos.flat[len(self.ref_joint_pos_indexes):len(self.ref_joint_pos_indexes)+2],
                 self.sim.data.qvel.flat[len(self.ref_joint_vel_indexes):len(self.ref_joint_vel_indexes)+2]
             ])),
-            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
+            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
         ])
 
     def _format_action(self, action):

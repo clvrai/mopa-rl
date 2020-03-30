@@ -15,7 +15,8 @@ from util.misc import save_video
 from util.gym import action_size
 import time
 import cv2
-
+from mujoco_py import GlfwContext
+GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
@@ -53,67 +54,65 @@ def render_frame(env, step, info={}):
 def run_mp(env, planner, i=None):
     error = 0
     end_error = 0
+
+    # Setup environments and states
     env.reset()
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
     ik_env = gym.make(args.env, **args.__dict__)
     ik_env.reset()
-    ik_env._set_pos('target', env._get_pos('target'))
 
-    # controller = SawyerIKController(
-    #             bullet_data_path=os.path.join('env/assets/robosuite', "bullet_data"),
-    #             robot_jpos_getter=env._robot_jpos_getter,
-    #         )
     qpos = env.sim.data.qpos.ravel().copy()
     qvel = env.sim.data.qvel.ravel().copy()
     success = False
     mp_env.set_state(qpos, qvel)
     ik_env.set_state(qpos, qvel)
 
-    # controller.sync_ik_robot(controller.robot_jpos_getter())
-    # result = controller.inverse_kinematics(env._get_pos('target'), env._get_quat('target'))
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.model.robot.joints, max_steps=300)
+    # Obtain start and goal joint positions. Do IK to get joint positions for goal_site.
+    goal_site = 'target'
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
+                                            target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
 
+    print("IK for %s successful? %s. Err_norm %.3f" % (goal_site, result.success, result.err_norm))
     start = env.sim.data.qpos.ravel().copy()
-    goal = result.qpos
-    goal[len(env.model.robot.joints):] = start[len(env.model.robot.joints)]
-    ik_env.set_state(goal, qvel)
-    #ik_env.render(mode='human')
+    goal = start.copy()
+    goal[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
+
+    # Equate qpos components not affected by planner
+
+    ik_env.set_state(goal, env.sim.data.qvel.ravel())
     # OMPL Planning
     traj, _ = planner.plan(start, goal,  args.timelimit, 40)
 
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
+        print("Planner succeeded in planning trajectory to %s!" % goal_site)
 
     frames = []
     action_frames = []
     step = 0
+
     if success:
-        goal = env.sim.data.qpos[-2:]
-        prev_state = traj[0, :]
-        i_term = np.zeros_like(env.sim.data.qpos[:-2])
-
+        # goal = env.sim.data.qpos[-2:]
+        # prev_state = traj[0, :]
+        # i_term = np.zeros_like(env.sim.data.qpos[:-2])
         for step, state in enumerate(traj[1:]):
-
-            # Update dummy reacher
-            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel(), env.sim.data.qvel.ravel())
-            for body, body_visual in zip(env.model.robot.bodies, env.sawyer_visual.bodies):
-                body_idx = mp_env.sim.model.body_name2id(body)
-                pos = mp_env.sim.data.body_xpos[body_idx]
-                quat = mp_env.sim.data.body_xquat[body_idx]
-                env._set_pos(body_visual, pos)
-                env._set_quat(body_visual, quat)
-
+            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
                 env.render(mode='human')
 
+            # Change indicator robot position
+            # env.set_robot_indicator_joint_positions(state[env.ref_joint_pos_indexes])
             action = state-env.sim.data.qpos.copy()
-            action = action[:len(env.model.robot.joints)+1]
-            action[-1] = 0.
-            env.step(action)
+            action = np.concatenate([action[env.ref_joint_pos_indexes], np.array([0])])
+
+            # env.step(action)
+            pos = start.copy()
+            pos[env.ref_joint_pos_indexes] = state[env.ref_joint_pos_indexes]
+            env.set_state(pos, env.sim.data.qpos)
 
             error += np.sqrt((env.sim.data.qpos - state) ** 2)
             end_error += np.sqrt((env.data.get_site_xpos('grip_site') - mp_env.data.get_site_xpos('grip_site')) ** 2)
@@ -156,7 +155,7 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 # Save video or not
-is_save_video = False
+is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
