@@ -58,9 +58,15 @@ class SimpleMoverEnv(BaseEnv):
             ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
+        self._num_primitives = len(kwargs['primitive_skills'])
+        assert self._num_primitives == 4
+
+
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
+        self._stages = [False] * self._num_primitives
+        self._stage = 0
         while True:
             goal = np.random.uniform(low=-0.2, high=0.2, size=2)
             box = np.random.uniform(low=-0.2, high=0.2, size=2)
@@ -192,6 +198,38 @@ class SimpleMoverEnv(BaseEnv):
 
         return reward, info
 
+    def is_grasp(self):
+        touch_left_finger = False
+        touch_right_finger = False
+        box_geom_id = self.sim.model.geom_name2id('box')
+        for i in range(self.sim.data.ncon):
+            c = self.sim.data.contact[i]
+            if c.geom1 == box_geom_id:
+                if c.geom2 in self.l_finger_geom_ids:
+                    touch_left_finger = True
+                if c.geom2 in self.r_finger_geom_ids:
+                    touch_right_finger = True
+            elif c.geom2 == box_geom_id:
+                if c.geom1 in self.l_finger_geom_ids:
+                    touch_left_finger = True
+                if c.geom1 in self.r_finger_geom_ids:
+                    touch_right_finger = True
+
+        return touch_left_finger and touch_right_finger
+
+
+    def check_stage(self):
+        if self._get_distance('box', 'grip_site') < 0.04 and not self._stages[0]:
+            self._stages[0] = True
+
+        if self._is_grasp() and self._stages[0]:
+            self._stages[1] = True
+
+        if self._get_distance('box', 'target') < 0.04 and self._stages[1]:
+            self._stages[2] = True
+
+
+
     def _step(self, action):
         """
         Args:
@@ -215,6 +253,8 @@ class SimpleMoverEnv(BaseEnv):
             action = np.concatenate((arm_action, gripper_action))
             self._do_simulation(action)
 
+        self.check_stage()
+
         obs = self._get_obs()
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
@@ -231,3 +271,16 @@ class SimpleMoverEnv(BaseEnv):
         reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
         info['reward_subgoal_dist'] = reward_subgoal_dist
         return reward_subgoal_dist, info
+
+    def get_next_primitive(self, prev_primitive):
+        if self._stages[self._stage]:
+            self._stage += 1
+            return 'pick'
+        elif self._stages[self._stage]:
+            self._stage += 1
+            return 'manipulation_mp'
+        elif self._stages[self._stage]:
+            self._stage += 1
+            return 'place'
+        else:
+            return 'mp' # reach

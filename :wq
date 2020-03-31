@@ -724,7 +724,6 @@ class RolloutRunner(object):
             ep_len = 0
             ep_rew = 0
             mp_success = 0
-            prev_primitive = 0
             meta_ac = None
             success = False
             skill_count = {}
@@ -746,12 +745,7 @@ class RolloutRunner(object):
                 else:
                     cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
                     if cur_primitive_str is not None:
-                        meta_ac = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
-                        meta_ac = OrderedDict([('default', meta_ac)])
-                    else:
-                        cur_primitive = prev_primitive
-                    meta_ac_before_activation = None
-                    meta_log_prob = None
+                        meta_ac = OrderedDict([('default',  env.primitive_str2index(curr_primitive_str))])
 
 
                 meta_len = 0

@@ -1,33 +1,36 @@
-#!/bin/bash
+#!/bin/bash -x
+v=$1
+
+if [ $v = 1 ]
+then
+    env="simple-pusher-v0"
+    primitive_skills="reach_mp push"
+elif [ $v = 2 ]
+then
+    env="simple-mover-v0"
+    primitive_skills="reach_mp pick manipulation_mp place"
+fi
 
 workers="8"
 prefix="hrl.debug"
 hrl="True"
-max_global_step="60000000"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-mover-v0"
 gpu="3"
 rl_hid_size="256"
 meta_update_target="both"
-ckpt_interval="10000"
-max_episode_steps="150"
-evaluate_interval="100"
+meta_oracle="True"
 meta_subgoal_rew="-0.5"
 max_meta_len="1"
-entropy_loss_coef="0.01"
 buffer_size="120000"
 num_batches="1"
-lr_actor="3e-4"
-lr_critic="3e-4"
 debug="True"
 rollout_length="15000"
 batch_size="128"
-clip_param="0.2"
 reward_type="composition"
 reward_scale="3"
 comment="debug"
@@ -35,15 +38,11 @@ ctrl_reward_coef="1e-1"
 actor_num_hid_layers="2"
 subgoal_type="joint"
 subgoal_reward="True"
-relative_subgoal="True"
 meta_algo='sac'
 start_steps='10000'
-distance_threshold='0.06'
 success_reward='10.'
-primitive_skills="mp grasp"
 subgoal_predictor="True"
 seed="1234"
-temperature='0.3'
 has_terminal='True'
 ignore_contact_geoms='box'
 log_root_dir='/data/jun/projects/hrl-planner/logs'
@@ -54,7 +53,6 @@ python -m rl.main \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \
-    --max_global_step $max_global_step \
     --ll_type $ll_type \
     --planner_type $planner_type \
     --planner_objective $planner_objective \
@@ -65,19 +63,13 @@ python -m rl.main \
     --gpu $gpu \
     --rl_hid_size $rl_hid_size \
     --meta_update_target $meta_update_target \
-    --max_episode_steps $max_episode_steps \
-    --evaluate_interval $evaluate_interval \
     --meta_subgoal_rew $meta_subgoal_rew \
     --max_meta_len $max_meta_len \
-    --entropy_loss_coef $entropy_loss_coef \
     --buffer_size $buffer_size \
     --num_batches $num_batches \
-    --lr_actor $lr_actor \
-    --lr_critic $lr_critic \
     --debug $debug \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
-    --clip_param $clip_param \
     --reward_type $reward_type \
     --reward_scale $reward_scale \
     --comment $comment \
@@ -86,12 +78,10 @@ python -m rl.main \
     --actor_num_hid_layers $actor_num_hid_layers \
     --subgoal_type $subgoal_type \
     --subgoal_reward $subgoal_reward \
-    --relative_subgoal $relative_subgoal \
     --meta_algo $meta_algo \
     --start_steps $start_steps \
-    --distance_threshold $distance_threshold \
     --success_reward $success_reward \
     --primitive_skills $primitive_skills \
     --subgoal_predictor $subgoal_predictor \
-    --temperature $temperature \
-    --has_terminal $has_terminal
+    --has_terminal $has_terminal \
+    --meta_oracle $meta_oracle
