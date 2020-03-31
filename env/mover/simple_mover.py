@@ -147,6 +147,15 @@ class SimpleMoverEnv(BaseEnv):
 
         return action
 
+    def form_action(self, next_qpos):
+        joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+        gripper_ac = next_qpos[-1]
+        ac = OrderedDict([('default', np.concatenate([
+            joint_ac, gripper_ac
+        ]))])
+
+        return ac
+
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']

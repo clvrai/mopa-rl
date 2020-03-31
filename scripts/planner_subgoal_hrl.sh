@@ -10,7 +10,7 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-mover-obstacle-v0"
+env="simple-mover-v0"
 gpu="3"
 rl_hid_size="256"
 meta_update_target="both"
@@ -46,9 +46,11 @@ seed="1234"
 temperature='0.3'
 has_terminal='True'
 ignore_contact_geoms='box'
+log_root_dir='/data/jun/projects/hrl-planner/logs'
 
 #mpiexec -n $workers
-python -m rl.main --log_root_dir ./logs \
+python -m rl.main \
+    --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
     --hrl $hrl \

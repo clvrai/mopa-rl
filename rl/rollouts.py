@@ -752,7 +752,10 @@ class RolloutRunner(object):
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
                 if skill_type == 'mp': # Use motion planner
-                    traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(), random_exploration=random_exploration)
+                    traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac,
+                                                                     ob=ob.copy(),
+                                                                     random_exploration=random_exploration,
+                                                                     ref_joint_pos_indexes=env.ref_joint_pos_indexes)
                     if success:
                         mp_success += 1
 
@@ -766,8 +769,7 @@ class RolloutRunner(object):
                                     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                                 })
                                 ll_ob = ob.copy()
-                                curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
-                                ac = OrderedDict([('default', next_qpos[:env.model.nu] - curr_qpos)])
+                                ac = env.form_action(next_qpos)
                                 ac_before_activation = None
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                                 ob, reward, done, info = env.step(ac)
@@ -821,7 +823,6 @@ class RolloutRunner(object):
                                 ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                             else:
                                 ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-                        curr_qpos = env.sim.data.qpos[:env.sim.model.nu].ravel().copy()
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
                         ob, reward, done, info = env.step(ac)
@@ -905,7 +906,8 @@ class RolloutRunner(object):
             goal_xpos = None
             goal_xquat = None
             if skill_type == 'mp': # Use motion planner
-                traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy())
+                traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(),
+                                                                 ref_joint_pos_indexes=env.ref_joint_pos_indexes)
                 ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                 if success:
@@ -922,8 +924,7 @@ class RolloutRunner(object):
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                             })
                             ll_ob = ob.copy()
-                            curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
-                            ac = OrderedDict([('default', next_qpos[:env.model.nu] - curr_qpos)])
+                            ac = env.form_action(next_qpos)
                             ac_before_activation = None
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac)
@@ -939,10 +940,12 @@ class RolloutRunner(object):
                             if record:
                                 frame_info = info.copy()
                                 frame_info['ac'] = ac['default']
+                                frame_info['target_qpos'] = target_qpos
+                                frame_info['subgoal'] = subgoal_ac
                                 frame_info['states'] = 'Valid states'
+                                curr_qpos = env.sim.data.qpos.copy()
                                 frame_info['curr_qpos'] = curr_qpos
-                                if skill_type == 'mp' and success:
-                                    frame_info['mp_path_qpos'] = next_qpos[:env.model.nu]
+                                frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
                                 frame_info['goal'] = env.goal
                                 frame_info['skill_type'] = skill_type
                                 for i, k in enumerate(meta_ac.keys()):
@@ -974,8 +977,9 @@ class RolloutRunner(object):
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         if record:
                             frame_info = info.copy()
-                            frame_info['ac'] = ac['default']
                             frame_info['states'] = 'Invalid states'
+                            frame_info['target_qpos'] = target_qpos
+                            curr_qpos = env.sim.data.qpos.copy()
                             frame_info['curr_qpos'] = curr_qpos
                             frame_info['goal'] = env.goal
                             frame_info['skill_type'] = skill_type
@@ -995,7 +999,6 @@ class RolloutRunner(object):
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-                    curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
                     ob, reward, done, info = env.step(ac)
@@ -1011,6 +1014,7 @@ class RolloutRunner(object):
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
+                        curr_qpos = env.sim.data.qpos.copy()
                         frame_info['curr_qpos'] = curr_qpos
                         frame_info['goal'] = env.goal
                         frame_info['skill_type'] = skill_type
@@ -1037,9 +1041,9 @@ class RolloutRunner(object):
     def _get_mp_body_pos(self, ik_env, postfix='dummy'):
         xpos = OrderedDict()
         xquat = OrderedDict()
-        for i in range(ik_env.model.nu):
+        for i in range(len(ik_env.ref_joint_pos_indexes)):
             name = 'body'+str(i)
-            body_idx = ik_env.model.body_name2id(name)
+            body_idx = ik_env.sim.model.body_name2id(name)
             xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx].copy()
             xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat[body_idx].copy()
 

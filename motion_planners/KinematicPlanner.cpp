@@ -197,7 +197,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
     }
     solved = ss->solve(timelimit);
-    std::cout << "Collision " << mj->d->ncon << std::endl;
 
     if (solved) {
         // ss.getSolutionPath().print(std::cout);
