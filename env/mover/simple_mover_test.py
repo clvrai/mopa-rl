@@ -6,11 +6,11 @@ from gym import spaces
 from env.base import BaseEnv
 
 
-class SimpleMoverEnv(BaseEnv):
+class SimpleMoverTestEnv(BaseEnv):
     """ Mover with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("simple_mover.xml", **kwargs)
+        super().__init__("simple_mover_test.xml", **kwargs)
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward'],
@@ -67,32 +67,29 @@ class SimpleMoverEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         self._stages = [False] * self._num_primitives
         self._stage = 0
-        while True:
-            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
-            box = np.random.uniform(low=-0.2, high=0.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
-            qpos[3] = 0.
-            qpos[4] = 0.
-            qpos[-4:-2] = goal
-            qpos[-2:] = box
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
-            qvel[len(self.ref_joint_vel_indexes)+1] = 0.
-            qvel[len(self.ref_joint_vel_indexes)+2] = 0.
-            qvel[-4:-2] = 0
-            qvel[-2:] = 0
-            self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
-                    self._get_distance('fingertip', 'box') > 0.4: #make the task harder
-                self.goal = goal
-                self.box = box
-                break
+        # while True:
+        goal = np.random.uniform(low=-0.2, high=0.2, size=2)
+        qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
+        qpos[3] = 0.
+        qpos[4] = 0.
+        qpos[-2:] = goal
+        # qpos[-2:] = box
+        qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
+        qvel[len(self.ref_joint_vel_indexes)+1] = 0.
+        qvel[len(self.ref_joint_vel_indexes)+2] = 0.
+        qvel[-2:] = 0
+        self.set_state(qpos, qvel)
+            # if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
+            #         self._get_distance('fingertip', 'box') > 0.4: #make the task harder
+            #     self.goal = goal
+            #     self.box = box
+            #     break
         return self._get_obs()
 
     def initialize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = self.goal
-            qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
