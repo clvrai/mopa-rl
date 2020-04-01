@@ -10,6 +10,10 @@ elif [ $v = 2 ]
 then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
+elif [ $v = 3 ]
+then
+    env='simple-mover-obstacle-v0'
+    primitive_skills="reach_mp grasp manipulation_mp"
 fi
 
 workers="8"
@@ -34,7 +38,7 @@ rollout_length="15000"
 batch_size="128"
 reward_type="dense"
 reward_scale="3"
-comment="debug"
+comment="obstacle"
 ctrl_reward_coef="1e-1"
 actor_num_hid_layers="2"
 subgoal_type="joint"
@@ -46,7 +50,7 @@ subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 ignore_contact_geoms='None box'
-log_root_dir='/data/jun/projects/hrl-planner/logs'
+log_root_dir='./logs'
 
 mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
