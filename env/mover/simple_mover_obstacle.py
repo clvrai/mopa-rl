@@ -11,6 +11,7 @@ class SimpleMoverObstacleEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_mover_obstacle.xml", **kwargs)
+
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward'],
@@ -25,6 +26,14 @@ class SimpleMoverObstacleEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
+
+        self.l_finger_geom_ids = [
+            self.sim.model.geom_name2id(x) for x in self.left_finger_geoms
+        ]
+        self.r_finger_geom_ids = [
+            self.sim.model.geom_name2id(x) for x in self.right_finger_geoms
+        ]
+
 
         num_actions = self.dof
         is_limited = np.array([True] * self.dof)
@@ -50,16 +59,26 @@ class SimpleMoverObstacleEnv(BaseEnv):
             ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
+        self._num_primitives = len(kwargs['primitive_skills'])
+        assert self._num_primitives == 3
+
+
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
+        self._stages = [False] * self._num_primitives
+        self._stage = 0
         while True:
             goal = np.random.uniform(low=-0.2, high=0.2, size=2)
             box = np.random.uniform(low=-0.2, high=0.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
+            qpos[3] = 0.
+            qpos[4] = 0.
             qpos[-4:-2] = goal
             qpos[-2:] = box
             qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
+            qvel[len(self.ref_joint_vel_indexes)+1] = 0.
+            qvel[len(self.ref_joint_vel_indexes)+2] = 0.
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
@@ -72,23 +91,36 @@ class SimpleMoverObstacleEnv(BaseEnv):
 
     def initialize_joints(self):
         while True:
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = self.goal
             qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
 
+    @property
+    def left_finger_geoms(self):
+        return ["l_finger_g0"]
+
+    @property
+    def right_finger_geoms(self):
+        return ["r_finger_g0"]
+
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
+        theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.sim.model.nu],
+                self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos('fingertip')
+                self.sim.data.get_site_xpos('grip_site')[:2]
+                #self._get_pos('grip_site')[:2]
+            ])),
+            ('gripper', np.concatenate([
+                self.sim.data.qpos.flat[len(self.ref_joint_pos_indexes):len(self.ref_joint_pos_indexes)+2],
+                self.sim.data.qvel.flat[len(self.ref_joint_vel_indexes):len(self.ref_joint_vel_indexes)+2]
             ])),
             ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
         ])
@@ -105,7 +137,8 @@ class SimpleMoverObstacleEnv(BaseEnv):
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('default', spaces.Box(shape=(15,), low=-1, high=1, dtype=np.float32)),
+            ('gripper', spaces.Box(shape=(4,), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
@@ -125,24 +158,68 @@ class SimpleMoverObstacleEnv(BaseEnv):
 
         return action
 
+    def form_action(self, next_qpos):
+        joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+        gripper_ac = np.array([0.])
+        ac = OrderedDict([('default', np.concatenate([
+            joint_ac, gripper_ac
+        ]))])
+        return ac
+
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reward_dist = - self._get_distance("box", "target")
-            reward = reward_dist + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
-        elif self._env_config['reward_type'] == 'composition':
-            reward_dist = -self._get_distance("box", "target")
-            reward_near = -self._get_distance("fingertip", "box")
+            reach_multi = 0.35
+            grasp_multi = 0.5
+            move_multi = 0.7
+            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
+            reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
+            reward_grasp = int(self._is_grasp()) * grasp_multi
+            reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._is_grasp())
             reward_ctrl = self._ctrl_reward(action)
-            reward = reward_dist + 0.5*reward_near + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_near=reward_near, reward_ctrl=reward_ctrl)
+
+            reward = reward_reach + reward_grasp + reward_move + reward_ctrl
+
+            info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp, reward_move=reward_move, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
         return reward, info
+
+    def _is_grasp(self):
+        touch_left_finger = False
+        touch_right_finger = False
+        box_geom_id = self.sim.model.geom_name2id('box')
+        for i in range(self.sim.data.ncon):
+            c = self.sim.data.contact[i]
+            if c.geom1 == box_geom_id:
+                if c.geom2 in self.l_finger_geom_ids:
+                    touch_left_finger = True
+                if c.geom2 in self.r_finger_geom_ids:
+                    touch_right_finger = True
+            elif c.geom2 == box_geom_id:
+                if c.geom1 in self.l_finger_geom_ids:
+                    touch_left_finger = True
+                if c.geom1 in self.r_finger_geom_ids:
+                    touch_right_finger = True
+
+        return touch_left_finger and touch_right_finger
+
+
+    def check_stage(self):
+        dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
+        if dist_box_to_gripper < 0.1 and not self._stages[0]:
+            self._stages[0] = True
+
+        if self._is_grasp() and self._stages[0]:
+            self._stages[1] = True
+
+        if self._get_distance('box', 'target') < 0.04 and self._stages[1]:
+            self._stages[2] = True
+
+
 
     def _step(self, action):
         """
@@ -167,10 +244,12 @@ class SimpleMoverObstacleEnv(BaseEnv):
             action = np.concatenate((arm_action, gripper_action))
             self._do_simulation(action)
 
+        self.check_stage()
+
         obs = self._get_obs()
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-            if self._env.config['has_terminal']:
+            if self._env_config['has_terminal']:
                 done = True
                 self._success = True
             else:
@@ -183,3 +262,12 @@ class SimpleMoverObstacleEnv(BaseEnv):
         reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
         info['reward_subgoal_dist'] = reward_subgoal_dist
         return reward_subgoal_dist, info
+
+    def get_next_primitive(self, prev_primitive):
+        prev_primitive = int(prev_primitive)
+        if self._stages[prev_primitive]:
+            return 'grasp'
+        elif self._stages[prev_primitive]:
+            return 'manipulation_mp'
+        else:
+            return 'reach_mp' # reach
