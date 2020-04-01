@@ -1,0 +1,127 @@
+<mujoco model="simple_mover">
+    <include file="./common/skybox.xml"/>
+    <include file="./common/materials.xml"/>
+    <include file="./common/visual.xml"/>
+
+    <compiler angle="radian" inertiafromgeom="true" meshdir="../meshes" />
+    <option gravity="0 0 -9.81" integrator="RK4" timestep="0.01"/>
+    <default>
+        <joint armature="1" damping="1" limited="true"/>
+        <geom contype="0" friction="1 0.1 0.1"/>
+        <default class="ground">
+            <geom material="grid" type="plane" contype="0" conaffinity="0"/>
+        </default>
+        <default class="link">
+            <geom contype="1" conaffinity="1" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 1" size=".01" type="capsule" />
+        </default>
+        <default class="link-dummy">
+            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.0 0.4 0.6 0" size=".01" type="capsule" />
+        </default>
+        <default class="link-goal">
+            <geom contype="0" conaffinity="0" fromto="0 0 0 0.1 0 0" rgba="0.6 0.4 0. 0" size=".01" type="capsule" />
+        </default>
+
+    </default>
+    <equality>
+        <weld body1="body0" body2="box" solimp="0.02 0.1 0.05" solref="0.06 1"></weld>
+    </equality>
+
+    <worldbody>
+        <!-- Arena -->
+        <light cutoff="100" diffuse="0.05 0.05 0.05" dir="0 -0.5 -2.0" directional="true" exponent="1" pos="0 0.5 2.0" specular=".1 .1 .1" />
+        <geom name="ground" class="ground" pos="0 0 0" size="4 4 1" friction="1 0.005 0.0001"/>
+        <camera name="cam0" pos="-0.1 0.1 0.0" quat="0.707 0.707 0 0" />
+        <camera name="cam1" pos="-0.1 0.1 0.0" quat="0.707 0.707 0 0" />
+        <!--
+        <geom conaffinity="0" contype="0" name="ground" pos="0 0 0" rgba="0.9 0.9 0.9 1" size="1 1 10" type="plane"/>
+        -->
+        <!-- Arm -->
+        <geom conaffinity="0" contype="0" fromto="0 0 0 0 0 0.05" name="root" rgba="0.9 0.4 0.6 1" size=".011" type="cylinder"/>
+        <body name="body0" pos="0 0 .02">
+            <geom class='link' name='link0'/>
+            <joint axis="0 0 1" limited="false" name="joint0" pos="0 0 0" type="hinge"/>
+            <body name="body1" pos="0.1 0 0">
+                <joint axis="0 0 1" limited="true" name="joint1" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
+                <geom class='link' name='link1'/>
+                <site name='link1' />
+                <body name="body2" pos="0.1 0 0">
+                    <joint axis="0 0 1" limited="true" name="joint2" pos="0 0 0" range="-2.9 2.9" type="hinge"/>
+                    <geom class='link' name='link2'/>
+                    <site name='link2' />
+                    <body name="fingertip" pos="0.11 0 0">
+                        <body name="gripper_base" pos="0 0 0.005" quat="0 0.7071068 0 0.7071068">
+                            <inertial diaginertia="3e-08 2e-08 2e-08" mass="0.3" pos="0 0 0" quat="-0.5 0.5 0.5 0.5" />
+                            <geom quat="0 0 0.707107 0.707107" size="0.01 0.035" rgba="0.0 0.4 0.6 1" type="cylinder" />
+                            <body name="right_gripper" pos="0 0 0.045">
+                                <inertial diaginertia="0 0 0" mass="0.0001" pos="0 0 0" />
+                                <site group="1" name="grip_site" pos="0 0 0" rgba="1 0 0 0" size="0.01 0.01 0.01" type="sphere" />
+                                <site group="1" name="grip_site_cylinder" pos="0 0 0" rgba="0 1 0 0" size="0.005 10" type="cylinder" />
+                            </body>
+
+                            <body name="r_gripper_l_finger" pos="0 0.01 0.01">
+                                <inertial diaginertia="0.01 0.01 0.01" mass="0.02" pos="0 0 0" quat="0 0 0 -1" />
+                                <!-- <joint axis="0 1 0" damping="100" limited="true" name="gripper_l_finger_joint" pos="0 0 0" range="&#45;0.0132 0.008833" type="slide" /> -->
+                                <joint axis="0 1 0" limited="true" name="gripper_l_finger_joint" pos="0 0 0" range="-0.02 0.008833" type="slide" />
+                                <geom friction="0 0 0" name="l_finger_g0" rgba="0.0 0.4 0.6 1" pos="0 0.01725 0.0275" quat="0 0 0 -1" size="0.005 0.00675 0.025" type="box" />
+                                <!-- <geom conaffinity="1" contype="0" friction="0 0 0" name="l_finger_g1" rgba="0.0 0.4 0.6 1" pos="&#45;0.005 &#45;0.003 0.0083" quat="0 0 0 &#45;1" size="0.005 0.025 0.0085" type="box" /> -->
+                            </body>
+                            <body name="r_gripper_r_finger" pos="0 -0.01 0.01">
+                                <inertial diaginertia="0.01 0.01 0.01" mass="0.02" pos="0 0 0" />
+                                <!-- <joint axis="0 1 0" damping="100" limited="true" name="gripper_r_finger_joint" pos="0 0 0" range="&#45;0.008833 0.0132" type="slide" /> -->
+                                <joint axis="0 1 0" limited="true" name="gripper_r_finger_joint" pos="0 0 0" range="-0.00833 0.02" type="slide" />
+                                <geom friction="0 0 0" name="r_finger_g0" rgba="0.0 0.4 0.6 1" pos="0 -0.01725 0.0275" size="0.005 0.00675 0.025" type="box" />
+                                <!-- <geom conaffinity="1" contype="0" friction="0 0 0" name="r_finger_g1" rgba="0.0 0.4 0.6 1" pos="0.005 0.003 0.0083" size="0.005 0.025 0.0085" type="box" /> -->
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+
+        <body name="body0-dummy" pos="0 0 .02">
+            <geom class='link-dummy' name='link0-dummy'/>
+        </body>
+        <body name="body1-dummy" pos="0.1 0 .02">
+            <geom class='link-dummy' name='link1-dummy'/>
+        </body>
+        <body name="body2-dummy" pos="0.2 0 .02">
+            <geom class='link-dummy' name='link2-dummy'/>
+        </body>
+
+        <body name="body0-goal" pos="0 0 .02">
+            <geom class='link-goal' name='link0-goal'/>
+        </body>
+        <body name="body1-goal" pos="0.1 0 .02">
+            <geom class='link-goal' name='link1-goal'/>
+        </body>
+        <body name="body2-goal" pos="0.2 0 .02">
+            <geom class='link-goal' name='link2-goal'/>
+        </body>
+
+        <body name="target" pos=".1 -.1 .005">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide"/>
+            <geom conaffinity="1" contype="0" name="target" pos="0 0 0" rgba="0.2 0.2 0.2 1" size=".020 .001 .002" type="cylinder"/>
+        </body>
+        <body name="subgoal" pos=".1 -.1 .005">
+            <geom conaffinity="0" contype="0" name="subgoal_geom" pos="0 0 0" rgba="0.2 0.9 0.2 0" size=".020 .005 .002" type="cylinder"/>
+        </body>
+
+        <body name='box' pos="0.2 0.1 0" euler="0 0 0">
+            <inertial pos="0 0 0" mass="50" />
+            <!-- <joint armature="0" axis="1 0 0" damping="1" limited="true" name="box_x" pos="0 0 0" range="&#45;.4 .4" ref=".1" stiffness="0" type="slide" /> -->
+            <!-- <joint armature="0" axis="0 1 0" damping="1" limited="true" name="box_y" pos="0 0 0" range="&#45;.4 .4" ref="&#45;.1" stiffness="0" type="slide" /> -->
+            <geom conaffinity="1" contype="1" name="box" pos="0 0 0" rgba="0.2 0.9 0.2 1" size=".01 .01 .01" type="box" />
+        </body>
+
+    </worldbody>
+
+    <actuator>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint0"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint1"/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" gear="1" joint="joint2"/>
+        <position ctrllimited="true" ctrlrange="-0.0115 0.020833" forcelimited="true" forcerange="-20 20" joint="gripper_r_finger_joint"/>
+        <position ctrllimited="true" ctrlrange="-0.020833 0.0115" forcelimited="true" forcerange="-20 20" joint="gripper_l_finger_joint"/>
+    </actuator>
+</mujoco>
+
