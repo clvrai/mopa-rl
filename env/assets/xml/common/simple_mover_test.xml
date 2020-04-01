@@ -22,6 +22,9 @@
         </default>
 
     </default>
+    <equality>
+        <weld body1="body0" body2="box" solimp="0.02 0.1 0.05" solref="0.06 1"></weld>
+    </equality>
 
     <worldbody>
         <!-- Arena -->
@@ -104,12 +107,13 @@
             <geom conaffinity="0" contype="0" name="subgoal_geom" pos="0 0 0" rgba="0.2 0.9 0.2 0" size=".020 .005 .002" type="cylinder"/>
         </body>
 
-        <body name='box' pos=".1 -.1 .025" euler="0 0 0">
+        <body name='box' pos="0.2 0.1 0" euler="0 0 0">
             <inertial pos="0 0 0" mass="50" />
-            <joint armature="0" axis="1 0 0" damping="1" limited="true" name="box_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide" />
-            <joint armature="0" axis="0 1 0" damping="1" limited="true" name="box_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide" />
+            <!-- <joint armature="0" axis="1 0 0" damping="1" limited="true" name="box_x" pos="0 0 0" range="&#45;.4 .4" ref=".1" stiffness="0" type="slide" /> -->
+            <!-- <joint armature="0" axis="0 1 0" damping="1" limited="true" name="box_y" pos="0 0 0" range="&#45;.4 .4" ref="&#45;.1" stiffness="0" type="slide" /> -->
             <geom conaffinity="1" contype="1" name="box" pos="0 0 0" rgba="0.2 0.9 0.2 1" size=".01 .01 .01" type="box" />
         </body>
+
     </worldbody>
 
     <actuator>

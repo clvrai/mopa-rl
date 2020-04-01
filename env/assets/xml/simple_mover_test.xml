@@ -1,0 +1,3 @@
+<mujoco model="simple_mover_test">
+    <include file="./common/simple_mover_test.xml" />
+</mujoco>
