@@ -748,8 +748,8 @@ class RolloutRunner(object):
                     prev_primitive = cur_primitive
                     cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
                     if cur_primitive_str is not None:
-                        meta_ac = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
-                        meta_ac = OrderedDict([('default', np.array([[meta_ac]]))])
+                        cur_primitive = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
+                        meta_ac = OrderedDict([('default', np.array([[cur_primitive]]))])
                     else:
                         cur_primitive = prev_primitive
                     meta_ac_before_activation = None
@@ -914,8 +914,8 @@ class RolloutRunner(object):
                 prev_primitive = cur_primitive
                 cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
                 if cur_primitive_str is not None:
-                    meta_ac = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
-                    meta_ac = OrderedDict([('default', np.array([[meta_ac]]))])
+                    cur_primitive = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
+                    meta_ac = OrderedDict([('default', np.array([[cur_primitive]]))])
                 else:
                     cur_primitive = prev_primitive
                 meta_ac_before_activation = None
