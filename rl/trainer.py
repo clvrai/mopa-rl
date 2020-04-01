@@ -157,8 +157,12 @@ class Trainer(object):
                 elif self._config.meta_update_target == "LL":
                     replay_buffers = {"replay": self._agent.replay_buffer()}
                 else: # both
-                    replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
-                                      "ll_replay": self._agent.replay_buffer()}
+                    if not config.meta_oracle:
+                        replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
+                                          "ll_replay": self._agent.replay_buffer()}
+                    else:
+                        replay_buffers = {"replay": self._agent.replay_buffer()}
+
             else:
                 replay_buffers = {"replay": self._agent.replay_buffer()}
             if self._config.policy == 'cnn' or self._config.use_ae:
@@ -292,7 +296,7 @@ class Trainer(object):
 
                     if config.hrl:
                         if (config.meta_update_target == "HL" or \
-                            config.meta_update_target == "both"):
+                            config.meta_update_target == "both") and not config.meta_oracle:
                             self._meta_agent.store_episode(meta_rollout)
                         if (config.meta_update_target == "LL" or \
                             config.meta_update_target == "both"):
@@ -305,7 +309,7 @@ class Trainer(object):
             rollout, meta_rollout, info = next(runner)
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
-                    config.meta_update_target == "both"):
+                    config.meta_update_target == "both") and not config.meta_oracle:
                     self._meta_agent.store_episode(meta_rollout)
                 if (config.meta_update_target == "LL" or \
                     config.meta_update_target == "both"):
@@ -319,7 +323,7 @@ class Trainer(object):
             logger.info("Update networks %d", update_iter)
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
-                    config.meta_update_target == "both"):
+                    config.meta_update_target == "both") and not config.meta_oracle:
                     train_info = self._meta_agent.train()
                     hl_train_info = train_info
                 else:
@@ -367,20 +371,21 @@ class Trainer(object):
                 ## Evaluate both MP and RL
                 if update_iter % config.evaluate_interval == 1:
                     logger.info("Evaluate at %d", update_iter)
-                    rollout, info, vids = self._evaluate(step=step, record=config.record)
                     obs = None
-                    if self._config.policy == 'cnn':
-                        if self._config.is_rgb:
-                            obs = rollout['ob'][0]['default'].transpose((1, 2, 0))
-                        else:
-                            obs = rollout['ob'][0]['default'][0]
+                    if not config.meta_oracle:
+                        rollout, info, vids = self._evaluate(step=step, record=config.record)
+                        if self._config.policy == 'cnn':
+                            if self._config.is_rgb:
+                                obs = rollout['ob'][0]['default'].transpose((1, 2, 0))
+                            else:
+                                obs = rollout['ob'][0]['default'][0]
 
-                        if self._config.use_ae:
-                            _to_tensor = lambda x: to_tensor(x, self._config.device)
-                            h = self._agent._critic_encoder(_to_tensor(rollout['ob'][0]['default']).unsqueeze(0))
-                            recon = self._agent._decoder(h)[0].detach().cpu().numpy().transpose((1, 2, 0))
-                            self.log_obs(recon, 'test_ep/reconstructed', step=step)
-                    self._log_test(step, info, vids, obs)
+                            if self._config.use_ae:
+                                _to_tensor = lambda x: to_tensor(x, self._config.device)
+                                h = self._agent._critic_encoder(_to_tensor(rollout['ob'][0]['default']).unsqueeze(0))
+                                recon = self._agent._decoder(h)[0].detach().cpu().numpy().transpose((1, 2, 0))
+                                self.log_obs(recon, 'test_ep/reconstructed', step=step)
+                        self._log_test(step, info, vids, obs)
 
                     # Evaluate mp
                     if self._config.ll_type == 'mp' or self._config.ll_type == 'mix':

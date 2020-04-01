@@ -1,5 +1,6 @@
 #!/bin/bash -x
 v=$1
+gpu=$2
 
 if [ $v = 1 ]
 then
@@ -8,11 +9,11 @@ then
 elif [ $v = 2 ]
 then
     env="simple-mover-v0"
-    primitive_skills="reach_mp pick manipulation_mp place"
+    primitive_skills="reach_mp grasp manipulation_mp"
 fi
 
 workers="8"
-prefix="hrl.debug"
+prefix="hrl.remove_geom"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -20,18 +21,18 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-gpu="3"
+gpu=$gpu
 rl_hid_size="256"
-meta_update_target="both"
+meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="-0.5"
 max_meta_len="1"
 buffer_size="120000"
 num_batches="1"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="128"
-reward_type="composition"
+reward_type="dense"
 reward_scale="3"
 comment="debug"
 ctrl_reward_coef="1e-1"
@@ -44,11 +45,10 @@ success_reward='10.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
-ignore_contact_geoms='box'
+ignore_contact_geoms='None box'
 log_root_dir='/data/jun/projects/hrl-planner/logs'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \

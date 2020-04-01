@@ -58,7 +58,7 @@ class LowLevelAgent(SACAgent):
                                        clip_obs=config.clip_obs)
 
             if self._config.meta_update_target == 'HL':
-                if skill != "mp":
+                if "mp" not in skill:
                     path = os.path.join(config.primitive_dir, skill)
                     ckpt_path, ckpt_num = get_ckpt_path(path, None)
                     logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
@@ -71,7 +71,7 @@ class LowLevelAgent(SACAgent):
                         skill_actor.load_state_dict(ckpt['agent']['actor_state_dict'][0])
                     skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
-            if skill == 'mp':
+            if 'mp' in skill:
                 planner = MpAgent(config, self._ac_space, self._non_limited_idx)
                 if config.ignored_contact_geoms is not None and config.ignored_contact_geoms_ids[planner_i] != None:
                     planner.remove_collision(config.ignored_contact_geom_ids[planner_i])
@@ -154,7 +154,9 @@ class LowLevelAgent(SACAgent):
     def curr_pos(self, env, meta_ac):
         skill = self.return_skill_type(meta_ac)
 
-        if skill == 'mp':
+        import pdb
+        pdb.set_trace()
+        if 'mp' in skill:
             return env._get_pos('fingertip')[:env.sim.model.nu].copy()
         else:
             return env._get_pos('box')[:env.sim.model.nu].copy()

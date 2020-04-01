@@ -125,7 +125,7 @@ def argparser():
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)
-    parser.add_argument("--evaluate_interval", type=int, default=100)
+    parser.add_argument("--evaluate_interval", type=int, default=1000)
     parser.add_argument("--ckpt_interval", type=int, default=10000)
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,
