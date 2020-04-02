@@ -60,7 +60,7 @@ class SimpleMoverObstacleEnv(BaseEnv):
         ])
 
         self._num_primitives = len(kwargs['primitive_skills'])
-        assert self._num_primitives == 3
+        self._primitive_skills = kwargs['primitive_skills']
 
 
     def _reset(self):
@@ -266,8 +266,10 @@ class SimpleMoverObstacleEnv(BaseEnv):
     def get_next_primitive(self, prev_primitive):
         prev_primitive = int(prev_primitive)
         if self._stages[prev_primitive]:
-            return 'grasp'
-        elif self._stages[prev_primitive]:
-            return 'manipulation_mp'
+            if prev_primitive == self._num_primitives-1:
+                return self._primitive_skills[prev_primitive]
+            else:
+                return self._primitive_skills[prev_primitive+1]
         else:
-            return 'reach_mp' # reach
+            return self._primitive_skills[prev_primitive]
+
