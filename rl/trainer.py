@@ -56,17 +56,27 @@ class Trainer(object):
         self._env = gym.make(config.env, **config.__dict__)
         self._env_eval = gym.make(config.env, **copy.copy(config).__dict__) if self._is_chef else None
         self._config._xml_path = self._env.xml_path
-        config.nq = self._env.model.nq
+        config.nq = self._env.sim.model.nq
 
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
         joint_space = self._env.joint_space
 
+        if config.ignored_contact_geoms is not None:
+            ids = []
+            for geom in config.ignored_contact_geoms:
+                if geom != 'None':
+                    ids.append(env.sim.model.geom_name2id(geom))
+                else:
+                    ids.append(None)
+            config.ignored_contact_geom_ids = ids
+
+
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)
 
         # build up networks
-        non_limited_idx = np.where(self._env.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
+        non_limited_idx = np.where(self._env.sim.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
 
         if config.subgoal_type == 'joint':
             meta_ac_space = joint_space
@@ -94,13 +104,9 @@ class Trainer(object):
             config.primitive_skills = ['mp']
 
         if config.hrl:
-            mp = None
             from rl.low_level_agent import LowLevelAgent
-            if config.ll_type == 'mix' or config.ll_type == 'mp':
-                from rl.mp_agent import MpAgent
-                mp = MpAgent(config, ac_space, non_limited_idx)
             self._agent = LowLevelAgent(
-                config, ll_ob_space, ac_space, actor, critic, mp
+                config, ll_ob_space, ac_space, actor, critic, non_limited_idx
             )
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(

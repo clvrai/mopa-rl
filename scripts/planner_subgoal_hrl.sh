@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="hrl.sac.subgoal_predictor.terminal"
+prefix="hrl.debug"
 hrl="True"
 max_global_step="60000000"
 ll_type="mix"
@@ -10,8 +10,8 @@ planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
 timelimit="0.2"
-env="simple-pusher-v0"
-gpu="0"
+env="simple-mover-obstacle-v0"
+gpu="3"
 rl_hid_size="256"
 meta_update_target="both"
 ckpt_interval="10000"
@@ -24,7 +24,7 @@ buffer_size="120000"
 num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="15000"
 batch_size="128"
 clip_param="0.2"
@@ -40,11 +40,12 @@ meta_algo='sac'
 start_steps='10000'
 distance_threshold='0.06'
 success_reward='10.'
-primitive_skills="mp push"
+primitive_skills="mp grasp"
 subgoal_predictor="True"
 seed="1234"
 temperature='0.3'
 has_terminal='True'
+ignore_contact_geoms='box'
 log_root_dir='/data/jun/projects/hrl-planner/logs'
 
 mpiexec -n $workers python -m rl.main \

@@ -821,7 +821,7 @@ class RolloutRunner(object):
                                 ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                             else:
                                 ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-                        curr_qpos = env.sim.data.qpos[:env.model.nu].ravel().copy()
+                        curr_qpos = env.sim.data.qpos[:env.sim.model.nu].ravel().copy()
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
                         ob, reward, done, info = env.step(ac)

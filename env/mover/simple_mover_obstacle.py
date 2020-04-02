@@ -56,10 +56,10 @@ class SimpleMoverObstacleEnv(BaseEnv):
         while True:
             goal = np.random.uniform(low=-0.2, high=0.2, size=2)
             box = np.random.uniform(low=-0.2, high=0.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
@@ -72,7 +72,7 @@ class SimpleMoverObstacleEnv(BaseEnv):
 
     def initialize_joints(self):
         while True:
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = self.goal
             qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
@@ -80,17 +80,17 @@ class SimpleMoverObstacleEnv(BaseEnv):
                 break
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
+        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.model.nu],
+                self.sim.data.qvel.flat[:self.sim.model.nu],
                 self.sim.data.qvel.flat[-2:], # box vel
                 self._get_pos('fingertip')
             ])),
-            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
+            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
         ])
 
     def _format_action(self, action):
