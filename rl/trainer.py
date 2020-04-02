@@ -538,6 +538,39 @@ class Trainer(object):
             with open("saved_rollouts/{}.p".format(self._config.run_name), "wb") as f:
                 pickle.dump(rollouts, f)
 
+    def mp_evaluate(self):
+        step, update_iter = self._load_ckpt(ckpt_num=self._config.ckpt_num)
+
+        logger.info("Run %d evaluations at step=%d, update_iter=%d",
+                    self._config.num_eval, step, update_iter)
+        info_history = defaultdict(list)
+        rollouts = []
+        for i in trange(self._config.num_eval):
+            logger.warn("Evalute run %d", i+1)
+            rollout, info, vids = \
+                self._mp_subgoal_predictor_evaluate(step=step, record=self._config.record, idx=i)
+            for k, v in info.items():
+                info_history[k].append(v)
+            if self._config.save_rollout:
+                rollouts.append(rollout)
+
+        keys = ["episode_success", "reward_goal_dist"]
+        os.makedirs("result", exist_ok=True)
+        with h5py.File("result/{}.hdf5".format(self._config.run_name), "w") as hf:
+            for k in keys:
+                hf.create_dataset(k, data=info_history[k])
+
+            result = "{:.02f} $\\pm$ {:.02f}".format(
+                    np.mean(info_history["episode_success"]),
+                    np.std(info_history["episode_success"])
+            )
+            logger.warn(result)
+
+        if self._config.save_rollout:
+            os.makedirs("saved_rollouts", exist_ok=True)
+            with open("saved_rollouts/{}.p".format(self._config.run_name), "wb") as f:
+                pickle.dump(rollouts, f)
+
     def _save_video(self, fname, frames, fps=8.):
         path = os.path.join(self._config.record_dir, fname)
 

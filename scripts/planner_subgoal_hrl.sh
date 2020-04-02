@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.remove_geom"
+prefix="hrl.v3"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -50,7 +50,7 @@ subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 ignore_contact_geoms='None box'
-log_root_dir='./logs'
+log_root_dir='/data/jun/projects/hrl-planner/logs'
 
 mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
