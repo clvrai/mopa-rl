@@ -1012,6 +1012,7 @@ class RolloutRunner(object):
                             frame_info['curr_qpos'] = curr_qpos
                             frame_info['goal'] = env.goal
                             frame_info['skill_type'] = skill_type
+                            frame_info['contacts'] = env.sim.data.ncon
                             for i, k in enumerate(meta_ac.keys()):
                                 if k == 'subgoal' and k != 'default':
                                     frame_info['meta_subgoal'] = meta_ac[k]

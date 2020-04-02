@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.cylinder"
+prefix="hrl.v5"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -88,4 +88,4 @@ mpiexec -n $workers python -m rl.main \
     --primitive_skills $primitive_skills \
     --subgoal_predictor $subgoal_predictor \
     --has_terminal $has_terminal \
-    --meta_oracle $meta_oracle
+    --meta_oracle $meta_oracle \
