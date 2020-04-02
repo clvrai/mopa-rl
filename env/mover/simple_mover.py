@@ -69,8 +69,8 @@ class SimpleMoverEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
-            box = np.random.uniform(low=-0.2, high=0.2, size=2)
+            goal = np.random.uniform(low=-0.3, high=0.3, size=2)
+            box = np.random.uniform(low=-0.3, high=0.3, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[3] = 0.
             qpos[4] = 0.
@@ -82,8 +82,8 @@ class SimpleMoverEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
-                    self._get_distance('fingertip', 'box') > 0.4: #make the task harder
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and self._get_distance('box', 'target') > 0.1 and \
+                    self._get_distance('fingertip', 'box') > 0.1: #make the task harder
                 self.goal = goal
                 self.box = box
                 break
