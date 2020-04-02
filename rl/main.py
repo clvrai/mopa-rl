@@ -69,8 +69,12 @@ def run(config):
         trainer.train()
         logger.info("Finish training")
     else:
-        trainer.evaluate()
-        logger.info("Finish evaluating")
+        if config.ll_type == 'mix' and config.subgoal_predictor:
+            trainer.mp_evaluate()
+            logger.info('Finish evaluating')
+        else:
+            trainer.evaluate()
+            logger.info("Finish evaluating")
 
 
 def make_log_files(config):
