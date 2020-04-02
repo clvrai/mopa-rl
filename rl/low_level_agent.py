@@ -84,7 +84,7 @@ class LowLevelAgent(SACAgent):
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
-    def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True, random_exploration=False):
+    def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         assert len(self._planners) != 0, "No planner exists"
 
         if target_qpos is None:
@@ -99,7 +99,7 @@ class LowLevelAgent(SACAgent):
             else:
                 ac, activation = self._actors[skill_idx].act(ob, is_train)
             target_qpos = curr_qpos.copy()
-            target_qpos[:action_size(self._ac_space)] += ac['default']
+            target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
             traj, success = self._planners[skill_idx].plan(curr_qpos, target_qpos)
             return traj, success, target_qpos, ac
         else:
