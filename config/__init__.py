@@ -45,7 +45,8 @@ def argparser():
                         choices=['discrete', 'subgoal'])
     parser.add_argument("--meta_subgoal_rew", type=float, default=-100)
     parser.add_argument("--goal_replace", type=str2bool, default=False)
-    parser.add_argument("--relative_subgoal", type=str2bool, default=False)
+    parser.add_argument("--relative_subgoal", type=str2bool, default=True)
+    parser.add_argument("--meta_oracle", type=str2bool, default=False)
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
@@ -69,6 +70,7 @@ def argparser():
 
     # motion planning
     parser.add_argument("--use_ik", type=str2bool, default=False)
+    parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
@@ -103,13 +105,13 @@ def argparser():
     parser.add_argument("--batch_size", type=int, default=256,
                         help="the sample batch size")
     parser.add_argument("--max_grad_norm", type=float, default=None)
-    parser.add_argument("--max_global_step", type=int, default=int(2e6))
+    parser.add_argument("--max_global_step", type=int, default=int(10e6))
     parser.add_argument("--gpu", type=int, default=None)
 
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")
     parser.add_argument("--start_steps", type=int, default=1e4)
-    parser.add_argument("--temperature", type=float, default=1.0, help="Temperature for Gumbel Softmax")
+    parser.add_argument("--temperature", type=float, default=0.3, help="Temperature for Gumbel Softmax")
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)
@@ -123,8 +125,8 @@ def argparser():
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)
-    parser.add_argument("--evaluate_interval", type=int, default=10)
-    parser.add_argument("--ckpt_interval", type=int, default=200)
+    parser.add_argument("--evaluate_interval", type=int, default=1000)
+    parser.add_argument("--ckpt_interval", type=int, default=10000)
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,
                         help="set it True if you want to use wandb")

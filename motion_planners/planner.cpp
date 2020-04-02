@@ -872,7 +872,7 @@ struct __pyx_obj_7planner_PyKinematicPlanner;
  * 
  * cdef class PyKinematicPlanner:             # <<<<<<<<<<<<<<
  *     cdef KinematicPlanner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):
+ *     def __cinit__(self, char* root_dir, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):
  */
 struct __pyx_obj_7planner_PyKinematicPlanner {
   PyObject_HEAD
@@ -1249,6 +1249,7 @@ static const char __pyx_k_geom_id[] = "geom_id";
 static const char __pyx_k_range_2[] = "range";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_goal_vec[] = "goal_vec";
+static const char __pyx_k_root_dir[] = "root_dir";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_max_steps[] = "max_steps";
@@ -1293,6 +1294,7 @@ static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
 static PyObject *__pyx_n_s_removeCollision;
+static PyObject *__pyx_n_s_root_dir;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_sst_pruning_radius;
@@ -1302,7 +1304,7 @@ static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_threshold;
 static PyObject *__pyx_n_s_timelimit;
 static PyObject *__pyx_n_s_xml_filename;
-static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt, double __pyx_v_threshold, double __pyx_v__range, double __pyx_v_constructTime); /* proto */
+static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, char *__pyx_v_root_dir, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt, double __pyx_v_threshold, double __pyx_v__range, double __pyx_v_constructTime); /* proto */
 static void __pyx_pf_7planner_18PyKinematicPlanner_2__dealloc__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_4plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_max_steps); /* proto */
 static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_6removeCollision(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_geom_id, PyObject *__pyx_v_contype, PyObject *__pyx_v_conaffinity); /* proto */
@@ -1316,14 +1318,15 @@ static PyObject *__pyx_tuple__2;
 /* "planner.pyx":27
  * cdef class PyKinematicPlanner:
  *     cdef KinematicPlanner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):             # <<<<<<<<<<<<<<
- *         self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
+ *     def __cinit__(self, char* root_dir, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):             # <<<<<<<<<<<<<<
+ *         self.thisptr = new KinematicPlanner(root_dir, xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
  * 
  */
 
 /* Python wrapper */
 static int __pyx_pw_7planner_18PyKinematicPlanner_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static int __pyx_pw_7planner_18PyKinematicPlanner_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  char *__pyx_v_root_dir;
   std::string __pyx_v_xml_filename;
   std::string __pyx_v_algo;
   int __pyx_v_num_actions;
@@ -1337,12 +1340,14 @@ static int __pyx_pw_7planner_18PyKinematicPlanner_1__cinit__(PyObject *__pyx_v_s
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_xml_filename,&__pyx_n_s_algo,&__pyx_n_s_num_actions,&__pyx_n_s_sst_selection_radius,&__pyx_n_s_sst_pruning_radius,&__pyx_n_s_opt,&__pyx_n_s_threshold,&__pyx_n_s_range,&__pyx_n_s_constructTime,0};
-    PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_root_dir,&__pyx_n_s_xml_filename,&__pyx_n_s_algo,&__pyx_n_s_num_actions,&__pyx_n_s_sst_selection_radius,&__pyx_n_s_sst_pruning_radius,&__pyx_n_s_opt,&__pyx_n_s_threshold,&__pyx_n_s_range,&__pyx_n_s_constructTime,0};
+    PyObject* values[10] = {0,0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
+        CYTHON_FALLTHROUGH;
         case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
         CYTHON_FALLTHROUGH;
         case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
@@ -1367,61 +1372,67 @@ static int __pyx_pw_7planner_18PyKinematicPlanner_1__cinit__(PyObject *__pyx_v_s
       kw_args = PyDict_Size(__pyx_kwds);
       switch (pos_args) {
         case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_xml_filename)) != 0)) kw_args--;
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_root_dir)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_algo)) != 0)) kw_args--;
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_xml_filename)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 1); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 1); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_actions)) != 0)) kw_args--;
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_algo)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 2); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 2); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sst_selection_radius)) != 0)) kw_args--;
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_actions)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 3); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 3); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sst_pruning_radius)) != 0)) kw_args--;
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sst_selection_radius)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 4); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 4); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
-        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_opt)) != 0)) kw_args--;
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sst_pruning_radius)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 5); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 5); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
-        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_threshold)) != 0)) kw_args--;
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_opt)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 6); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 6); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
-        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_range)) != 0)) kw_args--;
+        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_threshold)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 7); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 7); __PYX_ERR(1, 27, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  8:
-        if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_constructTime)) != 0)) kw_args--;
+        if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_range)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, 8); __PYX_ERR(1, 27, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 8); __PYX_ERR(1, 27, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  9:
+        if (likely((values[9] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_constructTime)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, 9); __PYX_ERR(1, 27, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(1, 27, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 9) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 10) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -1433,33 +1444,35 @@ static int __pyx_pw_7planner_18PyKinematicPlanner_1__cinit__(PyObject *__pyx_v_s
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
       values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
       values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+      values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
     }
-    __pyx_v_xml_filename = __pyx_convert_string_from_py_std__in_string(values[0]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_algo = __pyx_convert_string_from_py_std__in_string(values[1]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_num_actions = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_num_actions == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_sst_selection_radius = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_sst_selection_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_sst_pruning_radius = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_sst_pruning_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_opt = __pyx_convert_string_from_py_std__in_string(values[5]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_threshold = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_threshold == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v__range = __pyx_PyFloat_AsDouble(values[7]); if (unlikely((__pyx_v__range == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
-    __pyx_v_constructTime = __pyx_PyFloat_AsDouble(values[8]); if (unlikely((__pyx_v_constructTime == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_root_dir = __Pyx_PyObject_AsWritableString(values[0]); if (unlikely((!__pyx_v_root_dir) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_xml_filename = __pyx_convert_string_from_py_std__in_string(values[1]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_algo = __pyx_convert_string_from_py_std__in_string(values[2]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_num_actions = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_actions == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_sst_selection_radius = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_sst_selection_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_sst_pruning_radius = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_sst_pruning_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_opt = __pyx_convert_string_from_py_std__in_string(values[6]); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_threshold = __pyx_PyFloat_AsDouble(values[7]); if (unlikely((__pyx_v_threshold == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v__range = __pyx_PyFloat_AsDouble(values[8]); if (unlikely((__pyx_v__range == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
+    __pyx_v_constructTime = __pyx_PyFloat_AsDouble(values[9]); if (unlikely((__pyx_v_constructTime == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 27, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 27, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 10, 10, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 27, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("planner.PyKinematicPlanner.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7planner_18PyKinematicPlanner___cinit__(((struct __pyx_obj_7planner_PyKinematicPlanner *)__pyx_v_self), __pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius, __pyx_v_opt, __pyx_v_threshold, __pyx_v__range, __pyx_v_constructTime);
+  __pyx_r = __pyx_pf_7planner_18PyKinematicPlanner___cinit__(((struct __pyx_obj_7planner_PyKinematicPlanner *)__pyx_v_self), __pyx_v_root_dir, __pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius, __pyx_v_opt, __pyx_v_threshold, __pyx_v__range, __pyx_v_constructTime);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt, double __pyx_v_threshold, double __pyx_v__range, double __pyx_v_constructTime) {
+static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, char *__pyx_v_root_dir, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt, double __pyx_v_threshold, double __pyx_v__range, double __pyx_v_constructTime) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   MotionPlanner::KinematicPlanner *__pyx_t_1;
@@ -1467,13 +1480,13 @@ static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7pl
 
   /* "planner.pyx":28
  *     cdef KinematicPlanner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):
- *         self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)             # <<<<<<<<<<<<<<
+ *     def __cinit__(self, char* root_dir, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):
+ *         self.thisptr = new KinematicPlanner(root_dir, xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)             # <<<<<<<<<<<<<<
  * 
  *     def __dealloc__(self):
  */
   try {
-    __pyx_t_1 = new MotionPlanner::KinematicPlanner(__pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius, __pyx_v_opt, __pyx_v_threshold, __pyx_v__range, __pyx_v_constructTime);
+    __pyx_t_1 = new MotionPlanner::KinematicPlanner(__pyx_v_root_dir, __pyx_v_xml_filename, __pyx_v_algo, __pyx_v_num_actions, __pyx_v_sst_selection_radius, __pyx_v_sst_pruning_radius, __pyx_v_opt, __pyx_v_threshold, __pyx_v__range, __pyx_v_constructTime);
   } catch(...) {
     __Pyx_CppExn2PyErr();
     __PYX_ERR(1, 28, __pyx_L1_error)
@@ -1483,8 +1496,8 @@ static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7pl
   /* "planner.pyx":27
  * cdef class PyKinematicPlanner:
  *     cdef KinematicPlanner *thisptr
- *     def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):             # <<<<<<<<<<<<<<
- *         self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
+ *     def __cinit__(self, char* root_dir, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime):             # <<<<<<<<<<<<<<
+ *         self.thisptr = new KinematicPlanner(root_dir, xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
  * 
  */
 
@@ -1500,7 +1513,7 @@ static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7pl
 }
 
 /* "planner.pyx":30
- *         self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
+ *         self.thisptr = new KinematicPlanner(root_dir, xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         del self.thisptr
@@ -1532,7 +1545,7 @@ static void __pyx_pf_7planner_18PyKinematicPlanner_2__dealloc__(struct __pyx_obj
   delete __pyx_v_self->thisptr;
 
   /* "planner.pyx":30
- *         self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
+ *         self.thisptr = new KinematicPlanner(root_dir, xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         del self.thisptr
@@ -2615,6 +2628,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
   {&__pyx_n_s_removeCollision, __pyx_k_removeCollision, sizeof(__pyx_k_removeCollision), 0, 0, 1, 1},
+  {&__pyx_n_s_root_dir, __pyx_k_root_dir, sizeof(__pyx_k_root_dir), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_sst_pruning_radius, __pyx_k_sst_pruning_radius, sizeof(__pyx_k_sst_pruning_radius), 0, 0, 1, 1},

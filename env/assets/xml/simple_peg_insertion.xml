@@ -1,0 +1,3 @@
+<mujoco model="simple_peg_insertion">
+    <include file="./common/simple_peg_insertion.xml" />
+</mujoco>

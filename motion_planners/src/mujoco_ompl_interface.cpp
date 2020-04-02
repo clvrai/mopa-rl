@@ -163,7 +163,6 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
         ob::RealVectorBounds bounds(1);
         bounds.setLow(joint.range[0]);
         bounds.setHigh(joint.range[1]);
-        std::cout << "Limit: " << joint.range[0] << "  " << joint.range[1] << "  " << std::endl;
 
         ob::RealVectorBounds se3bounds(3);
         // se3bounds.setLow(0, -0.00001);

@@ -222,6 +222,9 @@ class BaseEnv(gym.Env):
 
         return self._terminal, step_log, penalty
 
+    def get_next_primitive(self, prev_primitive):
+        pass
+
     def _ctrl_reward(self, a):
         ctrl_reward = -self._env_config["ctrl_reward"] * np.square(a).sum()
         return ctrl_reward
