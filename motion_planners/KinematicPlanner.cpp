@@ -44,6 +44,7 @@ namespace ob = ompl::base;
 namespace oc = ompl::control;
 namespace og = ompl::geometric;
 
+std::string mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
 
 using namespace MotionPlanner;
 
@@ -52,7 +53,7 @@ KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std
                  double Threshold, double _Range, double constructTime)
 {
     // std::string xml_filename = XML_filename;
-    ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
+    // ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;
@@ -63,8 +64,9 @@ KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std
     constructTime = constructTime;
     is_construct = true;
 
-    std::cout << mjkey_filename << std::endl;
-    mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
+    // std::cout << mjkey_filename << std::endl;
+    // mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
+    // mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
     // Get xml file name
@@ -156,6 +158,7 @@ KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std
         std::cout << "Cost: " << opt_obj->getCostThreshold().value() << std::endl;
         ss->setOptimizationObjective(opt_obj);
     }
+    std::cout << "Finish setup" << std::endl;
 
 }
 

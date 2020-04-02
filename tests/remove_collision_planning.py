@@ -178,7 +178,7 @@ env_prime = gym.make(args.env, **args.__dict__)
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx)
 box_geom_id = env.sim.model.geom_name2id('box')
-planner.remove_collision(box_geom_id, 0, 0)
+# planner.remove_collision(box_geom_id, 0, 0)
 
 errors = 0
 global_num_states = 0

@@ -90,7 +90,7 @@ class SimpleMoverEnv(BaseEnv):
 
     def initialize_joints(self):
         while True:
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = self.goal
             qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
