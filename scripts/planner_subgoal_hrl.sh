@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.v3"
+prefix="hrl.cylinder"
 hrl="True"
 ll_type="mix"
 planner_type="sst"

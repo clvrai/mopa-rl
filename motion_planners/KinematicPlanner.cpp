@@ -44,7 +44,7 @@ namespace ob = ompl::base;
 namespace oc = ompl::control;
 namespace og = ompl::geometric;
 
-std::string mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
+// std::string mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
 
 using namespace MotionPlanner;
 
@@ -65,7 +65,7 @@ KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std
     is_construct = true;
 
     // std::cout << mjkey_filename << std::endl;
-    // mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
+    mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
     // mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
