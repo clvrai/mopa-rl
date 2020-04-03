@@ -20,6 +20,8 @@ from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
 from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
+from rl.mp_rollouts import MPRolloutRunner
+from rl.subgoal_rollouts import SubgoalRolloutRunner
 from rl.dataset import HERSampler
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
@@ -113,11 +115,27 @@ class Trainer(object):
                 config, ob_space, ac_space, actor, critic
             )
 
+        self._runner = None
+        if config.hrl:
+            if config.subgoal_predictor:
+                self._runner = SubgoalRolloutRunner(
+                    config, self._env, self._env_eval, self._meta_agent, self._agent
+                )
+            else:
+                if config.ll_type == 'rl':
+                    # build rollout runner
+                    self._runner = RolloutRunner(
+                        config, self._env, self._env_eval, self._meta_agent, self._agent
+                    )
+                else:
+                    self._runner = MPRolloutRunner(
+                        config, self._env, self._env_eval, self._meta_agent, self._agent
+                    )
+        else:
+            self._runner = RolloutRunner(
+                config, self._env, self._env_eval, self._meta_agent, self._agent
+            )
 
-        # build rollout runner
-        self._runner = RolloutRunner(
-            config, self._env, self._env_eval, self._meta_agent, self._agent
-        )
 
         # setup wandb
         if self._is_chef and self._config.is_train:
@@ -253,24 +271,15 @@ class Trainer(object):
         runner = None
         random_runner = None
         if config.hrl:
-            if config.meta_update_target == "LL":
+            if config.meta_update_target == 'HL':
+                if config.meta_algo == 'sac':
+                    runner = self._runner.run(every_steps=1)
+                    random_runner = self._runner.run(every_steps=1, random_exploration=True)
+                else:
+                    runner = self._runner.run_episode(every_steps=self._config.rollout_length)
+            else:
                 runner = self._runner.run(every_steps=1)
                 random_runner = self._runner.run(every_steps=1, random_exploration=True)
-            elif config.meta_update_target == 'HL':
-                if config.ll_type == 'mp' or config.ll_type == 'mix': # would required to modify this later
-                    if config.meta_algo == 'sac':
-                        runner = self._runner.run_with_mp(every_steps=1)
-                        random_runner = self._runner.run_with_mp(every_steps=1, random_exploration=True)
-                    else:
-                        self._runner.run_episode_with_mp(every_steps=self._config.rollout_length)
-                elif config.ll_type == 'rl':
-                    runner = self._runner.run(every_steps=1)
-            elif config.meta_update_target == 'both' and config.subgoal_predictor:
-                if config.meta_algo == 'sac':
-                    runner = self._runner.run_with_subgoal_predictor(every_steps=1)
-                    random_runner = self._runner.run_with_subgoal_predictor(every_steps=1, random_exploration=True)
-            else:
-                raise NotImplementedError
 
         else:
             if config.algo == 'sac':
@@ -387,16 +396,6 @@ class Trainer(object):
                                 self.log_obs(recon, 'test_ep/reconstructed', step=step)
                         self._log_test(step, info, vids, obs)
 
-                    # Evaluate mp
-                    if self._config.ll_type == 'mp' or self._config.ll_type == 'mix':
-                        if self._config.subgoal_predictor:
-                            mp_rollout, mp_info, mp_vids = self._mp_subgoal_predictor_evaluate(step=step, record=config.record)
-                            self._log_mp_test(step, mp_info, mp_vids)
-                        else:
-                            mp_rollout, mp_info, mp_vids = self._mp_evaluate(step=step, record=config.record)
-                            self._log_mp_test(step, mp_info, mp_vids)
-
-
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
 
@@ -449,61 +448,6 @@ class Trainer(object):
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         # self._save_success_qpos(info)
         return rollout, info, np.array(vids)
-
-    def _mp_evaluate(self, step=None, record=False, idx=None):
-        """ Run one rollout if in eval mode
-            Run num_record_samples rollouts if in train mode
-            Evaluation for Motion Planner
-        """
-        vids = []
-        for i in range(self._config.num_record_samples):
-            rollout, meta_rollout, info, frames = \
-                self._runner.run_episode_with_mp(is_train=False, record=record)
-
-            if record:
-                ep_rew = info["rew"]
-                ep_success = "s" if info["episode_success"] else "f"
-                fname = "{}_step_{:011d}_{}_r_{}_{}_mp.mp4".format(
-                    self._config.env, step, idx if idx is not None else i,
-                    ep_rew, ep_success)
-                self._save_video(fname, frames)
-                vids.append(frames)
-
-            if idx is not None:
-                break
-
-        logger.info("mp rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
-        # self._save_success_qpos(info, prefix="mp_")
-        return rollout, info, np.array(vids)
-
-
-    def _mp_subgoal_predictor_evaluate(self, step=None, record=False, idx=None):
-        """ Run one rollout if in eval mode
-            Run num_record_samples rollouts if in train mode
-            Evaluation for Motion Planner
-        """
-        vids = []
-        for i in range(self._config.num_record_samples):
-            rollout, meta_rollout, info, frames = \
-                self._runner.run_episode_with_subgoal_predictor(is_train=False, record=record)
-
-            if record:
-                ep_rew = info["rew"]
-                ep_success = "s" if info["episode_success"] else "f"
-                fname = "{}_step_{:011d}_{}_r_{}_{}_mp.mp4".format(
-                    self._config.env, step, idx if idx is not None else i,
-                    ep_rew, ep_success)
-                self._save_video(fname, frames)
-                vids.append(frames)
-
-            if idx is not None:
-                break
-
-        logger.info("mp rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
-        # self._save_success_qpos(info, prefix="mp_")
-        return rollout, info, np.array(vids)
-
-
 
     def evaluate(self):
         step, update_iter = self._load_ckpt(ckpt_num=self._config.ckpt_num)
