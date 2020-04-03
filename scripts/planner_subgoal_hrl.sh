@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.v5.debug"
+prefix="hrl.meta_len.15.push"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -30,10 +30,10 @@ rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="-0.5"
-max_meta_len="1"
+max_meta_len="15"
 buffer_size="120000"
 num_batches="1"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="128"
 reward_type="dense"
@@ -52,8 +52,7 @@ has_terminal='True'
 ignore_contact_geoms='None box'
 log_root_dir='/data/jun/projects/hrl-planner/logs'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
