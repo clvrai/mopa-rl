@@ -188,7 +188,7 @@ class SimpleMoverEnv(BaseEnv):
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
             reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_grasp = (int(self._has_grasp()) - int(self._has_self_collision())) * grasp_multi
+            reward_grasp = (int(self._has_grasp()) - int(self._has_self_collision())/2.) * grasp_multi
             reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
