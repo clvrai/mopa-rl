@@ -17,13 +17,13 @@ then
 fi
 
 workers="8"
-prefix="hrl.v5.debug"
+prefix="hrl.grasp.0.75.thresh.0.6.time.0.2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
-threshold="0.5"
+threshold="0.6"
 timelimit="0.2"
 gpu=$gpu
 rl_hid_size="256"
@@ -33,7 +33,7 @@ meta_subgoal_rew="-0.5"
 max_meta_len="1"
 buffer_size="120000"
 num_batches="1"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="128"
 reward_type="dense"
@@ -52,8 +52,7 @@ has_terminal='True'
 ignore_contact_geoms='None box'
 log_root_dir='/data/jun/projects/hrl-planner/logs'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \

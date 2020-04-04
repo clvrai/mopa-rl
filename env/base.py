@@ -431,6 +431,19 @@ class BaseEnv(gym.Env):
                     return True
         return False
 
+    def has_contact(self, geom1, geom2):
+        ncon = self.sim.data.ncon
+        gemo1_id = self.sim.model.geom_name2id(geom1)
+        geom2_id = self.sim.model.geom_name2id(geom2)
+        print("contact:", ncon)
+        for i in range(ncon):
+            c = self.sim.data.contact[i]
+            print(c.geom1, c.geom2, geom1_id, geom2_id)
+            if (c.geom1 == geom1_id and c.geom2 == geom2_id) or \
+                    (c.geom1 == geom2_id and c.geom2 == geom1_id):
+                return True
+        return False
+
     def _check_contact(self):
         return False
 
