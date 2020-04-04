@@ -32,9 +32,7 @@ timestep = 0
 while True:
     env.render(mode='human')
     action = env.action_space.sample()
-    print(action)
     obs, reward, done, _ = env.step(action)
-    print(timestep)
     timestep += 1
     if done:
         print('done')

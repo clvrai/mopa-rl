@@ -2,8 +2,9 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces 
+from gym import spaces
 from env.base import BaseEnv
+from itertools import combinations
 
 
 class SimpleMoverEnv(BaseEnv):
@@ -97,6 +98,9 @@ class SimpleMoverEnv(BaseEnv):
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
+    @property
+    def gripper_geoms(self):
+        return self.left_finger_geoms + self.right_finger_geoms
 
     @property
     def left_finger_geoms(self):
@@ -105,6 +109,14 @@ class SimpleMoverEnv(BaseEnv):
     @property
     def right_finger_geoms(self):
         return ["r_finger_g0"]
+
+    @property
+    def body_geoms(self):
+        return ['root', 'link0', 'link1', 'link2', 'gripper_base_geom']
+
+    @property
+    def agent_geoms(self):
+        return self.body_geoms + self.left_finger_geoms + self.right_finger_geoms
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
@@ -173,11 +185,11 @@ class SimpleMoverEnv(BaseEnv):
         if reward_type == 'dense':
             reach_multi = 0.35
             grasp_multi = 0.5
-            move_multi = 0.7
+            move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
             reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_grasp = int(self._is_grasp()) * grasp_multi
-            reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._is_grasp())
+            reward_grasp = (int(self._has_grasp()) - int(self._has_self_collision())) * grasp_multi
+            reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_grasp + reward_move + reward_ctrl
@@ -188,7 +200,7 @@ class SimpleMoverEnv(BaseEnv):
 
         return reward, info
 
-    def _is_grasp(self):
+    def _has_grasp(self):
         touch_left_finger = False
         touch_right_finger = False
         box_geom_id = self.sim.model.geom_name2id('box')
@@ -213,12 +225,20 @@ class SimpleMoverEnv(BaseEnv):
         if dist_box_to_gripper < 0.1 and not self._stages[0]:
             self._stages[0] = True
 
-        if self._is_grasp() and self._stages[0]:
+        if self._has_grasp() and self._stages[0]:
             self._stages[1] = True
 
         if self._get_distance('box', 'target') < 0.04 and self._stages[1]:
             self._stages[2] = True
 
+    def _has_self_collision(self):
+        for i in range(self.sim.data.ncon):
+            c = self.sim.data.contact[i]
+            geom1 = self.sim.model.geom_id2name(c.geom1)
+            geom2 = self.sim.model.geom_id2name(c.geom2)
+            if geom1 in self.agent_geoms and geom2 in self.agent_geoms:
+                return True
+        return False
 
 
     def _step(self, action):
