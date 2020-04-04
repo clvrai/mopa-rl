@@ -17,14 +17,14 @@ then
 fi
 
 workers="8"
-prefix="hrl.v6"
+prefix="hrl.grasp.0.75.thresh.0.6.time.0.2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
-threshold="0.2"
-timelimit="0.1"
+threshold="0.6"
+timelimit="0.2"
 gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
