@@ -17,14 +17,14 @@ then
 fi
 
 workers="8"
-prefix="hrl.meta_len.15.push"
+prefix="hrl.meta_len.15.push.v2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
-threshold="0.5"
-timelimit="0.2"
+threshold="0.2"
+timelimit="0.1"
 gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
