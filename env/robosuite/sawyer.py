@@ -299,13 +299,13 @@ class SawyerEnv(BaseEnv):
 
         return action
 
-    def _step(self, action):
+    def _step(self, action, is_planner=False):
         """
         (Optional) does gripper visualization after actions.
         """
         assert len(action) == self.dof, "environment got invalid action dimension"
 
-        if self._prev_state is None:
+        if not is_planner or self._prev_state is None:
             self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes]
 
         if self._i_term is None:

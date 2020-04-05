@@ -140,6 +140,7 @@ class BaseEnv(gym.Env):
         return self.sim.model.nu
 
     def reset(self):
+        self._prev_state = None
         self.sim.reset()
         self._reset_internal()
         if self.render_mode == 'human':
@@ -180,14 +181,14 @@ class BaseEnv(gym.Env):
         self._i_term = np.zeros_like(self.sim.data.qpos[self.ref_joint_pos_indexes])
 
 
-    def step(self, action):
+    def step(self, action, is_planner=False):
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
             action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
 
         self._pre_action(action)
-        ob, reward, done, info = self._step(action)
+        ob, reward, done, info = self._step(action, is_planner)
         done, info, penalty = self._after_step(reward, done, info)
         return ob, reward + penalty, done, info
 
