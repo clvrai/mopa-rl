@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.without_self_collision.box.sm.ctrl"
+prefix="hrl.without_self_collision.box.sm.ctrl.fix_rollout.cum_rew"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -39,7 +39,7 @@ batch_size="128"
 reward_type="dense"
 reward_scale="3"
 comment="obstacle"
-ctrl_reward_coef="1e-2"
+ctrl_reward_coef="1e-1"
 actor_num_hid_layers="2"
 subgoal_type="joint"
 subgoal_reward="True"
