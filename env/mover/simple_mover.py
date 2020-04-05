@@ -244,7 +244,7 @@ class SimpleMoverEnv(BaseEnv):
         return False
 
 
-    def _step(self, action):
+    def _step(self, action, is_planner):
         """
         Args:
             action (numpy array): The array should have the corresponding elements.
@@ -252,7 +252,9 @@ class SimpleMoverEnv(BaseEnv):
         """
 
         done = False
-        desired_state = self.get_joint_positions + action[:-1] # except for gripper action
+        if not is_planner and self._prev_state is None:
+            self._prev_state = self.get_joint_positions
+        desired_state = self._prev_state + action[:-1] # except for gripper action
 
         reward, info = self.compute_reward(action)
 
@@ -270,6 +272,7 @@ class SimpleMoverEnv(BaseEnv):
         self.check_stage()
 
         obs = self._get_obs()
+        self._prev_state = np.copy(desired_state)
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             if self._env_config['has_terminal']:

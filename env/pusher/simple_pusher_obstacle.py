@@ -12,7 +12,7 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_pusher_obstacle.xml", **kwargs)
-        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.model.body_names))
+        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': 1.
@@ -31,10 +31,10 @@ class SimplePusherObstacleEnv(BaseEnv):
         while True:
             goal = np.random.uniform(low=-0.2, high=.2, size=2)
             box = np.random.uniform(low=-0.2, high=.2, size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
-            qvel = np.random.uniform(low=-.005, high=.005, size=self.model.nv) + self.sim.data.qvel.ravel()
+            qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
@@ -46,7 +46,7 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     def initialize_joints(self):
         while True:
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = self.goal
             qpos[-2:] = self.box
             self.set_state(qpos, self.sim.data.qvel.ravel())
@@ -62,17 +62,17 @@ class SimplePusherObstacleEnv(BaseEnv):
         return np.concatenate([obstacle_states, obstacle_size])
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.model.nu]
+        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.model.nu],
+                self.sim.data.qvel.flat[:self.sim.model.nu],
                 self.sim.data.qvel.flat[-2:], # box vel
                 self._get_pos('fingertip')
             ])),
-            ('goal', self.sim.data.qpos.flat[self.model.nu:-2])
+            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
         ])
 
     @property
@@ -87,9 +87,9 @@ class SimplePusherObstacleEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:self.model.nu]
+        return self.sim.data.qpos.ravel()[:self.sim.model.nu]
 
-    def _step(self, action):
+    def _step(self, action, is_planner=False):
         """
         Args:
             action (numpy array): The array should have the corresponding elements.
@@ -98,7 +98,9 @@ class SimplePusherObstacleEnv(BaseEnv):
 
         info = {}
         done = False
-        desired_state = self.get_joint_positions + action
+        if not is_planner and self._prev_state is None:
+            self._prev_state = self.get_joint_positions
+        desired_state = self._prev_state + action
 
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
@@ -129,13 +131,14 @@ class SimplePusherObstacleEnv(BaseEnv):
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[:self.model.nu].copy()
+        prev_state = self.sim.data.qpos[:self.sim.model.nu].copy()
         target_vel = (desired_state-prev_state) / self._frame_dt
         for t in range(n_inner_loop):
             action = self._get_control(desired_state, prev_state, target_vel)
             self._do_simulation(action)
 
         obs = self._get_obs()
+        self._prev_state = np.copy(desired_state)
 
         if self._env_config['reward_type'] == 'dist_diff':
             post_reward_dist = self._get_distance("box", "target")
