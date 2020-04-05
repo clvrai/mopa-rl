@@ -95,19 +95,19 @@
             <geom class='link-goal' name='link2-goal'/>
         </body>
 
-        <body name="target" pos="0 0 .005">
-            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.4 .4" stiffness="0" type="slide"/>
-            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.4 .4" stiffness="0" type="slide"/>
+        <body name="target" pos=".1 -.1 .005">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.4 .4" ref='.1' stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.4 .4" ref='-.1' stiffness="0" type="slide"/>
             <geom conaffinity="1" contype="0" name="target" pos="0 0 0" rgba="0.2 0.2 0.2 1" size=".020 .001 .002" type="cylinder"/>
         </body>
         <body name="subgoal" pos="0 0 .005">
             <geom conaffinity="0" contype="0" name="subgoal_geom" pos="0 0 0" rgba="0.2 0.9 0.2 0" size=".020 .005 .002" type="cylinder"/>
         </body>
 
-        <body name='box' pos="0 .0 .025" euler="0 0 0">
+        <body name='box' pos=".1 -.1 .025" euler="0 0 0">
             <!-- <inertial pos="0 0 0" mass="50" /> -->
-            <joint armature="0" axis="1 0 0" damping="0.5" limited="true" name="box_x" pos="0 0 0" range="-.5 .5" stiffness="0" type="slide" />
-            <joint armature="0" axis="0 1 0" damping="0.5" limited="true" name="box_y" pos="0 0 0" range="-.5 .5" stiffness="0" type="slide" />
+            <joint armature="0" axis="1 0 0" damping="0.5" limited="true" name="box_x" pos="0 0 0" range="-.4 .4" ref='.1' stiffness="0" type="slide" />
+            <joint armature="0" axis="0 1 0" damping="0.5" limited="true" name="box_y" pos="0 0 0" range="-.4 .4" ref='-.1' stiffness="0" type="slide" />
             <geom conaffinity="1" contype="1" name="box" pos="0 0 0" rgba="0.2 0.9 0.2 1" size=".01 .01 .01" type="cylinder" />
         </body>
     </worldbody>

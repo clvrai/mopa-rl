@@ -69,8 +69,8 @@ class SimpleMoverObstacleEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=-0.3, high=0.3, size=2)
-            box = np.random.uniform(low=-0.3, high=0.3, size=2)
+            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
+            box = np.random.uniform(low=-0.2, high=0.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[3] = 0.
             qpos[4] = 0.
@@ -188,7 +188,9 @@ class SimpleMoverObstacleEnv(BaseEnv):
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
             reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_grasp = (int(self._has_grasp())-int(self._has_self_collision())/2.) * grasp_multi
+            has_grasp = self._has_grasp()
+            has_self_collision = self._has_self_collision()
+            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
             reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 

@@ -17,13 +17,13 @@ then
 fi
 
 workers="8"
-prefix="hrl.grasp.0.75.thresh.0.6.time.0.2"
+prefix="hrl.without_self_collision.box.init.0.2.revert"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
-threshold="0.6"
+threshold="0.5"
 timelimit="0.2"
 gpu=$gpu
 rl_hid_size="256"
