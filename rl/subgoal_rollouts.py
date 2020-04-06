@@ -151,17 +151,19 @@ class SubgoalRolloutRunner(object):
                     if success:
                         cum_rew = 0
                         ac_before_activation = None
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
                         for next_qpos in traj:
                             # meta_rollout.add({
                             #     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                             # })
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos)
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                            meta_rollout.add({
+                                'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                            })
                             ob, reward, done, info = env.step(ac)
+                            meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                            rollout.add({'done': done, 'rew': reward})
                             cum_rew += reward
                             ep_len += 1
                             step += 1
@@ -175,8 +177,6 @@ class SubgoalRolloutRunner(object):
                                 break
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
-                            meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                            rollout.add({'done': done, 'rew': reward})
                             ll_ob = ob.copy()
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             meta_rollout.add({'meta_ob': ob})

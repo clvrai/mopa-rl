@@ -17,19 +17,19 @@ then
 fi
 
 workers="8"
-prefix="hrl.without_self_collision.fix.alpha_ent.sm.ctrl.diff_rollout.after_rew.meta_len.15.single"
+prefix="hrl.without_self_collision.fixed_grasp_reward.replaced_subgoal.ctrl.1e-2.timelimit.0.1.neg.0.1"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
-timelimit="0.2"
+timelimit="0.1"
 gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
-meta_subgoal_rew="-0.5"
+meta_subgoal_rew="-0.1"
 max_meta_len="15"
 buffer_size="120000"
 num_batches="1"
@@ -50,10 +50,9 @@ subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 ignore_contact_geoms='None box'
-log_root_dir='./logs'
+log_root_dir='/data/jun/projects/hrl-planner/logs'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
