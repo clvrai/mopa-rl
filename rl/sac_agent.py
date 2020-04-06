@@ -143,6 +143,7 @@ class SACAgent(BaseAgent):
             'critic1_weight_norm': compute_weight_norm(self._critic1),
             'critic2_weight_norm': compute_weight_norm(self._critic2),
         })
+        # print(train_info)
 
         return train_info
 
@@ -158,6 +159,9 @@ class SACAgent(BaseAgent):
         else:
             alpha_loss = torch.zeros_like(log_pi).to(self._config.device)
             for i in range(len(self._config.primitive_skills)):
+                # if torch.sum((meta_ac['default']==2).float()) > 0:
+                #     import pdb
+                #     pdb.set_trace()
                 alpha_loss -= self._log_alpha[i] * ((log_pi + self._target_entropy).detach() * (meta_ac['default'] == i).float())
             alpha_loss = alpha_loss.mean()
         return alpha_loss
@@ -217,6 +221,7 @@ class SACAgent(BaseAgent):
 
         if self._config.hrl:
             for i, skill in enumerate(self._config.primitive_skills):
+                # print(skill, ': ', alpha[i].cpu().item())
                 info['entropy_alpha_{}'.format(skill)] = alpha[i].cpu().item()
         else:
             info['entropy_alpha'] = alpha.cpu().item()

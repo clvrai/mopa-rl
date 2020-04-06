@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.without_self_collision.fix.alpha_ent.sm.ctrl.diff_rollout"
+prefix="hrl.without_self_collision.fix.alpha_ent.sm.ctrl.diff_rollout.after_rew.meta_len.15.single"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -30,14 +30,14 @@ rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="-0.5"
-max_meta_len="1"
+max_meta_len="15"
 buffer_size="120000"
 num_batches="1"
 debug="False"
 rollout_length="15000"
 batch_size="128"
 reward_type="dense"
-reward_scale="10"
+reward_scale="3."
 comment="obstacle"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -45,12 +45,12 @@ subgoal_type="joint"
 subgoal_reward="True"
 meta_algo='sac'
 start_steps='10000'
-success_reward='3.'
+success_reward='10.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 ignore_contact_geoms='None box'
-log_root_dir='/data/jun/projects/hrl-planner/logs'
+log_root_dir='./logs'
 
 #mpiexec -n $workers
 python -m rl.main \

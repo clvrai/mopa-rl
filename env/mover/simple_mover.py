@@ -256,7 +256,6 @@ class SimpleMoverEnv(BaseEnv):
             self._prev_state = self.get_joint_positions
         desired_state = self._prev_state + action[:-1] # except for gripper action
 
-        reward, info = self.compute_reward(action)
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
@@ -266,9 +265,10 @@ class SimpleMoverEnv(BaseEnv):
             arm_action = self._get_control(desired_state, prev_state, target_vel)
             gripper_action_in = action[len(self.joint_names):len(self.joint_names)+1]
             gripper_action = self._format_action(gripper_action_in)
-            action = np.concatenate((arm_action, gripper_action))
-            self._do_simulation(action)
+            ac = np.concatenate((arm_action, gripper_action))
+            self._do_simulation(ac)
 
+        reward, info = self.compute_reward(action)
         self.check_stage()
 
         obs = self._get_obs()
