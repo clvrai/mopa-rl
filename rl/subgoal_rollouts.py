@@ -151,13 +151,17 @@ class SubgoalRolloutRunner(object):
                     if 'mp' in skill_type:
                         if success:
                             cum_rew = 0
+                            ac_before_activation = None
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            meta_rollout.add({
+                                'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                            })
                             for next_qpos in traj:
-                                meta_rollout.add({
-                                    'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                                })
+                                # meta_rollout.add({
+                                #     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                                # })
                                 ll_ob = ob.copy()
                                 ac = env.form_action(next_qpos)
-                                ac_before_activation = None
                                 ob, reward, done, info = env.step(ac)
                                 cum_rew += reward
                                 ep_len += 1
@@ -165,19 +169,20 @@ class SubgoalRolloutRunner(object):
                                 ep_rew += reward
                                 meta_len += 1
                                 reward_info.add(info)
-                                meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                                # meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+
 
                                 if done or ep_len >= max_step:
                                     break
-
                             if every_steps is not None and step % every_steps == 0:
                                 # last frame
-                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                rollout.add({'done': done, 'rew': cum_rew})
+                                meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                                rollout.add({'done': done, 'rew': reward})
                                 ll_ob = ob.copy()
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                                 meta_rollout.add({'meta_ob': ob})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
 
                         else:
                             meta_rollout.add({
