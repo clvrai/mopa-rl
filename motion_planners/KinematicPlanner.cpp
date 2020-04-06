@@ -215,8 +215,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
         for (unsigned int i=0; i < n; ++i)
         {
-            auto rState(states[i]->as<ob::WrapperStateSpace::StateType>()->getState()
-                        ->as<ob::RealVectorStateSpace::StateType())
+            // auto rState(states[i]->as<ob::WrapperStateSpace::StateType>()->getState()
+            //             ->as<ob::RealVectorStateSpace::StateType())
             auto cState(states[i]->as<ob::CompoundState>());
             // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
             auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
