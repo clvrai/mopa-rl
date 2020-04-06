@@ -190,8 +190,8 @@ class SimpleMoverEnv(BaseEnv):
             reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
             has_grasp = self._has_grasp()
             has_self_collision = self._has_self_collision()
-            # reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
-            reward_grasp = int(has_grasp) * grasp_multi
+            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
+            # reward_grasp = int(has_grasp) * grasp_multi
             reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
@@ -274,7 +274,7 @@ class SimpleMoverEnv(BaseEnv):
         obs = self._get_obs()
         self._prev_state = np.copy(desired_state)
 
-        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._has_grasp():
             if self._env_config['has_terminal']:
                 done = True
                 self._success = True
