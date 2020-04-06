@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0.3.rollut.relative_subgoal.self_collision.debug"
+prefix="hrl.rew.0.3.rollut.relative_subgoal.self_collision.modified_alpha.v1"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -33,7 +33,7 @@ meta_subgoal_rew="-0.3"
 max_meta_len="15"
 buffer_size="120000"
 num_batches="1"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="128"
 reward_type="dense"
@@ -52,8 +52,7 @@ has_terminal='True'
 ignore_contact_geoms='None box'
 log_root_dir='/data/jun/projects/hrl-planner/logs'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
