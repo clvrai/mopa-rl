@@ -330,7 +330,7 @@ class SubgoalRolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         ll_ob = ob.copy()
-                        ac = env.form_action(next_qpos)
+                        ac = env.form_action(next_qpos, cur_primitive)
                         ac_before_activation = None
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                         ob, reward, done, info = env.step(ac)
