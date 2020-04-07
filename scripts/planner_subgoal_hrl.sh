@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0.reward_gripper"
+prefix="hrl.rew.0.reward_gripper.fixed_manipulation"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
