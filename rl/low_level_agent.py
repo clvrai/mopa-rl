@@ -72,10 +72,7 @@ class LowLevelAgent(SACAgent):
                     skill_ob_norm.load_state_dict(ckpt['agent']['ob_norm_state_dict'])
 
             if 'mp' in skill:
-                if config.ignored_contact_geoms is not None and config.ignored_contact_geom_ids[planner_i] != None:
-                    ignored_contacts = config.ignored_contact_geom_ids[planner_i]
-                else:
-                    ignored_contacts = []
+                ignored_contacts = config.ignored_contact_geom_ids[planner_i]
                 planner = MpAgent(config, self._ac_space, self._non_limited_idx, ignored_contacts)
                 self._planners.append(planner)
                 planner_i += 1

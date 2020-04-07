@@ -27,6 +27,7 @@ from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
 from util.gym import observation_size, action_size
+from util.misc import make_ordered_pair
 
 
 
@@ -66,11 +67,19 @@ class Trainer(object):
 
         if config.ignored_contact_geoms is not None:
             ids = []
-            for geom in config.ignored_contact_geoms:
-                if geom != 'None':
-                    ids.append(env.sim.model.geom_name2id(geom))
-                else:
-                    ids.append(None)
+            for i, geom in enumerate(config.ignored_contact_geoms):
+                ids.append([])
+                geom = geom.split("/")
+                geom_pairs = []
+                for g in geom:
+                    pair = g.split(",")
+                    pair_id = []
+                    for p in pair:
+                        if p != 'None':
+                            pair_id.append(self._env.sim.model.geom_name2id(p))
+                    # geom_pairs.append(pair_id)
+                    if len(pair_id) != 0:
+                        ids[i].append(make_ordered_pair(pair_id[0], pair_id[1]))
             config.ignored_contact_geom_ids = ids
 
 

@@ -14,3 +14,6 @@ def save_video(fpath, frames, fps=8.):
     video = mpy.VideoClip(f, duration=len(frames)/fps+2)
     video.write_videofile(fpath, fps, verbose=False)
     print("[*] Video saved: {}".format(fpath))
+
+def make_ordered_pair(id1, id2):
+    return (min(id1, id2), max(id1, id2))

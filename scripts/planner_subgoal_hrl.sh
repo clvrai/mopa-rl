@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0.reward_gripper.fixed_manipulation"
+prefix="hrl.rew.0.rew_gripper.fixed_manipulation.fix.contact"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -49,7 +49,7 @@ success_reward='100.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
-ignore_contact_geoms='None box'
+ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 
 mpiexec -n $workers python -m rl.main \
@@ -89,3 +89,4 @@ mpiexec -n $workers python -m rl.main \
     --subgoal_predictor $subgoal_predictor \
     --has_terminal $has_terminal \
     --meta_oracle $meta_oracle \
+    --ignored_contact_geoms $ignored_contact_geoms
