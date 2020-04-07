@@ -170,9 +170,12 @@ class SimpleMoverEnv(BaseEnv):
 
         return action
 
-    def form_action(self, next_qpos):
+    def form_action(self, next_qpos, skill=None):
         joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
-        gripper_ac = np.array([0.])
+        if skill == 2:
+            gripper_ac = np.array(1.])
+        else:
+            gripper_ac = np.array([0.])
         ac = OrderedDict([('default', np.concatenate([
             joint_ac, gripper_ac
         ]))])
