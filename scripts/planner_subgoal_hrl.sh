@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0.3.rollut.relative_subgoal.self_collision.modified_alpha.v1"
+prefix="hrl.rew.0"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -29,7 +29,7 @@ gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
-meta_subgoal_rew="-0.3"
+meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="120000"
 num_batches="1"
@@ -50,7 +50,7 @@ subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 ignore_contact_geoms='None box'
-log_root_dir='/data/jun/projects/hrl-planner/logs'
+log_root_dir='./logs'
 
 mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \

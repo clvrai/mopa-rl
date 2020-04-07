@@ -53,7 +53,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
                  double Threshold, double _Range, double constructTime, std::vector<std::pair<int, int>> Ignored_contacts)
 {
     // std::string xml_filename = XML_filename;
-    ompl::msg::setLogLevel(ompl::msg::LOG_INFO); // OMPL logging
+    ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;
@@ -67,7 +67,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
 
     // std::cout << mjkey_filename << std::endl;
     // mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
-    mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
+    // mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
+    mjkey_filename = std::getenv("MUJOCO_PY_MJKEY_PATH");
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
     // Get xml file name
