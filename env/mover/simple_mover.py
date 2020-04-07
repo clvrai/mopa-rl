@@ -178,16 +178,27 @@ class SimpleMoverEnv(BaseEnv):
         ]))])
         return ac
 
+    def _cos_vec(self, s, e1, e2):
+        vec1 = np.array(e1) - s
+        vec2 = np.array(e2) - s
+        v1u = vec1 / np.linalg.norm(vec1)
+        v2u = vec2 / np.linalg.norm(vec2)
+        return np.clip(np.dot(v1u, v2u), -1.0, 1.0)
+
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
+            gripper_multi = 0.35
             grasp_multi = 0.75
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
             reward_reach = (1-np.tanh(5.0*dist_box_to_gripper)) * reach_multi
+            reward_gripper = (1-np.tanh(5.0*self._cos_vec(self._get_pos('box'),
+                                           self._get_pos('l_finger_g0'),
+                                           self._get_pos('r_finger_g0')))) * 0.35
             has_grasp = self._has_grasp()
             has_self_collision = self._has_self_collision()
             reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
@@ -195,9 +206,9 @@ class SimpleMoverEnv(BaseEnv):
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
-            reward = reward_reach + reward_grasp + reward_move + reward_ctrl
+            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl
 
-            info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp, reward_move=reward_move, reward_ctrl=reward_ctrl)
+            info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper, reward_grasp=reward_grasp, reward_move=reward_move, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 

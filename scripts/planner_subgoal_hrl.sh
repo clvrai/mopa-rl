@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0"
+prefix="hrl.rew.0.reward_gripper"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -45,7 +45,7 @@ subgoal_type="joint"
 subgoal_reward="True"
 meta_algo='sac'
 start_steps='10000'
-success_reward='10.'
+success_reward='100.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
