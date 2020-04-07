@@ -20,7 +20,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.82),
         table_friction=(1, 0.005, 0.0001),
-        use_camera_obs=True,
+        use_camera_obs=False,
         use_object_obs=True,
         reward_shaping=False,
         placement_initializer=None,
@@ -162,7 +162,7 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         # initialize objects of interest
         #target = TargetObject()
-        box = BoxObject(size=[0.01, 0.01, 0.01],
+        box = BoxObject(size=[0.02, 0.02, 0.02],
                         rgba=[1, 0, 0, 1])
         self.mujoco_objects = OrderedDict([('box', box)])
 
@@ -263,7 +263,6 @@ class SawyerPickMoveEnv(SawyerEnv):
         # reset joint positions
         self.sim.forward()
         target_qpos = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1].copy()
-        result = qpos_from_site_pose_sampling(self, 'grip_site', target_pos=self._get_pos('box'), target_quat=np.array([0., 0., 1., 0.]), joint_names=self.model.robot.joints, max_steps=100)
         self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1] = target_qpos
         self.sim.forward()
 

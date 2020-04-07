@@ -49,11 +49,11 @@ namespace og = ompl::geometric;
 using namespace MotionPlanner;
 
 
-KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime)
+KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
+                 double Threshold, double _Range, double constructTime, std::vector<std::pair<int, int>> Ignored_contacts)
 {
     // std::string xml_filename = XML_filename;
-    ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
+    ompl::msg::setLogLevel(ompl::msg::LOG_INFO); // OMPL logging
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;
@@ -63,10 +63,11 @@ KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std
     threshold = Threshold;
     constructTime = constructTime;
     is_construct = true;
+    ignored_contacts = Ignored_contacts;
 
     // std::cout << mjkey_filename << std::endl;
-    mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
-    // mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
+    // mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
+    mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
     // Get xml file name
@@ -94,7 +95,7 @@ KinematicPlanner::KinematicPlanner(char* root_dir, std::string XML_filename, std
 
     // Setup OMPL environment
     si = MjOmpl::createSpaceInformationKinematic(mj->m);
-    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false));
+    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false, ignored_contacts));
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
     sst_planner = std::make_shared<og::SST>(si);
@@ -220,17 +221,34 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             auto cState(states[i]->as<ob::CompoundState>());
             // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
             auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
-
-            for (unsigned int j=0; j < start_vec.size();  ++j){
+            int index = 0;
+            for (unsigned int j=0; j < css->getSubspaceCount();  ++j){
+                // std::cout << "index: " << j << std::endl;
                 auto subspace(css->getSubspace(j));
                 switch (subspace->getType()) {
                     case ob::STATE_SPACE_REAL_VECTOR:
-                        solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
+                        solutions[i][index] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
+                        index++;
                         break;
                     case ob::STATE_SPACE_SO2:
-                        solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
+                        solutions[i][index] = cState -> as<ob::SO2StateSpace::StateType>(j)->value;
+                        index++;
                         break;
                     default:
+                        auto cSubState(cState -> as<ob::CompoundState>(j));
+                        for (unsigned int k=0; k<3;++k){
+                            // std::cout << "index: " << j << std::endl;
+                            solutions[i][index] = cSubState -> as<ob::RealVectorStateSpace::StateType>(0)->values[k];
+                            index++;
+                        }
+                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->x;
+                        index++;
+                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->y;
+                        index++;
+                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->z;
+                        index++;
+                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->w;
+                        index++;
                         break;
                 }
             }

@@ -305,7 +305,6 @@ class BaseEnv(gym.Env):
                                          old_state.act, old_state.udd_state)
         self.sim.set_state(new_state)
         self.sim.forward()
-        self.sim.step()
 
     def _get_pos(self, name):
         if name in self.sim.model.body_names:

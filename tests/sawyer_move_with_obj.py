@@ -73,7 +73,6 @@ outer_dt = env.control_timestep
 inner_dt = env.sim.model.opt.timestep
 
 n_inner_loop = int(outer_dt / inner_dt)
-import ipdb; ipdb.set_trace()
 
 # create a trajectory to goal
 q_0 = env.sim.data.qpos[env.ref_joint_pos_indexes] # current pos

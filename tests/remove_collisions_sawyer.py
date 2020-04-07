@@ -8,15 +8,32 @@ import gym
 from config import argparser
 from env.inverse_kinematics import qpos_from_site_pose, qpos_from_site_pose_sampling
 from config.motion_planner import add_arguments as planner_add_arguments
-from robosuite.wrappers import IKWrapper
-from robosuite.controllers import SawyerIKController
 from math import pi
 from util.misc import save_video
 from util.gym import action_size
 import time
 import cv2
+from util.contact_info import print_contact_info
+# workaround for mujoco py issue #390
 from mujoco_py import GlfwContext
 GlfwContext(offscreen=True)  # Create a window to init GLFW.
+
+def make_ordered_pair(id1, id2):
+    return (min(id1, id2), max(id1, id2))
+
+def check_state_validity(env, ignored_contacts):
+    valid = True # assume valid state; all current contacts are to be ignored
+    if env.sim.data.ncon > 0:
+        for i in range(env.sim.data.ncon):
+            con_data = env.sim.data.contact[i]
+            con_pair = make_ordered_pair(con_data.geom1, con_data.geom2)
+            try:
+                ignored_contacts.index(con_pair)
+            except ValueError:
+                print("Contact pair (%d, %d) not in list of contacts to ignore. Invalid state." % (con_pair[0], con_pair[1]))
+                valid = False
+                break
+    return valid
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
@@ -50,16 +67,15 @@ def render_frame(env, step, info={}):
     return frame
 
 
-
-def run_mp(env, planner, i=None):
+def runmp(env, planner, goal_site='target', i=None):  
     end_error = 0
 
-    # Setup environments and states
-    env.reset()
+    # Create env to simulate true motion plan, and one for IK
     mp_env = gym.make(args.env, **args.__dict__)
     mp_env.reset()
     ik_env = gym.make(args.env, **args.__dict__)
     ik_env.reset()
+
 
     qpos = env.sim.data.qpos.ravel().copy()
     qvel = env.sim.data.qvel.ravel().copy()
@@ -67,36 +83,45 @@ def run_mp(env, planner, i=None):
     mp_env.set_state(qpos, qvel)
     ik_env.set_state(qpos, qvel)
 
-    # Obtain start and goal joint positions. Do IK to get joint positions for goal_site.
-    goal_site = 'target'
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
-                                            target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-2)
 
-    print("IK for %s successful? %s. Err_norm %.3f" % (goal_site, result.success, result.err_norm))
+    # Obtain start and goal joint positions. Do IK to get joint positions for goal_site.
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
+                                            target_quat=env._get_quat(goal_site), joint_names=env.model.robot.joints, max_steps=1000, tol=1e-3)
+
+    print("IK for %s successful? %s. Err_norm %.5f" % (goal_site, result.success, result.err_norm))
     # Equate qpos components not affected by planner
-    start = env.sim.data.qpos.ravel().copy()
+    start = qpos
     goal = start.copy()
     goal[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
+    ik_env.set_state(goal, qvel)
+    # print(goal[env.ref_joint_pos_indexes])
+    ik_env.render('human')
+    input("See if IK solution is fine. Press any key to continue; Ctrl-C to quit")
 
-    ik_env.set_state(goal, env.sim.data.qvel.ravel())
     # OMPL Planning
-    traj, _ = planner.plan(start, goal,  args.timelimit, 40)
+    traj, _ = planner.plan(start, goal,  args.timelimit, args.max_meta_len)
 
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
-        print("Planner succeeded in planning trajectory to %s!" % goal_site)
+        print("Planner success")
+    else:
+        print("Planner failure")
+
 
     frames = []
-    action_frames = []
     step = 0
 
     if success:
         # goal = env.sim.data.qpos[-2:]
         # prev_state = traj[0, :]
         # i_term = np.zeros_like(env.sim.data.qpos[:-2])
+        num_joints = len(env.model.robot.joints)
         for step, state in enumerate(traj[1:]):
-            mp_env.set_state(np.concatenate((traj[step + 1][:len(env.model.robot.joints)], env.sim.data.qpos[len(env.model.robot.joints):])).ravel().copy(), env.sim.data.qvel.ravel())
+            qpos = env.sim.data.qpos
+            qvel = env.sim.data.qvel
+            new_state = np.concatenate((traj[step + 1][:num_joints], qpos[num_joints:])).ravel().copy()
+            mp_env.set_state(new_state, qvel.ravel())
             if is_save_video:
                 frames.append(render_frame(env, step))
             else:
@@ -104,13 +129,13 @@ def run_mp(env, planner, i=None):
 
             # Change indicator robot position
             # env.set_robot_indicator_joint_positions(state[env.ref_joint_pos_indexes])
-            action = state-env.sim.data.qpos.copy()
+            action = state - qpos.copy()
             action = np.concatenate([action[env.ref_joint_pos_indexes], np.array([0])])
 
             # env.step(action)
             pos = start.copy()
             pos[env.ref_joint_pos_indexes] = state[env.ref_joint_pos_indexes]
-            env.set_state(pos, env.sim.data.qpos)
+            env.set_state(pos, env.sim.data.qvel)
 
             end_error += np.sqrt((env.data.get_site_xpos('grip_site') - mp_env.data.get_site_xpos('grip_site')) ** 2)
             prev_state = state
@@ -134,18 +159,20 @@ def run_mp(env, planner, i=None):
     else:
         return -1, num_states, end_error/len(traj[1:]), success
 
+# MAIN SCRIPT
 
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 
-if 'reacher' in args.env:
-    from config.reacher import add_arguments
+if 'mover' in args.env:
+    from config.mover import add_arguments
 elif 'robosuite' in args.env:
     from config.robosuite import add_arguments
 elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
 else:
-    raise ValueError('args.env (%s) is not supported' % args.env)
+    raise ValueError('args.env (%s) is not supported for this test script' % args.env)
+
 
 add_arguments(parser)
 planner_add_arguments(parser)
@@ -156,21 +183,69 @@ is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
-
-env.use_camera_obs = False
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
-planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx)
+# Create planner
+boxid = env.sim.model.geom_name2id('box')
+tableid = env.sim.model.geom_name2id('table_collision')
+ignored_contacts = [make_ordered_pair(boxid, tableid)]
+print("Ignored contacts\t", ignored_contacts)
 
-global_num_states = 0
-global_end_error = 0
-N = 1
-num_success = 0
-for i in range(N):
-    _, num_states, end_error, success = run_mp(env, planner, i)
-    global_end_error += end_error
-    global_num_states += num_states
-    if success:
-        num_success += 1
+# Check if initial state is valid to pass to the planner
+env.reset()
+if 'pick-move' in args.env:
+    env.sim.data.qpos[13:17] = [0., 1., 0., 0.] # TODO: Make less hacky
+    # env._set_quat('box', [0., 1., 0., 0.])
+env.sim.forward() # set positions
+valid = check_state_validity(env, ignored_contacts)
 
-print('Planner success: %d out of %d times' % (num_success, N))
-print('End effector error: ', global_end_error/N)
+if valid:
+    print("Valid start state for motion plan. Initializing planner")
+    planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx, ignored_contacts=ignored_contacts)
+else:
+    print("Invalid start state for the planner. Quitting")
+    exit(1)
+
+## Now run planner to reach pre-grasping position
+_, num_states, end_error, success = runmp(env, planner, goal_site='box')
+print('Planner success: %s' % (success))
+
+## Now close the gripper
+ac = np.zeros(env.dof)
+ac[-1] = -1.
+for i in range(2):
+    env.step(ac)
+# visual inspection before continuing
+env.render('human')
+input("See if gripper is closed. Press any key to continue; Ctrl-C to quit")
+
+## Post-grasp checks
+# Check if grasped state is valid
+ignored_contacts.append(make_ordered_pair(boxid, env.sim.model.geom_name2id('r_finger_g0')))
+ignored_contacts.append(make_ordered_pair(boxid, env.sim.model.geom_name2id('r_fingertip_g0')))
+ignored_contacts.append(make_ordered_pair(boxid, env.sim.model.geom_name2id('l_finger_g0')))
+ignored_contacts.append(make_ordered_pair(boxid, env.sim.model.geom_name2id('l_fingertip_g0')))
+valid = check_state_validity(env, ignored_contacts)
+
+if valid:
+    print("Valid start state for motion plan. Initializing planner")
+    planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx, ignored_contacts=ignored_contacts)
+else:
+    print("Invalid start state for the planner. Quitting")
+    exit(1)
+
+## Now move to target
+_, num_states, end_error, success = runmp(env, planner, goal_site='target')
+
+# global_num_states = 0
+# global_end_error = 0
+# N = 1
+# num_success = 0
+# for i in range(N):
+#     _, num_states, end_error, success = runmp(env, planner)
+#     global_end_error += end_error
+#     global_num_states += num_states
+#     if success:
+#         num_success += 1
+
+# print('Planner success: %d out of %d times' % (num_success, N))
+# print('End effector error: ', global_end_error/N)

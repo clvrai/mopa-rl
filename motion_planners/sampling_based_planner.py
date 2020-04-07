@@ -10,15 +10,16 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx=None):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx=None, ignored_contacts=[]):
         self.config = config
-        self.planner = PyKinematicPlanner(os.environ['HOME'].encode('utf-8'), xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions,
+        self.planner = PyKinematicPlanner(xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions,
                                  config.sst_selection_radius,
                                  config.sst_selection_radius,
                                  config.planner_objective.encode('utf-8'),
                                  config.threshold,
                                  config.range,
-                                 config.construct_time)
+                                 config.construct_time,
+                                 ignored_contacts)
         self.non_limited_idx = non_limited_idx
 
     def convert_nonlimited(self, state):

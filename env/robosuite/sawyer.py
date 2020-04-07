@@ -32,6 +32,7 @@ class SawyerEnv(BaseEnv):
         img_width=256,
         img_depth=False,
         use_robot_indicator=False,
+        use_camera_obs = False,
         **kwargs):
         """
         Args:
@@ -68,6 +69,7 @@ class SawyerEnv(BaseEnv):
         self.use_indicator_object = use_indicator_object
         self.control_freq = control_freq
         self.use_robot_indicator = use_robot_indicator
+        self.use_camera_obs = use_camera_obs
 
         xml_name = kwargs['env'].replace("-v0", "")
         xml_name = xml_name.replace("-", "_")

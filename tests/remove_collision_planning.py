@@ -49,14 +49,13 @@ def render_frame(env, step, info={}):
 
 
 def run_mp(env, planner, i=None):
-    error = 0
     end_error = 0
     env.reset()
     init_qpos = np.array([1.14, -1.91, -1, 0., 0., -0.068, -0.1, 0.0851, -0.125])
     env.set_state(init_qpos, np.zeros_like(env.sim.data.qvel.ravel().copy()))
     env.render('human')
     ac = np.zeros(4)
-    ac[-1] = 1.
+    ac[-1] = 1. # closer gripper
     for _ in range(2):
         env.step(ac)
 
@@ -65,20 +64,17 @@ def run_mp(env, planner, i=None):
     qpos = env.sim.data.qpos.ravel()
     qvel = env.sim.data.qvel.ravel()
     success = False
-    env.set_state(qpos, qvel)
+    mp_env.set_state(qpos, qvel)
     goal = env.goal
 
 
     ik_env = gym.make(args.env, **args.__dict__)
     ik_env.reset()
-    ik_env.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
-    env_prime.reset()
-    env_prime.set_state(env.sim.data.qpos.ravel(), env.sim.data.qvel.ravel())
+    ik_env.set_state(qpos, qvel)
 
     # IK to find a goal state
     result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos('target'), target_quat=env._get_quat('target'), joint_names=env.sim.model.joint_names[:3], max_steps=300)
     ik_env.set_state(result.qpos, ik_env.sim.data.qvel.ravel())
-
     # Update dummy reacher states (goal state and ompl states)
 
     start = env.sim.data.qpos.ravel().copy()
@@ -93,11 +89,9 @@ def run_mp(env, planner, i=None):
     # Success condition
     if len(np.unique(traj)) != 1 and traj.shape[0] != 1:
         success = True
-        print("Success")
+        print("Planner success")
     else:
-        print("Failure")
-
-
+        print("Planner failure")
 
 
     frames = []
@@ -132,7 +126,6 @@ def run_mp(env, planner, i=None):
             ac[:3] = state[:3] - env.sim.data.qpos[:3].copy()
             env.step(ac)
 
-            error += np.sqrt((env.sim.data.qpos - state) ** 2)
             end_error += np.sqrt((env.data.get_site_xpos('grip_site') - mp_env.data.get_site_xpos('grip_site')) ** 2)
             prev_state = state
 
@@ -153,7 +146,7 @@ def run_mp(env, planner, i=None):
     if num_states == 0:
         return 0, num_states, 0, success
     else:
-        return error / len(traj[1:]), num_states, end_error/len(traj[1:]), success
+        return -1, num_states, end_error/len(traj[1:]), success
 
 
 parser = argparser()
@@ -174,24 +167,21 @@ is_save_video = True
 record_caption = True
 
 env = gym.make(args.env, **args.__dict__)
-env_prime = gym.make(args.env, **args.__dict__)
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = SamplingBasedPlanner(args, env.xml_path, action_size(env.action_space), non_limited_idx)
 box_geom_id = env.sim.model.geom_name2id('box')
 # planner.remove_collision(box_geom_id, 0, 0)
 
-errors = 0
 global_num_states = 0
 global_end_error = 0
-N = 20
+N = 1
 num_success = 0
-error, num_states, end_error, success = run_mp(env, planner)
-errors += error
-global_end_error += end_error
-global_num_states += num_states
-if success:
-    num_success += 1
+for i in range(N):
+    _, num_states, end_error, success = run_mp(env, planner)
+    global_end_error += end_error
+    global_num_states += num_states
+    if success:
+        num_success += 1
 
-print(num_success)
+print('Planner success: %d out of %d times' % (num_success, N))
 print('End effector error: ', global_end_error/N)
-print('Joint state error: ', errors/N)

@@ -112,8 +112,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
             update_nv[dof_indices] = update_joints
             env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
-            site_xpos = env._get_pos(site)
-            site_xmat = env.data.get_body_xmat(site).ravel()
             # if steps % 10 == 0:
             #     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
             #           steps, err_norm, update_norm)

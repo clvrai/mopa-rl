@@ -619,6 +619,14 @@ void copySE3State(
     copySO3State(&state->rotation(), data + 3);
 }
 
+pair<int, int> make_ordered_pair(int s1, int s2) {
+    if (s1 < s2) {
+        return pair<int, int>(s1, s2);
+    }
+    else {
+        return pair<int, int>(s2, s1);
+    }
+}
 
 void copySE3State(
         const double* data,
@@ -653,7 +661,16 @@ void MujocoStatePropagator::propagate( const ob::State* state,
 }
 
 bool MujocoStateValidityChecker::isValid(const ompl::base::State *state) const {
+    return isValid(state, this->ignored_contacts);
+}
+
+//Check if geoms outside of `ignored_contacts` are in collision. If yes, state is invalid. Otherwise state is valid.
+// ignored_contacts MUST HAVE an ordered pair of ints
+// This should even work for an empty vector of ignored contacts
+// TODO: Can be made more performant
+bool MujocoStateValidityChecker::isValid(const ompl::base::State *state, std::vector<pair<int, int>> ignored_contacts) const {
     mj_lock.lock();
+    bool isValidState = true;  //valid until proven otherwise //return this after you unlock `mj_lock`
     if (si_->getStateSpace()->isCompound()) {
         copyOmplStateToMujoco(
             state->as<ob::CompoundState>(), si_, mj->m, mj->d, useVelocities);
@@ -668,7 +685,30 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state) const {
     }
     mj_fwdPosition(mj->m, mj->d);
     int ncon = mj->d->ncon;
+    for (int i = 0; i < ncon; i++) {
+        mjContact con_data = mj->d->contact[i];
+        pair<int, int> to_find = make_ordered_pair(con_data.geom1, con_data.geom2);
+
+        bool found = false;
+        for (auto it1 : ignored_contacts) {
+            if (it1 == to_find) {
+                found = true;
+            }
+        }
+
+        if (found == false) {
+            //current contact not found in list of ignored contacts
+            OMPL_DEBUG("Contact between geomIDs %d and %d unexpected. Invalid state\n", to_find.first, to_find.second);
+            isValidState = false; //so it's an invalid state
+        }
+    }
+
+    if (isValidState) {
+        //if all existing contacts are in the list of ignored contacts, state is valid
+        OMPL_DEVMSG1("All contacts part of ignored contacts. %d ignored contacts. Valid state\n", ignored_contacts.size());
+    }
     mj_lock.unlock();
-    return ncon==0;
+    return isValidState;
 }
+
 } // MjOmpl namespace

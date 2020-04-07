@@ -10,7 +10,8 @@
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 
-
+#include <string>
+#include <vector>
 #include "mujoco_wrapper.h"
 
 namespace MjOmpl {
@@ -138,10 +139,12 @@ class MujocoStateValidityChecker : public ompl::base::StateValidityChecker {
     MujocoStateValidityChecker(
             const ompl::base::SpaceInformationPtr &si,
             std::shared_ptr<MuJoCo> mj,
-            bool useVelocities=true)
+            bool useVelocities=true,
+            std::vector<std::pair<int, int>> ignored_contacts = {})
             : ompl::base::StateValidityChecker(si),
               mj(mj),
-              useVelocities(useVelocities)
+              useVelocities(useVelocities),
+              ignored_contacts(ignored_contacts)
     {
     }
 
@@ -151,6 +154,8 @@ class MujocoStateValidityChecker : public ompl::base::StateValidityChecker {
     mutable std::shared_ptr<MuJoCo> mj;
     mutable std::mutex mj_lock;
     bool useVelocities;
+    std::vector<std::pair<int, int>> ignored_contacts;
+    bool isValid(const ompl::base::State *state, std::vector<std::pair<int, int>> ignored_contacts) const;
 
 };
 
