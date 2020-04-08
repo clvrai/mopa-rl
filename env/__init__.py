@@ -154,6 +154,21 @@ register(
     kwargs={}
 )
 register(
+    id='sawyer-nut-assembly-single-robosuite-v0',
+    entry_point='env.robosuite:SawyerNutAssemblySingleEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-nut-assembly-square-robosuite-v0',
+    entry_point='env.robosuite:SawyerNutAssemblySquareEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-nut-assembly-round-robosuite-v0',
+    entry_point='env.robosuite:SawyerNutAssemblyRoundEnv',
+    kwargs={}
+)
+register(
     id='sawyer-nut-assembly-robosuite-v0',
     entry_point='env.robosuite:SawyerNutAssemblyEnv',
     kwargs={}
