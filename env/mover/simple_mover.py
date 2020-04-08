@@ -194,7 +194,7 @@ class SimpleMoverEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
-            gripper_multi = 0.35
+            gripper_multi = 0
             grasp_multi = 0.75
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
@@ -239,12 +239,12 @@ class SimpleMoverEnv(BaseEnv):
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-        if dist_box_to_gripper < 0.1 and not self._stages[0]:
+        if dist_box_to_gripper < 0.1:
             self._stages[0] = True
         else:
             self._stages[0] = False
 
-        if self._has_grasp() and self._stages[0]:
+        if self._has_grasp():
             self._stages[1] = True
         else:
             self._stages[1] = False
