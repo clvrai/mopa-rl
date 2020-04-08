@@ -194,7 +194,7 @@ class SimpleMoverEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
-            gripper_multi = 0
+            gripper_multi = 0.35
             grasp_multi = 0.75
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
