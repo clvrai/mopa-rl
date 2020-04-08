@@ -71,6 +71,12 @@ register(
 )
 
 register(
+    id='simple-peg-insertion-v0',
+    entry_point='env.peg_insertion:SimplePegInsertionEnv',
+    kwargs={}
+)
+
+register(
     id='simple-mover-obstacle-v0',
     entry_point='env.mover:SimpleMoverObstacleEnv',
     kwargs={}
