@@ -84,7 +84,7 @@ class SimplePegInsertionEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            target_pos = np.concatenate((np.random.uniform(low=-0.2, high=0.2, size=2), self._get_pos('target')[2, None]))
+            target_pos = np.concatenate((np.random.uniform(low=-0.15, high=0.15, size=2), self._get_pos('target')[2, None]))
             angle = np.random.uniform(low=-1., high=1., size=1)
             target_quat = quat_create(np.array([0, 0, 1.]), angle)
             self._set_quat('target', target_quat)
