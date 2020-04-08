@@ -40,6 +40,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         camera_width=256,
         camera_depth=False,
         use_robot_indicator=False,
+        use_target_object=True,
         **kwargs):
         """
         Args:
@@ -132,6 +133,7 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         # id of grippers for contact checking
         self.finger_names = self.gripper.contact_geoms()
+        self.use_target_object = use_target_object
 
         # self.sim.data.contact # list, geom1, geom2
         self.collision_check_geom_names = self.sim.model._geom_name2id.keys()

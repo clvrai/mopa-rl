@@ -147,39 +147,15 @@ register(
     kwargs={}
 )
 
-register(
-    id='sawyer-pick-place-v0',
-    entry_point='env.sawyer:SawyerPickAndPlaceEnv',
-    kwargs={}
-)
-
-register(
-    id='sawyer-reach-push-pick-place-v0',
-    entry_point='env.sawyer:SawyerReachPushPickPlaceEnv',
-    kwargs={}
-)
-
-register(
-    id='sawyer-reach-push-pick-place-wall-v0',
-    entry_point='env.sawyer:SawyerReachPushPickPlaceWallEnv',
-    kwargs={}
-)
-
-register(
-    id='sawyer-reach-push-pick-place-obstacle-v0',
-    entry_point='env.sawyer:SawyerReachPushPickPlaceObstacleEnv',
-    kwargs={}
-)
-
-register(
-    id='sawyer-assembly-peg-v0',
-    entry_point='env.sawyer:SawyerNutAssemblyEnv',
-    kwargs={}
-)
 
 register(
     id='sawyer-pick-place-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-nut-assembly-robosuite-v0',
+    entry_point='env.robosuite:SawyerNutAssemblyEnv',
     kwargs={}
 )
 register(
