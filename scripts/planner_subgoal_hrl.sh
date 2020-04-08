@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0.rew_gripper.fixed_manipulation.fix.contact"
+prefix="hrl.rew.0.fixed_manipulation.fix.contact.fixed_stage"
 hrl="True"
 ll_type="mix"
 planner_type="sst"

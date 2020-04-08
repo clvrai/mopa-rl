@@ -241,12 +241,18 @@ class SimpleMoverEnv(BaseEnv):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
         if dist_box_to_gripper < 0.1 and not self._stages[0]:
             self._stages[0] = True
+        else:
+            self._stages[0] = False
 
         if self._has_grasp() and self._stages[0]:
             self._stages[1] = True
+        else:
+            self._stages[1] = False
 
         if self._get_distance('box', 'target') < 0.04 and self._stages[1]:
             self._stages[2] = True
+        else:
+            self._stages[2] = False
 
     def _has_self_collision(self):
         for i in range(self.sim.data.ncon):
@@ -304,11 +310,11 @@ class SimpleMoverEnv(BaseEnv):
         return reward_subgoal_dist, info
 
     def get_next_primitive(self, prev_primitive):
-        prev_primitive = int(prev_primitive)
-        if self._stages[prev_primitive]:
-            if prev_primitive == self._num_primitives-1:
-                return self._primitive_skills[prev_primitive]
-            else:
-                return self._primitive_skills[prev_primitive+1]
-        else:
-            return self._primitive_skills[prev_primitive]
+        for i in reversed(range(self._num_primitives)):
+            if self._stages[i]:
+                if i == self._num_primitives-1:
+                    return self._primitive_skills[i]
+                else:
+                    return self._primitive_skills[i+1]
+        return self._primitive_skills[0]
+
