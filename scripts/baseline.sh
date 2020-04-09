@@ -31,8 +31,7 @@ actor_num_hid_layers='2'
 ckpt_interval='100000'
 log_root_dir="./logs"
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
