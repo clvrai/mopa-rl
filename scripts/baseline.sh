@@ -3,7 +3,7 @@
 workers="8"
 prefix="baseline.sac.v1"
 max_global_step="60000000"
-env="simple-mover-v0"
+env="sawyer-pick-place-robosuite-v0"
 gpu="2"
 rl_hid_size="256"
 max_episode_step="150"
@@ -14,7 +14,7 @@ buffer_size="125000"
 num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
@@ -25,11 +25,11 @@ ctrl_reward='1'
 reward_type='dense'
 comment='sac baseline for reacher'
 start_steps='10000'
-actor_num_hid_layers='1'
-success_reward='10.'
-has_terminal='True'
+actor_num_hid_layers='2'
+# success_reward='10.'
+# has_terminal='True'
 ckpt_interval='100000'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -59,6 +59,6 @@ python -m rl.main \
     --reward_type $reward_type \
     --comment $comment \
     --start_steps $start_steps \
-    --actor_num_hid_layers $actor_num_hid_layers \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal
+    --actor_num_hid_layers $actor_num_hid_layers
+    # --success_reward $success_reward \
+    # --has_terminal $has_terminal
