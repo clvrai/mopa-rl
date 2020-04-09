@@ -34,8 +34,10 @@ timestep = 0
 while True:
     env.render(mode='human')
     action = env.action_space.sample()
+    qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes] + action['default'][:-1]
+    env.set_robot_indicator_joint_positions(qpos)
     obs, reward, done, _ = env.step(action)
-    timestep += 1
+    print(timestep)
     if done:
         print('done')
         break

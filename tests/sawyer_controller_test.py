@@ -133,7 +133,6 @@ for t in range(1, N):
             # add gripper command to action
             # gripper_action = env.gripper.format_action(np.array([0.01]))
             action = np.concatenate([action, -gripper_action])
-
             env.sim.data.ctrl[:] = action[:]
             env.sim.forward()
             env.sim.step()

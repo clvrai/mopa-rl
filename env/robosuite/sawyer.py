@@ -309,15 +309,15 @@ class SawyerEnv(BaseEnv):
         assert len(action) == self.dof, "environment got invalid action dimension"
 
         if not is_planner or self._prev_state is None:
-            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes]
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
         if self._i_term is None:
             self._i_term = np.zeros_like(self.mujoco_robot.dof)
 
-        n_inner_loop = int(self.dt / self.sim.model.opt.timestep)
+        n_inner_loop = int(self.control_timestep / self.sim.model.opt.timestep)
 
         desired_state = self._prev_state + action[:self.mujoco_robot.dof]
-        target_vel = action[:self.mujoco_robot.dof] / self.dt
+        target_vel = action[:self.mujoco_robot.dof] / self.control_timestep
 
         for t in range(n_inner_loop):
             # gravity compensation
@@ -335,6 +335,13 @@ class SawyerEnv(BaseEnv):
                     self._ref_indicator_vel_low : self._ref_indicator_vel_high
                 ] = self.sim.data.qfrc_bias[
                     self._ref_indicator_vel_low : self._ref_indicator_vel_high
+                ]
+
+            if self.use_robot_indicator:
+                self.sim.data.qfrc_applied[
+                    self.ref_indicator_joint_pos_indexes
+                ] = self.sim.data.qfrc_bias[
+                    self.ref_indicator_joint_pos_indexes
                 ]
 
             arm_action = self._get_control(desired_state, self._prev_state, target_vel)

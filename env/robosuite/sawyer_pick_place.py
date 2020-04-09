@@ -38,6 +38,7 @@ class SawyerPickPlaceEnv(SawyerEnv):
         object_type=None,
         gripper_visualization=False,
         use_indicator_object=False,
+        use_robot_indicator=False,
         has_renderer=False,
         has_offscreen_renderer=True,
         render_collision_mesh=False,
@@ -140,6 +141,7 @@ class SawyerPickPlaceEnv(SawyerEnv):
             camera_height=camera_height,
             camera_width=camera_width,
             camera_depth=camera_depth,
+            use_robot_indicator=use_robot_indicator,
             **kwargs)
 
         # reward configuration

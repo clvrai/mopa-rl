@@ -23,7 +23,7 @@ class SawyerTestEnv(SawyerEnv):
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.82),
         table_friction=(1, 0.005, 0.0001),
-        use_camera_obs=True,
+        use_camera_obs=False,
         use_object_obs=True,
         reward_shaping=False,
         placement_initializer=None,
@@ -42,7 +42,7 @@ class SawyerTestEnv(SawyerEnv):
         camera_height=256,
         camera_width=256,
         camera_depth=False,
-        use_robot_indicator=False,
+        use_robot_indicator=True,
         use_target_object=True,
         **kwargs):
         """
@@ -134,7 +134,7 @@ class SawyerTestEnv(SawyerEnv):
             self.sim.model.site_name2id(ob_name) for ob_name in self.object_names
         ]
 
-        self.use_target_object = use_target_obejct
+        self.use_target_object = use_target_object
         # id of grippers for contact checking
         self.finger_names = self.gripper.contact_geoms()
 
