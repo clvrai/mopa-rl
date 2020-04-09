@@ -154,6 +154,11 @@ register(
     kwargs={}
 )
 register(
+    id='sawyer-pick-place-can-robosuite-v0',
+    entry_point='env.robosuite:SawyerPickPlaceCanEnv',
+    kwargs={}
+)
+register(
     id='sawyer-nut-assembly-single-robosuite-v0',
     entry_point='env.robosuite:SawyerNutAssemblySingleEnv',
     kwargs={}
