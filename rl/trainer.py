@@ -279,7 +279,8 @@ class Trainer(object):
                     runner = self._runner.run_episode(every_steps=self._config.rollout_length)
             else:
                 runner = self._runner.run(every_steps=1)
-                random_runner = self._runner.run(every_steps=1, random_exploration=True)
+                if not config.subgoal_predictor:
+                    random_runner = self._runner.run(every_steps=1, random_exploration=True)
 
         else:
             if config.algo == 'sac':

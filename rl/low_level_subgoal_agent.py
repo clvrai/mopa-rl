@@ -1,3 +1,4 @@
+
 import os
 from collections import OrderedDict
 
@@ -10,15 +11,13 @@ from rl.mp_agent import MpAgent
 from util.logger import logger
 from util.pytorch import to_tensor, get_ckpt_path
 from util.gym import action_size, observation_size
-from util.pytorch import optimizer_cuda, count_parameters, \
-    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 from env.action_spec import ActionSpec
 
 from gym import spaces
 
 from util.logger import logger
 
-class LowLevelAgent(SACAgent):
+class LowLevelSubgoalAgent(SACAgent):
     ''' Low level agent that includes skill sets for each agent, their
         execution procedure given observation and skill selections from
         meta-policy, and their training (for single-skill-per-agent cases
@@ -38,6 +37,7 @@ class LowLevelAgent(SACAgent):
 
         # parse body parts and skills
         self._actors = []
+        self._subgoal_actors = []
         self._ob_norms = []
         self._planners = []
 
@@ -54,13 +54,14 @@ class LowLevelAgent(SACAgent):
         planner_i = 0
 
         for skill in skills:
-            skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
-            skill_ob_norm = Normalizer(self._ob_space,
-                                       default_clip_range=config.clip_range,
-                                       clip_obs=config.clip_obs)
+            if 'mp' in skill:
+            else:
+                skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
+                skill_ob_norm = Normalizer(self._ob_space,
+                                           default_clip_range=config.clip_range,
+                                           clip_obs=config.clip_obs)
 
-            if self._config.meta_update_target == 'HL':
-                if "mp" not in skill:
+                if self._config.meta_update_target == 'HL':
                     path = os.path.join(config.primitive_dir, skill)
                     ckpt_path, ckpt_num = get_ckpt_path(path, None)
                     logger.warn('Load skill checkpoint (%s) from (%s)', skill, ckpt_path)
@@ -75,7 +76,7 @@ class LowLevelAgent(SACAgent):
 
             if 'mp' in skill:
                 ignored_contacts = config.ignored_contact_geom_ids[planner_i]
-                planner = MpAgent(config, self._ac_space, self._non_limited_idx, ignored_contacts=ignored_contacts)
+                planner = MpAgent(config, self._ac_space, self._non_limited_idx, ignored_contacts)
                 self._planners.append(planner)
                 planner_i += 1
             else:
@@ -126,36 +127,45 @@ class LowLevelAgent(SACAgent):
         else:
             return ac, activation
 
+    def train(self):
+        for i in range(self._config.num_batches):
+            transitin = self._subgoal_buffer.sample(self._config.batch_siz)
+            train_info = self._update_subgoal_network(transitions, i)
+            self._soft_update_subgoal_target_network(self._subgoal_critic1_target, self._subgoal_critic1, self._config.polyak)
+            self._soft_update_subgoal_target_network(self._subgoal_critic2_target, self._subgoal_critic2, self._config.polyak)
+
+        train_info.update({
+            'subgoal_actor_grad_norm': np.mean([compute_gradient_norm(_actor) for _actor in self._actors]),
+            'subgoal_actor_weight_norm': np.mean([compute_weight_norm(_actor) for _actor in self._actors]),
+            'subgoal_critic1_grad_norm': compute_gradient_norm(self._subgoal_critic1),
+            'subgoal_critic2_grad_norm': compute_gradient_norm(self._subgoal_critic2),
+            'subgoal_critic1_weight_norm': compute_weight_norm(self._subgoal_critic1),
+            'subgoal_critic2_weight_norm': compute_weight_norm(self._subgoal_critic2),
+        })
+        # print(train_info)
+
+        return train_info
+
+    def update_subgoal_predictor(self, )
+
     def return_skill_type(self, meta_ac):
         skill_idx = int(meta_ac['default'][0])
         return self._skills[skill_idx]
 
     def act_log(self, ob, meta_ac=None):
         ''' Note: only usable for SAC agents '''
-        skill_idx = int(meta_ac['default'][0])
-        return self._actors[skill_idx].act_log(ob)
+        if len(meta_ac['default']) == 1:
+            skill_idx = int(meta_ac['default'][0])
+            return self._actors[skill_idx].act_log(ob)
+        else:
+            actions = torch.zeros(len(meta_ac['default']), action_size(self._ac_space)).to(self._config.device)
+            log_pis = torch.zeros_like(meta_ac['default']).to(self._config.device)
+            for i in range(len(self._skills)):
+                ac, log_pi = self._actors[i].act_log(ob)
+                actions +=  ac['default'] * (meta_ac['default'] == i).float()
+                log_pis += log_pi * (meta_ac['default'] == i).float()
 
-    def train(self):
-        for i in range(self._config.num_batches):
-            for skill_idx in range(len(self._config.primitive_skills)):
-                if self._buffer._current_size[skill_idx] > self._config.start_steps // self._config.num_workers:
-                    transitions = self._buffer.sample(self._config.batch_size, skill_idx)
-                else:
-                    transitions = self._buffer.create_empty_transition()
-                train_info = self._update_network(transitions, i, skill_idx)
-            self._soft_update_target_network(self._critic1_target, self._critic1, self._config.polyak)
-            self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
-
-        train_info.update({
-            'actor_grad_norm': np.mean([compute_gradient_norm(_actor) for _actor in self._actors]),
-            'actor_weight_norm': np.mean([compute_weight_norm(_actor) for _actor in self._actors]),
-            'critic1_grad_norm': compute_gradient_norm(self._critic1),
-            'critic2_grad_norm': compute_gradient_norm(self._critic2),
-            'critic1_weight_norm': compute_weight_norm(self._critic1),
-            'critic2_weight_norm': compute_weight_norm(self._critic2),
-        })
-        # print(train_info)
-        return train_info
+            return OrderedDict([('default', actions)]), log_pis
 
     def sync_networks(self):
         if self._config.meta_update_target == 'LL' or \
