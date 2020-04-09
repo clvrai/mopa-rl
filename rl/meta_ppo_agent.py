@@ -66,7 +66,7 @@ class MetaPPOAgent(BaseAgent):
         if sampler is None:
             sampler = RandomSampler()
         self._buffer = ReplayBuffer(['ob', 'ac', 'done', 'rew', 'ret', 'adv',
-                                     'ac_before_activation', 'log_prob', 'ag', 'g'],
+                                     'ac_before_activation', 'log_prob'],
                                     config.buffer_size,
                                     sampler.sample_func)
 

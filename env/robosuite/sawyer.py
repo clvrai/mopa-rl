@@ -3,6 +3,7 @@ import numpy as np
 
 from env.base import BaseEnv
 import env.robosuite.utils.transform_utils as T
+from gym import spaces
 
 from mujoco_py import MjSim, MjRenderContextOffscreen
 from mujoco_py import load_model_from_xml
@@ -112,8 +113,8 @@ class SawyerEnv(BaseEnv):
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
         self._is_jnt_limited = is_jnt_limited
 
-        end_time = self.cur_time + self.control_timestep
-        self._frame_skip = int(end_time / self.model_timestep)
+        # end_time = self.cur_time + self.control_timestep
+        # self._frame_skip = int(end_time / self.model_timestep)
 
         self._prev_state = None
         self._i_term = None
@@ -150,12 +151,12 @@ class SawyerEnv(BaseEnv):
             )
         self.control_timestep = 1. / control_freq
 
-    def _reset_internal(self):
+    def _reset(self):
         """
         Sets initial pose of arm and grippers.
         """
         self._load_model()
-        super()._reset_internal()
+        super()._reset()
         self.mjpy_model = self.model.get_model(mode="mujoco_py")
         self.sim = MjSim(self.mjpy_model)
         self.data = self.sim.data
@@ -169,7 +170,7 @@ class SawyerEnv(BaseEnv):
             self.sim.data.qpos[
                 self.ref_gripper_joint_pos_indexes
             ] = self.gripper.init_qpos
-
+        return self._get_obs()
 
     def _get_reference(self):
         """
@@ -350,7 +351,6 @@ class SawyerEnv(BaseEnv):
         reward = self.reward(action)
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
-
         return self._get_obs(), reward, self._terminal, {}
 
     def _get_obs(self):
@@ -402,6 +402,15 @@ class SawyerEnv(BaseEnv):
         low = np.ones(self.dof) * -1.
         high = np.ones(self.dof) * 1.
         return low, high
+
+    @property
+    def observation_space(self):
+        observation = self._get_obs()
+        observation_space = OrderedDict()
+        for k, v in observation.items():
+            observation_space[k] = spaces.Box(low=-1., high=1, shape=v.shape)
+        observation_space = spaces.Dict(observation_space)
+        return observation_space
 
     @property
     def dof(self):

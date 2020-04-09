@@ -252,11 +252,11 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         self.target_id = self.sim.model.body_name2id("target")
 
-    def _reset_internal(self):
+    def _reset(self):
         """
         Resets simulation internal configurations.
         """
-        super()._reset_internal()
+        super()._reset()
 
         # reset positions of objects
         self.model.place_objects()
@@ -274,6 +274,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         #     dist = np.linalg.norm(self.sim.data.get_site_xpos('box')-self.sim.data.get_site_xpos('grip_site'))
         #     if dist < 0.02:
         #         break
+        return self._get_obs()
 
 
     def initialize_joints(self):

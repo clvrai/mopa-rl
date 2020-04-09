@@ -57,7 +57,7 @@ class BaseEnv(gym.Env):
 
 
         # Load model
-        self._reset_internal()
+        self._reset()
         self._load_model_from_path(xml_path)
 
         self._init_qpos = self.sim.data.qpos.ravel().copy()

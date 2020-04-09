@@ -55,8 +55,8 @@ class MetaRollout(object):
         batch['log_prob'] = self._history['meta_log_prob']
         batch['done'] = self._history['meta_done']
         batch['rew'] = self._history['meta_rew']
-        batch['ag'] = self._history['ag']
-        batch['g'] = self._history['g']
+        # batch['ag'] = self._history['ag']
+        # batch['g'] = self._history['g']
         self._history = defaultdict(list)
         return batch
 
@@ -166,10 +166,10 @@ class RolloutRunner(object):
 
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     ob, reward, done, info = env.step(ac)
-                    if config.subgoal_reward:
-                        subgoal_rew, info = env.compute_subgoal_reward('box', info)
-                        reward += subgoal_rew
-
+                    # if config.subgoal_reward:
+                    #     subgoal_rew, info = env.compute_subgoal_reward('box', info)
+                    #     reward += subgoal_rew
+                    #
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     step += 1
@@ -183,9 +183,7 @@ class RolloutRunner(object):
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                ag = env._get_pos("fingertip").copy()
-                g = env._get_pos('subgoal').copy()
-                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew, 'ag': ag, 'g': g})
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
                 if every_steps is not None and step % every_steps == 0 and config.hrl_network_to_update == 'HL':
                     ll_ob = ob.copy()
@@ -195,7 +193,7 @@ class RolloutRunner(object):
                         else:
                             ll_ob['goal'] = subgoal_cart
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                    meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
+                    meta_rollout.add({'meta_ob': ob})
                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
             ep_info.add({'len': ep_len, 'rew': ep_rew})
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
@@ -213,7 +211,7 @@ class RolloutRunner(object):
                     else:
                         ll_ob['goal'] = subgoal_cart
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                meta_rollout.add({'meta_ob': ob, 'ag': ag, 'g': g})
+                meta_rollout.add({'meta_ob': ob})
                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
@@ -303,9 +301,9 @@ class RolloutRunner(object):
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 ob, reward, done, info = env.step(ac)
-                if config.subgoal_reward:
-                    subgoal_rew, info = env.compute_subgoal_reward('box', info)
-                    reward += subgoal_rew
+                # if config.subgoal_reward:
+                #     subgoal_rew, info = env.compute_subgoal_reward('box', info)
+                #     reward += subgoal_rew
 
                 rollout.add({'done': done, 'rew': reward})
                 ep_len += 1
@@ -374,7 +372,8 @@ class RolloutRunner(object):
                 env._set_color(k, color)
 
         frame = env.render('rgb_array') * 255.0
-        env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
+        if subgoal is not None:
+            env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
         for xpos, xquat in vis_pos:
             if xpos is not None and xquat is not None:
                 for k in xpos.keys():

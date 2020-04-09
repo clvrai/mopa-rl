@@ -29,9 +29,10 @@ class SawyerPickPlaceEnv(SawyerEnv):
         gripper_type="TwoFingerGripper",
         table_full_size=(0.39, 0.49, 0.82),
         table_friction=(1, 0.005, 0.0001),
-        use_camera_obs=True,
+        use_camera_obs=False,
         use_object_obs=True,
-        reward_shaping=False,
+        use_target_object=False,
+        reward_shaping=True,
         placement_initializer=None,
         single_object_mode=0,
         object_type=None,
@@ -100,6 +101,7 @@ class SawyerPickPlaceEnv(SawyerEnv):
 
         # task settings
         self.single_object_mode = single_object_mode
+        self.use_target_object = use_target_object
         self.object_to_id = {"milk": 0, "bread": 1, "cereal": 2, "can": 3}
         if object_type is not None:
             assert (
