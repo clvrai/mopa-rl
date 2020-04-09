@@ -10,16 +10,19 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx=None, ignored_contacts=[]):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[]):
         self.config = config
-        self.planner = PyKinematicPlanner(xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions,
-                                 config.sst_selection_radius,
-                                 config.sst_selection_radius,
-                                 config.planner_objective.encode('utf-8'),
-                                 config.threshold,
-                                 config.range,
-                                 config.construct_time,
-                                 ignored_contacts)
+        self.planner = PyKinematicPlanner(xml_path.encode('utf-8'),
+                                          config.planner_type.encode('utf-8'), num_actions,
+                                          config.sst_selection_radius,
+                                          config.sst_selection_radius,
+                                          config.planner_objective.encode('utf-8'),
+                                          config.threshold,
+                                          config.range,
+                                          config.construct_time,
+                                          passive_joint_idx,
+                                          glue_bodies,
+                                          ignored_contacts)
         self.non_limited_idx = non_limited_idx
 
     def convert_nonlimited(self, state):
@@ -37,7 +40,7 @@ class SamplingBasedPlanner:
 
         traj = [start]
         pre_state = states[0]
-        for i, state in enumerate(states[1:]):
+        for _, state in enumerate(states[1:]):
             #converted_pre_state = self.convert_nonlimited(pre_state.copy())
             tmp_state = traj[-1] + (state - pre_state)
             if self.non_limited_idx is not None:

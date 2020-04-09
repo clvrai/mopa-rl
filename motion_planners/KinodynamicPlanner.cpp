@@ -54,7 +54,8 @@ KinodynamicPlanner::KinodynamicPlanner(std::string XML_filename, std::string Alg
     sst_pruning_radius = SST_pruning_radius;
     num_actions = NUM_actions;
 
-    mjkey_filename = strcat(getenv("HOME"), "/.mujoco/mjkey.txt");
+    std::string homedir = std::getenv("HOME");
+    mjkey_filename = homedir + "/.mujoco/mjkey.txt";
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
     // Get xml file name
@@ -89,7 +90,8 @@ std::vector<std::vector<double> > KinodynamicPlanner::plan(std::vector<double> s
     auto si = MjOmpl::createSpaceInformation(mj->m);
     auto mj_state_prop(std::make_shared<MjOmpl::MujocoStatePropagator>(si, mj));
     si->setStatePropagator(mj_state_prop);
-    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false));
+    std::vector<int> passive_joint_idx = {};  // passive joints are not implemented yet for kinodynamic planning
+    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false));
 
     // Create a SimpleSetup object
     oc::SimpleSetup ss(si);

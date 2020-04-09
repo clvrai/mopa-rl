@@ -44,13 +44,11 @@ namespace ob = ompl::base;
 namespace oc = ompl::control;
 namespace og = ompl::geometric;
 
-// std::string mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
-
 using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<std::pair<int, int>> Ignored_contacts)
+                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -63,12 +61,12 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     threshold = Threshold;
     constructTime = constructTime;
     is_construct = true;
+    passive_joint_idx = Passive_joint_idx;
+    glue_bodies = Glue_bodies;
     ignored_contacts = Ignored_contacts;
 
-    // std::cout << mjkey_filename << std::endl;
-    // mjkey_filename = strcat(root_dir, "/.mujoco/mjkey.txt");
-    // mjkey_filename = strcat(std::getenv("HOME"), "/.mujoco/mjkey.txt");
-    mjkey_filename = std::getenv("MUJOCO_PY_MJKEY_PATH");
+    std::string homedir = std::getenv("HOME");
+    mjkey_filename = homedir + "/.mujoco/mjkey.txt";
     mj = std::make_shared<MuJoCo>(mjkey_filename);
 
     // Get xml file name
@@ -92,11 +90,11 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         //return -1;
     }
 
-    // Create MuJoCo Object
-
     // Setup OMPL environment
-    si = MjOmpl::createSpaceInformationKinematic(mj->m);
-    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false, ignored_contacts));
+    si = MjOmpl::createSpaceInformationKinematic(mj->m, passive_joint_idx);
+
+    msvc = std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false, ignored_contacts);
+    si->setStateValidityChecker(msvc);
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
     sst_planner = std::make_shared<og::SST>(si);
@@ -160,7 +158,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         std::cout << "Cost: " << opt_obj->getCostThreshold().value() << std::endl;
         ss->setOptimizationObjective(opt_obj);
     }
-    std::cout << "Finish setup" << std::endl;
+    std::cout << "Finished planner setup" << std::endl;
 
 }
 
@@ -168,26 +166,55 @@ KinematicPlanner::~KinematicPlanner(){
 }
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, double max_steps){
-// double Planner::planning(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit){
+                                                            double timelimit, double max_steps) {
+
+    if (start_vec.size() != mj->m->nq) {
+        std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
+        << " but should be nq: " << mj->m->nq;
+    }
+    if (goal_vec.size() != mj->m->nq) {
+        std::cerr << "ERROR: goal vector has dimension: " << goal_vec.size()
+             << " which should be nq: " << mj->m->nq;
+    }
+
+    // split start_vec/goal_vec in active and passive dimensions
+    std::vector<double> start_vec_active;
+    std::vector<double> start_vec_passive;
+    std::vector<double> goal_vec_active;
+    std::vector<double> goal_vec_passive;
+    for (int i=0; i<mj->m->nq; i++) {
+        if (MjOmpl::isActiveJoint(i, passive_joint_idx)) {
+            start_vec_active.push_back(start_vec[i]);
+            goal_vec_active.push_back(goal_vec[i]);
+            std::cout << "joint i " << i << " active " << start_vec[i] << std::endl;
+        } else {
+            start_vec_passive.push_back(start_vec[i]);
+            goal_vec_passive.push_back(goal_vec[i]);
+            std::cout << "joint i " << i << " passive " << start_vec[i] << std::endl;
+        }
+    }
 
     ss->clearStartStates();
     auto initState = ss->getSpaceInformation()->allocState();
-    MjOmpl::readOmplStateKinematic(start_vec,
-                                    ss->getSpaceInformation().get(),
-                                    initState->as<ob::CompoundState>());
-    MjOmpl::copyOmplStateToMujoco(initState->as<ob::CompoundState>(),
-                                    ss->getSpaceInformation().get(), mj->m, mj->d, false);
-   // Set start and goal states
+    MjOmpl::readOmplStateKinematic(start_vec_active,
+                                   ss->getSpaceInformation().get(),
+                                   initState->as<ob::CompoundState>());
 
+    MjOmpl::copyOmplActiveStateToMujoco(initState->as<ob::CompoundState>(),
+            ss->getSpaceInformation().get(), mj->m, mj->d, passive_joint_idx);
+
+    MjOmpl::copyPassiveStateToMujoco(start_vec_passive, mj->m, mj->d, passive_joint_idx);
+
+    msvc->addGlueTransformation(glue_bodies);
+
+    // Set active start and goal states
     ob::ScopedState<> start_ss(ss->getStateSpace());
-    for(int i=0; i < start_vec.size(); i++) {
-        start_ss[i] = start_vec[i];
+    for(int i=0; i < start_vec_active.size(); i++) {
+        start_ss[i] = start_vec_active[i];
     }
-
     ob::ScopedState<> goal_ss(ss->getStateSpace());
-    for(int i=0; i < goal_vec.size(); i++) {
-        goal_ss[i] = goal_vec[i];
+    for(int i=0; i < goal_vec_active.size(); i++) {
+        goal_ss[i] = goal_vec_active[i];
     }
 
     ss->setStartAndGoalStates(start_ss, goal_ss, threshold);
@@ -203,6 +230,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
     solved = ss->solve(timelimit);
 
+    std::cout << "solved " << solved << std::endl;
+
     if (solved) {
         // ss.getSolutionPath().print(std::cout);
         // if (is_simplified){
@@ -217,41 +246,54 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
         for (unsigned int i=0; i < n; ++i)
         {
-            // auto rState(states[i]->as<ob::WrapperStateSpace::StateType>()->getState()
-            //             ->as<ob::RealVectorStateSpace::StateType())
             auto cState(states[i]->as<ob::CompoundState>());
             // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
             auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
-            int index = 0;
-            for (unsigned int j=0; j < css->getSubspaceCount();  ++j){
-                // std::cout << "index: " << j << std::endl;
-                auto subspace(css->getSubspace(j));
-                switch (subspace->getType()) {
-                    case ob::STATE_SPACE_REAL_VECTOR:
-                        solutions[i][index] = cState -> as<ob::RealVectorStateSpace::StateType>(j)->values[0];
-                        index++;
-                        break;
-                    case ob::STATE_SPACE_SO2:
-                        solutions[i][index] = cState -> as<ob::SO2StateSpace::StateType>(j)->value;
-                        index++;
-                        break;
-                    default:
-                        auto cSubState(cState -> as<ob::CompoundState>(j));
-                        for (unsigned int k=0; k<3;++k){
-                            // std::cout << "index: " << j << std::endl;
-                            solutions[i][index] = cSubState -> as<ob::RealVectorStateSpace::StateType>(0)->values[k];
-                            index++;
-                        }
-                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->x;
-                        index++;
-                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->y;
-                        index++;
-                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->z;
-                        index++;
-                        solutions[i][index] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->w;
-                        index++;
-                        break;
+            unsigned int n_passive = 0;
+            // for (unsigned int j=0; j < css->getSubspaceCount();  ++j){
+            //     ss->getStateValidityChecker()->isValid(cState);
+            //     if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
+            //     }
+            // }
+            unsigned int margin = 0;
+            for (unsigned int j=0; j < start_vec.size();  ++j){
+                ss->getStateValidityChecker()->isValid(cState);
+                if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
+                    unsigned int idx = j - n_passive - margin;
+                    // std::cout << "start: " << start_vec.size() << " j: " << j << " idx: " << idx << std::endl;
+                    auto subspace(css->getSubspace(idx));
+                    switch (subspace->getType()) {
+                        case ob::STATE_SPACE_REAL_VECTOR:
+                            solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(idx)->values[0];
+                            break;
+                        case ob::STATE_SPACE_SO2:
+                            solutions[i][j] = cState -> as<ob::SO2StateSpace::StateType>(idx)->value;
+                            break;
+                        default:
+                            auto cSubState(cState -> as<ob::CompoundState>(idx));
+                            margin += 6;
+                            for (unsigned int k=0; k<3; ++k){
+                                // std::cout << "index: " << j << std::endl;
+                                solutions[i][j] = cSubState -> as<ob::RealVectorStateSpace::StateType>(0)->values[k];
+                                j++;
+                            }
+                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->x;
+                            j++;
+                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->y;
+                            j++;
+                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->z;
+                            j++;
+                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->w;
+                            // j++;
+                            break;
+                    }
+                } else {
+                    // set passive joints to their start value
+                    solutions[i][j] = mj->d->qpos[j];
+                    n_passive++;
                 }
+
+
             }
         }
         // Write solution to file
@@ -310,8 +352,11 @@ void KinematicPlanner::removeCollision(int geom_id, int contype, int conaffinity
     mj->m->geom_conaffinity[geom_id] = conaffinity;
     mj_step(mj->m, mj->d);
     // Setup OMPL environment
-    si = MjOmpl::createSpaceInformationKinematic(mj->m);
-    si->setStateValidityChecker(std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, false));
+    si = MjOmpl::createSpaceInformationKinematic(mj->m, passive_joint_idx);
+
+    auto msvc = std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false);
+    msvc->addGlueTransformation(glue_bodies);
+    si->setStateValidityChecker(msvc);
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
     sst_planner = std::make_shared<og::SST>(si);

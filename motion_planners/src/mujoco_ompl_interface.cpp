@@ -148,6 +148,7 @@ void readOmplStateKinematic(
 
 shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
     const mjModel* m,
+    const std::vector<int> &passive_joint_idx,
     bool include_velocity)
 {
     //////////////////////////////////////////////
@@ -160,6 +161,19 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
     vector<shared_ptr<ob::StateSpace> > vel_spaces;
     int next_qpos = 0;
     for(const auto& joint : joints) {
+        // check if joint is a passive_joint
+        bool ignore_joint = false;
+        for (auto it = passive_joint_idx.begin(); it != passive_joint_idx.end(); ++it) {
+            if (*it == joint.qposadr) {
+                std::cout << "joint " << joint.name << " is ignored" << std::endl;
+                ignore_joint=true;
+                break;
+            }
+        }
+        if (ignore_joint) {
+            continue;
+        }
+
         ob::RealVectorBounds bounds(1);
         bounds.setLow(joint.range[0]);
         bounds.setHigh(joint.range[1]);
@@ -179,11 +193,11 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
         se3bounds.setHigh(2, 10.);
 
         // Check that our assumptions are ok
-        if (joint.qposadr != next_qpos) {
-            cerr << "Uh oh......" << endl;
-            throw invalid_argument(
-                "Joints are not in order of qposadr ... write more code!");
-        }
+//        if (joint.qposadr != next_qpos) {
+//            cerr << "Uh oh......" << endl;
+//            throw invalid_argument(
+//                "Joints are not in order of qposadr ... write more code!");
+//        }
         next_qpos++;
 
         // Crate an appropriate subspace
@@ -240,12 +254,16 @@ shared_ptr<ob::CompoundStateSpace> makeCompoundStateSpace(
             break;
         }
         space->addSubspace(joint_space, 1.0);
-    } 
-    if (next_qpos != m->nq) {
-        cerr << "ERROR: joint dims: " << next_qpos
-             << " vs nq: " << m->nq << endl;
-        throw invalid_argument("Total joint dimensions are not equal to nq");
     }
+    if (next_qpos != m->nq - passive_joint_idx.size()) {
+        cerr << "ERROR: joint dims: " << next_qpos
+             << " vs nq - size(passive_joints): " << m->nq - passive_joint_idx.size() << endl;
+        throw invalid_argument("Total joint dimensions are not equal to nq - size(passive_joints)");
+    }
+
+    std::cout << "Number of joints in mujoco  " << m->nq << std::endl;
+    std::cout << "Number of active joints in planner  " << next_qpos << std::endl;
+    std::cout << "Number of passive joints in planner " << passive_joint_idx.size() << std::endl;
 
     if (include_velocity) {
         // Add on all the velocity spaces
@@ -290,7 +308,8 @@ makeRealVectorStateSpace(const mjModel *m, bool include_velocity) {
 
 
 shared_ptr<oc::SpaceInformation> createSpaceInformation(const mjModel* m) {
-    auto space = makeCompoundStateSpace(m, true);
+    std::vector<int> passive_joint_idx = {};  // passive joints are not implemented yet for kinodynamic planning
+    auto space = makeCompoundStateSpace(m, passive_joint_idx, true);
 
     ////////////////////////////////
     // Create the control space
@@ -329,10 +348,10 @@ shared_ptr<oc::SpaceInformation> createSpaceInformation(const mjModel* m) {
 
 
 shared_ptr<ob::SpaceInformation> createSpaceInformationKinematic(
-    const mjModel* m)
+    const mjModel* m, const std::vector<int> &passive_joint_idx)
 {
 
-    auto space = makeCompoundStateSpace(m, false);
+    auto space = makeCompoundStateSpace(m, passive_joint_idx, false);
 
     //////////////////////////////////////////
     // Set a default projection evaluator
@@ -347,6 +366,126 @@ shared_ptr<ob::SpaceInformation> createSpaceInformationKinematic(
     return si;
 }
 
+void copyOmplActiveStateToMujoco(
+        const ob::CompoundState* state,
+        const ob::SpaceInformation* si,
+        const mjModel* m,
+        mjData* d,
+        const std::vector<int> &passive_joint_idx) {
+    // Iterate over subspaces to copy data from state to mjData
+    // Copy position state to d->qpos
+    assert(si->getStateSpace()->isCompound());
+    auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
+
+    // Iterate over joints
+    int qpos_i = 0;
+    for(size_t i=0; i < css->getSubspaceCount(); i++) {
+        auto subspace(css->getSubspace(i));
+        const ob::State* substate = (*state)[i];
+
+        // Jump over passive joints
+        while (!MjOmpl::isActiveJoint(qpos_i, passive_joint_idx)) {
+            qpos_i++;
+            if (qpos_i > m->nq) {
+                throw invalid_argument("Passive joint indices do not match ompl subspace size");
+            }
+        }
+
+        // Choose appropriate copy code based on subspace type
+        size_t n;
+        switch (subspace->getType()) {
+            case ob::STATE_SPACE_REAL_VECTOR:
+                n = subspace->as<ob::RealVectorStateSpace>()->getDimension();
+
+                // Check if the vector does not align on the size of qpos
+                // If this happens an assumption has been violated
+                if (qpos_i < m->nq && (qpos_i + n) > m->nq) {
+                    throw invalid_argument(
+                            "RealVectorState does not align on qpos");
+                }
+
+                // Copy vector
+                for(size_t i=0; i < n; i++) {
+                    // Check if we copy to qpos or qvel
+                    d->qpos[qpos_i] = substate->as<ob::RealVectorStateSpace::StateType>()->values[i];
+                    qpos_i++;
+                }
+                break;
+
+            case ob::STATE_SPACE_SO2:
+                if (qpos_i >= m->nq) {
+                    throw invalid_argument(
+                            "SO2 velocity state should not happen.");
+                }
+
+                d->qpos[qpos_i] = substate->as<ob::SO2StateSpace::StateType>()->value;
+                qpos_i++;
+                break;
+
+            case ob::STATE_SPACE_SO3:
+                if (qpos_i + 4 > m->nq) {
+                    throw invalid_argument("SO3 space overflows qpos");
+                }
+
+                copySO3State(substate->as<ob::SO3StateSpace::StateType>(), d->qpos + qpos_i);
+                // That's right MuJoCo, ponter math is what you get when
+                // you write an API like that :P
+                qpos_i += 4;
+                break;
+
+            case ob::STATE_SPACE_SE3:
+                if (qpos_i + 7 > m->nq) {
+                    throw invalid_argument("SE3 space overflows qpos");
+                }
+
+                copySE3State(substate->as<ob::SE3StateSpace::StateType>(), d->qpos + qpos_i);
+                qpos_i += 7;
+                break;
+
+            default:
+                throw invalid_argument("Unhandled subspace type.");
+                break;
+        }
+    }
+}
+
+void copyPassiveStateToMujoco(
+        const std::vector<double>& passive_state,
+        const mjModel* m,
+        mjData* d,
+        const std::vector<int> &passive_joint_idx) {
+    auto joints = getJointInfo(m);
+    int qpos_i = 0;
+    for(const auto& joint : joints) {
+        if (!isActiveJoint(joint.qposadr, passive_joint_idx)) {
+          switch(joint.type) {
+            case mjJNT_FREE:
+              for (int i=0; i<7; i++) {
+                d->qpos[joint.qposadr+i] = passive_state[qpos_i];
+                qpos_i++;
+              }
+              break;
+
+            case mjJNT_BALL:
+              for (int i=0; i<4; i++) {
+                d->qpos[joint.qposadr+i] = passive_state[qpos_i];
+                qpos_i++;
+              }
+              break;
+
+            case mjJNT_HINGE:
+              d->qpos[joint.qposadr] = passive_state[qpos_i];
+              qpos_i+=1;
+              break;
+
+            case mjJNT_SLIDE:
+              d->qpos[joint.qposadr] = passive_state[qpos_i];
+              qpos_i+=1;
+              break;
+          }
+        }
+    }
+}
 
 void copyOmplStateToMujoco(
         const ob::CompoundState* state,
@@ -359,6 +498,7 @@ void copyOmplStateToMujoco(
     // Copy velocity state to d->qvel
     assert(si->getStateSpace()->isCompound());
     auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
+
     int qpos_i = 0;
     int qvel_i = 0;
     for(size_t i=0; i < css->getSubspaceCount(); i++) {
@@ -389,12 +529,10 @@ void copyOmplStateToMujoco(
             for(size_t i=0; i < n; i++) {
                 // Check if we copy to qpos or qvel
                 if (qpos_i < m->nq) {
-                    d->qpos[qpos_i] = substate
-                        ->as<ob::RealVectorStateSpace::StateType>()->values[i];
+                    d->qpos[qpos_i] = substate->as<ob::RealVectorStateSpace::StateType>()->values[i];
                     qpos_i++;
                 } else {
-                    d->qvel[qvel_i] = substate
-                        ->as<ob::RealVectorStateSpace::StateType>()->values[i];
+                    d->qvel[qvel_i] = substate->as<ob::RealVectorStateSpace::StateType>()->values[i];
                     qvel_i++;
                 }
             }
@@ -637,6 +775,15 @@ void copySE3State(
     copySO3State(data + 3, &state->rotation());
 }
 
+bool isActiveJoint(int idx, const std::vector<int> &passive_joint_idx) {
+    for (auto it = passive_joint_idx.begin(); it != passive_joint_idx.end(); ++it) {
+        if (*it == idx) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void MujocoStatePropagator::propagate( const ob::State* state,
                                        const oc::Control* control,
                                        double duration,
@@ -644,7 +791,6 @@ void MujocoStatePropagator::propagate( const ob::State* state,
     //cout << " -- propagate asked for a timestep of: " << duration << endl;
 
     mj_lock.lock();
-
     copyOmplStateToMujoco(state->as<ob::CompoundState>(), si_, mj->m, mj->d);
     copyOmplControlToMujoco(
         control->as<oc::RealVectorControlSpace::ControlType>(),
@@ -660,6 +806,106 @@ void MujocoStatePropagator::propagate( const ob::State* state,
     mj_lock.unlock();
 }
 
+
+GlueTransformation::GlueTransformation(std::string body_a,
+                                     std::string body_b,
+                                     const mjModel *m,
+                                     mjData *d) {
+  mj_forward(m, d);
+
+  id_body_a = mj_name2id(m, mjOBJ_BODY, body_a.c_str());
+  id_body_b = mj_name2id(m, mjOBJ_BODY, body_b.c_str());
+
+  if (id_body_a < 0) {
+      std::cerr << "body_a id invalid " << body_a << std::endl;
+  }
+  if (id_body_b < 0) {
+      std::cerr << "body_b id invalid " << body_b << std::endl;
+  }
+
+  jntNum = m->body_jntnum[id_body_b];
+  jntAdr = m->body_jntadr[id_body_b];
+
+  if (jntNum != 2 && jntNum != 1) {
+      std::cerr << "invalid number of joints " << jntNum << std::endl;
+  }
+  if (jntNum < 0) {
+      std::cerr << "invalid joint address " << jntAdr << std::endl;
+  }
+
+  // Calculate and store the current transformation between the two bodies
+  mjtNum box_pos[3];
+  mju_copy3(box_pos, &d->xpos[id_body_b*3]);
+
+  mjtNum box_quat[4];
+  mju_copy4(box_quat, &d->xquat[id_body_b*4]);
+
+  mjtNum gripper_pos[3];
+  mju_copy3(gripper_pos, &d->xpos[id_body_a*3]);
+  mjtNum gripper_quat[4];
+  mju_copy4(gripper_quat, &d->xquat[id_body_a*4]);
+  mjtNum gripper_quat_inv[4];
+  mju_negQuat(gripper_quat_inv , gripper_quat);
+
+  mjtNum box_gripper_trans[3];
+  mju_sub3(box_gripper_trans, box_pos, gripper_pos);
+  mju_rotVecQuat(body_b_a_trans_g, box_gripper_trans, gripper_quat_inv);
+
+  mju_mulQuat(body_b_a_rot, gripper_quat_inv, box_quat);
+}
+
+void GlueTransformation::applyTransformation(const mjModel *m, mjData *d) {
+  if (jntNum == 2) {
+      // two translational joints
+      // get current body_a position + rotation
+      mjtNum curr_body_a_pos[3];
+      mju_copy3(curr_body_a_pos, &d->xpos[id_body_a*3]);
+      mjtNum curr_body_a_rot[4];
+      mju_copy4(curr_body_a_rot, &d->xquat[id_body_a*4]);
+
+      mjtNum curr_body_a_b_trans[3];
+      mju_rotVecQuat(curr_body_a_b_trans, body_b_a_trans_g, curr_body_a_rot);
+
+      mjtNum new_body_b_pos[3];
+      mju_add3(new_body_b_pos, curr_body_a_pos, curr_body_a_b_trans);
+      d->qpos[jntAdr] = new_body_b_pos[0];
+      d->qpos[jntAdr+1] = new_body_b_pos[1];
+
+      // rotation
+      //    mjtNum next_body_b_rot[4];
+      //    mju_mulQuat(next_body_b_rot, curr_body_a_rot, body_b_a_rot);
+      //     double dir = next_body_b_rot[3]/sqrt(next_body_b_rot[1]*next_body_b_rot[1] + next_body_b_rot[2]*next_body_b_rot[2] + next_body_b_rot[3]*next_body_b_rot[3]);
+      //     mj->d->qpos[id_box_rot] = dir * (2.0*atan2(sqrt(next_body_b_rot[1]*next_body_b_rot[1] + next_body_b_rot[2]*next_body_b_rot[2] + next_body_b_rot[3]*next_body_b_rot[3]), next_body_b_rot[0]));
+  } else if (jntNum == 1) {
+      // free joint
+      // get current body_a position + rotation
+      mjtNum curr_body_a_pos[3];
+      mju_copy3(curr_body_a_pos, &d->xpos[id_body_a*3]);
+      mjtNum curr_body_a_rot[4];
+      mju_copy4(curr_body_a_rot, &d->xquat[id_body_a*4]);
+
+      mjtNum curr_body_a_b_trans[3];
+      mju_rotVecQuat(curr_body_a_b_trans, body_b_a_trans_g, curr_body_a_rot);
+
+      // set new position
+      mjtNum new_body_b_pos[3];
+      mju_add3(new_body_b_pos, curr_body_a_pos, curr_body_a_b_trans);
+      d->qpos[jntAdr] = new_body_b_pos[0];
+      d->qpos[jntAdr+1] = new_body_b_pos[1];
+      d->qpos[jntAdr+2] = new_body_b_pos[2];
+
+      // set new rotation
+      mjtNum next_body_b_rot[4];
+      mju_mulQuat(next_body_b_rot, curr_body_a_rot, body_b_a_rot);
+      d->qpos[jntAdr+3] = next_body_b_rot[0];
+      d->qpos[jntAdr+4] = next_body_b_rot[1];
+      d->qpos[jntAdr+5] = next_body_b_rot[2];
+      d->qpos[jntAdr+6] = next_body_b_rot[3];
+  } else {
+      std::cerr << "glue transformation not implemented yet for jntNum " <<  jntNum << std::endl;
+  }
+}
+
 bool MujocoStateValidityChecker::isValid(const ompl::base::State *state) const {
     return isValid(state, this->ignored_contacts);
 }
@@ -672,8 +918,8 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state, std::ve
     mj_lock.lock();
     bool isValidState = true;  //valid until proven otherwise //return this after you unlock `mj_lock`
     if (si_->getStateSpace()->isCompound()) {
-        copyOmplStateToMujoco(
-            state->as<ob::CompoundState>(), si_, mj->m, mj->d, useVelocities);
+        copyOmplActiveStateToMujoco(
+            state->as<ob::CompoundState>(), si_, mj->m, mj->d, passive_joint_idx);
     } else {
         copyOmplStateToMujoco(
             state->as<ob::WrapperStateSpace::StateType>()->getState()
@@ -684,6 +930,12 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state, std::ve
             useVelocities);
     }
     mj_fwdPosition(mj->m, mj->d);
+
+    if (glue_transformation) {
+        glue_transformation->applyTransformation(mj->m, mj->d);
+        mj_fwdPosition(mj->m, mj->d);
+    }
+
     int ncon = mj->d->ncon;
     for (int i = 0; i < ncon; i++) {
         mjContact con_data = mj->d->contact[i];

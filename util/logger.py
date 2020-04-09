@@ -6,8 +6,8 @@ import colorlog
 
 
 formatter = colorlog.ColoredFormatter(
-    "%(log_color)s[%(asctime)s] %(message)s",
-    datefmt=None,
+    "%(log_color)s[%(asctime)s] %(levelname)s: %(message)s",
+    datefmt="%m/%d %H:%M",
     reset=True,
     log_colors={
         'DEBUG': 'cyan',
@@ -32,7 +32,7 @@ ch = colorlog.StreamHandler()
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
-
+logger.propagate = False
 
 class StopWatch(object):
     def __init__(self):

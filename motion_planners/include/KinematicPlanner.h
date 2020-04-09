@@ -69,15 +69,17 @@ namespace MotionPlanner
             std::shared_ptr<og::PRMstar> prm_star_planner;
             std::shared_ptr<og::SPARS> spars_planner;
             std::shared_ptr<og::SimpleSetup> ss;
+            std::shared_ptr<MjOmpl::MujocoStateValidityChecker> msvc;
             double constructTime;
             bool is_construct;
+            std::vector<int> passive_joint_idx;
+            std::vector<std::string> glue_bodies;
             std::vector<std::pair<int,int>> ignored_contacts;
 
-            KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, std::string opt, double threshold, double _range, double constructTime, std::vector<std::pair<int, int>> ignored_contacts);
+            KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, std::string opt, double threshold, double _range, double constructTime, std::vector<int> passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> ignored_contacts);
             ~KinematicPlanner();
             std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double max_steps);
             void removeCollision(int geom_id, int contype, int conaffinity);
-
     };
 }
 
