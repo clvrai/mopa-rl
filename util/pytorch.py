@@ -176,11 +176,13 @@ def _get_flat_grads(network):
     grads_shape = {}
     flat_grads = None
     for key_name, value in network.named_parameters():
-        try:
-            grads_shape[key_name] = value.grad.data.cpu().numpy().shape
-        except:
-            print('Cannot get grad of tensor {}'.format(key_name))
-            import pdb; pdb.set_trace()
+        if value.grad is None:
+            value.grad = torch.zeros_like(value).cuda()
+        # try:
+        grads_shape[key_name] = value.grad.data.cpu().numpy().shape
+        # except:
+        #     print('Cannot get grad of tensor {}'.format(key_name))
+        #     import pdb; pdb.set_trace()
         if flat_grads is None:
             flat_grads = value.grad.data.cpu().numpy().flatten()
         else:

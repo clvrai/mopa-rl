@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from rl.dataset import ReplayBuffer, RandomSampler
+from rl.dataset import ReplayBuffer, RandomSampler, LowLevelReplayBuffer
 from rl.base_agent import BaseAgent
 from util.logger import logger
 from util.mpi import mpi_average
@@ -51,9 +51,15 @@ class SACAgent(BaseAgent):
 
         sampler = RandomSampler()
         buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
-        self._buffer = ReplayBuffer(buffer_keys,
-                                    config.buffer_size,
-                                    sampler.sample_func)
+        if config.hrl:
+            self._buffer = LowLevelReplayBuffer(buffer_keys,
+                                                config.buffer_size,
+                                                len(config.primitive_skills),
+                                                sampler.sample_func)
+        else:
+            self._buffer = ReplayBuffer(buffer_keys,
+                                        config.buffer_size,
+                                        sampler.sample_func)
 
         self._log_creation()
 
@@ -156,35 +162,58 @@ class SACAgent(BaseAgent):
             raise NotImplementedError()
         return self._actors[0].act_log(ob)
 
-    def compute_alpha_loss(self, log_pi, meta_ac=None):
-        if meta_ac is None:
-            alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy).detach()).mean()
-        else:
-            alpha_loss = torch.zeros_like(log_pi).to(self._config.device)
-            for i in range(len(self._config.primitive_skills)):
-                alpha_loss -= self._log_alpha[i] * ((log_pi + self._target_entropy).detach() * (meta_ac['default'] == i).float())
-            alpha_loss = alpha_loss.mean()
-        return alpha_loss
+    # def compute_alpha_loss(self, log_pi, meta_ac=None):
+    #     if meta_ac is None:
+    #         alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy).detach()).mean()
+    #     else:
+    #         alpha_loss = torch.zeros_like(log_pi).to(self._config.device)
+    #         for i in range(len(self._config.primitive_skills)):
+    #             alpha_loss -= self._log_alpha[i] * ((log_pi + self._target_entropy).detach() * (meta_ac['default'] == i).float())
+    #         alpha_loss = alpha_loss.mean()
+    #     return alpha_loss
+    #
+    # def compute_entropy_loss(self, alpha, log_pi, meta_ac=None):
+    #     if meta_ac is None:
+    #         entropy_loss = (alpha[0] * log_pi).mean()
+    #     else:
+    #         entropy_loss = torch.zeros_like(log_pi).to(self._config.device)
+    #         for i in range(len(self._config.primitive_skills)):
+    #             entropy_loss += (alpha[i] * log_pi * (meta_ac['default'] == i).float())
+    #         entropy_loss = entropy_loss.mean()
+    #     return entropy_loss
 
-    def compute_entropy_loss(self, alpha, log_pi, meta_ac=None):
-        if meta_ac is None:
-            entropy_loss = (alpha[0] * log_pi).mean()
-        else:
-            entropy_loss = torch.zeros_like(log_pi).to(self._config.device)
-            for i in range(len(self._config.primitive_skills)):
-                entropy_loss += (alpha[i] * log_pi * (meta_ac['default'] == i).float())
-            entropy_loss = entropy_loss.mean()
-        return entropy_loss
-
-    def _update_network(self, transitions, step=0):
+    def _update_network(self, transitions, step=0, skill_idx=None):
         info = {}
 
         # pre-process observations
         o, o_next = transitions['ob'], transitions['ob_next']
 
-        # if self._config.policy == 'mlp':
-        #     o = self.normalize(o)
-        #     o_next = self.normalize(o_next)
+        if len(o) == 0:
+            # for _actor_optim in self._actor_optims:
+            #     _actor_optim.zero_grad()
+            for i, _actor in enumerate(self._actors):
+                _actor.zero_grad()
+                sync_grads(_actor)
+                # self._actor_optims[i].step()
+            # self._critic1_optim.zero_grad()
+            self._critic1.zero_grad()
+            sync_grads(self._critic1)
+            # self._critic1_optim.step()
+            # self._critic2_optim.zero_grad()
+            self._critic2.zero_grad()
+            sync_grads(self._critic2)
+            info['min_target_q'] = 0.
+            info['target_q'] = 0.
+            info['min_real1_q'] = 0.
+            info['min_real2_q'] = 0.
+            info['real1_q'] = 0.
+            info['real2_q'] = 0.
+            info['critic1_loss'] = 0.
+            info['critic2_loss'] = 0.
+            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = 0.
+            info['entropy_loss'] = 0.
+            info['actor_loss'] = 0.
+            return mpi_average(info)
 
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
@@ -193,37 +222,30 @@ class SACAgent(BaseAgent):
         ac = _to_tensor(transitions['ac'])
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
+            skill_idx = int(meta_ac['default'][0])
         else:
             meta_ac = None
+            skill_idx = 0
         done = _to_tensor(transitions['done']).reshape(bs, 1)
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
 
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
-        alpha_loss = self.compute_alpha_loss(log_pi, meta_ac=meta_ac)
-        # alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy).detach()).mean()
+        # alpha_loss = self.compute_alpha_loss(log_pi, meta_ac=meta_ac)
+        alpha_loss = -(self._log_alpha * (log_pi[skill_idx] + self._target_entropy).detach()).mean()
 
-        # for _alpha_optim in self._alpha_optim:
-        #     _alpha_optim.zero_grad()
         self._alpha_optim.zero_grad()
         alpha_loss.backward()
         self._alpha_optim.step()
-        # for i, _log_alpha in enumerate(self._log_alpha):
-        #     self._alpha_optim[i].step()
-        # alpha_loss.backward()
         alpha = self._log_alpha.exp()
-        # alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
 
         # the actor loss
-        # entropy_loss = (alpha * log_pi).mean()
-        entropy_loss = self.compute_entropy_loss(alpha, log_pi, meta_ac)
+        entropy_loss = (alpha[skill_idx] * log_pi).mean()
         actor_loss = -torch.min(self._critic1(o, actions_real),
                                 self._critic2(o, actions_real)).mean()
 
         if self._config.hrl:
-            for i, skill in enumerate(self._config.primitive_skills):
-                # print(skill, ': ', alpha[i].cpu().item())
-                info['entropy_alpha_{}'.format(skill)] = alpha[i].cpu().item()
+            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = alpha[skill_idx].cpu().item()
         else:
             info['entropy_alpha'] = alpha.cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
@@ -238,9 +260,7 @@ class SACAgent(BaseAgent):
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
             else:
-                q_next_value = torch.zeros_like(q_next_value1).to(self._config.device)
-                for i in range(len(self._config.primitive_skills)):
-                    q_next_value += (torch.min(q_next_value1, q_next_value2) - alpha[i] * log_pi_next) * (meta_ac['default']==i).float()
+                q_next_value = (torch.min(q_next_value1, q_next_value2) - alpha[skill_idx] * log_pi_next)
             target_q_value = rew * self._config.reward_scale + \
                 (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
@@ -263,14 +283,13 @@ class SACAgent(BaseAgent):
         info['critic1_loss'] = critic1_loss.cpu().item()
         info['critic2_loss'] = critic2_loss.cpu().item()
 
-        if step % self._config.actor_update_freq == 0:
-            # update the actor
-            for _actor_optim in self._actor_optims:
-                _actor_optim.zero_grad()
-            actor_loss.backward()
-            for i, _actor in enumerate(self._actors):
-                sync_grads(_actor)
-                self._actor_optims[i].step()
+        # update the actor
+        for _actor_optim in self._actor_optims:
+            _actor_optim.zero_grad()
+        actor_loss.backward()
+        for i, _actor in enumerate(self._actors):
+            sync_grads(_actor)
+            self._actor_optims[i].step()
 
         # update the critic
         self._critic1_optim.zero_grad()
@@ -283,14 +302,14 @@ class SACAgent(BaseAgent):
         sync_grads(self._critic2)
         self._critic2_optim.step()
 
-        # include info from policy
-        if len(self._actors) == 1:
-            info.update(self._actors[0].info)
-        else:
-            constructed_info = {}
-            for i, _actor in enumerate(self._actors):
-                for k, v in _actor.info:
-                    constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
-            info.update(constructed_info)
+        # # include info from policy
+        # if len(self._actors) == 1:
+        #     info.update(self._actors[0].info)
+        # else:
+        #     constructed_info = {}
+        #     for i, _actor in enumerate(self._actors):
+        #         for k, v in _actor.info:
+        #             constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
+        #     info.update(constructed_info)
 
         return mpi_average(info)

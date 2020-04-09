@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.rew.0.rew_gripper.fixed_manipulation.fix.contact.v1.init_weight"
+prefix="hrl.sep.buffer_skill.exp"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
