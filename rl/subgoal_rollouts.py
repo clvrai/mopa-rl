@@ -89,7 +89,6 @@ class SubgoalRolloutRunner(object):
         ep_info = Info()
         episode = 0
         step = 0
-        counter = Counter(config.primitive_skills)
 
         while True:
             done = False
@@ -138,7 +137,6 @@ class SubgoalRolloutRunner(object):
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
                 if 'mp' in skill_type: # Use motion planner
-                    random_exploration = True if counter[cur_primitive_str] > config.start_steps // config.num_workers else False
                     traj, success, target_qpos, subgoal_ac = pi.plan(curr_qpos, meta_ac=meta_ac,
                                                                      ob=ob.copy(),
                                                                      random_exploration=random_exploration,
@@ -154,14 +152,13 @@ class SubgoalRolloutRunner(object):
                         cum_rew = 0
                         ac_before_activation = None
                         for next_qpos in traj:
-                            counter[cur_primitive_str] += 1
                             meta_rollout.add({
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                             })
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                            ob, reward, done, info = env.step(ac)
+                            ob, reward, done, info = env.step(ac, is_planner=True)
                             meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                             rollout.add({'done': done, 'rew': reward})
                             cum_rew += reward
@@ -184,7 +181,6 @@ class SubgoalRolloutRunner(object):
 
 
                     else:
-                        counter[cur_primitive_str] += 1
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
@@ -205,8 +201,6 @@ class SubgoalRolloutRunner(object):
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                 else:
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
-                        random_exploration = True if counter[cur_primitive_str] > config.start_steps // config.num_workers else False
-                        counter[cur_primitive_str] += 1
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
@@ -336,7 +330,7 @@ class SubgoalRolloutRunner(object):
                         ac = env.form_action(next_qpos, cur_primitive)
                         ac_before_activation = None
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
-                        ob, reward, done, info = env.step(ac)
+                        ob, reward, done, info = env.step(ac, is_planner=True)
                         rollout.add({'done': done, 'rew': reward})
 
                         ep_len += 1
