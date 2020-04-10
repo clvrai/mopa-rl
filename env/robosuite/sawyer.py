@@ -95,8 +95,9 @@ class SawyerEnv(BaseEnv):
         # Action
         num_actions = self.dof
         is_limited = np.array([True] * self.dof)
-        minimum = np.ones(self.dof) * -0.1
-        maximum = np.ones(self.dof) * 0.1
+        minimum = -np.ones(self.dof)
+        maximum = np.ones(self.dof)
+        self._ac_scale = 0.1
 
         self._minimum = minimum
         self._maximum = maximum
@@ -301,9 +302,6 @@ class SawyerEnv(BaseEnv):
         self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[self.ref_joint_pos_indexes])
         action = p_term + d_term + self._i_term
 
-        print('p term ', np.linalg.norm(p_term))
-        print('d term ', np.linalg.norm(d_term))
-        print('i term ', np.linalg.norm(self._i_term))
 
         return action
 
@@ -321,8 +319,12 @@ class SawyerEnv(BaseEnv):
 
         n_inner_loop = int(self.control_timestep / self.sim.model.opt.timestep)
 
-        desired_state = self._prev_state + action[:self.mujoco_robot.dof]
-        target_vel = action[:self.mujoco_robot.dof] / self.control_timestep
+        if is_planner:
+            rescaled_ac = action[:self.mujoco_robot.dof]
+        else:
+            rescaled_ac = action[:self.mujoco_robot.dof] * self._ac_scale
+        desired_state = self._prev_state + rescaled_ac
+        target_vel = rescaled_ac / self.control_timestep
 
         for t in range(n_inner_loop):
             # gravity compensation
