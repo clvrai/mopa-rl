@@ -2,6 +2,7 @@ import env
 import gym
 from config import argparser
 import numpy as np
+import time
 
 parser = argparser()
 args, unparsed = parser.parse_known_args()
@@ -32,12 +33,12 @@ obs = env.reset()
 #for i in range(10000):
 timestep = 0
 while True:
-    env.render(mode='human')
     action = env.action_space.sample()
-    qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes] + action['default'][:-1]
-    env.set_robot_indicator_joint_positions(qpos)
+    # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
+    # env.set_robot_indicator_joint_positions(qpos)
+    print(action)
     obs, reward, done, _ = env.step(action)
-    print(timestep)
+    env.render(mode='human')
     if done:
         print('done')
         break

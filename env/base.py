@@ -57,7 +57,8 @@ class BaseEnv(gym.Env):
 
 
         # Load model
-        self._reset()
+        if 'robosuite' in xml_path:
+            self._reset()
         self._load_model_from_path(xml_path)
 
         self._init_qpos = self.sim.data.qpos.ravel().copy()
@@ -95,6 +96,9 @@ class BaseEnv(gym.Env):
         minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
         maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
         minimum[is_limited], maximum[is_limited] = control_range[is_limited].T
+        maximum= np.ones(num_actions)
+        minimum = -np.ones(num_actions)
+
         self._minimum = minimum
         self._maximum = maximum
         logger.info('is_limited: {}'.format(is_limited))
@@ -435,7 +439,6 @@ class BaseEnv(gym.Env):
         ncon = self.sim.data.ncon
         gemo1_id = self.sim.model.geom_name2id(geom1)
         geom2_id = self.sim.model.geom_name2id(geom2)
-        print("contact:", ncon)
         for i in range(ncon):
             c = self.sim.data.contact[i]
             print(c.geom1, c.geom2, geom1_id, geom2_id)

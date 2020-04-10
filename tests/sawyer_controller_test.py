@@ -97,7 +97,7 @@ error = 0
 x_traj_prev = traj[0, :]
 i_term = np.zeros_like(x_traj_prev)
 x_prev = env.sim.data.qpos[env.ref_joint_pos_indexes]
-use_step = False
+use_step = True
 
 for t in range(1, N):
     x_traj = traj[t, :]
@@ -112,7 +112,7 @@ for t in range(1, N):
     if use_step:
         action = traj[t, :] - traj[t-1, :]
         action = np.append(action, gripper_action[0])
-        env.step(action=action)
+        env.step(action=action, is_planner=True)
 
         env.render()
         time.sleep(outer_dt)
@@ -133,9 +133,10 @@ for t in range(1, N):
             # add gripper command to action
             # gripper_action = env.gripper.format_action(np.array([0.01]))
             action = np.concatenate([action, -gripper_action])
-            env.sim.data.ctrl[:] = action[:]
-            env.sim.forward()
-            env.sim.step()
+            env._do_simulation(action)
+            # env.sim.data.ctrl[:] = action[:]
+            # env.sim.forward()
+            # env.sim.step()
 
             env.render()
             time.sleep(inner_dt)

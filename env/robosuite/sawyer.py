@@ -95,8 +95,8 @@ class SawyerEnv(BaseEnv):
         # Action
         num_actions = self.dof
         is_limited = np.array([True] * self.dof)
-        minimum = np.ones(self.dof) * -1.
-        maximum = np.ones(self.dof) * 1.
+        minimum = np.ones(self.dof) * -0.1
+        maximum = np.ones(self.dof) * 0.1
 
         self._minimum = minimum
         self._maximum = maximum
@@ -294,11 +294,16 @@ class SawyerEnv(BaseEnv):
 
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
-
+        # import pdb
+        # pdb.set_trace()
         p_term = self._kp * (state - self.sim.data.qpos[self.ref_joint_pos_indexes])
         d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[self.ref_joint_pos_indexes])
         self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[self.ref_joint_pos_indexes])
         action = p_term + d_term + self._i_term
+
+        print('p term ', np.linalg.norm(p_term))
+        print('d term ', np.linalg.norm(d_term))
+        print('i term ', np.linalg.norm(self._i_term))
 
         return action
 
@@ -321,7 +326,7 @@ class SawyerEnv(BaseEnv):
 
         for t in range(n_inner_loop):
             # gravity compensation
-            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
+            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
 
             if self.use_target_object:
                 self.sim.data.qfrc_applied[
@@ -346,7 +351,6 @@ class SawyerEnv(BaseEnv):
 
             arm_action = self._get_control(desired_state, self._prev_state, target_vel)
             gripper_action = self.gripper.format_action(np.array([action[-1]]))
-
             action = np.concatenate([arm_action, -gripper_action])
             self._do_simulation(action)
 

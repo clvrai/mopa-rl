@@ -37,8 +37,9 @@ class SimpleMoverEnv(BaseEnv):
 
         num_actions = self.dof
         is_limited = np.array([True] * self.dof)
-        minimum = np.ones(self.dof) * -1.
-        maximum = np.ones(self.dof) * 1.
+        minimum = -np.ones(self.dof)
+        maximum = np.ones(self.dof)
+        self._ac_rescale = 0.1
 
         self._minimum = minimum
         self._maximum = maximum
@@ -274,7 +275,7 @@ class SimpleMoverEnv(BaseEnv):
         done = False
         if not is_planner and self._prev_state is None:
             self._prev_state = self.get_joint_positions
-        desired_state = self._prev_state + action[:-1] # except for gripper action
+        desired_state = self._prev_state + action[:-1] * self._ac_rescale# except for gripper action
 
 
         n_inner_loop = int(self._frame_dt/self.dt)
@@ -286,6 +287,7 @@ class SimpleMoverEnv(BaseEnv):
             gripper_action_in = action[len(self.joint_names):len(self.joint_names)+1]
             gripper_action = self._format_action(gripper_action_in)
             ac = np.concatenate((arm_action, gripper_action))
+            print(ac)
             self._do_simulation(ac)
 
         reward, info = self.compute_reward(action)
