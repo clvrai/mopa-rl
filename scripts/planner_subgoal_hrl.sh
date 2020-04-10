@@ -17,14 +17,14 @@ then
 fi
 
 workers="8"
-prefix="hrl.sep.buffer_skill.exp"
+prefix="hrl.sep.buffer_skill.rescale_ac"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="1.0"
 threshold="0.5"
-timelimit="0.1"
+timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
