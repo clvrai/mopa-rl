@@ -210,7 +210,7 @@ class SACAgent(BaseAgent):
             info['real2_q'] = 0.
             info['critic1_loss'] = 0.
             info['critic2_loss'] = 0.
-            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = 0.
+            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = self._log_alpha.exp()[skill_idx].cpu().item()
             info['entropy_loss'] = 0.
             info['actor_loss'] = 0.
             return mpi_average(info)
@@ -232,7 +232,7 @@ class SACAgent(BaseAgent):
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
         # alpha_loss = self.compute_alpha_loss(log_pi, meta_ac=meta_ac)
-        alpha_loss = -(self._log_alpha * (log_pi[skill_idx] + self._target_entropy).detach()).mean()
+        alpha_loss = -(self._log_alpha[skill_idx] * (log_pi + self._target_entropy).detach()).mean()
 
         self._alpha_optim.zero_grad()
         alpha_loss.backward()
