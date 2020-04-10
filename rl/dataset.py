@@ -54,7 +54,7 @@ class LowLevelReplayBuffer:
         self._num_primitives = num_primitives
 
         # memory management
-        self._idx = np.zeros(self._num_primitives)
+        self._idx = np.zeros(self._num_primitives, dtype=int)
         self._current_size = np.zeros(self._num_primitives)
         self._sample_func = sample_func
 
@@ -63,7 +63,7 @@ class LowLevelReplayBuffer:
         self._buffers = [defaultdict(list) for _ in range(self._num_primitives)]
 
     def clear(self):
-        self._idx = np.zeros(self._num_primitives)
+        self._idx = np.zeros(self._num_primitives, dtype=int)
         self._current_size = np.zeros(self._num_primitives)
         self._buffers = [defaultdict(list) for _ in range(self._num_primitives)]
 
