@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="hrl.sep.buffer_skill.rescale_ac"
+prefix="hrl.sep.buffer_skill.rescale_ac.change_init_buffer"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
