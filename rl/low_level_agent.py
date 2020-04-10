@@ -136,13 +136,15 @@ class LowLevelAgent(SACAgent):
         return self._actors[skill_idx].act_log(ob)
 
     def train(self):
+        train_info = {}
         for i in range(self._config.num_batches):
             for skill_idx in range(len(self._config.primitive_skills)):
                 if self._buffer._current_size[skill_idx] > self._config.start_steps // self._config.num_workers:
                     transitions = self._buffer.sample(self._config.batch_size, skill_idx)
                 else:
                     transitions = self._buffer.create_empty_transition()
-                train_info = self._update_network(transitions, i, skill_idx)
+                info = self._update_network(transitions, i, skill_idx)
+                train_info.update(info)
             self._soft_update_target_network(self._critic1_target, self._critic1, self._config.polyak)
             self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
 
