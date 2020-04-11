@@ -937,22 +937,26 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state, std::ve
     }
 
     int ncon = mj->d->ncon;
-    for (int i = 0; i < ncon; i++) {
-        mjContact con_data = mj->d->contact[i];
-        pair<int, int> to_find = make_ordered_pair(con_data.geom1, con_data.geom2);
+    if (ignored_contacts.size() == 0){
+        isValidState = ncon == 0;
+    } else {
+        for (int i = 0; i < ncon; i++) {
+            mjContact con_data = mj->d->contact[i];
+            pair<int, int> to_find = make_ordered_pair(con_data.geom1, con_data.geom2);
 
-        bool found = false;
-        for (auto it1 : ignored_contacts) {
-            if (it1 == to_find) {
-                found = true;
+            bool found = false;
+            for (auto it1 : ignored_contacts) {
+                if (it1 == to_find) {
+                    found = true;
+                }
             }
-        }
 
-        // if (found == false) {
-        //     //current contact not found in list of ignored contacts
-        //     OMPL_DEBUG("Contact between geomIDs %d and %d unexpected. Invalid state\n", to_find.first, to_find.second);
-        //     isValidState = false; //so it's an invalid state
-        // }
+            // if (found == false) {
+            //     //current contact not found in list of ignored contacts
+            //     OMPL_DEBUG("Contact between geomIDs %d and %d unexpected. Invalid state\n", to_find.first, to_find.second);
+            //     isValidState = false; //so it's an invalid state
+            // }
+        }
     }
 
     // if (isValidState) {
