@@ -139,7 +139,7 @@ class LowLevelAgent(SACAgent):
         train_info = {}
         for i in range(self._config.num_batches):
             for skill_idx in range(len(self._config.primitive_skills)):
-                if self._buffer._current_size[skill_idx] > self._config.batch_size*2:
+                if self._buffer._current_size[skill_idx] > self._config.start_steps // self._config.num_workers:
                     transitions = self._buffer.sample(self._config.batch_size, skill_idx)
                 else:
                     transitions = self._buffer.create_empty_transition()
