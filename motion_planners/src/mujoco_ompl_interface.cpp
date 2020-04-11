@@ -951,18 +951,18 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state, std::ve
                 }
             }
 
-            // if (found == false) {
-            //     //current contact not found in list of ignored contacts
-            //     OMPL_DEBUG("Contact between geomIDs %d and %d unexpected. Invalid state\n", to_find.first, to_find.second);
-            //     isValidState = false; //so it's an invalid state
-            // }
+            if (found == false) {
+                //current contact not found in list of ignored contacts
+                OMPL_DEBUG("Contact between geomIDs %d and %d unexpected. Invalid state\n", to_find.first, to_find.second);
+                isValidState = false; //so it's an invalid state
+            }
         }
     }
 
-    // if (isValidState) {
-    //     //if all existing contacts are in the list of ignored contacts, state is valid
-    //     OMPL_DEVMSG1("All contacts part of ignored contacts. %d ignored contacts. Valid state\n", ignored_contacts.size());
-    // }
+    if (isValidState) {
+        //if all existing contacts are in the list of ignored contacts, state is valid
+        OMPL_DEVMSG1("All contacts part of ignored contacts. %d ignored contacts. Valid state\n", ignored_contacts.size());
+    }
     mj_lock.unlock();
     return isValidState;
 }
