@@ -22,6 +22,7 @@ from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
 from rl.mp_rollouts import MPRolloutRunner
 from rl.subgoal_rollouts import SubgoalRolloutRunner
+from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
 from rl.dataset import HERSampler
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
@@ -115,10 +116,19 @@ class Trainer(object):
             config.primitive_skills = ['mp']
 
         if config.hrl:
-            from rl.low_level_agent import LowLevelAgent
-            self._agent = LowLevelAgent(
-                config, ll_ob_space, ac_space, actor, critic, non_limited_idx
-            )
+            if config.algo == 'sac':
+                from rl.low_level_agent import LowLevelAgent
+                subgoal_space = self._env.subgoal_space
+                self._agent = LowLevelAgent(
+                    config, ll_ob_space, ac_space, actor, critic, non_limited_idx, subgoal_space
+                )
+            else:
+                from rl.low_level_ppo_agent import LowLevelPPOAgent
+                subgoal_space = self._env.subgoal_space
+                self._agent = LowLevelPPOAgent(
+                    config, ll_ob_space, ac_space, subgoal_space, actor, critic, non_limited_idx
+                )
+
         else:
             self._agent = get_agent_by_name(config.algo, config.use_ae)(
                 config, ob_space, ac_space, actor, critic
@@ -127,9 +137,15 @@ class Trainer(object):
         self._runner = None
         if config.hrl:
             if config.subgoal_predictor:
-                self._runner = SubgoalRolloutRunner(
-                    config, self._env, self._env_eval, self._meta_agent, self._agent
-                )
+                if config.algo == 'sac':
+                    self._runner = SubgoalRolloutRunner(
+                        config, self._env, self._env_eval, self._meta_agent, self._agent
+                    )
+                else:
+                    self._runner = SubgoalPPORolloutRunner(
+                        config, self._env, self._env_eval, self._meta_agent, self._agent
+                    )
+
             else:
                 if config.ll_type == 'rl':
                     # build rollout runner
@@ -278,8 +294,11 @@ class Trainer(object):
                 else:
                     runner = self._runner.run_episode(every_steps=self._config.rollout_length)
             else:
-                runner = self._runner.run(every_steps=1)
-                random_runner = self._runner.run(every_steps=1, random_exploration=True)
+                if config.algo == 'sac':
+                    runner = self._runner.run(every_steps=1)
+                    random_runner = self._runner.run(every_steps=1, random_exploration=True)
+                else:
+                    runner = self._runner.run(every_steps=self._config.rollout_length)
 
         else:
             if config.algo == 'sac':

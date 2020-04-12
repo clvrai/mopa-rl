@@ -16,10 +16,11 @@ from util.pytorch import optimizer_cuda, count_parameters, \
 
 class PPOAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic):
+                 actor, critic, postfix=""):
         super().__init__(config, ob_space)
 
         self._ac_space = ac_space
+        self._postfix = postfix
 
         # build up networks
         self._actor = actor(config, ob_space, ac_space, config.tanh_policy)
@@ -146,17 +147,17 @@ class PPOAgent(BaseAgent):
 
         if not np.isfinite(ratio.cpu().detach()).all() or not np.isfinite(adv.cpu().detach()).all():
             import ipdb; ipdb.set_trace()
-        info['entropy_loss'] = entropy_loss.cpu().item()
-        info['actor_loss'] = actor_loss.cpu().item()
+        info['entropy_loss{}'.format(self._postfix)] = entropy_loss.cpu().item()
+        info['actor_loss{}'.format(self._postfix)] = actor_loss.cpu().item()
         actor_loss += entropy_loss
 
         # the q loss
         value_pred = self._critic(o)
         value_loss = self._config.value_loss_coeff * (ret - value_pred).pow(2).mean()
 
-        info['value_target'] = ret.mean().cpu().item()
-        info['value_predicted'] = value_pred.mean().cpu().item()
-        info['value_loss'] = value_loss.cpu().item()
+        info['value_target{}'.format(self._postfix)] = ret.mean().cpu().item()
+        info['value_predicted{}'.format(self._postfix)] = value_pred.mean().cpu().item()
+        info['value_loss{}'.format(self._postfix)] = value_loss.cpu().item()
 
         # update the actor
         self._actor_optim.zero_grad()
