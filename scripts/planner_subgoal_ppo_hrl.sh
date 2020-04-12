@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.12.LL.FIX.SUBGOAL_JOINT.DIFF.STAGE"
+prefix="4.11.hrl.ppo.ll.debug"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -31,11 +31,11 @@ meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
-buffer_size="120000"
-num_batches="1"
+buffer_size="51200"
+num_batches="16"
 debug="False"
-rollout_length="15000"
-batch_size="128"
+rollout_length="12800"
+batch_size="2048"
 reward_type="dense"
 reward_scale="10."
 comment="init buffer size is 10 times batch size"
@@ -43,14 +43,14 @@ ctrl_reward_coef="1e-2"
 actor_num_hid_layers="1"
 subgoal_type="joint"
 subgoal_reward="True"
-meta_algo='sac'
-start_steps='10000'
+meta_algo='ppo'
 success_reward='100.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
+algo='ppo'
 
 mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -83,10 +83,10 @@ mpiexec -n $workers python -m rl.main \
     --subgoal_type $subgoal_type \
     --subgoal_reward $subgoal_reward \
     --meta_algo $meta_algo \
-    --start_steps $start_steps \
     --success_reward $success_reward \
     --primitive_skills $primitive_skills \
     --subgoal_predictor $subgoal_predictor \
     --has_terminal $has_terminal \
     --meta_oracle $meta_oracle \
-    --ignored_contact_geoms $ignored_contact_geoms
+    --ignored_contact_geoms $ignored_contact_geoms \
+    --algo $algo

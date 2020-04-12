@@ -47,6 +47,12 @@ class SimpleMoverEnv(BaseEnv):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
+        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
+        self.subgoal_space = spaces.Dict([
+            ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
+        ])
+
         jnt_range = self.sim.model.jnt_range[:num_actions]
         is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
         jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
@@ -240,12 +246,12 @@ class SimpleMoverEnv(BaseEnv):
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-        if dist_box_to_gripper < 0.1:
+        if dist_box_to_gripper < 0.15:
             self._stages[0] = True
         else:
             self._stages[0] = False
 
-        if self._has_grasp():
+        if self._has_grasp() and self._stages[0]:
             self._stages[1] = True
         else:
             self._stages[1] = False

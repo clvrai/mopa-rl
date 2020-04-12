@@ -153,6 +153,7 @@ def sync_grads(network):
     comm = MPI.COMM_WORLD
     global_grads = np.zeros_like(flat_grads)
     comm.Allreduce(flat_grads, global_grads, op=MPI.SUM)
+    # global_grads /= comm.Get_size() # average grad
     _set_flat_grads(network, grads_shape, global_grads)
 
 

@@ -17,6 +17,7 @@ from env.action_spec import ActionSpec
 from gym import spaces
 
 from util.logger import logger
+from rl.policies.mlp_actor_critic import MlpActor, MlpCritic
 
 class LowLevelAgent(SACAgent):
     ''' Low level agent that includes skill sets for each agent, their
@@ -25,8 +26,9 @@ class LowLevelAgent(SACAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, actor, critic, non_limited_idx=None):
+    def __init__(self, config, ob_space, ac_space, actor, critic, non_limited_idx=None, subgoal_space=None, subgoal_critic=None):
         self._non_limited_idx = non_limited_idx
+        self._subgoal_space = subgoal_space
         super().__init__(config, ob_space, ac_space, actor, critic)
 
     def _log_creation(self):
@@ -54,7 +56,10 @@ class LowLevelAgent(SACAgent):
         planner_i = 0
 
         for skill in skills:
-            skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
+            if 'mp' in skill and self._subgoal_space is not None:
+                skill_actor = actor(config, self._ob_space, self._subgoal_space, config.tanh_policy)
+            else:
+                skill_actor = actor(config, self._ob_space, self._ac_space, config.tanh_policy)
             skill_ob_norm = Normalizer(self._ob_space,
                                        default_clip_range=config.clip_range,
                                        clip_obs=config.clip_obs)
@@ -85,9 +90,35 @@ class LowLevelAgent(SACAgent):
             self._actors.append(skill_actor)
             self._ob_norms.append(skill_ob_norm)
 
+    def _build_critic(self, critic):
+        config = self._config
+        self._critics1 = []
+        self._critics2 = []
+        self._critic1_targets = []
+        self._critic2_targets = []
+        for skill in config.primitive_skills:
+            if 'mp' in skill:
+                self._critics1.append(critic(config, self._ob_space, self._subgoal_space))
+                self._critics2.append(critic(config, self._ob_space, self._subgoal_space))
+                self._critic1_targets.append(critic(config, self._ob_space, self._subgoal_space))
+                self._critic2_targets.append(critic(config, self._ob_space, self._subgoal_space))
+            else:
+                self._critics1.append(critic(config, self._ob_space, self._ac_space))
+                self._critics2.append(critic(config, self._ob_space, self._ac_space))
+                self._critic1_targets.append(critic(config, self._ob_space, self._ac_space))
+                self._critic2_targets.append(critic(config, self._ob_space, self._ac_space))
+
+        for i in range(len(self._critics1)):
+            self._critic1_targets[i].load_state_dict(self._critics1[i].state_dict())
+            self._critic2_targets[i].load_state_dict(self._critics2[i].state_dict())
+
+
+
+
     def plan(self, curr_qpos, target_qpos=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         assert len(self._planners) != 0, "No planner exists"
 
+        activation = None
         if target_qpos is None:
             assert ob is not None and meta_ac is not None, "Invalid arguments"
 
@@ -96,13 +127,16 @@ class LowLevelAgent(SACAgent):
 
             assert "mp" in self.return_skill_type(meta_ac), "Skill is expected to be motion planner"
             if random_exploration:
-                ac = self._ac_space.sample()
+                if self._subgoal_space is not None:
+                    ac = self._subgoal_space.sample()
+                else:
+                    ac = self._ac_space.sample()
             else:
                 ac, activation = self._actors[skill_idx].act(ob, is_train)
             target_qpos = curr_qpos.copy()
             target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
             traj, success = self._planners[skill_idx].plan(curr_qpos, target_qpos)
-            return traj, success, target_qpos, ac
+            return traj, success, target_qpos, ac, activation
         else:
             traj, success = self._planners[0].plan(curr_qpos, target_qpos)
             return traj, success
@@ -139,22 +173,22 @@ class LowLevelAgent(SACAgent):
         train_info = {}
         for i in range(self._config.num_batches):
             for skill_idx in range(len(self._config.primitive_skills)):
-                if self._buffer._current_size[skill_idx] > self._config.start_steps // self._config.num_workers:
+                if self._buffer._current_size[skill_idx] > self._config.batch_size * 5:
                     transitions = self._buffer.sample(self._config.batch_size, skill_idx)
                 else:
                     transitions = self._buffer.create_empty_transition()
                 info = self._update_network(transitions, i, skill_idx)
                 train_info.update(info)
-            self._soft_update_target_network(self._critic1_target, self._critic1, self._config.polyak)
-            self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
+                self._soft_update_target_network(self._critic1_targets[skill_idx], self._critics1[skill_idx], self._config.polyak)
+                self._soft_update_target_network(self._critic2_targets[skill_idx], self._critics2[skill_idx], self._config.polyak)
 
         train_info.update({
             'actor_grad_norm': np.mean([compute_gradient_norm(_actor) for _actor in self._actors]),
             'actor_weight_norm': np.mean([compute_weight_norm(_actor) for _actor in self._actors]),
-            'critic1_grad_norm': compute_gradient_norm(self._critic1),
-            'critic2_grad_norm': compute_gradient_norm(self._critic2),
-            'critic1_weight_norm': compute_weight_norm(self._critic1),
-            'critic2_weight_norm': compute_weight_norm(self._critic2),
+            'critic1_grad_norm_{}'.format(self._config.primitive_skills[skill_idx]): compute_gradient_norm(self._critics1[skill_idx]),
+            'critic2_grad_norm_{}'.format(self._config.primitive_skills[skill_idx]): compute_gradient_norm(self._critics2[skill_idx]),
+            'critic1_weight_norm_{}'.format(self._config.primitive_skills[skill_idx]): compute_weight_norm(self._critics1[skill_idx]),
+            'critic2_weight_norm_{}'.format(self._config.primitive_skills[skill_idx]): compute_weight_norm(self._critics2[skill_idx]),
         })
         # print(train_info)
         return train_info
@@ -165,14 +199,4 @@ class LowLevelAgent(SACAgent):
             super().sync_networks()
         else:
             pass
-
-    def curr_pos(self, env, meta_ac):
-        skill = self.return_skill_type(meta_ac)
-
-        import pdb
-        pdb.set_trace()
-        if 'mp' in skill:
-            return env._get_pos('fingertip')[:env.sim.model.nu].copy()
-        else:
-            return env._get_pos('box')[:env.sim.model.nu].copy()
 
