@@ -7,12 +7,16 @@ import numpy as np
 import torch
 from six.moves import shlex_quote
 from mpi4py import MPI
+from logging import CRITICAL
 
 from config import argparser
 from config.motion_planner import add_arguments as mp_add_arguments
 from rl.trainer import Trainer
 from util.logger import logger
 
+# workaround for mujoco py issue #390
+from mujoco_py import GlfwContext
+GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -26,12 +30,11 @@ def run(config):
     config.num_workers = MPI.COMM_WORLD.Get_size()
 
     if config.is_chef:
-        logger.warning('Run a base worker.')
+        logger.warning('Running a base worker.')
         make_log_files(config)
     else:
-        logger.warning('Run worker %d and disable logger.', config.rank)
-        import logging
-        logger.setLevel(logging.CRITICAL)
+        logger.warning('Running worker %d and disabling logger', config.rank)
+        logger.setLevel(CRITICAL)
 
         config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed-rank)
         config.log_dir = os.path.join(config.log_root_dir, config.run_name)
