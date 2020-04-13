@@ -5,7 +5,7 @@ gpu=$2
 if [ $algo = 1 ]
 then
     algo='ppo'
-    rollout_length='4096'
+    rollout_length='512'
     evaluate_interval="10"
     ckpt_interval='100'
     rl_activation="tanh"
@@ -20,7 +20,7 @@ then
     num_batches="1"
 fi
 
-workers="1"
+workers="8"
 prefix="baseline.ppo"
 max_global_step="60000000"
 env="sawyer-nut-assembly-single-robosuite-v0"
@@ -32,18 +32,18 @@ buffer_size="125000"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-batch_size="256"
+batch_size="128"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
 start_steps='10000'
-actor_num_hid_layers='2'
+actor_num_hid_layers='1'
+success_reward='10.'
+has_terminal='True'
+ckpt_interval='100000'
 log_root_dir="./logs"
-group='4.19.SAWYER-NUT-ASSEMBLY-SINGLE'
-# success_reward='10.'
-# has_terminal='True'
 
 #mpiexec -n $workers
 python -m rl.main \

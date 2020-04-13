@@ -120,15 +120,17 @@ class Trainer(object):
             config.primitive_skills = ['mp']
 
         if config.hrl:
+            if config.use_subgoal_space:
+                subgoal_space = self._env.subgoal_space
+            else:
+                subgoal_space = ac_space
             if config.algo == 'sac':
                 from rl.low_level_agent import LowLevelAgent
-                subgoal_space = self._env.subgoal_space
                 self._agent = LowLevelAgent(
                     config, ll_ob_space, ac_space, actor, critic, non_limited_idx, subgoal_space
                 )
             else:
                 from rl.low_level_ppo_agent import LowLevelPPOAgent
-                subgoal_space = self._env.subgoal_space
                 self._agent = LowLevelPPOAgent(
                     config, ll_ob_space, ac_space, subgoal_space, actor, critic, non_limited_idx
                 )
@@ -141,14 +143,14 @@ class Trainer(object):
         self._runner = None
         if config.hrl:
             if config.subgoal_predictor:
-                if config.algo == 'sac':
-                    self._runner = SubgoalRolloutRunner(
-                        config, self._env, self._env_eval, self._meta_agent, self._agent
-                    )
-                else:
-                    self._runner = SubgoalPPORolloutRunner(
-                        config, self._env, self._env_eval, self._meta_agent, self._agent
-                    )
+                # if config.algo == 'sac':
+                self._runner = SubgoalRolloutRunner(
+                    config, self._env, self._env_eval, self._meta_agent, self._agent
+                )
+                # else:
+                #     self._runner = SubgoalPPORolloutRunner(
+                #         config, self._env, self._env_eval, self._meta_agent, self._agent
+                #     )
 
             else:
                 if config.ll_type == 'rl':

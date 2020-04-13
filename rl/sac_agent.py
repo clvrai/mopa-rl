@@ -161,8 +161,8 @@ class SACAgent(BaseAgent):
         for i in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions, i)
-            self._soft_update_target_network(self._critic1_target, self._critic1, self._config.polyak)
-            self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
+            self._soft_update_target_network(self._critic1_targets[0], self._critics1[0], self._config.polyak)
+            self._soft_update_target_network(self._critic2_targets[0], self._critics2[0], self._config.polyak)
 
         train_info.update({
             'actor_grad_norm': np.mean([compute_gradient_norm(_actor) for _actor in self._actors]),
@@ -182,90 +182,49 @@ class SACAgent(BaseAgent):
             raise NotImplementedError()
         return self._actors[0].act_log(ob)
 
-    def _update_network(self, transitions, step=0, skill_idx=None):
+    def _update_network(self, transitions, step=0):
         info = {}
 
         # pre-process observations
-        o, o_next = transitions['ob'], transitions['ob_next']
-
-        if len(o) == 0:
-            for i, _actor in enumerate(self._actors):
-                _actor.zero_grad()
-                sync_grads(_actor)
-            for _critic1 in self._critics1:
-                _critic1.zero_grad()
-                sync_grads(_critic1)
-            for _critic2 in self._critics2:
-                _critic2.zero_grad()
-                sync_grads(_critic2)
-
-            info['min_target_q'] = 0.
-            info['target_q'] = 0.
-            info['min_real1_q'] = 0.
-            info['min_real2_q'] = 0.
-            info['real1_q'] = 0.
-            info['real2_q'] = 0.
-            info['critic1_loss'] = 0.
-            info['critic2_loss'] = 0.
-            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = self._log_alpha[skill_idx].exp().cpu().item()
-            info['entropy_loss'] = 0.
-            info['actor_loss'] = 0.
-            return mpi_average(info)
-
-        bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
+        o, o_next = transitions['ob'], transitions['ob_next']
+        bs = len(transitions['done'])
         o = _to_tensor(o)
         o_next = _to_tensor(o_next)
         ac = _to_tensor(transitions['ac'])
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
-            skill_idx = int(meta_ac['default'][0])
-            skill = "_" + self._config.primitive_skills[skill_idx]
         else:
             meta_ac = None
-            skill_idx = 0
-            skill = ""
         done = _to_tensor(transitions['done']).reshape(bs, 1)
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
 
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
-        alpha_loss = -(self._log_alpha[skill_idx] * (log_pi + self._target_entropy[skill_idx]).detach()).mean()
+        alpha_loss = -(self._log_alpha[0] * (log_pi + self._target_entropy[0]).detach()).mean()
 
-
-        for _alpha_optim in self._alpha_optim:
-            _alpha_optim.zero_grad()
+        self._alpha_optim[0].zero_grad()
         alpha_loss.backward()
-        for _alpha_optim in self._alpha_optim:
-            _alpha_optim.step()
-
-        # self._alpha_optim.zero_grad()
-        # alpha_loss.backward()
-        # self._alpha_optim.step()
+        self._alpha_optim[0].step()
         alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
 
         # the actor loss
-        entropy_loss = (alpha[skill_idx] * log_pi).mean()
-        actor_loss = -torch.min(self._critics1[skill_idx](o, actions_real),
-                                self._critics2[skill_idx](o, actions_real)).mean()
+        entropy_loss = (alpha[0] * log_pi).mean()
+        actor_loss = -torch.min(self._critics1[0](o, actions_real),
+                                self._critics2[0](o, actions_real)).mean()
 
-        if self._config.hrl:
-            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = alpha[skill_idx].cpu().item()
-        else:
-            info['entropy_alpha'] = alpha.cpu().item()
-        info['entropy_loss{}'.format(skill)] = entropy_loss.cpu().item()
-        info['actor_loss{}'.format(skill)] = actor_loss.cpu().item()
+        info['entropy_alpha'] = alpha[0].cpu().item()
+        info['entropy_loss'] = entropy_loss.cpu().item()
+        info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
 
         # calculate the target Q value function
         with torch.no_grad():
             actions_next, log_pi_next = self.act_log(o_next, meta_ac=meta_ac)
-            q_next_value1 = self._critic1_targets[skill_idx](o_next, actions_next)
-            q_next_value2 = self._critic2_targets[skill_idx](o_next, actions_next)
+            q_next_value1 = self._critic1_targets[0](o_next, actions_next)
+            q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
-            else:
-                q_next_value = (torch.min(q_next_value1, q_next_value2) - alpha[skill_idx] * log_pi_next)
             target_q_value = rew * self._config.reward_scale + \
                 (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
@@ -274,19 +233,19 @@ class SACAgent(BaseAgent):
             # target_q_value = torch.clamp(target_q_value, -clip_return, clip_return)
 
         # the q loss
-        real_q_value1 = self._critics1[skill_idx](o, ac)
-        real_q_value2 = self._critics2[skill_idx](o, ac)
+        real_q_value1 = self._critics1[0](o, ac)
+        real_q_value2 = self._critics2[0](o, ac)
         critic1_loss = 0.5 * (target_q_value - real_q_value1).pow(2).mean()
         critic2_loss = 0.5 * (target_q_value - real_q_value2).pow(2).mean()
 
-        info['min_target_q{}'.format(skill)] = target_q_value.min().cpu().item()
-        info['target_q{}'.format(skill)] = target_q_value.mean().cpu().item()
-        info['min_real1_q{}'.format(skill)] = real_q_value1.min().cpu().item()
-        info['min_real2_q{}'.format(skill)] = real_q_value2.min().cpu().item()
-        info['real1_q{}'.format(skill)] = real_q_value1.mean().cpu().item()
-        info['real2_q{}'.format(skill)] = real_q_value2.mean().cpu().item()
-        info['critic1_loss{}'.format(skill)] = critic1_loss.cpu().item()
-        info['critic2_loss{}'.format(skill)] = critic2_loss.cpu().item()
+        info['min_target_q'] = target_q_value.min().cpu().item()
+        info['target_q'] = target_q_value.mean().cpu().item()
+        info['min_real1_q'] = real_q_value1.min().cpu().item()
+        info['min_real2_q'] = real_q_value2.min().cpu().item()
+        info['real1_q'] = real_q_value1.mean().cpu().item()
+        info['real2_q'] = real_q_value2.mean().cpu().item()
+        info['critic1_loss'] = critic1_loss.cpu().item()
+        info['critic2_loss'] = critic2_loss.cpu().item()
 
         # update the actor
         for _actor_optim in self._actor_optims:

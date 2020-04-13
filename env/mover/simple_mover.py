@@ -66,8 +66,10 @@ class SimpleMoverEnv(BaseEnv):
             ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
-        self._num_primitives = len(kwargs['primitive_skills'])
         self._primitive_skills = kwargs['primitive_skills']
+        if len(self._primitive_skills) != 3:
+            self._primitive_skills = ['reach', 'grasp', 'manipulation']
+        self._num_primitives = len(self._primitive_skills)
         # assert self._num_primitives == 3
 
 
@@ -211,7 +213,8 @@ class SimpleMoverEnv(BaseEnv):
                                            self._get_pos('r_finger_g0')))) * gripper_multi
             has_grasp = self._has_grasp()
             has_self_collision = self._has_self_collision()
-            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
+            #reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
+            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2) * grasp_multi
             # reward_grasp = int(has_grasp) * grasp_multi
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)

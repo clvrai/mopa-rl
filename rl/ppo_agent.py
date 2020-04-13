@@ -123,6 +123,22 @@ class PPOAgent(BaseAgent):
         # pre-process observations
         o = transitions['ob']
         # o = self.normalize(o)
+        if len(o) == 0:
+            self._actor_optim.zero_grad()
+            sync_grads(self._actor)
+            self._actor_optim.step()
+
+            # update the critic
+            self._critic_optim.zero_grad()
+            sync_grads(self._critic)
+            self._critic_optim.step()
+
+            info['value_target{}'.format(self._postfix)] = 0.
+            info['value_predicted{}'.format(self._postfix)] = 0.
+            info['value_loss{}'.format(self._postfix)] = 0.
+            info['actor_loss{}'.format(self._postfix)] = 0.
+            info['entropy_loss{}'.format(self._postfix)] = 0.
+            return mpi_average(info)
 
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
