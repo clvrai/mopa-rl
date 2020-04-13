@@ -14,10 +14,6 @@ from config.motion_planner import add_arguments as mp_add_arguments
 from rl.trainer import Trainer
 from util.logger import logger
 
-# workaround for mujoco py issue #390
-from mujoco_py import GlfwContext
-GlfwContext(offscreen=True)  # Create a window to init GLFW.
-
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
 

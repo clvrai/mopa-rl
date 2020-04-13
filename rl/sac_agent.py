@@ -25,10 +25,10 @@ class SACAgent(BaseAgent):
 
         self._ob_space = ob_space
         self._ac_space = ac_space
-        self._log_alpha = torch.zeros(len(config.primitive_skills), requires_grad=True, device=config.device)
+        self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device) for _ in range(len(config.primitive_skills))]
         # self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device) for _ in range(len(config.primitive_skills))]
-        self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
-        # self._alpha_optim = [optim.Adam([_log_alpha], lr=config.lr_actor) for _log_alpha in self._log_alpha]
+        # self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
+        self._alpha_optim = [optim.Adam([_log_alpha], lr=config.lr_actor) for _log_alpha in self._log_alpha]
 
         # build up networks
         self._build_actor(actor)
@@ -83,11 +83,11 @@ class SACAgent(BaseAgent):
 
     def state_dict(self):
         return {
-            'log_alpha': self._log_alpha.cpu().detach().numpy(),
+            'log_alpha': [_log_alpha.cpu().detach().numpy() for _log_alpha in self._log_alpha],
             'actor_state_dict': [_actor.state_dict() for _actor in self._actors],
             'critic1_state_dict': [_critic1.state_dict() for _critic1 in self._critics1],
             'critic2_state_dict': [_critic2.state_dict() for _critic2 in self._critics2],
-            'alpha_optim_state_dict': self._alpha_optim.state_dict(),
+            'alpha_optim_state_dict': [_alpha_optim.state_dict() for _alpha_optim in self._alpha_optim],
             'actor_optim_state_dict': [_actor_optim.state_dict() for _actor_optim in self._actor_optims],
             'critic1_optim_state_dict': [_critic1_optim.state_dict() for _critic1_optim in self._critic1_optims],
             'critic2_optim_state_dict': [_critic2_optim.state_dict() for _critic2_optim in self._critic2_optims],
@@ -95,11 +95,11 @@ class SACAgent(BaseAgent):
         }
 
     def load_state_dict(self, ckpt):
-        # for _log_alpha, _log_alpha_ckpt in zip(self._log_alpha, ckpt['log_alpha']):
-        #     _log_alpha.data = torch.tensor(_log_alpha_ckpt, requires_grad=True,
-        #                                         device=self._config.device)
-        self._log_alpha.data = torch.tensor(ckpt['log_alpha'], requires_grad=True,
-                                            device=self._config.device)
+        for _log_alpha, _log_alpha_ckpt in zip(self._log_alpha, ckpt['log_alpha']):
+            _log_alpha.data = torch.tensor(_log_alpha_ckpt, requires_grad=True,
+                                                device=self._config.device)
+        # self._log_alpha.data = torch.tensor(ckpt['log_alpha'], requires_grad=True,
+        #                                     device=self._config.device)
         for _actor, actor_ckpt in zip(self._actors, ckpt['actor_state_dict']):
             _actor.load_state_dict(actor_ckpt)
         for _critic1, critic_ckpt in zip(self._critics1, ckpt['critic1_state_dict']):
@@ -115,10 +115,10 @@ class SACAgent(BaseAgent):
         self._ob_norm.load_state_dict(ckpt['ob_norm_state_dict'])
         self._network_cuda(self._config.device)
 
-        # for _alpha_optim, _alpha_optim_ckpt in zip(self._alpha_optim, ckpt['alpha_optim_state_dict']):
-        #     _alpha_optim.load_state_dict(_alpha_optim_ckpt)
-        #
-        self._alpha_optim.load_state_dict(ckpt['alpha_optim_state_dict'])
+        for _alpha_optim, _alpha_optim_ckpt in zip(self._alpha_optim, ckpt['alpha_optim_state_dict']):
+            _alpha_optim.load_state_dict(_alpha_optim_ckpt)
+        # self._alpha_optim.load_state_dict(ckpt['alpha_optim_state_dict'])
+
         for _actor_optim, actor_optim_ckpt in zip(self._actor_optims, ckpt['actor_optim_state_dict']):
             _actor_optim.load_state_dict(actor_optim_ckpt)
         for _critic_optim, critic_optim_ckpt in zip(self._critic1_optims, ckpt['critic1_optim_state_dict']):
@@ -182,26 +182,6 @@ class SACAgent(BaseAgent):
             raise NotImplementedError()
         return self._actors[0].act_log(ob)
 
-    # def compute_alpha_loss(self, log_pi, meta_ac=None):
-    #     if meta_ac is None:
-    #         alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy).detach()).mean()
-    #     else:
-    #         alpha_loss = torch.zeros_like(log_pi).to(self._config.device)
-    #         for i in range(len(self._config.primitive_skills)):
-    #             alpha_loss -= self._log_alpha[i] * ((log_pi + self._target_entropy).detach() * (meta_ac['default'] == i).float())
-    #         alpha_loss = alpha_loss.mean()
-    #     return alpha_loss
-    #
-    # def compute_entropy_loss(self, alpha, log_pi, meta_ac=None):
-    #     if meta_ac is None:
-    #         entropy_loss = (alpha[0] * log_pi).mean()
-    #     else:
-    #         entropy_loss = torch.zeros_like(log_pi).to(self._config.device)
-    #         for i in range(len(self._config.primitive_skills)):
-    #             entropy_loss += (alpha[i] * log_pi * (meta_ac['default'] == i).float())
-    #         entropy_loss = entropy_loss.mean()
-    #     return entropy_loss
-
     def _update_network(self, transitions, step=0, skill_idx=None):
         info = {}
 
@@ -227,7 +207,7 @@ class SACAgent(BaseAgent):
             info['real2_q'] = 0.
             info['critic1_loss'] = 0.
             info['critic2_loss'] = 0.
-            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = self._log_alpha.exp()[skill_idx].cpu().item()
+            info['entropy_alpha_{}'.format(self._config.primitive_skills[skill_idx])] = self._log_alpha[skill_idx].exp().cpu().item()
             info['entropy_loss'] = 0.
             info['actor_loss'] = 0.
             return mpi_average(info)
@@ -250,13 +230,19 @@ class SACAgent(BaseAgent):
 
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
-        # alpha_loss = self.compute_alpha_loss(log_pi, meta_ac=meta_ac)
         alpha_loss = -(self._log_alpha[skill_idx] * (log_pi + self._target_entropy[skill_idx]).detach()).mean()
 
-        self._alpha_optim.zero_grad()
+
+        for _alpha_optim in self._alpha_optim:
+            _alpha_optim.zero_grad()
         alpha_loss.backward()
-        self._alpha_optim.step()
-        alpha = self._log_alpha.exp()
+        for _alpha_optim in self._alpha_optim:
+            _alpha_optim.step()
+
+        # self._alpha_optim.zero_grad()
+        # alpha_loss.backward()
+        # self._alpha_optim.step()
+        alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
 
         # the actor loss
         entropy_loss = (alpha[skill_idx] * log_pi).mean()

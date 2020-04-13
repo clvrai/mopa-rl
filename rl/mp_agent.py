@@ -11,15 +11,14 @@ from motion_planners.sampling_based_planner import SamplingBasedPlanner
 from util.logger import logger
 
 class MpAgent:
-    def __init__(self, config, ac_space, non_limited_idx=None, ignored_contacts=[]):
+    def __init__(self, config, ac_space, non_limited_idx=None, passive_joint_idx=[], ignored_contacts=[]):
 
         self._config = config
-        self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx, ignored_contacts=ignored_contacts)
+        self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
 
     def plan(self, start, goal):
         config = self._config
-        traj, states = self.planner.plan(start, goal, config.timelimit, config.max_meta_len+1)
-        success = len(np.unique(traj)) != 1 and traj.shape[0] != 1
+        traj, states, success = self.planner.plan(start, goal, config.timelimit, config.max_meta_len+1)
         if success:
             return traj[1:], success
         else:
