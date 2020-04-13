@@ -21,10 +21,10 @@ then
 fi
 
 workers="8"
-prefix="baseline.ppo"
+prefix="4.11.baseline.sac.debug"
 max_global_step="60000000"
-env="sawyer-nut-assembly-single-robosuite-v0"
-gpu=$gpu
+env="simple-mover-v0"
+gpu="0"
 rl_hid_size="256"
 max_episode_step="1000"
 entropy_loss_coef="0.1"
@@ -45,8 +45,7 @@ has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \

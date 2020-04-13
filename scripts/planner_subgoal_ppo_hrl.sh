@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.12.ll.ppo.collision"
+prefix="4.12.ll.ppo.collision.v3"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -32,12 +32,12 @@ meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="12800"
-num_batches="125"
+num_batches="5"
 debug="False"
 rollout_length="6400"
 batch_size="256"
 evaluate_interval='5'
-ckpt_interval='100'
+ckpt_interval='1'
 reward_type="dense"
 reward_scale="10."
 comment="init buffer size is 10 times batch size"
