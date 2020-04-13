@@ -22,7 +22,6 @@ from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
 from rl.mp_rollouts import MPRolloutRunner
 from rl.subgoal_rollouts import SubgoalRolloutRunner
-from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
 from rl.dataset import HERSampler
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
@@ -147,11 +146,6 @@ class Trainer(object):
                 self._runner = SubgoalRolloutRunner(
                     config, self._env, self._env_eval, self._meta_agent, self._agent
                 )
-                # else:
-                #     self._runner = SubgoalPPORolloutRunner(
-                #         config, self._env, self._env_eval, self._meta_agent, self._agent
-                #     )
-
             else:
                 if config.ll_type == 'rl':
                     # build rollout runner
