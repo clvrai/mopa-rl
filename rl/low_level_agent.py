@@ -328,7 +328,7 @@ class LowLevelAgent(SACAgent):
         sync_grads(self._critics1[critic_idx])
         self._critic1_optims[critic_idx].step()
 
-        _critic2_optims[critic_idx].zero_grad()
+        self._critic2_optims[critic_idx].zero_grad()
         critic2_loss.backward()
         sync_grads(self._critics2[critic_idx])
         self._critic2_optims[critic_idx].step()

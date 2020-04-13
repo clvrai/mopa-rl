@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.12.LL.FIX.SUBGOAL_JOINT.v3.debug"
+prefix="4.12.LL.FIX.SUBGOAL_JOINT.v4"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -33,7 +33,7 @@ meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="120000"
 num_batches="1"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="128"
 reward_type="dense"
