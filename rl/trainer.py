@@ -83,6 +83,10 @@ class Trainer(object):
                         ids[i].append(make_ordered_pair(pair_id[0], pair_id[1]))
             config.ignored_contact_geom_ids = ids
 
+        passive_joint_idx = list(range(len(self._env.sim.data.qpos)))
+        [passive_joint_idx.remove(idx) for idx in self._env.ref_joint_pos_indexes]
+        config.passive_joint_idx = passive_joint_idx
+
 
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)

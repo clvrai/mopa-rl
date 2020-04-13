@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.12.LL.FIX.SUBGOAL_JOINT.DIFF.STAGE"
+prefix="4.12.LL.FIX.SUBGOAL_JOINT.DIFF.STAGE.v2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -37,10 +37,10 @@ debug="False"
 rollout_length="15000"
 batch_size="128"
 reward_type="dense"
-reward_scale="10."
+reward_scale="3."
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
-actor_num_hid_layers="1"
+actor_num_hid_layers="2"
 subgoal_type="joint"
 subgoal_reward="True"
 meta_algo='sac'
