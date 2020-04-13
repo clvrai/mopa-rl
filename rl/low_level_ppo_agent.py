@@ -166,9 +166,9 @@ class LowLevelPPOAgent(BaseAgent):
         train_info = {}
         for i in range(len(self._agents)):
             self._soft_update_target_network(self._agents[i]._old_actor, self._agents[i]._actor, 0.0)
-
-        for _ in range(self._config.num_batches):
-            for skill_idx in range(len(self._config.primitive_skills)):
+        for skill_idx in range(len(self._config.primitive_skills)):
+            iters = max(int(self._buffer._current_size[skill_idx] // self._config.batch_size), 1)
+            for _ in range(iters*self._config.num_batches):
                 if self._buffer._current_size[skill_idx] > 0:
                     transitions = self._buffer.sample(self._config.batch_size, skill_idx)
                 else:
@@ -194,3 +194,15 @@ class LowLevelPPOAgent(BaseAgent):
                 _agent.sync_networks()
         else:
             pass
+
+    def state_dict(self):
+        state_dict = {}
+        for skill_idx, _agent in enumerate(self._agents):
+            tmp_dict = _agent.state_dict()
+            constructed_dict = {}
+            for k, v in tmp_dict.items():
+                constructed_dict['{}_{}'.format(k, self._config.primitive_skills[skill_idx])] = v
+            state_dict.update(constructed_dict)
+        return state_dict
+
+

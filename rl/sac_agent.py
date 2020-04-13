@@ -263,7 +263,7 @@ class SACAgent(BaseAgent):
             sync_grads(_critic1)
             self._critic1_optims[i].step()
 
-        for _critic2_optim in self._critic1_optims:
+        for _critic2_optim in self._critic2_optims:
             _critic2_optim.zero_grad()
         critic2_loss.backward()
         for i, _critic2 in enumerate(self._critics2):
