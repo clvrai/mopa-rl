@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.11.hrl.ppo.ll.debug"
+prefix="4.12.ll.ppo.collision"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -31,11 +31,13 @@ meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
-buffer_size="51200"
-num_batches="16"
+buffer_size="12800"
+num_batches="125"
 debug="False"
-rollout_length="12800"
-batch_size="2048"
+rollout_length="6400"
+batch_size="256"
+evaluate_interval='5'
+ckpt_interval='100'
 reward_type="dense"
 reward_scale="10."
 comment="init buffer size is 10 times batch size"
@@ -89,4 +91,6 @@ mpiexec -n $workers python -m rl.main \
     --has_terminal $has_terminal \
     --meta_oracle $meta_oracle \
     --ignored_contact_geoms $ignored_contact_geoms \
-    --algo $algo
+    --algo $algo \
+    --evaluate_interval $evaluate_interval \
+    --ckpt_interval $ckpt_interval

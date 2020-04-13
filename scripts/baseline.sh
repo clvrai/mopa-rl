@@ -14,7 +14,7 @@ buffer_size="125000"
 num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
@@ -29,7 +29,7 @@ actor_num_hid_layers='1'
 success_reward='10.'
 has_terminal='True'
 ckpt_interval='100000'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 
 #mpiexec -n $workers
 python -m rl.main \
