@@ -12,7 +12,7 @@ from util.pytorch import to_tensor, get_ckpt_path
 from util.gym import action_size, observation_size
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
-    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor, sync_avg_grad
+    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor, sync_avg_grads
 from env.action_spec import ActionSpec
 
 from gym import spaces
@@ -271,7 +271,7 @@ class LowLevelAgent(SACAgent):
         alpha_loss = -(self._log_alpha[skill_idx] * (log_pi + self._target_entropy[skill_idx]).detach()).mean()
 
 
-        if self._config.use_automaic_entropy_tuning:
+        if self._config.use_automatic_entropy_tuning:
             self._alpha_optim[skill_idx].zero_grad()
             alpha_loss.backward()
             self._alpha_optim[skill_idx].step()
