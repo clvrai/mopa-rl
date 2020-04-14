@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.13.LL.FIX.SUBGOAL_JOINT.avg.grad"
+prefix="4.13.LL.FIX.SUBGOAL_JOINT.avg.grad.v1"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
