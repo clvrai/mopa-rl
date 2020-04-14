@@ -203,7 +203,7 @@ class SACAgent(BaseAgent):
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
         alpha_loss = -(self._log_alpha[0] * (log_pi + self._target_entropy[0]).detach()).mean()
 
-        if self._config.use_automaic_entropy_tuning:
+        if self._config.use_automatic_entropy_tuning:
             self._alpha_optim[0].zero_grad()
             alpha_loss.backward()
             self._alpha_optim[0].step()
