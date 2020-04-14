@@ -11,7 +11,7 @@ from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, \
-    obs2tensor, to_tensor
+    obs2tensor, to_tensor, sync_avg_grads
 
 
 class PPOAgent(BaseAgent):
@@ -125,12 +125,12 @@ class PPOAgent(BaseAgent):
         # o = self.normalize(o)
         if len(o) == 0:
             self._actor_optim.zero_grad()
-            sync_grads(self._actor)
+            sync_avg_grads(self._actor)
             self._actor_optim.step()
 
             # update the critic
             self._critic_optim.zero_grad()
-            sync_grads(self._critic)
+            sync_avg_grads(self._critic)
             self._critic_optim.step()
 
             info['value_target{}'.format(self._postfix)] = 0.
@@ -180,7 +180,7 @@ class PPOAgent(BaseAgent):
         actor_loss.backward()
         if self._config.max_grad_norm is not None:
             torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
-        sync_grads(self._actor)
+        sync_avg_grads(self._actor)
         self._actor_optim.step()
 
         # update the critic
@@ -188,7 +188,7 @@ class PPOAgent(BaseAgent):
         value_loss.backward()
         if self._config.max_grad_norm is not None:
             torch.nn.utils.clip_grad_norm_(self._critic.parameters(), self._config.max_grad_norm)
-        sync_grads(self._critic)
+        sync_avg_grads(self._critic)
         self._critic_optim.step()
 
         # include info from policy

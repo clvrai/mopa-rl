@@ -25,6 +25,10 @@ def run(config):
     config.seed = config.seed + rank
     config.num_workers = MPI.COMM_WORLD.Get_size()
 
+    if torch.get_num_threads() != 1:
+        fair_num_threads = max(int(torch.get_num_threads() / MPI.COMM_WORLD.Get_size()), 1)
+        torch.set_num_threads(fair_num_threads)
+
     if config.is_chef:
         logger.warning('Running a base worker.')
         make_log_files(config)

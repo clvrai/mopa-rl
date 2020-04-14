@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.12.ll.ppo.collision.v3"
+prefix="4.12.LL.PPO.COLL.v5.avg"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -32,17 +32,17 @@ meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="12800"
-num_batches="5"
+num_batches="10"
 debug="False"
-rollout_length="6400"
-batch_size="256"
-evaluate_interval='5'
-ckpt_interval='1'
+rollout_length="2048"
+batch_size="128"
+evaluate_interval='10'
+ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
-actor_num_hid_layers="1"
+actor_num_hid_layers="2"
 subgoal_type="joint"
 subgoal_reward="True"
 meta_algo='ppo'

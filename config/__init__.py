@@ -97,7 +97,6 @@ def argparser():
     parser.add_argument("--lr_encoder", type=float, default=1e-3, help="the learning rate of the encoder")
     parser.add_argument("--lr_decoder", type=float, default=1e-3, help="the learning rate of the decoder")
 
-    parser.add_argument("--mp_ratio", type=float, default=1., help='How often a motion planner is used')
 
 
     # training
@@ -107,13 +106,14 @@ def argparser():
     parser.add_argument("--batch_size", type=int, default=256,
                         help="the sample batch size")
     parser.add_argument("--max_grad_norm", type=float, default=None)
-    parser.add_argument("--max_global_step", type=int, default=int(10e6))
+    parser.add_argument("--max_global_step", type=int, default=int(10e7))
     parser.add_argument("--gpu", type=int, default=None)
 
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")
     parser.add_argument("--start_steps", type=int, default=1e4)
     parser.add_argument("--temperature", type=float, default=0.3, help="Temperature for Gumbel Softmax")
+    parser.add_argument("--use_automatic_entropy_tuning", type=str2bool, default=True)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)

@@ -12,7 +12,7 @@ from util.pytorch import to_tensor, get_ckpt_path
 from util.gym import action_size, observation_size
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
-    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
+    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor, sync_avg_grad
 from env.action_spec import ActionSpec
 
 from gym import spaces
@@ -212,11 +212,11 @@ class LowLevelAgent(SACAgent):
         else:
             critic_idx = skill_idx
         self._actors[skill_idx].zero_grad()
-        sync_grads(self._actors[skill_idx])
+        sync_avg_grads(self._actors[skill_idx])
         self._critics1[critic_idx].zero_grad()
-        sync_grads(self._critics1[critic_idx])
+        sync_avg_grads(self._critics1[critic_idx])
         self._critics2[critic_idx].zero_grad()
-        sync_grads(self._critics2[critic_idx])
+        sync_avg_grads(self._critics2[critic_idx])
 
         info['min_target_q'] = 0.
         info['target_q'] = 0.
@@ -271,11 +271,15 @@ class LowLevelAgent(SACAgent):
         alpha_loss = -(self._log_alpha[skill_idx] * (log_pi + self._target_entropy[skill_idx]).detach()).mean()
 
 
-        self._alpha_optim[skill_idx].zero_grad()
-        alpha_loss.backward()
-        self._alpha_optim[skill_idx].step()
+        if self._config.use_automaic_entropy_tuning:
+            self._alpha_optim[skill_idx].zero_grad()
+            alpha_loss.backward()
+            self._alpha_optim[skill_idx].step()
 
-        alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
+            info['alpha_loss'] = alpha_loss.cpu().item()
+            alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
+        else:
+            alpha = [1. for _ in self._log_alpha]
 
         # the actor loss
         entropy_loss = (alpha[skill_idx] * log_pi).mean()
@@ -319,18 +323,18 @@ class LowLevelAgent(SACAgent):
         #for _actor_optim in self._actor_optims:
         self._actor_optims[skill_idx].zero_grad()
         actor_loss.backward()
-        sync_grads(self._actors[skill_idx])
+        sync_avg_grads(self._actors[skill_idx])
         self._actor_optims[skill_idx].step()
 
         # update the critic
         self._critic1_optims[critic_idx].zero_grad()
         critic1_loss.backward()
-        sync_grads(self._critics1[critic_idx])
+        sync_avg_grads(self._critics1[critic_idx])
         self._critic1_optims[critic_idx].step()
 
         self._critic2_optims[critic_idx].zero_grad()
         critic2_loss.backward()
-        sync_grads(self._critics2[critic_idx])
+        sync_avg_grads(self._critics2[critic_idx])
         self._critic2_optims[critic_idx].step()
 
         # include info from policy
