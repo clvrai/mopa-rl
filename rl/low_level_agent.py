@@ -276,7 +276,6 @@ class LowLevelAgent(SACAgent):
             alpha_loss.backward()
             self._alpha_optim[skill_idx].step()
 
-            info['alpha_loss'] = alpha_loss.cpu().item()
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
         else:
             alpha = [torch.ones(1).to(self._config.device) for _ in self._log_alpha]
