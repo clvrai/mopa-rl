@@ -279,7 +279,7 @@ class LowLevelAgent(SACAgent):
             info['alpha_loss'] = alpha_loss.cpu().item()
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
         else:
-            alpha = [1. for _ in self._log_alpha]
+            alpha = [torch.ones(1).to(self._config.device) for _ in self._log_alpha]
 
         # the actor loss
         entropy_loss = (alpha[skill_idx] * log_pi).mean()
