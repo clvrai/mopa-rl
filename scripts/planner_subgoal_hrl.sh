@@ -17,7 +17,7 @@ then
 fi
 
 workers="8"
-prefix="4.12.LL.FIX.SUBGOAL_JOINT.v4"
+prefix="4.13.LL.FIX.SUBGOAL_JOINT.avg.grad"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -35,7 +35,7 @@ buffer_size="120000"
 num_batches="1"
 debug="False"
 rollout_length="15000"
-batch_size="128"
+batch_size="64"
 reward_type="dense"
 reward_scale="3."
 comment="init buffer size is 10 times batch size"
@@ -51,6 +51,7 @@ seed="1234"
 has_terminal='True'
 ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
+use_automatic_entropy_tuning="True"
 
 mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -89,4 +90,5 @@ mpiexec -n $workers python -m rl.main \
     --subgoal_predictor $subgoal_predictor \
     --has_terminal $has_terminal \
     --meta_oracle $meta_oracle \
-    --ignored_contact_geoms $ignored_contact_geoms
+    --ignored_contact_geoms $ignored_contact_geoms \
+    --use_automatic_entropy_tuning $use_automatic_entropy_tuning

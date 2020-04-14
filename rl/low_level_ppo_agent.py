@@ -167,7 +167,8 @@ class LowLevelPPOAgent(BaseAgent):
         for i in range(len(self._agents)):
             self._soft_update_target_network(self._agents[i]._old_actor, self._agents[i]._actor, 0.0)
         for skill_idx in range(len(self._config.primitive_skills)):
-            iters = max(int(self._buffer._current_size[skill_idx] // self._config.batch_size), 1)
+            sample_size = len(self._buffer._buffers[skill_idx]['ac'])
+            iters = max(int(sample_size // self._config.batch_size), 1)
             for _ in range(iters*self._config.num_batches):
                 if self._buffer._current_size[skill_idx] > 0:
                     transitions = self._buffer.sample(self._config.batch_size, skill_idx)

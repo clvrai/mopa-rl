@@ -397,7 +397,7 @@ class Trainer(object):
                     ep_info = defaultdict(list)
 
                 ## Evaluate both MP and RL
-                if update_iter % config.evaluate_interval == 1:
+                if update_iter % config.evaluate_interval == 0:
                     logger.info("Evaluate at %d", update_iter)
                     obs = None
                     rollout, info, vids = self._evaluate(step=step, record=config.record)
