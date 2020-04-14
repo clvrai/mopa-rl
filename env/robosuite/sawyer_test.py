@@ -134,7 +134,7 @@ class SawyerTestEnv(SawyerEnv):
             self.sim.model.site_name2id(ob_name) for ob_name in self.object_names
         ]
 
-        self.use_target_object = use_target_obejct
+        self.use_target_object = use_target_object
         # id of grippers for contact checking
         self.finger_names = self.gripper.contact_geoms()
 
