@@ -14,6 +14,7 @@ from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor, sync_avg_grads
 from env.action_spec import ActionSpec
+import math
 
 from gym import spaces
 
@@ -275,6 +276,7 @@ class LowLevelAgent(SACAgent):
             self._alpha_optim[skill_idx].zero_grad()
             alpha_loss.backward()
             self._alpha_optim[skill_idx].step()
+            self._log_alpha[skill_idx].data.clamp_(min=math.log(0.01), max=math.log(10))
 
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
         else:

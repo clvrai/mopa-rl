@@ -16,8 +16,8 @@ then
     primitive_skills="reach_mp grasp manipulation_mp"
 fi
 
-workers="1"
-prefix="4.13.LL.FIX.SUBGOAL_JOINT.avg.grad.single"
+workers="4"
+prefix="4.15.LL.FIX.SUBGOAL_JOINT.avg.min.max.alpha"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -31,7 +31,7 @@ meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
-buffer_size="1000000"
+buffer_size="250000"
 num_batches="1"
 debug="False"
 rollout_length="15000"
@@ -52,9 +52,9 @@ has_terminal='True'
 ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
+group='4.15.sac-ll'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -92,4 +92,5 @@ python -m rl.main \
     --has_terminal $has_terminal \
     --meta_oracle $meta_oracle \
     --ignored_contact_geoms $ignored_contact_geoms \
-    --use_automatic_entropy_tuning $use_automatic_entropy_tuning
+    --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
+    --group $group
