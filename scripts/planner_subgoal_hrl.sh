@@ -16,8 +16,8 @@ then
     primitive_skills="reach_mp grasp manipulation_mp"
 fi
 
-workers="8"
-prefix="4.13.LL.FIX.SUBGOAL_JOINT.avg.grad.v1"
+workers="1"
+prefix="4.13.LL.FIX.SUBGOAL_JOINT.avg.grad.single"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -31,11 +31,11 @@ meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
-buffer_size="120000"
+buffer_size="1000000"
 num_batches="1"
 debug="False"
 rollout_length="15000"
-batch_size="64"
+batch_size="256"
 reward_type="dense"
 reward_scale="3."
 comment="init buffer size is 10 times batch size"
@@ -53,7 +53,8 @@ ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \

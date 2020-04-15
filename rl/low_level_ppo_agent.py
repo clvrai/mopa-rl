@@ -158,7 +158,7 @@ class LowLevelPPOAgent(BaseAgent):
         assert np.isfinite(ret).all()
 
         # update rollouts
-        rollouts['adv'] = ((adv - adv.mean()) / adv.std()).tolist()
+        rollouts['adv'] = ((adv - adv.mean()) / (adv.std()+1e-5)).tolist()
         rollouts['ret'] = ret.tolist()
 
 

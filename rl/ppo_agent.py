@@ -68,7 +68,7 @@ class PPOAgent(BaseAgent):
         assert np.isfinite(ret).all()
 
         # update rollouts
-        rollouts['adv'] = ((adv - adv.mean()) / adv.std()).tolist()
+        rollouts['adv'] = ((adv - adv.mean()) / (adv.std()+1e-5)).tolist()
         rollouts['ret'] = ret.tolist()
 
     def state_dict(self):
@@ -150,8 +150,8 @@ class PPOAgent(BaseAgent):
 
         log_pi, ent = self._actor.act_log(o, a_z)
         old_log_pi, _ = self._old_actor.act_log(o, a_z)
-        if old_log_pi.min() < -100:
-            import ipdb; ipdb.set_trace()
+        # if old_log_pi.min() < -100:
+        #     import ipdb; ipdb.set_trace()
 
         # the actor loss
         entropy_loss = self._config.entropy_loss_coeff * ent.mean()

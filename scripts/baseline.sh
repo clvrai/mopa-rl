@@ -20,15 +20,18 @@ then
     num_batches="1"
 fi
 
-workers="8"
-prefix="4.11.baseline.sac.debug"
+workers="1"
+prefix="4.13.BASELINE.PPO"
 max_global_step="60000000"
 env="simple-mover-v0"
-gpu="0"
+gpu="3"
 rl_hid_size="256"
-max_episode_step="1000"
-entropy_loss_coef="0.1"
+max_episode_step="150"
+evaluate_interval="100"
+max_grad_norm="0.5"
+entropy_loss_coef="0.01"
 buffer_size="125000"
+num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -44,8 +47,10 @@ success_reward='10.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
+group='simple-mover-baseline'
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -64,7 +69,11 @@ mpiexec -n $workers python -m rl.main \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
     --clip_param $clip_param \
+<<<<<<< HEAD
     --rl_activation $rl_activation \
+=======
+    --max_grad_norm $max_grad_norm \
+>>>>>>> f7e06b9... fix minor bug
     --algo $algo \
     --seed $seed \
     --ctrl_reward $ctrl_reward \
@@ -72,6 +81,12 @@ mpiexec -n $workers python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
+<<<<<<< HEAD
     --group $group
     # --success_reward $success_reward \
     # --has_terminal $has_terminal
+=======
+    --success_reward $success_reward \
+    --has_terminal $has_terminal \
+    --group $group
+>>>>>>> f7e06b9... fix minor bug
