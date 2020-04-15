@@ -17,7 +17,7 @@ then
 fi
 
 workers="1"
-prefix="4.15.LL.PPO.COLL.avg.single.ent.no_contact.v1"
+prefix="4.15.LL.PPO.COLL.avg.single.ent.no_contact.debug"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -33,7 +33,7 @@ meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="12800"
 num_batches="5"
-debug="False"
+debug="True"
 rollout_length="1000"
 batch_size="128"
 evaluate_interval='10'

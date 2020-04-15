@@ -21,7 +21,7 @@ then
 fi
 
 workers="1"
-prefix="4.15.BASELINE.SAC"
+prefix="4.15.BASELINE.ppo.debug"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="2"
@@ -34,7 +34,8 @@ buffer_size="125000"
 num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
+rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
 seed='1234'
@@ -69,11 +70,7 @@ python -m rl.main \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
     --clip_param $clip_param \
-<<<<<<< HEAD
     --rl_activation $rl_activation \
-=======
-    --max_grad_norm $max_grad_norm \
->>>>>>> f7e06b9... fix minor bug
     --algo $algo \
     --seed $seed \
     --ctrl_reward $ctrl_reward \
@@ -81,12 +78,6 @@ python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-<<<<<<< HEAD
-    --group $group
-    # --success_reward $success_reward \
-    # --has_terminal $has_terminal
-=======
     --success_reward $success_reward \
     --has_terminal $has_terminal \
     --group $group
->>>>>>> f7e06b9... fix minor bug

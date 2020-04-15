@@ -42,7 +42,7 @@ class LowLevelPPOAgent(BaseAgent):
 
         self._build_planner()
         sampler = RandomSampler()
-        self._buffer = LowLevelPPOReplayBuffer(['ob', 'ac', 'meta_ac', 'done', 'rew', 'ret', 'adv', 'ac_before_activation'],
+        self._buffer = LowLevelPPOReplayBuffer(['ob', 'ac', 'meta_ac', 'done', 'rew', 'ret', 'adv', 'ac_before_activation', 'vpred'],
                                     config.buffer_size,
                                     len(config.primitive_skills),
                                     sampler.sample_func)
@@ -111,6 +111,11 @@ class LowLevelPPOAgent(BaseAgent):
         else:
             return ac, activation
 
+    def get_value(self, ob, meta_ac):
+        skill_idx = int(meta_ac['default'][0])
+        ob = obs2tensor(ob, self._config.device)
+        return self._agents[skill_idx]._critic(ob).detach().cpu().numpy()[:, 0]
+
     def return_skill_type(self, meta_ac):
         skill_idx = int(meta_ac['default'][0])
         return self._skills[skill_idx]
@@ -129,29 +134,19 @@ class LowLevelPPOAgent(BaseAgent):
         ob = rollouts['ob']
         # ob = self.normalize(ob)
         ob = obs2tensor(ob, self._config.device)
-        vpreds = []
-        for i in range(len(self._config.primitive_skills)):
-            vpreds.append(self._agents[i]._critic(ob).detach().cpu().numpy()[:, 0])
+        vpred = np.array(rollouts['vpred'])[:, 0]
+        assert len(vpred) == T + 1
         # vpred = self._critic(ob).detach().cpu().numpy()[:,0]
 
         done = rollouts['done']
         rew = rollouts['rew']
         adv = np.empty((T, ) , 'float32')
         lastgaelam = 0
-        next_skill_idx = int(rollouts['meta_ac'][T-1]['default'])
-        vpred_next = vpreds[next_skill_idx][T]
-        vpred = [vpred_next]
         for t in reversed(range(T)):
             nonterminal = 1 - done[t]
-            skill_idx = int(rollouts['meta_ac'][t-1]['default'])
-            vpred_curr = vpreds[skill_idx][t]
-            vpred.append(vpred_curr)
-            delta = rew[t] + self._config.discount_factor * vpred_next * nonterminal - vpred_curr
+            delta = rew[t] + self._config.discount_factor * vpred[t+1] * nonterminal - vpred[t]
             adv[t] = lastgaelam = delta + self._config.discount_factor * self._config.gae_lambda * nonterminal * lastgaelam
-            v_pred_next = vpred_curr
 
-        vpred.reverse()
-        assert len(vpred) == T + 1
         ret = adv + vpred[:-1]
 
         assert np.isfinite(adv).all()
