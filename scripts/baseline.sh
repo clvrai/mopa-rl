@@ -1,17 +1,17 @@
 #!/bin/bash
 
 workers="1"
-prefix="4.13.BASELINE.PPO"
+prefix="4.15.BASELINE.SAC"
 max_global_step="60000000"
 env="simple-mover-v0"
-gpu="3"
+gpu="2"
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="100"
 max_grad_norm="0.5"
 entropy_loss_coef="0.01"
 buffer_size="125000"
-num_batches="50"
+num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -29,7 +29,7 @@ success_reward='10.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
-group='simple-mover-baseline'
+group='simple-mover-baseline-sac'
 
 #mpiexec -n $workers
 python -m rl.main \
