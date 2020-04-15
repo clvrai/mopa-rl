@@ -16,8 +16,8 @@ then
     primitive_skills="reach_mp grasp manipulation_mp"
 fi
 
-workers="8"
-prefix="4.12.LL.PPO.COLL.v5.avg"
+workers="1"
+prefix="4.12.LL.PPO.COLL.avg.single.ent.1e-2.v1"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -26,7 +26,7 @@ range="1.0"
 threshold="0.5"
 timelimit="0.01"
 gpu=$gpu
-rl_hid_size="256"
+rl_hid_size="128"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
@@ -35,11 +35,12 @@ buffer_size="12800"
 num_batches="10"
 debug="False"
 rollout_length="2048"
-batch_size="128"
+batch_size="256"
 evaluate_interval='10'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
+entropy_loss_coeff='1e-3'
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -54,7 +55,8 @@ ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 algo='ppo'
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -93,4 +95,5 @@ mpiexec -n $workers python -m rl.main \
     --ignored_contact_geoms $ignored_contact_geoms \
     --algo $algo \
     --evaluate_interval $evaluate_interval \
-    --ckpt_interval $ckpt_interval
+    --ckpt_interval $ckpt_interval \
+    --entropy_loss_coeff $entropy_loss_coeff
