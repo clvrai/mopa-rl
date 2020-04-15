@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="1"
-prefix="4.15.BASELINE.SAC"
+prefix="4.15.BASELINE.ppo.debug"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="2"
@@ -14,11 +14,11 @@ buffer_size="125000"
 num_batches="1"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
-algo='sac'
+algo='ppo'
 seed='1234'
 ctrl_reward='1e-2'
 reward_type='dense'

@@ -69,6 +69,8 @@ class PPOAgent(BaseAgent):
 
         # update rollouts
         rollouts['adv'] = ((adv - adv.mean()) / (adv.std()+1e-5)).tolist()
+        import pdb
+        pdb.set_trace()
         rollouts['ret'] = ret.tolist()
 
     def state_dict(self):
