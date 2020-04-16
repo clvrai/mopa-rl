@@ -39,7 +39,7 @@ class SimpleMoverEnv(BaseEnv):
         is_limited = np.array([True] * self.dof)
         minimum = np.ones(self.dof) * -1.
         maximum = np.ones(self.dof) * 1
-        self._ac_rescale = 0.1
+        self._ac_rescale = 0.3
 
         self._minimum = minimum
         self._maximum = maximum
