@@ -23,9 +23,9 @@ class PPOAgent(BaseAgent):
         self._postfix = postfix
 
         # build up networks
-        self._actor = actor(config, ob_space, ac_space, config.tanh_policy)
-        self._old_actor = actor(config, ob_space, ac_space, config.tanh_policy)
-        self._critic = critic(config, ob_space)
+        self._actor = actor(config, ob_space, ac_space, config.tanh_policy, activation='tanh')
+        self._old_actor = actor(config, ob_space, ac_space, config.tanh_policy, activation='tanh')
+        self._critic = critic(config, ob_space, activation='tanh')
         self._network_cuda(config.device)
 
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_actor)
@@ -69,8 +69,6 @@ class PPOAgent(BaseAgent):
 
         # update rollouts
         rollouts['adv'] = ((adv - adv.mean()) / (adv.std()+1e-5)).tolist()
-        import pdb
-        pdb.set_trace()
         rollouts['ret'] = ret.tolist()
 
     def state_dict(self):
@@ -157,7 +155,7 @@ class PPOAgent(BaseAgent):
 
         # the actor loss
         entropy_loss = self._config.entropy_loss_coeff * ent.mean()
-        ratio = torch.exp(log_pi - old_log_pi)
+        ratio = torch.exp(log_pi - old_log_pi.detach())
         surr1 = ratio * adv
         surr2 = torch.clamp(ratio, 1.0 - self._config.clip_param,
                             1.0 + self._config.clip_param) * adv

@@ -158,4 +158,6 @@ def argparser():
 
     parser.add_argument("--comment", nargs='+', default=None)
 
+    parser.add_argument("--success_reward", type=float, default=1.)
+    parser.add_argument("--has_terminal", type=str2bool, default=True)
     return parser

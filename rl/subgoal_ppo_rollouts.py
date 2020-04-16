@@ -322,7 +322,6 @@ class SubgoalPPORolloutRunner(object):
                 meta_rollout.add({
                     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                 })
-                inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
                 vpred = pi.get_value(prev_ob, meta_ac)
                 rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                 if success:
