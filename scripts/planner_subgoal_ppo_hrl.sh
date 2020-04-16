@@ -17,7 +17,7 @@ then
 fi
 
 workers="1"
-prefix="4.15.LL.PPO.COLL.avg.grad.norm.tanh.rollout3000.addbias"
+prefix="4.15.LL.PPO.COLL.avg.grad.norm.tanh.rollout3000.ent.1e-2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
