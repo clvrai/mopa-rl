@@ -68,9 +68,9 @@ class Actor(nn.Module):
 
         if return_log_prob:
             log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
-            if log_probs_.min() < -100:
-                print('sampling an action with a probability of 1e-100')
-                import ipdb; ipdb.set_trace()
+            # if log_probs_.min() < -100:
+            #     print('sampling an action with a probability of 1e-100')
+            #     import ipdb; ipdb.set_trace()
 
             log_probs_ = log_probs_.detach().cpu().numpy().squeeze(0)
             return actions, activations, log_probs_
@@ -127,10 +127,10 @@ class Actor(nn.Module):
             actions[k] = action
 
         log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
-        if log_probs_.min() < -100:
-            print(ob)
-            print(log_probs_.min())
-            import ipdb; ipdb.set_trace()
+        # if log_probs_.min() < -100:
+        #     print(ob)
+        #     print(log_probs_.min())
+        #     import ipdb; ipdb.set_trace()
         if activations is None:
             return actions, log_probs_
         else:
