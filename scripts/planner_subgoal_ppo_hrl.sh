@@ -17,7 +17,7 @@ then
 fi
 
 workers="1"
-prefix="4.15.LL.PPO.COLL.avg.grad.norm.tanh.rollout3000"
+prefix="4.15.LL.PPO.COLL.avg.grad.norm.tanh.rollout3000.ent.1e-2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -40,7 +40,7 @@ evaluate_interval='10'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-4'
+entropy_loss_coeff='1e-2'
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
