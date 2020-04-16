@@ -1,58 +1,35 @@
-#!/bin/bash -x
-algo=$1
-gpu=$2
+#!/bin/bash
 
-if [ $algo = 1 ]
-then
-    algo='ppo'
-    rollout_length='512'
-    evaluate_interval="10"
-    ckpt_interval='100'
-    rl_activation="tanh"
-    num_batches="100"
-elif [ $algo = 2 ]
-then
-    algo='sac'
-    rollout_length="1000"
-    evaluate_interval="1000"
-    ckpt_interval='100000'
-    rl_activation="relu"
-    num_batches="1"
-fi
-
-workers="1"
-prefix="4.15.BASELINE.ppo.debug"
+workers="8"
+prefix="baseline.sac.num_batch.50.hid1.v3"
 max_global_step="60000000"
-env="sawyer-nut-assembly-single-robosuite-v0"
+env="pusher-push-v0"
 gpu="0"
 rl_hid_size="256"
 max_episode_step="150"
-evaluate_interval="100"
+evaluate_interval="1"
 max_grad_norm="0.5"
-entropy_loss_coef="0.01"
-buffer_size="125000"
-num_batches="1"
+entropy_loss_coef="0.1"
+buffer_size="10000"
+num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="1000"
-batch_size="128"
+batch_size="256"
 clip_param="0.2"
+rl_activation="relu"
+algo='sac'
 seed='1234'
-ctrl_reward='1e-2'
+ctrl_reward='1'
 reward_type='dense'
-comment='Baseline'
+comment='sac baseline for reacher'
 start_steps='10000'
 actor_num_hid_layers='1'
-success_reward='10.'
-has_terminal='True'
-ckpt_interval='100000'
-log_root_dir="./logs"
-group='simple-mover-baseline-sac'
+multiprocessing='True'
 
 #mpiexec -n $workers
-python -m rl.main \
-    --log_root_dir $log_root_dir \
+python -m rl.main --log_root_dir ./logs \
     --wandb True \
     --prefix $prefix \
     --max_global_step $max_global_step \
@@ -70,6 +47,7 @@ python -m rl.main \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
     --clip_param $clip_param \
+    --max_grad_norm $max_grad_norm \
     --rl_activation $rl_activation \
     --algo $algo \
     --seed $seed \
@@ -78,6 +56,4 @@ python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
-    --group $group
+    --multiprocessing $multiprocessing

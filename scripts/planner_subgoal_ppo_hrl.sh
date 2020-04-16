@@ -17,7 +17,7 @@ then
 fi
 
 workers="1"
-prefix="4.15.LL.PPO.COLL.avg.single.ent.no_contact.debug"
+prefix="4.15.LL.PPO.COLL.avg.grad.norm.tanh.rollout3000"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -32,15 +32,15 @@ meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="12800"
-num_batches="5"
-debug="True"
-rollout_length="1000"
+num_batches="3"
+debug="False"
+rollout_length="3000"
 batch_size="128"
 evaluate_interval='10'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-2'
+entropy_loss_coeff='1e-4'
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -53,7 +53,9 @@ has_terminal='True'
 ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 algo='ppo'
-group='ppo-simple-mover-planner'
+group='4.15.ppo-simple-mover-planner'
+max_grad_norm='0.5'
+rl_activation='tanh'
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -96,4 +98,6 @@ python -m rl.main \
     --evaluate_interval $evaluate_interval \
     --ckpt_interval $ckpt_interval \
     --entropy_loss_coeff $entropy_loss_coeff \
-    --group $group
+    --group $group \
+    --max_grad_norm $max_grad_norm \
+    --rl_activation $rl_activation
