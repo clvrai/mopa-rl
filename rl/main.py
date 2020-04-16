@@ -125,8 +125,6 @@ if __name__ == '__main__':
         from config.pusher import add_arguments
     elif 'mover' in args.env:
         from config.mover import add_arguments
-    elif 'robosuite' in args.env:
-        from config.robosuite import add_arguments
     else:
         raise ValueError('args.env (%s) is not supported' % args.env)
 
@@ -139,7 +137,7 @@ if __name__ == '__main__':
 
     if args.debug:
         args.rollout_length = 150
-        args.start_steps = 100
+        args.start_steps = 300
 
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)
