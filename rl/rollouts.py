@@ -177,7 +177,7 @@ class RolloutRunner(object):
                     meta_len += 1
                     meta_rew += reward
                     reward_info.add(info)
-                    if every_steps is not None and step % every_steps == 0 and config.hrl_network_to_update == 'LL':
+                    if every_steps is not None and step % every_steps == 0:
                         # last frame
                         ll_ob = ob.copy()
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})

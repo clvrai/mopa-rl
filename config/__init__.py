@@ -22,7 +22,7 @@ def argparser():
                         choices=["mlp", "cnn"])
     parser.add_argument("--meta_algo", type=str, default="ppo",
                         choices=["ppo", "sac"])
-    parser.add_argument("--meta_update_target", type=str, default="HL",
+    parser.add_argument("--meta_update_target", type=str, default="both",
                         choices=['HL', 'LL', 'both'])
     parser.add_argument("--her", type=str2bool, default=False)
     parser.add_argument("--replay_strategy", type=str, default='future')
@@ -34,7 +34,7 @@ def argparser():
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
                         help="whether to use HRL or not")
-    parser.add_argument("--hrl_network_to_update", type=str, default="HL",
+    parser.add_argument("--hrl_network_to_update", type=str, default="both",
                         choices=["HL", "LL", "both"])
     parser.add_argument("--primitive_dir", type=str, default=None,
                         help="path to primitive directory")

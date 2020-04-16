@@ -1,20 +1,19 @@
 #!/bin/bash
 
 workers="1"
-prefix="4.15.BASELINE.ppo.debug"
+prefix="4.15.BASELINE.PPO.ent.1e-4"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="2"
 rl_hid_size="256"
 max_episode_step="150"
-evaluate_interval="100"
-max_grad_norm="0.5"
-entropy_loss_coef="0.01"
+evaluate_interval="5"
+entropy_loss_coef="1e-4"
 buffer_size="125000"
-num_batches="1"
+num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 rollout_length="1000"
 batch_size="128"
 clip_param="0.2"
@@ -51,7 +50,6 @@ python -m rl.main \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
     --clip_param $clip_param \
-    --max_grad_norm $max_grad_norm \
     --algo $algo \
     --seed $seed \
     --ctrl_reward $ctrl_reward \
