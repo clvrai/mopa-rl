@@ -12,6 +12,10 @@ class SimpleReacherEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_reacher.xml", **kwargs)
+        self._env_config.update({
+            'success_reward': kwargs['success_reward'],
+            'has_terminal': kwargs['has_terminal']
+        })
         self.joint_names = ["joint0", "joint1", "joint2"]
         self.ref_joint_pos_indexes = [
             self.sim.model.get_joint_qpos_addr(x) for x in self.joint_names
@@ -19,6 +23,17 @@ class SimpleReacherEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
+        self._ac_rescale = 0.5
+        self._primitive_skills = kwargs['primitive_skills']
+        if len(self._primitive_skills) != 1:
+            self._primitive_skills = ['reach']
+        self._num_primitives = len(self._primitive_skills)
+
+        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
+        self.subgoal_space = spaces.Dict([
+            ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
+        ])
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -68,7 +83,24 @@ class SimpleReacherEnv(BaseEnv):
         """
         return self.sim.data.qpos.ravel()[:self.sim.model.nu]
 
-    def _step(self, action):
+    def compute_reward(self, action):
+        info = {}
+        reward_type = self._env_config['reward_type']
+        reward_ctrl = self._ctrl_reward(action)
+        if reward_type == 'dense':
+            reach_multi = 1.
+            reward_reach = (1-np.tanh(10.*self._get_distance('fingertip', 'target'))) * reach_multi
+
+            reward = reward_reach + reward_ctrl
+
+            info = dict(reward_reach=reward_reach, reward_ctrl=reward_ctrl)
+        else:
+            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+
+        return reward, info
+
+
+    def _step(self, action, is_planner):
         """
         Args:
             action (numpy array): The array should have the corresponding elements.
@@ -77,15 +109,14 @@ class SimpleReacherEnv(BaseEnv):
 
         info = {}
         done = False
-        desired_state = self.get_joint_positions + action
 
-        if self._env_config['reward_type'] == 'dense':
-            reward_dist = -self._get_distance("fingertip", "target")
-            reward_ctrl = self._ctrl_reward(action)
-            reward = reward_dist + reward_ctrl
-            info = dict(reward_dist=reward_dist, reward_ctrl=reward_ctrl)
+        if not is_planner:
+            rescaled_ac = action * self._ac_rescale
         else:
-            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            rescaled_ac = action
+
+        desired_state = self.get_joint_positions + rescaled_ac
+        reward, info = self.compute_reward(action)
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
@@ -96,8 +127,16 @@ class SimpleReacherEnv(BaseEnv):
             self._do_simulation(action)
 
         obs = self._get_obs()
-        # if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-        #     done =True
-        #     self._success = True
+        if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
+            if self._env_config['has_terminal']:
+                done = True
+                self._success = True
+            else:
+                if self._episode_length == self._env_config['max_episode_steps']-1:
+                    self._success = True
+            reward += self._env_config['success_reward']
         return obs, reward, done, info
+
+    def get_next_primitive(self, prev_primitive):
+        return self._primitive_skills[0]
 

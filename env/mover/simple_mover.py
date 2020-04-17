@@ -39,7 +39,7 @@ class SimpleMoverEnv(BaseEnv):
         is_limited = np.array([True] * self.dof)
         minimum = np.ones(self.dof) * -1.
         maximum = np.ones(self.dof) * 1
-        self._ac_rescale = 0.3
+        self._ac_rescale = 0.5
 
         self._minimum = minimum
         self._maximum = maximum
@@ -213,8 +213,8 @@ class SimpleMoverEnv(BaseEnv):
                                            self._get_pos('r_finger_g0')))) * gripper_multi
             has_grasp = self._has_grasp()
             has_self_collision = self._has_self_collision()
-            #reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
-            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2) * grasp_multi
+            # reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
+            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.1) * grasp_multi
             # reward_grasp = int(has_grasp) * grasp_multi
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
@@ -283,7 +283,7 @@ class SimpleMoverEnv(BaseEnv):
 
         done = False
         if not is_planner or self._prev_state is None:
-            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes]
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
         if not is_planner:
             rescaled_ac = action[:-1] * self._ac_rescale
@@ -294,10 +294,9 @@ class SimpleMoverEnv(BaseEnv):
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
-        target_vel = (desired_state-prev_state) / self._frame_dt
+        target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            arm_action = self._get_control(desired_state, prev_state, target_vel)
+            arm_action = self._get_control(desired_state, self._prev_state, target_vel)
             gripper_action_in = action[len(self.joint_names):len(self.joint_names)+1]
             gripper_action = self._format_action(gripper_action_in)
             ac = np.concatenate((arm_action, gripper_action))

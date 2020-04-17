@@ -14,21 +14,10 @@ elif [ $v = 3 ]
 then
     env='simple-mover-obstacle-v0'
     primitive_skills="reach_mp grasp manipulation_mp"
-    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0'
-elif [ $v = 4 ]
-then
-    env='simple-reacher-v0'
-    primitive_skills="reach_mp"
-    ignored_contact_geoms='None,None'
-elif [ $v = 5 ]
-then
-    env='simple-pusher-v0'
-    primitive_skills="reach_mp push"
-    ignored_contact_geoms='None,None'
 fi
 
-workers="4"
-prefix="4.16.PPO-1.MPI-4.NO-TERMINAL.GRIPPER.AddBias"
+workers="1"
+prefix="4.15.LL.PPO.COLL.Single.Critic.ent.1e-2.single.no.frac"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -43,7 +32,7 @@ meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="15"
 buffer_size="12800"
-num_batches="10"
+num_batches="5"
 debug="False"
 rollout_length="1024"
 batch_size="64"
@@ -57,17 +46,19 @@ ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
 subgoal_type="joint"
 meta_algo='ppo'
-success_reward='10.'
+success_reward='100.'
 subgoal_predictor="True"
 seed="1234"
-has_terminal='False'
+has_terminal='True'
+ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 algo='ppo'
-group='4.16.PPO'
+group='4.15.ppo-simple-mover-planner'
 rl_activation='tanh'
 # max_grad_norm='0.5'
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
