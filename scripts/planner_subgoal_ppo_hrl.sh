@@ -10,6 +10,7 @@ elif [ $v = 2 ]
 then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
+    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0'
 elif [ $v = 3 ]
 then
     env='simple-mover-obstacle-v0'
@@ -27,8 +28,8 @@ then
     ignored_contact_geoms='None,None'
 fi
 
-workers="4"
-prefix="4.16.PPO-1.MPI-4.NO-TERMINAL.GRIPPER.AddBias"
+workers="1"
+prefix="4.16.PPO-2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -45,8 +46,8 @@ max_meta_len="15"
 buffer_size="12800"
 num_batches="10"
 debug="False"
-rollout_length="1024"
-batch_size="64"
+rollout_length="4096"
+batch_size="256"
 evaluate_interval='10'
 ckpt_interval='10'
 reward_type="dense"
@@ -67,7 +68,8 @@ group='4.16.PPO'
 rl_activation='tanh'
 # max_grad_norm='0.5'
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \

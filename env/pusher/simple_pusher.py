@@ -35,6 +35,7 @@ class SimplePusherEnv(BaseEnv):
             self._primitive_skills = ['reach', 'push']
         self._num_primitives = len(self._primitive_skills)
 
+
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
@@ -181,4 +182,17 @@ class SimplePusherEnv(BaseEnv):
                 else:
                     return self._primitive_skills[i+1]
         return self._primitive_skills[0]
+
+    # def isInvalidPlannerState(self, prev_primitive):
+    #     isValid = True
+    #     ignored_contacts = ()
+    #     for i in range(self.sim.data.ncon):
+    #         c = self.sim.data.contact[i]
+    #         for pair in ignored_contacts:
+    #             if (c.geom1 != pair[0] or c.geom2 != pair[1]) and (c.geom2 != pair[1] or c.geom1 != pair[0]):
+    #                 isValid = False
+    #     return isValid
+    #
+    #
+
 

@@ -89,6 +89,7 @@ class SubgoalPPORolloutRunner(object):
             cur_primitive = 0
             meta_ac = None
             success = False
+            invalid_ob = None
             skill_count = {}
             if self._config.hrl:
                 for skill in pi._skills:
@@ -135,25 +136,19 @@ class SubgoalPPORolloutRunner(object):
                         mp_success += 1
 
                 info = OrderedDict()
-                prev_ob = ob.copy()
-                prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
                 if 'mp' in skill_type:
                     if success:
                         cum_rew = 0
+                        ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
-                        vpred = pi.get_value(prev_ob, meta_ac)
-                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                        vpred = pi.get_value(ll_ob, meta_ac)
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         step += 1
                         for next_qpos in traj:
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
-                            # meta_rollout.add({
-                            #     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                            # })
-                            # inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
-                            # rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac, is_planner=True)
                             cum_rew += reward
                             ep_len += 1
@@ -174,9 +169,7 @@ class SubgoalPPORolloutRunner(object):
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
+                        ll_ob = ob.copy()
                         reward = self._config.meta_subgoal_rew
                         vpred = pi.get_value(ll_ob, meta_ac)
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
@@ -315,15 +308,13 @@ class SubgoalPPORolloutRunner(object):
                     mp_success += 1
 
             info = OrderedDict()
-            prev_ob = ob.copy()
-            prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
             if 'mp' in skill_type:
                 ll_ob = ob.copy()
                 meta_rollout.add({
                     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                 })
-                vpred = pi.get_value(prev_ob, meta_ac)
-                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                vpred = pi.get_value(ll_ob, meta_ac)
+                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                 if success:
                     for next_qpos in traj:
                         ll_ob = ob.copy()
@@ -363,6 +354,7 @@ class SubgoalPPORolloutRunner(object):
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
 
                 else:
+                    ll_ob = ob.copy()
                     meta_rollout.add({
                         'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                     })
