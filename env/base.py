@@ -49,6 +49,7 @@ class BaseEnv(gym.Env):
         self._frame_dt = 1.
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
         self._camera_name = kwargs['camera_name']
+        self._kwargs = kwargs
 
         if 'box_to_target_coef' in kwargs:
             self._box_to_target_coef = kwargs['box_to_target_coef']

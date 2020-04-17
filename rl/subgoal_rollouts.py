@@ -179,6 +179,7 @@ class SubgoalRolloutRunner(object):
                                 break
 
                     else:
+                        ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })

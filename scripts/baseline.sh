@@ -21,33 +21,33 @@ then
 fi
 
 workers="1"
-prefix="4.15.BASELINE.PPO.ent.1e-4"
+prefix="BASELINE.PPO"
 max_global_step="60000000"
-env="sawyer-nut-assembly-single-robosuite-v0"
-gpu="0"
+env="simple-mover-v0"
+gpu="2"
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="5"
-entropy_loss_coef="1e-4"
+entropy_loss_coef="1e-2"
 buffer_size="125000"
 num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-rollout_length="1000"
-batch_size="128"
+rollout_length="4096"
+batch_size="256"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
 start_steps='10000'
-actor_num_hid_layers='1'
+actor_num_hid_layers='2'
 success_reward='10.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
-group='simple-mover-baseline-sac'
+group='4.16.PPO'
 
 #mpiexec -n $workers
 python -m rl.main \
