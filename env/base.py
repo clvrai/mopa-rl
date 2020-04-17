@@ -302,6 +302,11 @@ class BaseEnv(gym.Env):
             self.reset()
             self._fail = True
 
+    def form_action(self, next_qpos, skill=None):
+        joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+        ac = OrderedDict([('default', joint_ac)])
+        return ac
+
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.sim.model.nq,) and qvel.shape == (self.sim.model.nv,)
         old_state = self.sim.get_state()

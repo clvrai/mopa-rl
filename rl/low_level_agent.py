@@ -277,7 +277,6 @@ class LowLevelAgent(SACAgent):
             alpha_loss.backward()
             self._alpha_optim[skill_idx].step()
             self._log_alpha[skill_idx].data.clamp_(min=math.log(0.01), max=math.log(10))
-
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
         else:
             alpha = [torch.ones(1).to(self._config.device) for _ in self._log_alpha]
