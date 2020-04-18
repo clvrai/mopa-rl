@@ -203,25 +203,29 @@ class SimpleMoverEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
-            gripper_multi = 0.
+            collision_multi = 0.2
+            gripper_multi = 0.2
             grasp_multi = 0.75
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-            reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_gripper = (1-np.tanh(10.0*self._cos_vec(self._get_pos('box'),
+            reward_reach = (1-np.tanh(5.0*dist_box_to_gripper)) * reach_multi
+            reward_gripper = (1-np.tanh(5.0*self._cos_vec(self._get_pos('box'),
                                            self._get_pos('l_finger_g0'),
                                            self._get_pos('r_finger_g0')))) * gripper_multi
             has_grasp = self._has_grasp()
             has_self_collision = self._has_self_collision()
             # reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
-            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.1) * grasp_multi
+            reward_grasp = int(has_grasp) * grasp_multi
+            reward_collision = -int(has_self_collision) * collision_multi
             # reward_grasp = int(has_grasp) * grasp_multi
-            reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
+            reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
-            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl
+            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
 
-            info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper, reward_grasp=reward_grasp, reward_move=reward_move, reward_ctrl=reward_ctrl)
+            info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper,
+                        reward_grasp=reward_grasp, reward_move=reward_move,
+                        reward_collision=reward_collision, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
