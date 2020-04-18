@@ -140,11 +140,11 @@ class SubgoalPPORolloutRunner(object):
                     if success:
                         cum_rew = 0
                         ll_ob = ob.copy()
+                        prev_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         vpred = pi.get_value(ll_ob, meta_ac)
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         step += 1
                         for next_qpos in traj:
                             ll_ob = ob.copy()
@@ -158,6 +158,14 @@ class SubgoalPPORolloutRunner(object):
 
                             if done or ep_len >= max_step:
                                 break
+
+                        if self._config.subgoal_hindsight: # refer to HAC
+                            hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                        else:
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+
+
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         rollout.add({'done': done, 'rew': reward})
                         if every_steps is not None and step % every_steps == 0:
@@ -310,11 +318,11 @@ class SubgoalPPORolloutRunner(object):
             info = OrderedDict()
             if 'mp' in skill_type:
                 ll_ob = ob.copy()
+                prev_ob = ob.copy()
                 meta_rollout.add({
                     'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                 })
                 vpred = pi.get_value(ll_ob, meta_ac)
-                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                 if success:
                     for next_qpos in traj:
                         ll_ob = ob.copy()
@@ -352,6 +360,12 @@ class SubgoalPPORolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+
+                    if self._config.subgoal_hindsight: # refer to HAC
+                        hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                    else:
+                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
 
                 else:
                     ll_ob = ob.copy()

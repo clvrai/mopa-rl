@@ -48,7 +48,7 @@
                     <body name="fingertip" pos="0.11 0 0">
                         <body name="gripper_base" pos="0 0 0.005" quat="0 0.7071068 0 0.7071068">
                             <!-- <inertial diaginertia="3e&#45;08 2e&#45;08 2e&#45;08" mass="0.3" pos="0 0 0" quat="&#45;0.5 0.5 0.5 0.5" /> -->
-                            <geom quat="0 0 0.707107 0.707107" size="0.01 0.035" rgba="0.0 0.4 0.6 1" type="cylinder" />
+                            <geom name="gripper_base_geom" quat="0 0 0.707107 0.707107" size="0.01 0.035" rgba="0.0 0.4 0.6 1" type="cylinder" />
                             <body name="right_gripper" pos="0 0 0.045">
                                 <!-- <inertial diaginertia="0 0 0" mass="0.0001" pos="0 0 0" /> -->
                                 <site group="1" name="grip_site" pos="0 0 0" rgba="1 0 0 0" size="0.01 0.01 0.01" type="sphere" />
