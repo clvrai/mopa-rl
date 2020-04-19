@@ -15,7 +15,7 @@ elif [ $v = 3 ]
 then
     env='simple-mover-obstacle-v0'
     primitive_skills="reach_mp grasp manipulation_mp"
-    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0'
+    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
 elif [ $v = 4 ]
 then
     env='simple-reacher-v0'
@@ -29,7 +29,7 @@ then
 fi
 
 workers="1"
-prefix="4.16.PPO-REWARD_COLLISION.LONGER_RANGE-LG-ROLLOUT"
+prefix="4.16.PPO-REWARD_COLLISION.HINDSIGHT.LONGER_RANGE-2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -46,14 +46,14 @@ max_meta_len="15"
 buffer_size="12800"
 num_batches="10"
 debug="False"
-rollout_length="4096"
+rollout_length="9192"
 batch_size="256"
 evaluate_interval='10'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-3'
-comment="init buffer size is 10 times batch size"
+entropy_loss_coeff='1e-2'
+comment="Fixed ignored contacts"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
 subgoal_type="joint"
@@ -66,7 +66,7 @@ log_root_dir='./logs'
 algo='ppo'
 group='4.16.PPO'
 rl_activation='tanh'
-subgoal_hindsight="False"
+subgoal_hindsight="True"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
