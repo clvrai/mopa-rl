@@ -29,7 +29,7 @@ then
 fi
 
 workers="1"
-prefix="4.16.PPO-REWARD_COLLISION.HINDSIGHT-BREAK-LONGER_RANGE"
+prefix="4.16.PPO-REWARD_COLLISION.LONGER_RANGE-LG-ROLLOUT"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -52,7 +52,7 @@ evaluate_interval='10'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-2'
+entropy_loss_coeff='1e-3'
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -61,12 +61,12 @@ meta_algo='ppo'
 success_reward='10.'
 subgoal_predictor="True"
 seed="1234"
-has_terminal='False'
+has_terminal='True'
 log_root_dir='./logs'
 algo='ppo'
 group='4.16.PPO'
 rl_activation='tanh'
-subgoal_hindsight="True"
+subgoal_hindsight="False"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
