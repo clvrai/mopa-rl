@@ -156,7 +156,7 @@ class SubgoalPPORolloutRunner(object):
                             meta_len += 1
                             reward_info.add(info)
 
-                            if done or ep_len >= max_step:
+                            if done or ep_len >= max_step or env._stages[cur_primitive]:
                                 break
 
                         if self._config.subgoal_hindsight: # refer to HAC
@@ -360,6 +360,8 @@ class SubgoalPPORolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                        if done or ep_len >= max_step or env._stages[cur_primitive]:
+                            break
 
                     if self._config.subgoal_hindsight: # refer to HAC
                         hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
