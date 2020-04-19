@@ -2,7 +2,7 @@ from collections import OrderedDict
 import random
 import numpy as np
 
-import env.robosuite.utils.transform_utils as T
+from env.robosuite.utils.transform_utils import *
 from env.robosuite.utils.mjcf_utils import string_to_array
 from env.robosuite.sawyer import SawyerEnv
 
@@ -441,8 +441,8 @@ class SawyerPickPlaceEnv(SawyerEnv):
             object_state_keys = []
 
             # for conversion to relative gripper frame
-            gripper_pose = T.pose2mat((di["eef_pos"], di["eef_quat"]))
-            world_pose_in_gripper = T.pose_inv(gripper_pose)
+            gripper_pose = pose2mat((di["eef_pos"], di["eef_quat"]))
+            world_pose_in_gripper = pose_inv(gripper_pose)
 
             for i in range(len(self.item_names_org)):
 
@@ -452,16 +452,16 @@ class SawyerPickPlaceEnv(SawyerEnv):
 
                 obj_str = str(self.item_names_org[i]) + "0"
                 obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj_str]])
-                obj_quat = T.convert_quat(
+                obj_quat = convert_quat(
                     self.sim.data.body_xquat[self.obj_body_id[obj_str]], to="xyzw"
                 )
                 di["{}_pos".format(obj_str)] = obj_pos
                 di["{}_quat".format(obj_str)] = obj_quat
 
                 # get relative pose of object in gripper frame
-                object_pose = T.pose2mat((obj_pos, obj_quat))
-                rel_pose = T.pose_in_A_to_pose_in_B(object_pose, world_pose_in_gripper)
-                rel_pos, rel_quat = T.mat2pose(rel_pose)
+                object_pose = pose2mat((obj_pos, obj_quat))
+                rel_pose = pose_in_A_to_pose_in_B(object_pose, world_pose_in_gripper)
+                rel_pos, rel_quat = mat2pose(rel_pose)
                 di["{}_to_eef_pos".format(obj_str)] = rel_pos
                 di["{}_to_eef_quat".format(obj_str)] = rel_quat
 

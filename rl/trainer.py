@@ -285,7 +285,7 @@ class Trainer(object):
             if config.algo == 'sac':
                 runner = self._runner.run(every_steps=1)
                 random_runner = self._runner.run(every_steps=1, random_exploration=True)
-            elif config.algp == 'ppo':
+            elif config.algo == 'ppo':
                 runner = self._runner.run(every_steps=self._config.rollout_length)
 
         st_time = time()
