@@ -25,7 +25,7 @@ class SawyerNutAssemblyEnv(SawyerEnv):
         table_friction=(1, 0.005, 0.0001),
         use_camera_obs=False,
         use_object_obs=True,
-        reward_shaping=False,
+        reward_shaping=True,
         placement_initializer=None,
         single_object_mode=0,
         nut_type=None,
