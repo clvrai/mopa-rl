@@ -21,10 +21,10 @@ then
 fi
 
 workers="1"
-prefix="BASELINE.PPO-1"
+prefix="BASELINE.PPO-max-reward"
 max_global_step="60000000"
 env="simple-mover-v0"
-gpu="2"
+gpu="0"
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="5"

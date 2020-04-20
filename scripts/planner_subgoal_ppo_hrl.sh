@@ -10,7 +10,7 @@ elif [ $v = 2 ]
 then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
-    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0'
+    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
 elif [ $v = 3 ]
 then
     env='simple-mover-obstacle-v0'
@@ -29,7 +29,7 @@ then
 fi
 
 workers="1"
-prefix="4.16.PPO-REWARD_COLLISION.HINDSIGHT.LONGER_RANGE.GRAD_NORM-2"
+prefix="4.16.PPO-REWARD_COLLISION.HINDSIGHT.LONGER_RANGE.FIXED_CONTACTS"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -67,7 +67,7 @@ algo='ppo'
 group='4.16.PPO'
 rl_activation='tanh'
 subgoal_hindsight="True"
-max_grad_norm='0.5'
+# max_grad_norm='0.5'
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -113,4 +113,4 @@ python -m rl.main \
     --group $group \
     --rl_activation $rl_activation \
     --subgoal_hindsight $subgoal_hindsight \
-    --max_grad_norm $max_grad_norm
+    # --max_grad_norm $max_grad_norm
