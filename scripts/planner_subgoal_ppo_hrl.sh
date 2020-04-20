@@ -29,7 +29,7 @@ then
 fi
 
 workers="1"
-prefix="4.16.PPO-REWARD_COLLISION.HINDSIGHT.LONGER_RANGE-2"
+prefix="4.16.PPO-REWARD_COLLISION.LONGER_RANGE.GRAD_NORM"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -46,7 +46,7 @@ max_meta_len="15"
 buffer_size="12800"
 num_batches="10"
 debug="False"
-rollout_length="9192"
+rollout_length="4096"
 batch_size="256"
 evaluate_interval='10'
 ckpt_interval='10'
@@ -66,8 +66,8 @@ log_root_dir='./logs'
 algo='ppo'
 group='4.16.PPO'
 rl_activation='tanh'
-subgoal_hindsight="True"
-# max_grad_norm='0.5'
+subgoal_hindsight="False"
+max_grad_norm='0.5'
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -112,5 +112,5 @@ python -m rl.main \
     --entropy_loss_coeff $entropy_loss_coeff \
     --group $group \
     --rl_activation $rl_activation \
-    --subgoal_hindsight $subgoal_hindsight
-    # --max_grad_norm $max_grad_norm \ 
+    --subgoal_hindsight $subgoal_hindsight \
+    --max_grad_norm $max_grad_norm
