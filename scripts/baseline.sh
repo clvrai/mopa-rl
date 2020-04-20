@@ -21,14 +21,14 @@ then
 fi
 
 workers="1"
-prefix="BASELINE.PPO"
+prefix="BASELINE.PPO-1"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="2"
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="5"
-entropy_loss_coef="1e-2"
+entropy_loss_coef="1e-3"
 buffer_size="125000"
 num_batches="50"
 lr_actor="3e-4"
@@ -48,6 +48,7 @@ has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
 group='4.16.PPO'
+max_grad_norm='0.5'
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -79,4 +80,5 @@ python -m rl.main \
     --actor_num_hid_layers $actor_num_hid_layers \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
-    --group $group
+    --group $group \
+    --max_grad_norm $max_grad_norm
