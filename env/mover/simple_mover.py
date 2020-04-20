@@ -222,6 +222,7 @@ class SimpleMoverEnv(BaseEnv):
             reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
+            # reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
 
             info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper,
                         reward_grasp=reward_grasp, reward_move=reward_move,
