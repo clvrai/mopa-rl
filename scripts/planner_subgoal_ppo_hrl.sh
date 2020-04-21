@@ -11,6 +11,8 @@ then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
     ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
+    # primitive_skills="reach grasp manipulation"
+    # ignored_contact_geoms='None,None'
 elif [ $v = 3 ]
 then
     env='simple-mover-obstacle-v0'
@@ -29,7 +31,8 @@ then
 fi
 
 workers="1"
-prefix="4.16.PPO-REWARD_COLLISION.HINDSIGHT.LONGER_RANGE.FIXED_CONTACTS"
+prefix="4.20.PPO.HINDSIGHT"
+#prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -58,13 +61,13 @@ ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
 subgoal_type="joint"
 meta_algo='ppo'
-success_reward='10.'
+success_reward='100.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
 log_root_dir='./logs'
 algo='ppo'
-group='4.16.PPO'
+group='4.20.PPO'
 rl_activation='tanh'
 subgoal_hindsight="True"
 # max_grad_norm='0.5'
