@@ -337,3 +337,15 @@ class SimpleMoverEnv(BaseEnv):
                     return self._primitive_skills[i+1]
         return self._primitive_skills[0]
 
+    def isValidState(self, ignored_contacts=[]):
+        if len(ignored_contacts) == 0:
+            return self.sim.data.ncon == 0
+        else:
+            for i in range(self.sim.data.ncon):
+                c = self.sim.data.contact[i]
+                geom1 = self.sim.model.geom_id2name(c.geom1)
+                geom2 = self.sim.model.geom_id2name(c.geom2)
+                for pair in ignored_contacts:
+                    if geom1 not in pair and geom2 not in pair:
+                        return False
+            return True

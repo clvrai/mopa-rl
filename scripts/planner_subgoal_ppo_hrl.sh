@@ -10,7 +10,7 @@ elif [ $v = 2 ]
 then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
-    ignored_contact_geoms='None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
+    ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
     # primitive_skills="reach grasp manipulation"
     # ignored_contact_geoms='None,None'
 elif [ $v = 3 ]
@@ -31,7 +31,7 @@ then
 fi
 
 workers="1"
-prefix="4.20.PPO.HINDSIGHT"
+prefix="4.20.PPO.INVALID_STATE.step5"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -45,7 +45,7 @@ rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
-max_meta_len="15"
+max_meta_len="5"
 buffer_size="12800"
 num_batches="10"
 debug="False"

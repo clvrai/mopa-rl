@@ -58,15 +58,13 @@ class LowLevelPPOAgent(BaseAgent):
             skills = ['primitive']
 
         self._skills = skills
-        planner_i = 0
 
-        for skill in skills:
+        for i, skill in enumerate(skills):
             if 'mp' in skill:
-                ignored_contacts = config.ignored_contact_geom_ids[planner_i]
+                ignored_contacts = config.ignored_contact_geom_ids[i]
                 passive_joint_idx = config.passive_joint_idx
                 planner = MpAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
                 self._planners.append(planner)
-                planner_i += 1
             else:
                 self._planners.append(None)
 
