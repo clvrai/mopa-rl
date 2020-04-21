@@ -21,7 +21,7 @@ then
 fi
 
 workers="1"
-prefix="BASELINE.PPO-max-reward"
+prefix="4.20.BASELINE.PPO"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="0"
@@ -43,12 +43,12 @@ reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
-success_reward='10.'
+success_reward='100.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
-group='4.16.PPO'
-max_grad_norm='0.5'
+group='4.20.PPO'
+# max_grad_norm='0.5'
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -81,4 +81,4 @@ python -m rl.main \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
     --group $group \
-    --max_grad_norm $max_grad_norm
+    # --max_grad_norm $max_grad_norm
