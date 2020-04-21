@@ -182,6 +182,8 @@ class SubgoalPPORolloutRunner(object):
                         vpred = pi.get_value(ll_ob, meta_ac)
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         done, info, _ = env._after_step(reward, False, info)
+                        if not env.isValidState(self._config.ignored_contact_geom_ids[cur_primitive]):
+                            done = True
                         rollout.add({'done': done, 'rew': reward})
                         ep_len += 1
                         step += 1
@@ -195,6 +197,7 @@ class SubgoalPPORolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'vpred': vpred})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
                 else:
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
                         meta_rollout.add({
