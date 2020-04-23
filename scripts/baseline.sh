@@ -1,10 +1,10 @@
 #!/bin/bash
 
-workers="1"
-prefix="4.20.BASELINE.PPO"
+workers="8"
+prefix="4.20.BASELINE.PPO.success.200.DIFF.OBS"
 max_global_step="60000000"
 env="simple-mover-v0"
-gpu="0"
+gpu="1"
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="5"
@@ -14,8 +14,8 @@ num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-rollout_length="4096"
-batch_size="256"
+rollout_length="512"
+batch_size="32"
 clip_param="0.2"
 algo='ppo'
 seed='1234'
@@ -24,15 +24,14 @@ reward_type='dense'
 comment='sac baseline for reacher'
 start_steps='10000'
 actor_num_hid_layers='2'
-success_reward='100.'
+success_reward='150.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
 group='4.20.PPO'
-# max_grad_norm='0.5'
+max_grad_norm='0.5'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -61,4 +60,4 @@ python -m rl.main \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
     --group $group \
-    # --max_grad_norm $max_grad_norm
+    --max_grad_norm $max_grad_norm

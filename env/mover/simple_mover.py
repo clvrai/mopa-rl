@@ -70,7 +70,11 @@ class SimpleMoverEnv(BaseEnv):
         if len(self._primitive_skills) != 3:
             self._primitive_skills = ['reach', 'grasp', 'manipulation']
         self._num_primitives = len(self._primitive_skills)
-        # assert self._num_primitives == 3
+
+        self._env_debug = kwargs['env_debug']
+        self._debug_goal_pos = np.array([[0.2, -0.2], [-0.18, 0.19], [-0.15, -0.18], [0.19, 0.18]])
+        self._debug_box_pos = np.array([[-0.15, -0.14], [0.19, 0.18], [-0.16, 0.17], [0.14, -0.17]])
+        assert self._num_primitives == 3
 
 
     def _reset(self):
@@ -79,8 +83,12 @@ class SimpleMoverEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
-            box = np.random.uniform(low=-0.2, high=0.2, size=2)
+            if self._env_debug:
+                goal = self._debug_goal_pos[np.random.int(len(self._debug_goal_pos))]
+                box = self._debug_box_pos[np.random.int(len(self._debug_box_pos))]
+            else:
+                goal = np.random.uniform(low=-0.2, high=0.2, size=2)
+                box = np.random.uniform(low=-0.2, high=0.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[3] = 0.
             qpos[4] = 0.
@@ -133,17 +141,17 @@ class SimpleMoverEnv(BaseEnv):
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[-2:], # box qpos
                 self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
-                self.sim.data.get_site_xpos('grip_site')[:2]
+                self.sim.data.get_site_xpos('grip_site')[:2] - self.sim.data.qpos.flat[-2:],
+                self.sim.data.qpos.flat[-2:] - self.sim.data.qpos.flat[self.sim.model.nu:-2],
                 #self._get_pos('grip_site')[:2]
             ])),
             ('gripper', np.concatenate([
                 self.sim.data.qpos.flat[len(self.ref_joint_pos_indexes):len(self.ref_joint_pos_indexes)+2],
                 self.sim.data.qvel.flat[len(self.ref_joint_vel_indexes):len(self.ref_joint_vel_indexes)+2]
             ])),
-            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
+            # ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
         ])
 
     def _format_action(self, action):
@@ -160,7 +168,7 @@ class SimpleMoverEnv(BaseEnv):
         return spaces.Dict([
             ('default', spaces.Box(shape=(15,), low=-1, high=1, dtype=np.float32)),
             ('gripper', spaces.Box(shape=(4,), low=-1, high=1, dtype=np.float32)),
-            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
+            # ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -204,7 +212,7 @@ class SimpleMoverEnv(BaseEnv):
         if reward_type == 'dense':
             reach_multi = 0.35
             collision_multi = 0.2
-            gripper_multi = 0.2
+            gripper_multi = 0.
             grasp_multi = 0.75
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
@@ -221,8 +229,8 @@ class SimpleMoverEnv(BaseEnv):
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
-            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
-            # reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
+            # reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
+            reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
 
             info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper,
                         reward_grasp=reward_grasp, reward_move=reward_move,
