@@ -70,6 +70,7 @@ class SimpleMoverEnv(BaseEnv):
         if len(self._primitive_skills) != 3:
             self._primitive_skills = ['reach', 'grasp', 'manipulation']
         self._num_primitives = len(self._primitive_skills)
+        self._env_debug = kwargs['env_debug']
 
         assert self._num_primitives == 3
 
@@ -82,7 +83,7 @@ class SimpleMoverEnv(BaseEnv):
         while True:
             if self._env_debug:
                 goal = np.random.uniform(low=0, high=0.2, size=2)
-                box = np.random.uniform(low=-2.0, high=0., size=2)
+                box = np.random.uniform(low=-0.2, high=0., size=2)
             else:
                 goal = np.random.uniform(low=-0.2, high=0.2, size=2)
                 box = np.random.uniform(low=-0.2, high=0.2, size=2)

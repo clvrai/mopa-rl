@@ -21,7 +21,7 @@ then
 fi
 
 workers="8"
-prefix="4.20.BASELINE.PPO.success.200.DIFF.OBS-2"
+prefix="4.20.BASELINE.PPO.env.debug"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="1"
@@ -48,6 +48,7 @@ has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
 group='4.20.PPO'
+env_debug='True'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \
@@ -80,4 +81,5 @@ mpiexec -n $workers python -m rl.main \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
     --group $group \
+    --env_debug $env_debug
     # --max_grad_norm $max_grad_norm
