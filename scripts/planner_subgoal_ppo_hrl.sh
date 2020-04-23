@@ -31,7 +31,7 @@ then
 fi
 
 workers="8"
-prefix="4.20.PPO.worker.8"
+prefix="4.20.PPO.worker.8.EASY"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -41,13 +41,13 @@ range="0.5"
 threshold="0.5"
 timelimit="0.01"
 gpu=$gpu
-rl_hid_size="256"
+rl_hid_size="128"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
 max_meta_len="10"
 buffer_size="12800"
-num_batches="6"
+num_batches="10"
 debug="False"
 rollout_length="512"
 batch_size="32"
@@ -70,7 +70,7 @@ algo='ppo'
 group='4.20.PPO'
 rl_activation='tanh'
 subgoal_hindsight="True"
-env_debug='False'
+env_debug='True'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \

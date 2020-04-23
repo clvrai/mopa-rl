@@ -84,8 +84,8 @@ class SimpleMoverEnv(BaseEnv):
         self._stage = 0
         while True:
             if self._env_debug:
-                goal = self._debug_goal_pos[np.random.int(len(self._debug_goal_pos))]
-                box = self._debug_box_pos[np.random.int(len(self._debug_box_pos))]
+                goal = self._debug_goal_pos[np.random.randint(len(self._debug_goal_pos))]
+                box = self._debug_box_pos[np.random.randint(len(self._debug_box_pos))]
             else:
                 goal = np.random.uniform(low=-0.2, high=0.2, size=2)
                 box = np.random.uniform(low=-0.2, high=0.2, size=2)
