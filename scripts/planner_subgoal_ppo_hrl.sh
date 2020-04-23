@@ -31,7 +31,7 @@ then
 fi
 
 workers="8"
-prefix="4.20.PPO.worker.8.EASY"
+prefix="4.20.PPO.EASY.thresh.0.3.worker8.ent.1e-3.coll.0.1-3"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -41,7 +41,7 @@ range="0.5"
 threshold="0.5"
 timelimit="0.01"
 gpu=$gpu
-rl_hid_size="128"
+rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
@@ -55,7 +55,7 @@ evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-2'
+entropy_loss_coeff='1e-3'
 comment="Fixed ignored contacts"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"

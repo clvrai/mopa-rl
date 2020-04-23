@@ -71,9 +71,6 @@ class SimpleMoverEnv(BaseEnv):
             self._primitive_skills = ['reach', 'grasp', 'manipulation']
         self._num_primitives = len(self._primitive_skills)
 
-        self._env_debug = kwargs['env_debug']
-        self._debug_goal_pos = np.array([[0.2, -0.2], [-0.18, 0.19], [-0.15, -0.18], [0.19, 0.18]])
-        self._debug_box_pos = np.array([[-0.15, -0.14], [0.19, 0.18], [-0.16, 0.17], [0.14, -0.17]])
         assert self._num_primitives == 3
 
 
@@ -84,8 +81,8 @@ class SimpleMoverEnv(BaseEnv):
         self._stage = 0
         while True:
             if self._env_debug:
-                goal = self._debug_goal_pos[np.random.randint(len(self._debug_goal_pos))]
-                box = self._debug_box_pos[np.random.randint(len(self._debug_box_pos))]
+                goal = np.random.uniform(low=0, high=0.2, size=2)
+                box = np.random.uniform(low=-2.0, high=0., size=2)
             else:
                 goal = np.random.uniform(low=-0.2, high=0.2, size=2)
                 box = np.random.uniform(low=-0.2, high=0.2, size=2)
@@ -141,17 +138,16 @@ class SimpleMoverEnv(BaseEnv):
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
+                self.sim.data.qpos.flat[-2:],
                 self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
-                self.sim.data.get_site_xpos('grip_site')[:2] - self.sim.data.qpos.flat[-2:],
-                self.sim.data.qpos.flat[-2:] - self.sim.data.qpos.flat[self.sim.model.nu:-2],
-                #self._get_pos('grip_site')[:2]
+                self.sim.data.get_site_xpos('grip_site')[:2]
             ])),
             ('gripper', np.concatenate([
                 self.sim.data.qpos.flat[len(self.ref_joint_pos_indexes):len(self.ref_joint_pos_indexes)+2],
                 self.sim.data.qvel.flat[len(self.ref_joint_vel_indexes):len(self.ref_joint_vel_indexes)+2]
             ])),
-            # ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
+            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
         ])
 
     def _format_action(self, action):
@@ -168,7 +164,7 @@ class SimpleMoverEnv(BaseEnv):
         return spaces.Dict([
             ('default', spaces.Box(shape=(15,), low=-1, high=1, dtype=np.float32)),
             ('gripper', spaces.Box(shape=(4,), low=-1, high=1, dtype=np.float32)),
-            # ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
+            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
     @property
@@ -211,7 +207,7 @@ class SimpleMoverEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
-            collision_multi = 0.2
+            collision_multi = 0.1
             gripper_multi = 0.
             grasp_multi = 0.75
             move_multi = 0.9
@@ -262,7 +258,7 @@ class SimpleMoverEnv(BaseEnv):
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-        if dist_box_to_gripper < 0.2:
+        if dist_box_to_gripper < 0.3:
             self._stages[0] = True
         else:
             self._stages[0] = False
