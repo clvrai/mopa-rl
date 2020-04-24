@@ -226,8 +226,8 @@ class SimpleMoverEnv(BaseEnv):
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
-            # reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
-            reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
+            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
+            # reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
 
             info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper,
                         reward_grasp=reward_grasp, reward_move=reward_move,
