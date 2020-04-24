@@ -208,7 +208,7 @@ class SimpleMoverEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
-            collision_multi = 0.1
+            collision_multi = 0.2
             gripper_multi = 0.
             grasp_multi = 0.75
             move_multi = 0.9

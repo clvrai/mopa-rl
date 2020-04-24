@@ -31,7 +31,7 @@ then
 fi
 
 workers="8"
-prefix="4.20.PPO.EASY.thresh.0.3.worker8.ent.1e-3.coll.0.1-3"
+prefix="4.20.PPO.EASY.thresh.0.3.worker8.ent.1e-3.coll.0.1-4"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
