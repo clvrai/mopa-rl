@@ -221,8 +221,8 @@ class SimpleMoverObstacleEnv(BaseEnv):
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
-            # reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
-            reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
+            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
+            # reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
 
             info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper,
                         reward_grasp=reward_grasp, reward_move=reward_move,
@@ -254,7 +254,7 @@ class SimpleMoverObstacleEnv(BaseEnv):
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-        if dist_box_to_gripper < 0.4:
+        if dist_box_to_gripper < 0.2:
             self._stages[0] = True
         else:
             self._stages[0] = False
@@ -264,7 +264,7 @@ class SimpleMoverObstacleEnv(BaseEnv):
         else:
             self._stages[1] = False
 
-        if self._get_distance('box', 'target') < 0.06 and self._stages[1]:
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._stages[1]:
             self._stages[2] = True
         else:
             self._stages[2] = False

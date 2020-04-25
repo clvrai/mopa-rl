@@ -1,9 +1,9 @@
 #!/bin/bash
 
 workers="8"
-prefix="4.20.BASELINE.PPO.env.debug.grasp.0.5"
+prefix="4.25.BASELINE.PPO"
 max_global_step="60000000"
-env="simple-mover-v0"
+env="simple-mover-obstacle-v0"
 gpu="1"
 rl_hid_size="256"
 max_episode_step="150"
