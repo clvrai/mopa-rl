@@ -259,7 +259,7 @@ class SimpleMoverEnv(BaseEnv):
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-        if dist_box_to_gripper < 0.3:
+        if dist_box_to_gripper < 0.2:
             self._stages[0] = True
         else:
             self._stages[0] = False
@@ -269,7 +269,7 @@ class SimpleMoverEnv(BaseEnv):
         else:
             self._stages[1] = False
 
-        if self._get_distance('box', 'target') < 0.06 and self._stages[1]:
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._stages[1]:
             self._stages[2] = True
         else:
             self._stages[2] = False
