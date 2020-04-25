@@ -131,8 +131,11 @@ class Trainer(object):
                 )
             else:
                 from rl.low_level_ppo_agent import LowLevelPPOAgent
-                from rl.low_level_ppo_single_critic_agent import LowLevelPPOSingleCriticAgent
-                self._agent = LowLevelPPOSingleCriticAgent(
+                # from rl.low_level_ppo_single_critic_agent import LowLevelPPOSingleCriticAgent
+                # self._agent = LowLevelPPOSingleCriticAgent(
+                #     config, ll_ob_space, ac_space, subgoal_space, actor, critic, non_limited_idx
+                # )
+                self._agent = LowLevelPPOAgent(
                     config, ll_ob_space, ac_space, subgoal_space, actor, critic, non_limited_idx
                 )
 
