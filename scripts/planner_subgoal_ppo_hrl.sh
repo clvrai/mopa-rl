@@ -9,10 +9,10 @@ then
 elif [ $v = 2 ]
 then
     env="simple-mover-v0"
-    # primitive_skills="reach_mp grasp manipulation_mp"
-    # ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
-    primitive_skills="reach grasp manipulation"
-    ignored_contact_geoms='None,None'
+    primitive_skills="reach_mp grasp manipulation_mp"
+    ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
+    # primitive_skills="reach grasp manipulation"
+    # ignored_contact_geoms='None,None'
 elif [ $v = 3 ]
 then
     env='simple-mover-obstacle-v0'
@@ -31,7 +31,7 @@ then
 fi
 
 workers="8"
-prefix="4.20.BASELINE.HRL.PPO-2"
+prefix="4.24.HRL.PPO.ent.1e-3.sum.rew.multi-critic-2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -55,7 +55,7 @@ evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-4'
+entropy_loss_coeff='1e-3'
 comment="Fixed ignored contacts"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"

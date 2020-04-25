@@ -1,7 +1,7 @@
 #!/bin/bash
 
 workers="8"
-prefix="4.20.BASELINE.PPO.env.debug"
+prefix="4.20.BASELINE.PPO.env.debug.grasp.0.5"
 max_global_step="60000000"
 env="simple-mover-v0"
 gpu="1"
