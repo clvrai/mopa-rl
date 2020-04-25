@@ -31,7 +31,7 @@ then
 fi
 
 workers="8"
-prefix="4.24.HRL.PPO.ent.1e-3.sum.rew.multi-critic-2"
+prefix="4.24.HRL.PPO.ent.1e-3.sum.rew.multi-critic.thresh.0.2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
