@@ -31,7 +31,7 @@ then
 fi
 
 workers="8"
-prefix="4.24.HRL.PPO"
+prefix="4.24.HRL.PPO-3"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -50,7 +50,7 @@ buffer_size="12800"
 num_batches="10"
 debug="False"
 rollout_length="1024"
-batch_size="64"
+batch_size="128"
 evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"
@@ -61,7 +61,7 @@ ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
 subgoal_type="joint"
 meta_algo='ppo'
-success_reward='100.'
+success_reward='150.'
 subgoal_predictor="True"
 seed="1234"
 has_terminal='True'
@@ -70,7 +70,7 @@ algo='ppo'
 group='4.20.PPO'
 rl_activation='tanh'
 subgoal_hindsight="True"
-env_debug='True'
+env_debug='False'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \
