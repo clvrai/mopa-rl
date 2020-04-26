@@ -14,6 +14,7 @@ def argparser():
                         help="environment name")
     parser.add_argument("--env_args", type=str, default=None)
     parser.add_argument("--terminal", type=str2bool, default=True)
+    parser.add_argument("--env_debug", type=str2bool, default=False)
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",
@@ -28,6 +29,8 @@ def argparser():
     parser.add_argument("--replay_strategy", type=str, default='future')
     parser.add_argument("--replay_k", type=int, default=4)
     parser.add_argument("--subgoal_predictor", type=str2bool, default=False)
+    parser.add_argument("--use_subgoal_space", type=str2bool, default=True)
+    parser.add_argument("--use_single_critic", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -47,6 +50,7 @@ def argparser():
     parser.add_argument("--goal_replace", type=str2bool, default=False)
     parser.add_argument("--relative_subgoal", type=str2bool, default=True)
     parser.add_argument("--meta_oracle", type=str2bool, default=False)
+    parser.add_argument("--subgoal_hindsight", type=str2bool, default=False)
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
@@ -95,7 +99,6 @@ def argparser():
     parser.add_argument("--lr_encoder", type=float, default=1e-3, help="the learning rate of the encoder")
     parser.add_argument("--lr_decoder", type=float, default=1e-3, help="the learning rate of the decoder")
 
-    parser.add_argument("--mp_ratio", type=float, default=1., help='How often a motion planner is used')
 
 
     # training
@@ -105,13 +108,14 @@ def argparser():
     parser.add_argument("--batch_size", type=int, default=256,
                         help="the sample batch size")
     parser.add_argument("--max_grad_norm", type=float, default=None)
-    parser.add_argument("--max_global_step", type=int, default=int(10e6))
+    parser.add_argument("--max_global_step", type=int, default=int(10e7))
     parser.add_argument("--gpu", type=int, default=None)
 
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")
     parser.add_argument("--start_steps", type=int, default=1e4)
     parser.add_argument("--temperature", type=float, default=0.3, help="Temperature for Gumbel Softmax")
+    parser.add_argument("--use_automatic_entropy_tuning", type=str2bool, default=True)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)

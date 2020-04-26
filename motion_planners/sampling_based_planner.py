@@ -36,7 +36,7 @@ class SamplingBasedPlanner:
         converted_goal = self.convert_nonlimited(goal.copy())
         states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, max_steps))
         if np.unique(states).size == 1 and states[0][0] == -1:
-            return states, states
+            return states, states, False
 
         traj = [start]
         pre_state = states[0]
@@ -52,7 +52,7 @@ class SamplingBasedPlanner:
                             tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
             pre_state = state
             traj.append(tmp_state)
-        return np.array(traj), states
+        return np.array(traj), states, True
 
     def remove_collision(self, geom_id, contype, conaffinity):
         self.planner.removeCollision(geom_id, contype, conaffinity)

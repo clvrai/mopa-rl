@@ -186,11 +186,11 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         if (MjOmpl::isActiveJoint(i, passive_joint_idx)) {
             start_vec_active.push_back(start_vec[i]);
             goal_vec_active.push_back(goal_vec[i]);
-            std::cout << "joint i " << i << " active " << start_vec[i] << std::endl;
+            // std::cout << "joint i " << i << " active " << start_vec[i] << std::endl;
         } else {
             start_vec_passive.push_back(start_vec[i]);
             goal_vec_passive.push_back(goal_vec[i]);
-            std::cout << "joint i " << i << " passive " << start_vec[i] << std::endl;
+            // std::cout << "joint i " << i << " passive " << start_vec[i] << std::endl;
         }
     }
 
@@ -230,7 +230,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
     solved = ss->solve(timelimit);
 
-    std::cout << "solved " << solved << std::endl;
+    // std::cout << "solved " << solved << std::endl;
 
     if (solved) {
         // ss.getSolutionPath().print(std::cout);

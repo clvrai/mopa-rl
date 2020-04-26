@@ -153,8 +153,16 @@ def sync_grads(network):
     comm = MPI.COMM_WORLD
     global_grads = np.zeros_like(flat_grads)
     comm.Allreduce(flat_grads, global_grads, op=MPI.SUM)
+    global_grads /= comm.Get_size() # average grad
     _set_flat_grads(network, grads_shape, global_grads)
 
+def sync_avg_grads(network):
+    flat_grads, grads_shape = _get_flat_grads(network)
+    comm = MPI.COMM_WORLD
+    global_grads = np.zeros_like(flat_grads)
+    comm.Allreduce(flat_grads, global_grads, op=MPI.SUM)
+    global_grads /= comm.Get_size() # average grad
+    _set_flat_grads(network, grads_shape, global_grads)
 
 def _set_flat_grads(network, grads_shape, flat_grads):
     pointer = 0
@@ -176,11 +184,13 @@ def _get_flat_grads(network):
     grads_shape = {}
     flat_grads = None
     for key_name, value in network.named_parameters():
-        try:
-            grads_shape[key_name] = value.grad.data.cpu().numpy().shape
-        except:
-            print('Cannot get grad of tensor {}'.format(key_name))
-            import pdb; pdb.set_trace()
+        if value.grad is None:
+            value.grad = torch.zeros_like(value).cuda()
+        # try:
+        grads_shape[key_name] = value.grad.data.cpu().numpy().shape
+        # except:
+        #     print('Cannot get grad of tensor {}'.format(key_name))
+        #     import pdb; pdb.set_trace()
         if flat_grads is None:
             flat_grads = value.grad.data.cpu().numpy().flatten()
         else:

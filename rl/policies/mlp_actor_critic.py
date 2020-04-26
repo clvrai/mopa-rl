@@ -29,7 +29,10 @@ class MlpActor(Actor):
             if isinstance(space, spaces.Box):
                 self.fc_means.update({k: MLP(config, rl_hid_size, action_size(space), activation=activation)})
                 if not self._deterministic:
-                    self.fc_log_stds.update({k: MLP(config, rl_hid_size, action_size(space), activation=activation)})
+                    if config.algo == 'ppo':
+                        self.fc_log_stds.update({k: AddBias(torch.zeros(action_size(space)))})
+                    else:
+                        self.fc_log_stds.update({k: MLP(config, rl_hid_size, action_size(space), activation=activation)})
             elif isinstance(space, spaces.Discrete):
                 self.fc_means.update({k: MLP(config, rl_hid_size, space.n, activation=activation)})
             else:
@@ -48,8 +51,12 @@ class MlpActor(Actor):
         for k, space in self._ac_space.spaces.items():
             mean = self.fc_means[k](out)
             if isinstance(space, spaces.Box) and not self._deterministic:
-                log_std = self.fc_log_stds[k](out)
-                log_std = torch.clamp(log_std, -10, 2)
+                if self._config.algo == 'ppo':
+                    zeros = torch.zeros(mean.size()).to(self._config.device)
+                    log_std = self.fc_log_stds[k](zeros)
+                else:
+                    log_std = self.fc_log_stds[k](out)
+                    log_std = torch.clamp(log_std, -10, 2)
                 std = torch.exp(log_std.double())
             else:
                 std = None
@@ -87,3 +94,16 @@ class MlpCritic(Critic):
 
         return out
 
+# Necessary for my KFAC implementation.
+class AddBias(nn.Module):
+    def __init__(self, bias):
+        super(AddBias, self).__init__()
+        self._bias = nn.Parameter(bias.unsqueeze(1))
+
+    def forward(self, x):
+        if x.dim() == 2:
+            bias = self._bias.t().view(1, -1)
+        else:
+            bias = self._bias.t().view(1, -1, 1, 1)
+
+        return x + bias

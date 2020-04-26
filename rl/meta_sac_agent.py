@@ -70,8 +70,8 @@ class MetaSACAgent(SACAgent):
             logger.info('creating a meta sac agent')
             for i, _actor in enumerate(self._actors):
                 logger.info('Actor #{} has %d parameters'.format(i + 1), count_parameters(_actor))
-            logger.info('the critic1 has %d parameters', count_parameters(self._critic1))
-            logger.info('the critic2 has %d parameters', count_parameters(self._critic2))
+            logger.info('the critic1 has %d parameters', count_parameters(self._critics1[0]))
+            logger.info('the critic2 has %d parameters', count_parameters(self._critics2[0]))
 
     def sync_networks(self):
         if self._config.meta_update_target == 'HL' or \
@@ -104,7 +104,7 @@ class MetaSACAgent(SACAgent):
 
         # update alpha
         actions_real, log_pi = self.act_log(o)
-        alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy).detach()).mean()
+        alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy[0]).detach()).mean()
         self._alpha_optim.zero_grad()
         alpha_loss.backward()
         self._alpha_optim.step()
@@ -112,8 +112,8 @@ class MetaSACAgent(SACAgent):
 
         # the actor loss
         entropy_loss = (alpha * log_pi).mean()
-        actor_loss = -torch.min(self._critic1(o, actions_real),
-                                self._critic2(o, actions_real)).mean()
+        actor_loss = -torch.min(self._critics1[0](o, actions_real),
+                                self._critics2[0](o, actions_real)).mean()
         info['entropy_alpha'] = alpha.cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
@@ -137,8 +137,8 @@ class MetaSACAgent(SACAgent):
             if isinstance(space, spaces.Discrete):
                 ac[k] = F.one_hot(ac[k].long(), action_size(self._ac_space[k])).float().squeeze(1)
 
-        real_q_value1 = self._critic1(o, ac)
-        real_q_value2 = self._critic2(o, ac)
+        real_q_value1 = self._critics1[0](o, ac)
+        real_q_value2 = self._critics2[0](o, ac)
         critic1_loss = 0.5 * (target_q_value - real_q_value1).pow(2).mean()
         critic2_loss = 0.5 * (target_q_value - real_q_value2).pow(2).mean()
 
@@ -161,15 +161,15 @@ class MetaSACAgent(SACAgent):
                 self._actor_optims[i].step()
 
         # update the critic
-        self._critic1_optim.zero_grad()
+        self._critic1_optims[0].zero_grad()
         critic1_loss.backward()
-        sync_grads(self._critic1)
-        self._critic1_optim.step()
+        sync_grads(self._critics1[0])
+        self._critic1_optims[0].step()
 
-        self._critic2_optim.zero_grad()
+        self._critic2_optims[0].zero_grad()
         critic2_loss.backward()
-        sync_grads(self._critic2)
-        self._critic2_optim.step()
+        sync_grads(self._critics2[0])
+        self._critic2_optims[0].step()
 
         # include info from policy
         if len(self._actors) == 1:

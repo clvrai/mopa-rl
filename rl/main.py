@@ -7,12 +7,12 @@ import numpy as np
 import torch
 from six.moves import shlex_quote
 from mpi4py import MPI
+from logging import CRITICAL
 
 from config import argparser
 from config.motion_planner import add_arguments as mp_add_arguments
 from rl.trainer import Trainer
 from util.logger import logger
-
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -25,13 +25,16 @@ def run(config):
     config.seed = config.seed + rank
     config.num_workers = MPI.COMM_WORLD.Get_size()
 
+    if torch.get_num_threads() != 1:
+        fair_num_threads = max(int(torch.get_num_threads() / MPI.COMM_WORLD.Get_size()), 1)
+        torch.set_num_threads(fair_num_threads)
+
     if config.is_chef:
-        logger.warning('Run a base worker.')
+        logger.warning('Running a base worker.')
         make_log_files(config)
     else:
-        logger.warning('Run worker %d and disable logger.', config.rank)
-        import logging
-        logger.setLevel(logging.CRITICAL)
+        logger.warning('Running worker %d and disabling logger', config.rank)
+        logger.setLevel(CRITICAL)
 
         config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed-rank)
         config.log_dir = os.path.join(config.log_root_dir, config.run_name)
@@ -122,8 +125,6 @@ if __name__ == '__main__':
         from config.pusher import add_arguments
     elif 'mover' in args.env:
         from config.mover import add_arguments
-    elif 'robosuite' in args.env:
-        from config.robosuite import add_arguments
     else:
         raise ValueError('args.env (%s) is not supported' % args.env)
 
@@ -136,7 +137,7 @@ if __name__ == '__main__':
 
     if args.debug:
         args.rollout_length = 150
-        args.start_steps = 100
+        args.start_steps = 300
 
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)

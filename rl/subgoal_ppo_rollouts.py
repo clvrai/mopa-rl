@@ -26,12 +26,8 @@ class Rollout(object):
 
     def get(self):
         batch = {}
-        batch['ob'] = self._history['ob']
-        batch['ac'] = self._history['ac']
-        batch['meta_ac'] = self._history['meta_ac']
-        batch['ac_before_activation'] = self._history['ac_before_activation']
-        batch['done'] = self._history['done']
-        batch['rew'] = self._history['rew']
+        for k, v in self._history.items():
+            batch[k] = v
         self._history = defaultdict(list)
         return batch
 
@@ -49,19 +45,13 @@ class MetaRollout(object):
 
     def get(self):
         batch = {}
-        batch['ob'] = self._history['meta_ob']
-        batch['ac'] = self._history['meta_ac']
-        batch['ac_before_activation'] = self._history['meta_ac_before_activation']
-        batch['log_prob'] = self._history['meta_log_prob']
-        batch['done'] = self._history['meta_done']
-        batch['rew'] = self._history['meta_rew']
-        batch['ag'] = self._history['ag']
-        batch['g'] = self._history['g']
+        for k, v in self._history.items():
+            batch[k] = v
         self._history = defaultdict(list)
         return batch
 
 
-class SubgoalRolloutRunner(object):
+class SubgoalPPORolloutRunner(object):
     def __init__(self, config, env, env_eval, meta_pi, pi):
         self._config = config
         self._env = env
@@ -99,6 +89,7 @@ class SubgoalRolloutRunner(object):
             cur_primitive = 0
             meta_ac = None
             success = False
+            invalid_ob = None
             skill_count = {}
             if self._config.hrl:
                 for skill in pi._skills:
@@ -145,47 +136,54 @@ class SubgoalRolloutRunner(object):
                         mp_success += 1
 
                 info = OrderedDict()
-                prev_ob = ob.copy()
-                prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
                 if 'mp' in skill_type:
                     if success:
                         cum_rew = 0
+                        ll_ob = ob.copy()
+                        prev_ob = ob.copy()
+                        meta_rollout.add({
+                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                        })
+                        vpred = pi.get_value(ll_ob, meta_ac)
+                        step += 1
                         for next_qpos in traj:
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
-                            meta_rollout.add({
-                                'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                            })
-                            inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac, is_planner=True)
-                            meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                            rollout.add({'done': done, 'rew': reward})
                             cum_rew += reward
                             ep_len += 1
-                            step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
 
-                            if every_steps is not None and step % every_steps == 0:
-                                # last frame
-                                ll_ob = ob.copy()
-                                rollout.add({'ob': ll_ob})
-                                meta_rollout.add({'meta_ob': ob})
-                                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-
-                            if done or ep_len >= max_step:
+                            if done or ep_len >= max_step or env._stages[cur_primitive]:
                                 break
+
+                        if self._config.subgoal_hindsight: # refer to HAC
+                            hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                        else:
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+
+
+                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        rollout.add({'done': done, 'rew': reward})
+                        if every_steps is not None and step % every_steps == 0:
+                            # last frame
+                            ll_ob = ob.copy()
+                            vpred = pi.get_value(ll_ob, meta_ac)
+                            rollout.add({'ob': ll_ob, 'vpred': vpred})
+                            meta_rollout.add({'meta_ob': ob})
+                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:
                         ll_ob = ob.copy()
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
                         reward = self._config.meta_subgoal_rew
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
+                        vpred = pi.get_value(ll_ob, meta_ac)
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         done, info, _ = env._after_step(reward, False, info)
+                        if not env.isValidState(self._config.ignored_contact_geom_ids[cur_primitive]):
+                            done = True
                         rollout.add({'done': done, 'rew': reward})
                         ep_len += 1
                         step += 1
@@ -195,9 +193,11 @@ class SubgoalRolloutRunner(object):
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
-                            rollout.add({'ob': ll_ob})
+                            value = pi.get_value(ll_ob, meta_ac)
+                            rollout.add({'ob': ll_ob, 'vpred': vpred})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
                 else:
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
                         meta_rollout.add({
@@ -213,7 +213,8 @@ class SubgoalRolloutRunner(object):
                                 ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                             else:
                                 ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                        vpred = pi.get_value(ll_ob, meta_ac)
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
 
                         ob, reward, done, info = env.step(ac)
                         rollout.add({'done': done, 'rew': reward})
@@ -228,7 +229,8 @@ class SubgoalRolloutRunner(object):
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
-                            rollout.add({'ob': ll_ob})
+                            vpred = pi.get_value(ll_ob, meta_ac)
+                            rollout.add({'ob': ll_ob, 'vpred': vpred})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
@@ -317,19 +319,17 @@ class SubgoalRolloutRunner(object):
                     mp_success += 1
 
             info = OrderedDict()
-            prev_ob = ob.copy()
-            prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
             if 'mp' in skill_type:
                 ll_ob = ob.copy()
+                prev_ob = ob.copy()
+                meta_rollout.add({
+                    'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                })
+                vpred = pi.get_value(ll_ob, meta_ac)
                 if success:
                     for next_qpos in traj:
                         ll_ob = ob.copy()
                         ac = env.form_action(next_qpos, cur_primitive)
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
-                        inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
-                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                         ob, reward, done, info = env.step(ac, is_planner=True)
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         rollout.add({'done': done, 'rew': reward})
@@ -363,13 +363,23 @@ class SubgoalRolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                        if done or ep_len >= max_step or env._stages[cur_primitive]:
+                            break
+
+                    if self._config.subgoal_hindsight: # refer to HAC
+                        hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                    else:
+                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
 
                 else:
+                    ll_ob = ob.copy()
                     meta_rollout.add({
                         'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                     })
                     reward = self._config.meta_subgoal_rew
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': None})
+                    vpred = pi.get_value(ll_ob, meta_ac)
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                     done, info, _ = env._after_step(reward, False, info)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
@@ -406,7 +416,8 @@ class SubgoalRolloutRunner(object):
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                    vpred = pi.get_value(ll_ob, meta_ac)
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
 
                     ob, reward, done, info = env.step(ac)
                     rollout.add({'done': done, 'rew': reward})
@@ -441,7 +452,8 @@ class SubgoalRolloutRunner(object):
         ep_info.add(reward_info_dict)
         # last frame
         ll_ob = ob.copy()
-        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+        vpred = pi.get_value(ll_ob, meta_ac)
+        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'vpred': vpred})
         meta_rollout.add({'meta_ob': ob})
         return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 

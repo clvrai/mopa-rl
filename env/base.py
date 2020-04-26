@@ -24,7 +24,7 @@ class BaseEnv(gym.Env):
 
     def __init__(self, xml_path, **kwargs):
         """ Initializes class with configuration. """
-        print("Create")
+        print("Creating env")
         # default env config
         self._env_config = {
             "frame_skip": kwargs['frame_skip'],
@@ -49,6 +49,7 @@ class BaseEnv(gym.Env):
         self._frame_dt = 1.
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
         self._camera_name = kwargs['camera_name']
+        self._kwargs = kwargs
 
         if 'box_to_target_coef' in kwargs:
             self._box_to_target_coef = kwargs['box_to_target_coef']
@@ -301,6 +302,11 @@ class BaseEnv(gym.Env):
             logger.warn(traceback.format_exc())
             self.reset()
             self._fail = True
+
+    def form_action(self, next_qpos, skill=None):
+        joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+        ac = OrderedDict([('default', joint_ac)])
+        return ac
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.sim.model.nq,) and qvel.shape == (self.sim.model.nv,)

@@ -11,20 +11,21 @@ from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, \
-    obs2tensor, to_tensor
+    obs2tensor, to_tensor, sync_avg_grads
 
 
 class PPOAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic):
+                 actor, critic, postfix=""):
         super().__init__(config, ob_space)
 
         self._ac_space = ac_space
+        self._postfix = postfix
 
         # build up networks
-        self._actor = actor(config, ob_space, ac_space, config.tanh_policy)
-        self._old_actor = actor(config, ob_space, ac_space, config.tanh_policy)
-        self._critic = critic(config, ob_space)
+        self._actor = actor(config, ob_space, ac_space, config.tanh_policy, activation='tanh')
+        self._old_actor = actor(config, ob_space, ac_space, config.tanh_policy, activation='tanh')
+        self._critic = critic(config, ob_space, activation='tanh')
         self._network_cuda(config.device)
 
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_actor)
@@ -67,7 +68,7 @@ class PPOAgent(BaseAgent):
         assert np.isfinite(ret).all()
 
         # update rollouts
-        rollouts['adv'] = ((adv - adv.mean()) / adv.std()).tolist()
+        rollouts['adv'] = ((adv - adv.mean()) / (adv.std()+1e-5)).tolist()
         rollouts['ret'] = ret.tolist()
 
     def state_dict(self):
@@ -122,6 +123,22 @@ class PPOAgent(BaseAgent):
         # pre-process observations
         o = transitions['ob']
         # o = self.normalize(o)
+        if len(o) == 0:
+            self._actor_optim.zero_grad()
+            sync_avg_grads(self._actor)
+            self._actor_optim.step()
+
+            # update the critic
+            self._critic_optim.zero_grad()
+            sync_avg_grads(self._critic)
+            self._critic_optim.step()
+
+            info['value_target{}'.format(self._postfix)] = 0.
+            info['value_predicted{}'.format(self._postfix)] = 0.
+            info['value_loss{}'.format(self._postfix)] = 0.
+            info['actor_loss{}'.format(self._postfix)] = 0.
+            info['entropy_loss{}'.format(self._postfix)] = 0.
+            return mpi_average(info)
 
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
@@ -133,12 +150,12 @@ class PPOAgent(BaseAgent):
 
         log_pi, ent = self._actor.act_log(o, a_z)
         old_log_pi, _ = self._old_actor.act_log(o, a_z)
-        if old_log_pi.min() < -100:
-            import ipdb; ipdb.set_trace()
+        # if old_log_pi.min() < -100:
+        #     import ipdb; ipdb.set_trace()
 
         # the actor loss
         entropy_loss = self._config.entropy_loss_coeff * ent.mean()
-        ratio = torch.exp(log_pi - old_log_pi)
+        ratio = torch.exp(log_pi - old_log_pi.detach())
         surr1 = ratio * adv
         surr2 = torch.clamp(ratio, 1.0 - self._config.clip_param,
                             1.0 + self._config.clip_param) * adv
@@ -146,24 +163,24 @@ class PPOAgent(BaseAgent):
 
         if not np.isfinite(ratio.cpu().detach()).all() or not np.isfinite(adv.cpu().detach()).all():
             import ipdb; ipdb.set_trace()
-        info['entropy_loss'] = entropy_loss.cpu().item()
-        info['actor_loss'] = actor_loss.cpu().item()
+        info['entropy_loss{}'.format(self._postfix)] = entropy_loss.cpu().item()
+        info['actor_loss{}'.format(self._postfix)] = actor_loss.cpu().item()
         actor_loss += entropy_loss
 
         # the q loss
         value_pred = self._critic(o)
         value_loss = self._config.value_loss_coeff * (ret - value_pred).pow(2).mean()
 
-        info['value_target'] = ret.mean().cpu().item()
-        info['value_predicted'] = value_pred.mean().cpu().item()
-        info['value_loss'] = value_loss.cpu().item()
+        info['value_target{}'.format(self._postfix)] = ret.mean().cpu().item()
+        info['value_predicted{}'.format(self._postfix)] = value_pred.mean().cpu().item()
+        info['value_loss{}'.format(self._postfix)] = value_loss.cpu().item()
 
         # update the actor
         self._actor_optim.zero_grad()
         actor_loss.backward()
         if self._config.max_grad_norm is not None:
             torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
-        sync_grads(self._actor)
+        sync_avg_grads(self._actor)
         self._actor_optim.step()
 
         # update the critic
@@ -171,7 +188,7 @@ class PPOAgent(BaseAgent):
         value_loss.backward()
         if self._config.max_grad_norm is not None:
             torch.nn.utils.clip_grad_norm_(self._critic.parameters(), self._config.max_grad_norm)
-        sync_grads(self._critic)
+        sync_avg_grads(self._critic)
         self._critic_optim.step()
 
         # include info from policy

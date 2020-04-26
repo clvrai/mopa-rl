@@ -39,11 +39,18 @@ class SimpleMoverObstacleEnv(BaseEnv):
         is_limited = np.array([True] * self.dof)
         minimum = np.ones(self.dof) * -1.
         maximum = np.ones(self.dof) * 1.
+        self._ac_rescale = 0.5
 
         self._minimum = minimum
         self._maximum = maximum
         self.action_space = spaces.Dict([
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
+        ])
+
+        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
+        self.subgoal_space = spaces.Dict([
+            ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
         ])
 
         jnt_range = self.sim.model.jnt_range[:num_actions]
@@ -59,8 +66,10 @@ class SimpleMoverObstacleEnv(BaseEnv):
             ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
         ])
 
-        self._num_primitives = len(kwargs['primitive_skills'])
         self._primitive_skills = kwargs['primitive_skills']
+        if len(self._primitive_skills) != 3:
+            self._primitive_skills = ['reach', 'grasp', 'manipulation']
+        self._num_primitives = len(self._primitive_skills)
 
 
     def _reset(self):
@@ -194,7 +203,8 @@ class SimpleMoverObstacleEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.35
-            gripper_multi = 0.35
+            collision_multi = 0.2
+            gripper_multi = 0.
             grasp_multi = 0.75
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
@@ -204,13 +214,19 @@ class SimpleMoverObstacleEnv(BaseEnv):
                                            self._get_pos('r_finger_g0')))) * gripper_multi
             has_grasp = self._has_grasp()
             has_self_collision = self._has_self_collision()
-            reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
+            # reward_grasp = (int(has_grasp) - int(has_self_collision)*0.2*int(has_grasp)) * grasp_multi
+            reward_grasp = int(has_grasp) * grasp_multi
+            reward_collision = -int(has_self_collision) * collision_multi
+            # reward_grasp = int(has_grasp) * grasp_multi
             reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi * int(self._has_grasp())
             reward_ctrl = self._ctrl_reward(action)
 
-            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl
+            reward = reward_reach + reward_gripper + reward_grasp + reward_move + reward_ctrl + reward_collision
+            # reward = max((reward_reach, reward_grasp, reward_move)) + reward_collision + reward_ctrl
 
-            info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper, reward_grasp=reward_grasp, reward_move=reward_move, reward_ctrl=reward_ctrl)
+            info = dict(reward_reach=reward_reach, reward_gripper=reward_gripper,
+                        reward_grasp=reward_grasp, reward_move=reward_move,
+                        reward_collision=reward_collision, reward_ctrl=reward_ctrl)
         else:
             reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
@@ -238,27 +254,32 @@ class SimpleMoverObstacleEnv(BaseEnv):
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('grip_site'))
-        if dist_box_to_gripper < 0.1 and not self._stages[0]:
+        if dist_box_to_gripper < 0.2:
             self._stages[0] = True
+        else:
+            self._stages[0] = False
 
         if self._has_grasp() and self._stages[0]:
             self._stages[1] = True
+        else:
+            self._stages[1] = False
 
-        if self._get_distance('box', 'target') < 0.04 and self._stages[1]:
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._stages[1]:
             self._stages[2] = True
+        else:
+            self._stages[2] = False
 
     def _has_self_collision(self):
         for i in range(self.sim.data.ncon):
             c = self.sim.data.contact[i]
             geom1 = self.sim.model.geom_id2name(c.geom1)
             geom2 = self.sim.model.geom_id2name(c.geom2)
-            if geom1 in self.agent_geoms+self.obstacle_geoms and geom2 in self.agent_geoms+self.obstacle_geoms:
+            if geom1 in self.agent_geoms and geom2 in self.agent_geoms:
                 return True
         return False
 
 
-
-    def _step(self, action, is_planner=False):
+    def _step(self, action, is_planner):
         """
         Args:
             action (numpy array): The array should have the corresponding elements.
@@ -266,29 +287,33 @@ class SimpleMoverObstacleEnv(BaseEnv):
         """
 
         done = False
-        if not is_planner and self._prev_state is None:
-            self._prev_state = self.get_joint_positions
-        desired_state = self._prev_state + action[:-1] # except for gripper action
+        if not is_planner or self._prev_state is None:
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
-        reward, info = self.compute_reward(action)
+        if not is_planner:
+            rescaled_ac = action[:-1] * self._ac_rescale
+        else:
+            rescaled_ac = action[:-1]
+        desired_state = self._prev_state + rescaled_ac # except for gripper action
+
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
-        target_vel = (desired_state-prev_state) / self._frame_dt
+        target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            arm_action = self._get_control(desired_state, prev_state, target_vel)
+            arm_action = self._get_control(desired_state, self._prev_state, target_vel)
             gripper_action_in = action[len(self.joint_names):len(self.joint_names)+1]
             gripper_action = self._format_action(gripper_action_in)
-            action = np.concatenate((arm_action, gripper_action))
-            self._do_simulation(action)
+            ac = np.concatenate((arm_action, gripper_action))
+            self._do_simulation(ac)
 
+        reward, info = self.compute_reward(action)
         self.check_stage()
 
         obs = self._get_obs()
         self._prev_state = np.copy(desired_state)
 
-        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold'] and self._has_grasp():
             if self._env_config['has_terminal']:
                 done = True
                 self._success = True
@@ -304,12 +329,24 @@ class SimpleMoverObstacleEnv(BaseEnv):
         return reward_subgoal_dist, info
 
     def get_next_primitive(self, prev_primitive):
-        prev_primitive = int(prev_primitive)
-        if self._stages[prev_primitive]:
-            if prev_primitive == self._num_primitives-1:
-                return self._primitive_skills[prev_primitive]
-            else:
-                return self._primitive_skills[prev_primitive+1]
+        for i in reversed(range(self._num_primitives)):
+            if self._stages[i]:
+                if i == self._num_primitives-1:
+                    return self._primitive_skills[i]
+                else:
+                    return self._primitive_skills[i+1]
+        return self._primitive_skills[0]
+
+    def isValidState(self, ignored_contacts=[]):
+        if len(ignored_contacts) == 0:
+            return self.sim.data.ncon == 0
         else:
-            return self._primitive_skills[prev_primitive]
+            for i in range(self.sim.data.ncon):
+                c = self.sim.data.contact[i]
+                geom1 = self.sim.model.geom_id2name(c.geom1)
+                geom2 = self.sim.model.geom_id2name(c.geom2)
+                for pair in ignored_contacts:
+                    if geom1 not in pair and geom2 not in pair:
+                        return False
+            return True
 
