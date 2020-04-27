@@ -20,7 +20,6 @@ from rl.policies import get_actor_critic_by_name
 from rl.meta_ppo_agent import MetaPPOAgent
 from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
-from rl.mp_rollouts import MPRolloutRunner
 from rl.subgoal_rollouts import SubgoalRolloutRunner
 from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
 from rl.dataset import HERSampler
@@ -148,10 +147,6 @@ class Trainer(object):
                 if config.ll_type == 'rl':
                     # build rollout runner
                     self._runner = RolloutRunner(
-                        config, self._env, self._env_eval, self._meta_agent, self._agent
-                    )
-                else:
-                    self._runner = MPRolloutRunner(
                         config, self._env, self._env_eval, self._meta_agent, self._agent
                     )
         else:
