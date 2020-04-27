@@ -78,8 +78,10 @@ class SimpleMoverObstacleEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
-            box = np.random.uniform(low=-0.2, high=0.2, size=2)
+            # goal = np.random.uniform(low=-0.2, high=0.2, size=2)
+            # box = np.random.uniform(low=-0.2, high=0.2, size=2)
+            goal = np.random.uniform(low=[0., 0.1], high=[0.2, 0.25], size=2)
+            box = np.random.uniform(low=-0.25, high=0.25, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[3] = 0.
             qpos[4] = 0.

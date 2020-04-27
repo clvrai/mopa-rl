@@ -33,7 +33,7 @@ obs = env.reset()
 #for i in range(10000):
 timestep = 0
 while True:
-    env.render(mode='rgb_array')
+    # env.render(mode='rgb_array')
     action = env.action_space.sample()
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
     # env.set_robot_indicator_joint_positions(qpos)
