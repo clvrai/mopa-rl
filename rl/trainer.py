@@ -43,13 +43,6 @@ def get_agent_by_name(algo, use_ae=False):
     elif algo == "ppo":
         from rl.ppo_agent import PPOAgent
         return PPOAgent
-    elif algo == 'ddpg':
-        from rl.ddpg_agent import DDPGAgent
-        return DDPGAgent
-    elif algo == 'td3':
-        from rl.td3_agent import TD3Agent
-        return TD3Agent
-
 
 class Trainer(object):
     def __init__(self, config):
