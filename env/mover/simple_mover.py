@@ -310,7 +310,6 @@ class SimpleMoverEnv(BaseEnv):
             gripper_action_in = action[len(self.joint_names):len(self.joint_names)+1]
             gripper_action = self._format_action(gripper_action_in)
             ac = np.concatenate((arm_action, gripper_action))
-            print(ac)
             self._do_simulation(ac)
 
         reward, info = self.compute_reward(action)
