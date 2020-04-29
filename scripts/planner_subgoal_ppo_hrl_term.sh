@@ -31,8 +31,8 @@ then
     ignored_contact_geoms='None,None'
 fi
 
-workers="1"
-prefix="4.27.SKILL_ORDERING.Termination-2"
+workers="8"
+prefix="4.27.SKILL_ORDERING.Termination"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -46,7 +46,7 @@ rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
-max_meta_len="15"
+max_meta_len="10"
 buffer_size="12800"
 num_batches="10"
 debug="False"
@@ -76,8 +76,7 @@ termination='True'
 group='SkillOrdering.Termination'
 # max_grad_norm='0.5'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
