@@ -32,7 +32,7 @@ then
 fi
 
 workers="1"
-prefix="Debug.skill_ordering"
+prefix="4.27.SKILL_ORDERING.Termination-2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -46,10 +46,10 @@ rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
 meta_subgoal_rew="0."
-max_meta_len="5"
+max_meta_len="15"
 buffer_size="12800"
 num_batches="10"
-debug="True"
+debug="False"
 rollout_length="1024"
 batch_size="128"
 evaluate_interval='5'
@@ -68,12 +68,12 @@ seed="1234"
 has_terminal='True'
 log_root_dir='./logs'
 algo='ppo'
-group='4.20.PPO'
 rl_activation='tanh'
 subgoal_hindsight="True"
 env_debug='False'
 skill_ordering='True'
-termination='False'
+termination='True'
+group='SkillOrdering.Termination'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
