@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="4.27.SKILL_ORDERING.Termination"
+prefix="4.27.SKILL_ORDERING.Termination.term_after_rl"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"

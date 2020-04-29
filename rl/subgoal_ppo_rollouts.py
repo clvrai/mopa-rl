@@ -221,7 +221,7 @@ class SubgoalPPORolloutRunner(object):
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                         if not done and config.skill_ordering:
                             if cur_primitive == len(config.primitive_skills)-1:
-                                if (config.termination and not bool(ac['term'][0])):
+                                if (config.termination and not bool(subgoal_ac['term'][0])):
                                     continue
                                 done = True
                                 done, info, _ = env._after_step(None, done, {})
@@ -272,6 +272,8 @@ class SubgoalPPORolloutRunner(object):
                             done = True
                             done, info, _ = env._after_step(None, done, {})
                             reward_info.add(info)
+                        else:
+                            term = True
 
 
 
@@ -426,7 +428,7 @@ class SubgoalPPORolloutRunner(object):
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                     if not done and config.skill_ordering:
                         if cur_primitive == len(config.primitive_skills)-1:
-                            if (config.termination and not bool(ac['term'][0])):
+                            if (config.termination and not bool(subgoal_ac['term'][0])):
                                 continue
                             done = True
                             done, info, _ = env._after_step(None, done, info)
@@ -448,7 +450,7 @@ class SubgoalPPORolloutRunner(object):
                     meta_len += 1
                     if not done and config.skill_ordering:
                         if cur_primitive == len(config.primitive_skills)-1:
-                            if (config.termination and not bool(ac['term'][0])):
+                            if (config.termination and not bool(subgoal_ac['term'][0])):
                                 continue
                             done = True
                             done, info, _ = env._after_step(None, done, info)
@@ -521,6 +523,8 @@ class SubgoalPPORolloutRunner(object):
                         done = True
                         done, info, _ = env._after_step(None, done, {})
                         reward_info.add(info)
+                    else:
+                        term = True
 
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
