@@ -441,8 +441,8 @@ class SubgoalPPORolloutRunner(object):
                     meta_len += 1
                     if not done and config.skill_ordering:
                         if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
-                        done = True
-                        done, info, _ = env._after_step(None, done, info)
+                            done = True
+                            done, info, _ = env._after_step(None, done, info)
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                     term = bool(subgoal_ac['term'][0])
