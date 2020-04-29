@@ -116,6 +116,10 @@ class Trainer(object):
                 subgoal_space = self._env.subgoal_space
             else:
                 subgoal_space = ac_space
+
+            if config.termination:
+                subgoal_space.spaces['term'] = spaces.Discrete(2)
+                ac_space.spaces['term'] = spaces.Discrete(2)
             if config.algo == 'sac':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(

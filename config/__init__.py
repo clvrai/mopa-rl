@@ -31,6 +31,8 @@ def argparser():
     parser.add_argument("--subgoal_predictor", type=str2bool, default=False)
     parser.add_argument("--use_subgoal_space", type=str2bool, default=True)
     parser.add_argument("--use_single_critic", type=str2bool, default=False)
+    parser.add_argument("--skill_ordering", type=str2bool, default=False)
+    parser.add_argument("--termination", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
