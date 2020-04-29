@@ -305,7 +305,7 @@ class SubgoalPPORolloutRunner(object):
         meta_ac = None
         ac = None
         success = False
-        term = False
+        term = True
         prev_primitive = -1
         cur_primitive = -1
         skill_count = {}
@@ -327,12 +327,9 @@ class SubgoalPPORolloutRunner(object):
                             meta_pi.act(ob, is_train=is_train)
             else:
                 if config.skill_ordering:
-                    if config.termination:
-                        if ac is None or term:
-                            cur_primitive += 1
-                            term = False
-                    else:
+                    if config.termination and term:
                         cur_primitive += 1
+                        term = False
                     meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
                 else:
                     prev_primitive = cur_primitive
