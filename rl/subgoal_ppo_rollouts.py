@@ -330,6 +330,8 @@ class SubgoalPPORolloutRunner(object):
                     if config.termination and term:
                         cur_primitive += 1
                         term = False
+                    if cur_primitive == len(config.primitive_skills):
+                        import pdb; pdb.set_trace()
                     meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
                 else:
                     prev_primitive = cur_primitive
@@ -436,10 +438,6 @@ class SubgoalPPORolloutRunner(object):
                     step += 1
                     ep_rew += reward
                     meta_len += 1
-                    if not done and config.skill_ordering:
-                        if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
-                            done = True
-                            done, info, _ = env._after_step(None, done, info)
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                     term = bool(subgoal_ac['term'][0])
@@ -461,6 +459,10 @@ class SubgoalPPORolloutRunner(object):
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                         self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                    if not done and config.skill_ordering:
+                        if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
+                            done = True
+                            done, info, _ = env._after_step(None, done, info)
             else:
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
