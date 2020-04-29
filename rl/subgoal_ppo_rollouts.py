@@ -420,9 +420,7 @@ class SubgoalPPORolloutRunner(object):
                     else:
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                     if not done and config.skill_ordering:
-                        if cur_primitive == len(config.primitive_skills)-1:
-                            if (config.termination and not bool(subgoal_ac['term'][0])):
-                                continue
+                        if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
                             done = True
                             done, info, _ = env._after_step(None, done, info)
                             reward_info.add(info)
@@ -442,11 +440,9 @@ class SubgoalPPORolloutRunner(object):
                     ep_rew += reward
                     meta_len += 1
                     if not done and config.skill_ordering:
-                        if cur_primitive == len(config.primitive_skills)-1:
-                            if (config.termination and not bool(subgoal_ac['term'][0])):
-                                continue
-                            done = True
-                            done, info, _ = env._after_step(None, done, info)
+                        if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
+                        done = True
+                        done, info, _ = env._after_step(None, done, info)
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                     term = bool(subgoal_ac['term'][0])
@@ -489,10 +485,6 @@ class SubgoalPPORolloutRunner(object):
                     ep_rew += reward
                     meta_len += 1
                     meta_rew += reward
-                    if not done and config.skill_ordering and config.termination and bool(ac['term'][0]):
-                        done = True
-                        done, info, _ = env._after_step(None, done, {})
-                        reward_info.add(info)
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                     term = bool(ac['term'][0])
@@ -511,6 +503,10 @@ class SubgoalPPORolloutRunner(object):
 
                         vis_pos=[]
                         self._store_frame(env, frame_info, None, vis_pos=[])
+
+                    if not done and config.skill_ordering and config.termination and term: # break the loop if termination is true
+                        break
+
                 if not done and config.skill_ordering:
                     if cur_primitive == len(config.primitive_skills)-1:
                         done = True
