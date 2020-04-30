@@ -53,20 +53,6 @@ class SimpleMoverEnv(BaseEnv):
             ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
         ])
 
-        jnt_range = self.sim.model.jnt_range[:num_actions]
-        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
-        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
-        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
-        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
-        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
-        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
-        self._is_jnt_limited = is_jnt_limited
-        self._jnt_minimum = jnt_minimum
-        self._jnt_maximum = jnt_maximum
-
-        self.joint_space = spaces.Dict([
-            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
-        ])
 
         self._primitive_skills = kwargs['primitive_skills']
         if len(self._primitive_skills) != 3:
