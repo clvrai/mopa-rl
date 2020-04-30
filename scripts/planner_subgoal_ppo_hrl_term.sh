@@ -32,13 +32,13 @@ then
 fi
 
 workers="8"
-prefix="4.29.TERMINATION.v1"
+prefix="4.29.TERMINATION.v3"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
-range="0.5"
+range="0.0"
 threshold="0.5"
 timelimit="0.01"
 gpu=$gpu
