@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="4.29.TERMINATION.TTHRESHOLD.0.0.clip.target_qpos.size.64"
+prefix="4.29.TERMINATION.TTHRESHOLD.0.0.clip.target_qpos.size.64.no.clip"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
