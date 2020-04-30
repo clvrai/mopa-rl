@@ -61,6 +61,8 @@ class SimpleMoverEnv(BaseEnv):
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
         self._is_jnt_limited = is_jnt_limited
+        self._jnt_minimum = jnt_minimum
+        self._jnt_maximum = jnt_maximum
 
         self.joint_space = spaces.Dict([
             ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
