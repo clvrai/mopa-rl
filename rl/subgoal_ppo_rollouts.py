@@ -433,6 +433,7 @@ class SubgoalPPORolloutRunner(object):
                     vpred = pi.get_value(ll_ob, meta_ac)
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                     done, info, _ = env._after_step(reward, False, info)
+                    reward_info.add(info)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     step += 1
