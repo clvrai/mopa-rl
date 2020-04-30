@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="4.29.termination-3"
+prefix="4.29.termination-6"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -51,7 +51,7 @@ buffer_size="12800"
 num_batches="10"
 debug="False"
 rollout_length="1024"
-batch_size="64"
+batch_size="32"
 evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"

@@ -438,7 +438,6 @@ class SubgoalPPORolloutRunner(object):
                     step += 1
                     ep_rew += reward
                     meta_len += 1
-                    reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                     term = bool(subgoal_ac['term'][0])
                     if record:
@@ -463,6 +462,7 @@ class SubgoalPPORolloutRunner(object):
                         if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
                             done = True
                             done, info, _ = env._after_step(None, done, info)
+                            reward_info.add(info)
             else:
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
