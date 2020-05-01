@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="5.1.TERMINATION.env_debug"
+prefix="5.1.TERMINATION.env_debug.contact_success_Checker"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"

@@ -87,6 +87,7 @@ class SubgoalPPORolloutRunner(object):
             mp_success = 0
             prev_primitive = -1
             cur_primitive = -1
+            contact_skill_num = 0
             meta_ac = None
             ac = None
             success = False
@@ -221,6 +222,7 @@ class SubgoalPPORolloutRunner(object):
                                 reward_info.add(info)
 
                 else:
+                    contact_skill_num += 1
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -261,7 +263,7 @@ class SubgoalPPORolloutRunner(object):
                             break
 
                     if not done and config.skill_ordering:
-                        if cur_primitive == len(config.primitive_skills)-1:
+                        if cur_primitive == len(config.primitive_skills)-1 or not env.is_contact_skill_success(contact_skill_num):
                             done = True
                             done, info, _ = env._after_step(None, done, {})
                             reward_info.add(info)
@@ -308,6 +310,7 @@ class SubgoalPPORolloutRunner(object):
         term = True
         prev_primitive = -1
         cur_primitive = -1
+        contact_skill_num = 0
         skill_count = {}
         if self._config.hrl:
             for skill in pi._skills:
@@ -465,6 +468,7 @@ class SubgoalPPORolloutRunner(object):
                             done, info, _ = env._after_step(None, done, info)
                             reward_info.add(info)
             else:
+                contact_skill_num += 1
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     meta_rollout.add({
@@ -508,7 +512,7 @@ class SubgoalPPORolloutRunner(object):
                         break
 
                 if not done and config.skill_ordering:
-                    if cur_primitive == len(config.primitive_skills)-1:
+                    if cur_primitive == len(config.primitive_skills)-1 or not env.is_contact_skill_success(contact_skill_num):
                         done = True
                         done, info, _ = env._after_step(None, done, {})
                         reward_info.add(info)
