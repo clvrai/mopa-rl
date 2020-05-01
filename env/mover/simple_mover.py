@@ -106,11 +106,11 @@ class SimpleMoverEnv(BaseEnv):
 
     @property
     def left_finger_geoms(self):
-        return ["l_finger_g0"]
+        return ["l_finger_g0", "l_finger_tip"]
 
     @property
     def right_finger_geoms(self):
-        return ["r_finger_g0"]
+        return ["r_finger_g0", "r_finger_tip"]
 
     @property
     def body_geoms(self):
