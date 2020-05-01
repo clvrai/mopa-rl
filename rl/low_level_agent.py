@@ -28,8 +28,8 @@ class LowLevelAgent(SACAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, actor, critic, is_jnt_limited, subgoal_space=None, subgoal_critic=None):
-        self._is_jnt_limited = is_jnt_limited
+    def __init__(self, config, ob_space, ac_space, actor, critic, non_limited_idx, subgoal_space=None, subgoal_critic=None):
+        self._non_limited_idx = non_limited_idx
         self._subgoal_space = subgoal_space
         super().__init__(config, ob_space, ac_space, actor, critic)
 
@@ -83,7 +83,7 @@ class LowLevelAgent(SACAgent):
             if 'mp' in skill:
                 ignored_contacts = config.ignored_contact_geom_ids[planner_i]
                 passive_joint_idx = config.passive_joint_idx
-                planner = MpAgent(config, self._ac_space, self._is_jnt_limited, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
+                planner = MpAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
                 self._planners.append(planner)
                 planner_i += 1
             else:

@@ -27,10 +27,8 @@ class LowLevelPPOAgent(BaseAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, subgoal_space, actor, critic, is_jnt_limited=None, jnt_maximum=None, jnt_minimum=None):
-        self._is_jnt_limited = is_jnt_limited
-        self._jnt_maximum = jnt_maximum
-        self._jnt_minimum = jnt_minimum
+    def __init__(self, config, ob_space, ac_space, subgoal_space, actor, critic, non_limited_idx=None):
+        self._non_limited_idx = non_limited_idx
         self._subgoal_space = subgoal_space
         self._ac_space = ac_space
         super().__init__(config, ob_space)
@@ -65,7 +63,7 @@ class LowLevelPPOAgent(BaseAgent):
             if 'mp' in skill:
                 ignored_contacts = config.ignored_contact_geom_ids[i]
                 passive_joint_idx = config.passive_joint_idx
-                planner = MpAgent(config, self._ac_space, self._is_jnt_limited, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
+                planner = MpAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
                 self._planners.append(planner)
             else:
                 self._planners.append(None)

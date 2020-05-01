@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="4.29.TERMINATION.TTHRESHOLD.0.5.clip.target_qpos.size.256.no.clip.1024"
+prefix="4.29.TERMINATION.TTHRESHOLD.0.5.clip.target_qpos.size.256.no.clip.1024.ent.1e-2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -56,7 +56,7 @@ evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-3'
+entropy_loss_coeff='1e-2'
 comment="Fixed ignored contacts"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
