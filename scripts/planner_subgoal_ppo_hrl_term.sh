@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="5.1.TERMINATION.env_debug.contact_success_Checker"
+prefix="5.1.TERMINATION.env_debug.new_env-2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -74,6 +74,7 @@ env_debug='True'
 skill_ordering='True'
 termination='True'
 group='SkillOrdering.Termination'
+contact_check='False'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \
@@ -121,5 +122,6 @@ mpiexec -n $workers python -m rl.main \
     --subgoal_hindsight $subgoal_hindsight \
     --env_debug $env_debug \
     --termination $termination \
-    --skill_ordering $skill_ordering
+    --skill_ordering $skill_ordering \
+    --contact_check $contact_check
     # --max_grad_norm $max_grad_norm

@@ -263,7 +263,7 @@ class SubgoalPPORolloutRunner(object):
                             break
 
                     if not done and config.skill_ordering:
-                        if cur_primitive == len(config.primitive_skills)-1 or not env.is_contact_skill_success(contact_skill_num):
+                        if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
                             done = True
                             done, info, _ = env._after_step(None, done, {})
                             reward_info.add(info)
@@ -512,7 +512,7 @@ class SubgoalPPORolloutRunner(object):
                         break
 
                 if not done and config.skill_ordering:
-                    if cur_primitive == len(config.primitive_skills)-1 or not env.is_contact_skill_success(contact_skill_num):
+                    if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
                         done = True
                         done, info, _ = env._after_step(None, done, {})
                         reward_info.add(info)

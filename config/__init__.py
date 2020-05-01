@@ -33,6 +33,7 @@ def argparser():
     parser.add_argument("--use_single_critic", type=str2bool, default=False)
     parser.add_argument("--skill_ordering", type=str2bool, default=False)
     parser.add_argument("--termination", type=str2bool, default=False)
+    parser.add_argument("--contact_check", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -77,6 +78,7 @@ def argparser():
     # motion planning
     parser.add_argument("--use_ik", type=str2bool, default=False)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
+    parser.add_argument("--subgoal_scale", type=float, default=1.0)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")

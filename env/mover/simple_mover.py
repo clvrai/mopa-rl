@@ -47,8 +47,9 @@ class SimpleMoverEnv(BaseEnv):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
+        self._subgoal_scale = kwargs['subgoal_scale']
+        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
         self.subgoal_space = spaces.Dict([
             ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
         ])
@@ -106,11 +107,11 @@ class SimpleMoverEnv(BaseEnv):
 
     @property
     def left_finger_geoms(self):
-        return ["l_finger_g0", "l_finger_tip"]
+        return ["l_finger_g0", "l_fingertip"]
 
     @property
     def right_finger_geoms(self):
-        return ["r_finger_g0", "r_finger_tip"]
+        return ["r_finger_g0", "r_fingertip"]
 
     @property
     def body_geoms(self):
