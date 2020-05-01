@@ -32,14 +32,14 @@ then
 fi
 
 workers="8"
-prefix="4.29.TERMINATION.TTHRESHOLD.0.5.clip.target_qpos.size.256.no.clip.1024.ent.1e-2"
+prefix="5.1.TERMINATION.env_debug"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 range="0.5"
-threshold="0.5"
+threshold="0.0"
 timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
@@ -56,7 +56,7 @@ evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-2'
+entropy_loss_coeff='1e-3'
 comment="Fixed ignored contacts"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -70,7 +70,7 @@ log_root_dir='./logs'
 algo='ppo'
 rl_activation='tanh'
 subgoal_hindsight="True"
-env_debug='False'
+env_debug='True'
 skill_ordering='True'
 termination='True'
 group='SkillOrdering.Termination'
