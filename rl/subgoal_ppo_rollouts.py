@@ -205,9 +205,9 @@ class SubgoalPPORolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
-                        done, info, _ = env._after_step(reward, False, info)
                         if not env.isValidState(self._config.ignored_contact_geom_ids[cur_primitive]):
                             done = True
+                        done, info, _ = env._after_step(reward, done, info)
                         rollout.add({'done': done, 'rew': reward})
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         ep_len += 1

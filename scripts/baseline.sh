@@ -5,7 +5,7 @@ gpu=$2
 if [ $algo = 1 ]
 then
     algo='ppo'
-    rollout_length='512'
+    rollout_length='1024'
     evaluate_interval="10"
     ckpt_interval='50'
     rl_activation="tanh"
@@ -21,7 +21,7 @@ then
 fi
 
 workers="8"
-prefix="05.01.BASELINE.PPO.larger_path"
+prefix="05.01.BASELINE.PPO.larger_path-2"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu="1"

@@ -138,7 +138,9 @@ class MetaPPOAgent(BaseAgent):
     def train(self):
         self._copy_target_network(self._old_actor, self._actor)
 
-        for _ in range(self._config.num_batches):
+        sample_size = len(self._buffer._buffers['ac'])
+        iters = max(int(sample_size // self._config.batch_size), 1)
+        for _ in range(iters*self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions)
 

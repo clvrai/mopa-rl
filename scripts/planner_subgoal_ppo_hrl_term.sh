@@ -10,7 +10,8 @@ then
 elif [ $v = 2 ]
 then
     env="simple-pusher-obstacle-v0"
-    primitive_skills="reach_mp push"
+    #primitive_skills="reach_mp push"
+    primitive_skills="reach_mp"
     ignored_contact_geoms='None,None'
 elif [ $v = 3 ]
 then
@@ -32,7 +33,7 @@ then
 fi
 
 workers="8"
-prefix="05.01.MP.RL.both.subgoal_scale.2-v3"
+prefix="05.01.MP.RL.both.only-reach"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -40,7 +41,7 @@ planner_type="sst"
 planner_objective="state_const_integral"
 range="0.5"
 threshold="0.0"
-timelimit="0.01"
+timelimit="0.03"
 gpu=$gpu
 rl_hid_size="256"
 meta_update_target="both"
@@ -50,13 +51,13 @@ max_meta_len="1"
 buffer_size="12800"
 num_batches="10"
 debug="False"
-rollout_length="1024"
+rollout_length="2048"
 batch_size="64"
 evaluate_interval='5'
 ckpt_interval='10'
 reward_type="dense"
 reward_scale="10."
-entropy_loss_coeff='1e-3'
+entropy_loss_coeff='1e-2'
 comment="Fixed ignored contacts"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -76,7 +77,7 @@ termination='False'
 group='05.01.PPO'
 contact_check='False'
 meta_oracle='False'
-subgoal_scale='2.'
+subgoal_scale='1.'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \
