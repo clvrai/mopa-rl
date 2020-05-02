@@ -197,7 +197,7 @@ class Trainer(object):
                 elif self._config.meta_update_target == "LL":
                     replay_buffers = {"replay": self._agent.replay_buffer()}
                 else: # both
-                    if not config.meta_oracle:
+                    if not self._config.meta_oracle:
                         replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
                                           "ll_replay": self._agent.replay_buffer()}
                     else:
