@@ -47,24 +47,13 @@ class SimpleMoverEnv(BaseEnv):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
+        self._subgoal_scale = kwargs['subgoal_scale']
+        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
         self.subgoal_space = spaces.Dict([
             ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
         ])
 
-        jnt_range = self.sim.model.jnt_range[:num_actions]
-        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
-        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
-        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
-        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
-        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
-        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
-        self._is_jnt_limited = is_jnt_limited
-
-        self.joint_space = spaces.Dict([
-            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
-        ])
 
         self._primitive_skills = kwargs['primitive_skills']
         if len(self._primitive_skills) != 3:
@@ -98,8 +87,7 @@ class SimpleMoverEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2 and self._get_distance('box', 'target') > 0.1 and \
-                    self._get_distance('fingertip', 'box') > 0.1 and np.linalg.norm(box) > 0.1: #make the task harder
+            if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.1 and np.linalg.norm(box) > 0.1:
                 self.goal = goal
                 self.box = box
                 break
@@ -119,11 +107,11 @@ class SimpleMoverEnv(BaseEnv):
 
     @property
     def left_finger_geoms(self):
-        return ["l_finger_g0"]
+        return ["l_finger_g0", "l_fingertip"]
 
     @property
     def right_finger_geoms(self):
-        return ["r_finger_g0"]
+        return ["r_finger_g0", "r_fingertip"]
 
     @property
     def body_geoms(self):
@@ -310,7 +298,6 @@ class SimpleMoverEnv(BaseEnv):
             gripper_action_in = action[len(self.joint_names):len(self.joint_names)+1]
             gripper_action = self._format_action(gripper_action_in)
             ac = np.concatenate((arm_action, gripper_action))
-            print(ac)
             self._do_simulation(ac)
 
         reward, info = self.compute_reward(action)
@@ -355,3 +342,7 @@ class SimpleMoverEnv(BaseEnv):
                     if geom1 not in pair and geom2 not in pair:
                         return False
             return True
+
+    def is_contact_skill_success(self, contact_skill_num):
+        return self._has_grasp()
+

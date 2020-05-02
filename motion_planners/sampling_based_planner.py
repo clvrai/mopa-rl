@@ -10,7 +10,7 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[]):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[]):
         self.config = config
         self.planner = PyKinematicPlanner(xml_path.encode('utf-8'),
                                           config.planner_type.encode('utf-8'), num_actions,

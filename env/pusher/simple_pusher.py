@@ -25,7 +25,7 @@ class SimplePusherEnv(BaseEnv):
         ]
         self._ac_rescale = 0.5
         subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1.
         self.subgoal_space = spaces.Dict([
             ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
         ])
@@ -115,8 +115,8 @@ class SimplePusherEnv(BaseEnv):
             reach_multi = 0.35
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
+            reward_reach = (1-np.tanh(5.0*dist_box_to_gripper)) * reach_multi
+            reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi
             reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_move + reward_ctrl
@@ -182,6 +182,19 @@ class SimplePusherEnv(BaseEnv):
                 else:
                     return self._primitive_skills[i+1]
         return self._primitive_skills[0]
+
+    def isValidState(self, ignored_contacts=[]):
+        if len(ignored_contacts) == 0:
+            return self.sim.data.ncon == 0
+        else:
+            for i in range(self.sim.data.ncon):
+                c = self.sim.data.contact[i]
+                geom1 = self.sim.model.geom_id2name(c.geom1)
+                geom2 = self.sim.model.geom_id2name(c.geom2)
+                for pair in ignored_contacts:
+                    if geom1 not in pair and geom2 not in pair:
+                        return False
+            return True
 
     # def isInvalidPlannerState(self, prev_primitive):
     #     isValid = True

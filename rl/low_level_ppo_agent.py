@@ -78,12 +78,11 @@ class LowLevelPPOAgent(BaseAgent):
             assert self._planners[skill_idx] is not None
 
             assert "mp" in self.return_skill_type(meta_ac), "Skill is expected to be motion planner"
-            if random_exploration:
-                ac = self._ac_space.sample()
-            else:
-                ac, activation = self._agents[skill_idx]._actor.act(ob, is_train)
+            ac, activation = self._agents[skill_idx]._actor.act(ob, is_train)
             target_qpos = curr_qpos.copy()
             target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
+            # target_qpos[ref_joint_pos_indexes][self._is_jnt_limited[ref_joint_pos_indexes]] = np.clip(target_qpos[ref_joint_pos_indexes][self._is_jnt_limited[ref_joint_pos_indexes]],
+            #         self._jnt_minimum[ref_joint_pos_indexes][self._is_jnt_limited[ref_joint_pos_indexes]], self._jnt_maximum[ref_joint_pos_indexes][self._is_jnt_limited[ref_joint_pos_indexes]])
             traj, success = self._planners[skill_idx].plan(curr_qpos, target_qpos)
             return traj, success, target_qpos, ac, activation
         else:
