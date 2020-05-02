@@ -39,13 +39,6 @@ class MetaPPOAgent(BaseAgent):
             ac_space = spaces.Dict()
             ac_space.spaces['default'] = spaces.Discrete(len(skills))
                 #ac_space.add(','.join(cluster), 'discrete', len(skills), 0, 1)
-            if config.hl_type == 'subgoal':
-                if config.subgoal_type == 'joint':
-                    ac_space.spaces['subgoal'] = spaces.Box(shape=(action_size(joint_space),), low=-1., high=1.)
-                    #joint_space['default']
-                else:
-                    # change here
-                    ac_space.spaces['subgoal'] = spaces.Box(shape=(2,), low=-0.3, high=0.3)
             self.ac_space = ac_space
 
         # build up networks

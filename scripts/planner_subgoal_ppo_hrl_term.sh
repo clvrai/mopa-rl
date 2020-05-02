@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="05.01.MP.RL.both.subgoal_scale.2-v2"
+prefix="05.01.MP.RL.both.subgoal_scale.2-v3"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -79,8 +79,7 @@ meta_oracle='False'
 subgoal_scale='2.'
 # max_grad_norm='0.5'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
