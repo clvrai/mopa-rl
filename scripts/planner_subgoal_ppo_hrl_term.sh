@@ -10,8 +10,7 @@ then
 elif [ $v = 2 ]
 then
     env="simple-pusher-obstacle-v0"
-    # primitive_skills="reach_mp push"
-    primitive_skills="reach"
+    primitive_skills="reach_mp push"
     ignored_contact_geoms='None,None'
 elif [ $v = 3 ]
 then
@@ -33,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="05.01.MP.RL.both"
+prefix="05.01.MP.RL.both.subgoal_scale.2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -77,6 +76,7 @@ termination='False'
 group='05.01.PPO'
 contact_check='False'
 meta_oracle='False'
+subgoal_scale='2.'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -127,5 +127,6 @@ python -m rl.main \
     --termination $termination \
     --skill_ordering $skill_ordering \
     --contact_check $contact_check \
-    --meta_oracle $meta_oracle
+    --meta_oracle $meta_oracle \
+    --subgoal_scale $subgoal_scale
     # --max_grad_norm $max_grad_norm 
