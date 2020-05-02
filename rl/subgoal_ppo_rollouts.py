@@ -85,11 +85,14 @@ class SubgoalPPORolloutRunner(object):
             ep_len = 0
             ep_rew = 0
             mp_success = 0
-            prev_primitive = 0
-            cur_primitive = 0
+            prev_primitive = -1
+            cur_primitive = -1
+            contact_skill_num = 0
             meta_ac = None
+            ac = None
             success = False
             invalid_ob = None
+            term = True
             skill_count = {}
             if self._config.hrl:
                 for skill in pi._skills:
@@ -107,13 +110,19 @@ class SubgoalPPORolloutRunner(object):
                         meta_ac, meta_ac_before_activation, meta_log_prob =\
                                 meta_pi.act(ob, is_train=is_train)
                 else:
-                    prev_primitive = cur_primitive
-                    cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
-                    if cur_primitive_str is not None:
-                        cur_primitive = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
+                    if config.skill_ordering:
+                        if config.termination and term:
+                            cur_primitive += 1
+                            term = False
                         meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
                     else:
-                        cur_primitive = prev_primitive
+                        prev_primitive = cur_primitive
+                        cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
+                        if cur_primitive_str is not None:
+                            cur_primitive = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
+                            meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
+                        else:
+                            cur_primitive = prev_primitive
                     meta_ac_before_activation = None
                     meta_log_prob = None
 
@@ -127,17 +136,15 @@ class SubgoalPPORolloutRunner(object):
 
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
-                if 'mp' in skill_type: # Use motion planner
+
+                info = OrderedDict()
+                if 'mp' in skill_type:
                     traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac,
                                                                      ob=ob.copy(),
                                                                      random_exploration=random_exploration,
                                                                      ref_joint_pos_indexes=env.ref_joint_pos_indexes)
                     if success:
                         mp_success += 1
-
-                info = OrderedDict()
-                if 'mp' in skill_type:
-                    if success:
                         cum_rew = 0
                         ll_ob = ob.copy()
                         prev_ob = ob.copy()
@@ -156,11 +163,14 @@ class SubgoalPPORolloutRunner(object):
                             meta_len += 1
                             reward_info.add(info)
 
-                            if done or ep_len >= max_step or env._stages[cur_primitive]:
+                            if done or ep_len >= max_step:
+                                break
+                            if not config.skill_ordering and env._stages[cur_primitive]:
                                 break
 
                         if self._config.subgoal_hindsight: # refer to HAC
                             hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                            hindsight_subgoal_ac['term'] = subgoal_ac['term']
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
@@ -168,6 +178,7 @@ class SubgoalPPORolloutRunner(object):
 
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         rollout.add({'done': done, 'rew': reward})
+                        term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
@@ -175,6 +186,12 @@ class SubgoalPPORolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'vpred': vpred})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+                        if not done and config.skill_ordering:
+                            if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
+                                done = True
+                                done, info, _ = env._after_step(None, done, {})
+                                reward_info.add(info)
 
                     else:
                         ll_ob = ob.copy()
@@ -191,14 +208,21 @@ class SubgoalPPORolloutRunner(object):
                         meta_len += 1
                         reward_info.add(info)
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             value = pi.get_value(ll_ob, meta_ac)
                             rollout.add({'ob': ll_ob, 'vpred': vpred})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                        if not done and config.skill_ordering:
+                            if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
+                                done = True
+                                done, info, _ = env._after_step(None, done, {})
+                                reward_info.add(info)
 
                 else:
+                    contact_skill_num += 1
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -215,7 +239,6 @@ class SubgoalPPORolloutRunner(object):
                                 ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
                         vpred = pi.get_value(ll_ob, meta_ac)
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
-
                         ob, reward, done, info = env.step(ac)
                         rollout.add({'done': done, 'rew': reward})
 
@@ -226,6 +249,8 @@ class SubgoalPPORolloutRunner(object):
                         meta_rew += reward
                         reward_info.add(info)
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        term = bool(ac['term'][0])
+
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
@@ -233,6 +258,18 @@ class SubgoalPPORolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'vpred': vpred})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+                        if not done and config.skill_ordering and config.termination and term: # break the loop if termination is true
+                            break
+
+                    if not done and config.skill_ordering:
+                        if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
+                            done = True
+                            done, info, _ = env._after_step(None, done, {})
+                            reward_info.add(info)
+                        else:
+                            term = True
+
 
 
             ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
@@ -268,9 +305,12 @@ class SubgoalPPORolloutRunner(object):
         ep_rew = 0
         mp_success = 0
         meta_ac = None
+        ac = None
         success = False
-        prev_primitive = 0
-        cur_primitive = 0
+        term = True
+        prev_primitive = -1
+        cur_primitive = -1
+        contact_skill_num = 0
         skill_count = {}
         if self._config.hrl:
             for skill in pi._skills:
@@ -289,13 +329,21 @@ class SubgoalPPORolloutRunner(object):
                     meta_ac, meta_ac_before_activation, meta_log_prob =\
                             meta_pi.act(ob, is_train=is_train)
             else:
-                prev_primitive = cur_primitive
-                cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
-                if cur_primitive_str is not None:
-                    cur_primitive = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
+                if config.skill_ordering:
+                    if config.termination and term:
+                        cur_primitive += 1
+                        term = False
+                    if cur_primitive == len(config.primitive_skills):
+                        import pdb; pdb.set_trace()
                     meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
                 else:
-                    cur_primitive = prev_primitive
+                    prev_primitive = cur_primitive
+                    cur_primitive_str = env.get_next_primitive(np.array([prev_primitive]))
+                    if cur_primitive_str is not None:
+                        cur_primitive = [cur_primitive_str in v.lower() for v in config.primitive_skills].index(True)
+                        meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
+                    else:
+                        cur_primitive = prev_primitive
                 meta_ac_before_activation = None
                 meta_log_prob = None
 
@@ -310,16 +358,13 @@ class SubgoalPPORolloutRunner(object):
             skill_count[skill_type] += 1
             goal_xpos = None
             goal_xquat = None
-            if 'mp' in skill_type: # Use motion planner
+
+            info = OrderedDict()
+            if 'mp' in skill_type:
                 traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(),
                                                                  ref_joint_pos_indexes=env.ref_joint_pos_indexes)
                 ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-                if success:
-                    mp_success += 1
-
-            info = OrderedDict()
-            if 'mp' in skill_type:
                 ll_ob = ob.copy()
                 prev_ob = ob.copy()
                 meta_rollout.add({
@@ -327,6 +372,7 @@ class SubgoalPPORolloutRunner(object):
                 })
                 vpred = pi.get_value(ll_ob, meta_ac)
                 if success:
+                    mp_success += 1
                     for next_qpos in traj:
                         ll_ob = ob.copy()
                         ac = env.form_action(next_qpos, cur_primitive)
@@ -363,14 +409,23 @@ class SubgoalPPORolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
-                        if done or ep_len >= max_step or env._stages[cur_primitive]:
+                        if done or ep_len >= max_step:
+                            break
+                        if not config.skill_ordering and env._stages[cur_primitive]:
                             break
 
+                    term = bool(subgoal_ac['term'][0])
                     if self._config.subgoal_hindsight: # refer to HAC
                         hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                        hindsight_subgoal_ac['term'] = subgoal_ac['term']
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                     else:
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
+                    if not done and config.skill_ordering:
+                        if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
+                            done = True
+                            done, info, _ = env._after_step(None, done, info)
+                            reward_info.add(info)
 
                 else:
                     ll_ob = ob.copy()
@@ -381,13 +436,14 @@ class SubgoalPPORolloutRunner(object):
                     vpred = pi.get_value(ll_ob, meta_ac)
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                     done, info, _ = env._after_step(reward, False, info)
+                    reward_info.add(info)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     step += 1
                     ep_rew += reward
                     meta_len += 1
-                    reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                    term = bool(subgoal_ac['term'][0])
                     if record:
                         frame_info = info.copy()
                         frame_info['states'] = 'Invalid states'
@@ -406,7 +462,13 @@ class SubgoalPPORolloutRunner(object):
                         xpos, xquat = self._get_mp_body_pos(ik_env)
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                         self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                    if not done and config.skill_ordering:
+                        if config.termination and term and cur_primitive == len(config.primitive_skills)-1:
+                            done = True
+                            done, info, _ = env._after_step(None, done, info)
+                            reward_info.add(info)
             else:
+                contact_skill_num += 1
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     meta_rollout.add({
@@ -429,6 +491,7 @@ class SubgoalPPORolloutRunner(object):
                     meta_rew += reward
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                    term = bool(ac['term'][0])
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
@@ -444,6 +507,17 @@ class SubgoalPPORolloutRunner(object):
 
                         vis_pos=[]
                         self._store_frame(env, frame_info, None, vis_pos=[])
+
+                    if not done and config.skill_ordering and config.termination and term: # break the loop if termination is true
+                        break
+
+                if not done and config.skill_ordering:
+                    if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
+                        done = True
+                        done, info, _ = env._after_step(None, done, {})
+                        reward_info.add(info)
+                    else:
+                        term = True
 
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})

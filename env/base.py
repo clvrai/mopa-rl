@@ -65,6 +65,21 @@ class BaseEnv(gym.Env):
         self._init_qpos = self.sim.data.qpos.ravel().copy()
         self._init_qvel = self.sim.data.qvel.ravel().copy()
 
+        jnt_range = self.sim.model.jnt_range
+        is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
+        jnt_minimum = np.full(len(is_jnt_limited), fill_value=-np.inf, dtype=np.float)
+        jnt_maximum = np.full(len(is_jnt_limited), fill_value=np.inf, dtype=np.float)
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[np.invert(is_jnt_limited)] = -3.14
+        jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+        self._is_jnt_limited = is_jnt_limited
+        self._jnt_minimum = jnt_minimum
+        self._jnt_maximum = jnt_maximum
+
+        self.joint_space = spaces.Dict([
+            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
+        ])
+
     def _load_model(self):
         pass
 
@@ -190,7 +205,7 @@ class BaseEnv(gym.Env):
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action])
+            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action and key != 'term'])
 
         self._pre_action(action)
         ob, reward, done, info = self._step(action, is_planner)

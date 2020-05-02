@@ -28,7 +28,7 @@ class LowLevelAgent(SACAgent):
         only).
     '''
 
-    def __init__(self, config, ob_space, ac_space, actor, critic, non_limited_idx=None, subgoal_space=None, subgoal_critic=None):
+    def __init__(self, config, ob_space, ac_space, actor, critic, non_limited_idx, subgoal_space=None, subgoal_critic=None):
         self._non_limited_idx = non_limited_idx
         self._subgoal_space = subgoal_space
         super().__init__(config, ob_space, ac_space, actor, critic)
