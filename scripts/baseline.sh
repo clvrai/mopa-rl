@@ -7,7 +7,7 @@ then
     algo='ppo'
     rollout_length='512'
     evaluate_interval="10"
-    ckpt_interval='100'
+    ckpt_interval='50'
     rl_activation="tanh"
     num_batches="100"
 elif [ $algo = 2 ]
@@ -21,9 +21,9 @@ then
 fi
 
 workers="8"
-prefix="4.25.BASELINE.PPO"
+prefix="05.01.BASELINE.PPO.larger_path"
 max_global_step="60000000"
-env="simple-mover-obstacle-v0"
+env="simple-pusher-obstacle-v0"
 gpu="1"
 rl_hid_size="256"
 max_episode_step="150"
@@ -35,7 +35,7 @@ lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
 rollout_length="512"
-batch_size="32"
+batch_size="64"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
@@ -47,8 +47,8 @@ success_reward='150.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
-group='4.20.PPO'
-env_debug='True'
+group='05.01.PPO'
+env_debug='False'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \

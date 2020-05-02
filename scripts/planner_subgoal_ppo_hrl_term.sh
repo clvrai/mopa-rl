@@ -9,30 +9,31 @@ then
     ignored_contact_geoms='None,None'
 elif [ $v = 2 ]
 then
+    env="simple-pusher-obstacle-v0"
+    # primitive_skills="reach_mp push"
+    primitive_skills="reach"
+    ignored_contact_geoms='None,None'
+elif [ $v = 3 ]
+then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
     ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
     # primitive_skills="reach grasp manipulation"
     # ignored_contact_geoms='None,None'
-elif [ $v = 3 ]
+elif [ $v = 4 ]
 then
     env='simple-mover-obstacle-v0'
     primitive_skills="reach_mp grasp manipulation_mp"
     ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
-elif [ $v = 4 ]
+elif [ $v = 5 ]
 then
     env='simple-reacher-v0'
     primitive_skills="reach_mp"
     ignored_contact_geoms='None,None'
-elif [ $v = 5 ]
-then
-    env='simple-pusher-v0'
-    primitive_skills="reach_mp push"
-    ignored_contact_geoms='None,None'
 fi
 
 workers="8"
-prefix="5.1.TERMINATION.env_debug.new_env-2"
+prefix="05.01.MP.RL.both"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -43,10 +44,10 @@ threshold="0.0"
 timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
-meta_update_target="LL"
+meta_update_target="both"
 meta_oracle="True"
 meta_subgoal_rew="0."
-max_meta_len="10"
+max_meta_len="1"
 buffer_size="12800"
 num_batches="10"
 debug="False"
@@ -70,14 +71,16 @@ log_root_dir='./logs'
 algo='ppo'
 rl_activation='tanh'
 subgoal_hindsight="True"
-env_debug='True'
-skill_ordering='True'
-termination='True'
-group='SkillOrdering.Termination'
+env_debug='False'
+skill_ordering='False'
+termination='False'
+group='05.01.PPO'
 contact_check='False'
+meta_oracle='False'
 # max_grad_norm='0.5'
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -123,5 +126,6 @@ mpiexec -n $workers python -m rl.main \
     --env_debug $env_debug \
     --termination $termination \
     --skill_ordering $skill_ordering \
-    --contact_check $contact_check
-    # --max_grad_norm $max_grad_norm
+    --contact_check $contact_check \
+    --meta_oracle $meta_oracle
+    # --max_grad_norm $max_grad_norm 

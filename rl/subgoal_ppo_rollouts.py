@@ -31,7 +31,6 @@ class Rollout(object):
         self._history = defaultdict(list)
         return batch
 
-
 class MetaRollout(object):
     def __init__(self):
         self._history = defaultdict(list)
@@ -41,15 +40,18 @@ class MetaRollout(object):
             self._history[key].append(value)
 
     def __len__(self):
-        return len(self._history['ob'])
+        return len(self._history['meta_ob'])
 
     def get(self):
         batch = {}
-        for k, v in self._history.items():
-            batch[k] = v
+        batch['ob'] = self._history['meta_ob']
+        batch['ac'] = self._history['meta_ac']
+        batch['ac_before_activation'] = self._history['meta_ac_before_activation']
+        batch['log_prob'] = self._history['meta_log_prob']
+        batch['done'] = self._history['meta_done']
+        batch['rew'] = self._history['meta_rew']
         self._history = defaultdict(list)
         return batch
-
 
 class SubgoalPPORolloutRunner(object):
     def __init__(self, config, env, env_eval, meta_pi, pi):
@@ -170,7 +172,8 @@ class SubgoalPPORolloutRunner(object):
 
                         if self._config.subgoal_hindsight: # refer to HAC
                             hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
-                            hindsight_subgoal_ac['term'] = subgoal_ac['term']
+                            if config.termination:
+                                hindsight_subgoal_ac['term'] = subgoal_ac['term']
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
@@ -178,7 +181,8 @@ class SubgoalPPORolloutRunner(object):
 
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         rollout.add({'done': done, 'rew': reward})
-                        term = bool(subgoal_ac['term'][0])
+                        if config.termination:
+                            term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
@@ -197,18 +201,22 @@ class SubgoalPPORolloutRunner(object):
                         ll_ob = ob.copy()
                         reward = self._config.meta_subgoal_rew
                         vpred = pi.get_value(ll_ob, meta_ac)
+                        meta_rollout.add({
+                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                        })
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
                         done, info, _ = env._after_step(reward, False, info)
                         if not env.isValidState(self._config.ignored_contact_geom_ids[cur_primitive]):
                             done = True
                         rollout.add({'done': done, 'rew': reward})
+                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         ep_len += 1
                         step += 1
                         ep_rew += reward
                         meta_len += 1
                         reward_info.add(info)
-                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                        term = bool(subgoal_ac['term'][0])
+                        if config.termination:
+                            term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             value = pi.get_value(ll_ob, meta_ac)
@@ -223,10 +231,10 @@ class SubgoalPPORolloutRunner(object):
 
                 else:
                     contact_skill_num += 1
+                    meta_rollout.add({
+                        'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                    })
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
                         ll_ob = ob.copy()
                         if random_exploration: # Random exploration for SAC
                             ac = env.action_space.sample()
@@ -248,20 +256,23 @@ class SubgoalPPORolloutRunner(object):
                         meta_len += 1
                         meta_rew += reward
                         reward_info.add(info)
-                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                        term = bool(ac['term'][0])
+                        if config.termination:
+                            term = bool(ac['term'][0])
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
                             vpred = pi.get_value(ll_ob, meta_ac)
                             rollout.add({'ob': ll_ob, 'vpred': vpred})
+                            meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                         if not done and config.skill_ordering and config.termination and term: # break the loop if termination is true
                             break
 
+                    if len(meta_rollout) != 0:
+                        meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                     if not done and config.skill_ordering:
                         if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
                             done = True
@@ -491,7 +502,8 @@ class SubgoalPPORolloutRunner(object):
                     meta_rew += reward
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                    term = bool(ac['term'][0])
+                    if config.termination:
+                        term = bool(ac['term'][0])
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
