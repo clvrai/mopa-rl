@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="05.01.MP.RL.both.subgoal_scale.2"
+prefix="05.01.MP.RL.both.subgoal_scale.2-v2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"

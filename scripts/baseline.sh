@@ -34,7 +34,6 @@ num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-rollout_length="512"
 batch_size="64"
 clip_param="0.2"
 seed='1234'
