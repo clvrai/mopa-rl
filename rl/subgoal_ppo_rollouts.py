@@ -330,7 +330,7 @@ class SubgoalPPORolloutRunner(object):
                         cur_primitive += 1
                         term = False
                     meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
-                elif config.alternation and term:
+                elif config.alternation:
                     assert config.termiantion, "Termination has to be turned on"
                     if term:
                         if cur_primitive == 1:
@@ -365,6 +365,7 @@ class SubgoalPPORolloutRunner(object):
                                                                                        meta_ac=meta_ac,
                                                                                        ob=ob.copy(),
                                                                                        ref_joint_pos_indexes=env.ref_joint_pos_indexes)
+
                 ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                 goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                 ll_ob = ob.copy()
