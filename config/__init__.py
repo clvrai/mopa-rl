@@ -34,6 +34,7 @@ def argparser():
     parser.add_argument("--skill_ordering", type=str2bool, default=False)
     parser.add_argument("--termination", type=str2bool, default=False)
     parser.add_argument("--contact_check", type=str2bool, default=False)
+    parser.add_argument("--alternation", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
