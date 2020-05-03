@@ -110,7 +110,7 @@ class SubgoalPPORolloutRunner(object):
                             term = False
                         meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
                     elif config.alternation:
-                        assert config.termiantion, "Termination has to be turned on"
+                        assert config.termination, "Termination has to be turned on"
                         if term:
                             if cur_primitive == 1:
                                 cur_primitive = 0
@@ -331,7 +331,7 @@ class SubgoalPPORolloutRunner(object):
                         term = False
                     meta_ac = OrderedDict([('default', np.array([cur_primitive]))])
                 elif config.alternation:
-                    assert config.termiantion, "Termination has to be turned on"
+                    assert config.termination, "Termination has to be turned on"
                     if term:
                         if cur_primitive == 1:
                             cur_primitive = 0
