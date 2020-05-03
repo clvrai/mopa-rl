@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="05.02.MP.RL.alternation-3"
+prefix="05.02.MP.RL.alternation.sparse_reward-3"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -45,16 +45,15 @@ gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
-meta_subgoal_rew="0."
 max_meta_len="1"
 buffer_size="12800"
 num_batches="10"
-debug="True"
+debug="False"
 rollout_length="1024"
 batch_size="64"
 evaluate_interval='5'
 ckpt_interval='10'
-reward_type="dense"
+reward_type="sparse"
 reward_scale="10."
 entropy_loss_coeff='1e-2'
 comment="Fixed ignored contacts"
@@ -77,6 +76,7 @@ contact_check='False'
 subgoal_scale='1.5'
 alternation='True'
 termination='True'
+invalid_planner_rew='-1'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers 
@@ -95,7 +95,6 @@ python -m rl.main \
     --gpu $gpu \
     --rl_hid_size $rl_hid_size \
     --meta_update_target $meta_update_target \
-    --meta_subgoal_rew $meta_subgoal_rew \
     --max_meta_len $max_meta_len \
     --buffer_size $buffer_size \
     --num_batches $num_batches \
@@ -128,5 +127,7 @@ python -m rl.main \
     --contact_check $contact_check \
     --meta_oracle $meta_oracle \
     --subgoal_scale $subgoal_scale \
-    --alternation $alternation
+    --alternation $alternation \
+    --invalid_planner_rew $invalid_planner_rew
+    # --meta_subgoal_rew $meta_subgoal_rew
     # --max_grad_norm $max_grad_norm 

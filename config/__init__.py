@@ -50,7 +50,6 @@ def argparser():
     parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])
-    parser.add_argument("--meta_subgoal_rew", type=float, default=-100)
     parser.add_argument("--goal_replace", type=str2bool, default=False)
     parser.add_argument("--relative_subgoal", type=str2bool, default=True)
     parser.add_argument("--meta_oracle", type=str2bool, default=False)
@@ -115,6 +114,7 @@ def argparser():
     parser.add_argument("--max_grad_norm", type=float, default=None)
     parser.add_argument("--max_global_step", type=int, default=int(10e7))
     parser.add_argument("--gpu", type=int, default=None)
+    parser.add_argument("--invalid_planner_rew", type=float, default=0.)
 
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")

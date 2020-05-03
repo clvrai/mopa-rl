@@ -21,7 +21,7 @@ then
 fi
 
 workers="8"
-prefix="05.01.BASELINE.PPO.larger_path-2"
+prefix="05.02.BASELINE.PPO.sparse"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu="1"
@@ -38,7 +38,7 @@ batch_size="64"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
-reward_type='dense'
+reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'

@@ -9,14 +9,11 @@
     </default>
 
     <worldbody>
-        <body name="obstacle1" pos="0.08 0.18 0.01">
-            <geom name="obstacle1_geom" size="0.02 0.01 0.005" type="box" class="obstacle" />
+        <body name="obstacle1" pos="0.18 0.18 0.01">
+            <geom name="obstacle1_geom" size="0.1 0.1 0.05" type="box" class="obstacle" />
         </body>
-        <body name="obstacle2" pos="-0.18 0. 0.01">
-            <geom name="obstacle2_geom" size="0.01 0.02 0.005" type="box" class="obstacle" />
-        </body>
-        <body name="obstacle3" pos="0.08 -0.09 0.01">
-            <geom name="obstacle3_geom" size="0.03 0.01 0.005" type="box" class="obstacle" />
+        <body name="obstacle2" pos="-0.35 0. 0.01">
+            <geom name="obstacle2_geom" size="0.1 0.1 0.05" type="box" class="obstacle" />
         </body>
     </worldbody>
 </mujoco>
