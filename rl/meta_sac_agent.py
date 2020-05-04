@@ -104,11 +104,11 @@ class MetaSACAgent(SACAgent):
 
         # update alpha
         actions_real, log_pi = self.act_log(o)
-        alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy[0]).detach()).mean()
-        self._alpha_optim.zero_grad()
+        alpha_loss = -(self._log_alpha[0] * (log_pi + self._target_entropy[0]).detach()).mean()
+        self._alpha_optim[0].zero_grad()
         alpha_loss.backward()
-        self._alpha_optim.step()
-        alpha = self._log_alpha.exp()
+        self._alpha_optim[0].step()
+        alpha = self._log_alpha[0].exp()
 
         # the actor loss
         entropy_loss = (alpha * log_pi).mean()
@@ -122,8 +122,8 @@ class MetaSACAgent(SACAgent):
         # calculate the target Q value function
         with torch.no_grad():
             actions_next, log_pi_next = self.act_log(o_next)
-            q_next_value1 = self._critic1_target(o_next, actions_next)
-            q_next_value2 = self._critic2_target(o_next, actions_next)
+            q_next_value1 = self._critic1_targets[0](o_next, actions_next)
+            q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             q_next_value = torch.min(q_next_value1, q_next_value2) - alpha * log_pi_next
             target_q_value = rew * self._config.reward_scale + \
                 (1 - done) * self._config.discount_factor * q_next_value

@@ -345,7 +345,8 @@ class Trainer(object):
             step_per_batch = mpi_sum(len(rollout['ac']))
 
             # train an agent
-            logger.info("Update networks %d", update_iter)
+            if step % config.log_freq == 0:
+                logger.info("Update networks %d", update_iter)
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
                     config.meta_update_target == "both") and not config.meta_oracle:
@@ -366,7 +367,8 @@ class Trainer(object):
             else:
                 train_info = self._agent.train()
 
-            logger.info("Update networks done")
+            if step % config.log_freq == 0:
+                logger.info("Update networks done")
 
             # if step < config.max_ob_norm_step and self._config.policy != 'cnn':
             #     self._update_normalizer(rollout, meta_rollout)

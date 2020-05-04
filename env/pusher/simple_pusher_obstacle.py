@@ -120,13 +120,13 @@ class SimplePusherObstacleEnv(BaseEnv):
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reach_multi = 0.
-            move_multi = 1.
+            reach_multi = 0.3
+            move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            # reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_reach = -dist_box_to_gripper * reach_multi
-            reward_move  = -self._get_distance('box', 'target')
-            # reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
+            reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
+            # reward_reach = -dist_box_to_gripper * reach_multi
+            # reward_move  = -self._get_distance('box', 'target')
+            reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
             reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_move + reward_ctrl
