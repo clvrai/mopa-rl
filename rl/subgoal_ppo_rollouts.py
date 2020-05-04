@@ -152,11 +152,11 @@ class SubgoalPPORolloutRunner(object):
                         })
                         vpred = pi.get_value(ll_ob, meta_ac)
                         step += 1
-                        for next_qpos in traj:
+                        for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
                             ob, reward, done, info = env.step(ac, is_planner=True)
-                            cum_rew += reward
+                            cum_rew += (config.discount_factor**i) * reward
                             ep_len += 1
                             ep_rew += reward
                             meta_len += 1
@@ -174,6 +174,7 @@ class SubgoalPPORolloutRunner(object):
 
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         rollout.add({'done': done, 'rew': reward})
+                        # rollout.add({'done': done, 'rew': cum_rew})
                         if config.termination:
                             term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:

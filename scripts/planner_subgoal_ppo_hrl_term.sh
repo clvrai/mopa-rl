@@ -29,10 +29,15 @@ then
     env='simple-reacher-v0'
     primitive_skills="reach_mp"
     ignored_contact_geoms='None,None'
+elif [ $v = 6 ]
+then
+    env='reacher-obstacle-v0'
+    primitive_skills="reach_mp reach"
+    ignored_contact_geoms="None,None"
 fi
 
 workers="8"
-prefix="05.03.MP.RL.ALTERNATION.no_tanh"
+prefix="05.03.MP.RL.ALTERNATION"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -73,10 +78,10 @@ env_debug='False'
 skill_ordering='False'
 group='05.03.PPO'
 contact_check='False'
-subgoal_scale='1.5'
+subgoal_scale='1.'
 alternation='True'
 termination='True'
-invalid_planner_rew='-0.3'
+invalid_planner_rew='0.'
 # max_grad_norm='0.5'
 
 mpiexec -n $workers  python -m rl.main \
