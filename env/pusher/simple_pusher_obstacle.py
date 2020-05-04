@@ -58,6 +58,18 @@ class SimplePusherObstacleEnv(BaseEnv):
                 break
         return self._get_obs()
 
+    @property
+    def manpulation_geom(self):
+        return ['box']
+
+    @property
+    def body_geoms(self):
+        return ['root', 'link0', 'link1', 'link2', 'fingertip0', 'fingertip1', 'fingertip2']
+
+    @property
+    def agent_geoms(self):
+        return self.body_geoms
+
     def initialize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()

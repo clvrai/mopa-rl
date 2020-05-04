@@ -79,6 +79,8 @@ def argparser():
     parser.add_argument("--use_ik", type=str2bool, default=False)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
     parser.add_argument("--subgoal_scale", type=float, default=1.0)
+    parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
+    parser.add_argument("--allow_self_collision", type=str2bool, default=False)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
