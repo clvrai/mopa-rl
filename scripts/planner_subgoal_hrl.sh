@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.04.SAC-3"
+prefix="5.04.SAC.collision"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -58,7 +58,7 @@ debug="False"
 rollout_length="15000"
 batch_size="256"
 reward_type="dense"
-reward_scale="3."
+reward_scale="10."
 comment="init buffer size is 10 times batch size"
 ctrl_reward_coef="1e-2"
 actor_num_hid_layers="2"
@@ -75,6 +75,8 @@ log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
 group='05.04.SAC'
 log_freq='1000'
+allow_self_collision="True"
+allow_manipulation_collision="True"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -118,4 +120,6 @@ python -m rl.main \
     --group $group \
     --subgoal_hindsight $subgoal_hindsight \
     --invalid_planner_rew $invalid_planner_rew \
-    --log_freq $log_freq
+    --log_freq $log_freq \
+    --allow_manipulation_collision $allow_manipulation_collision \
+    --allow_self_collision $allow_self_collision

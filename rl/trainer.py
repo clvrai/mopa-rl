@@ -58,6 +58,21 @@ class Trainer(object):
         ac_space = self._env.action_space
         joint_space = self._env.joint_space
 
+
+        allowed_collsion_pairs = []
+        if config.allow_self_collision:
+            from itertools import combinations
+            geom_ids = [self._env.sim.model.geom_name2id(name) for name in self._env.agent_geoms]
+            comb = combinations(geom_ids, 2)
+            for pair in list(comb):
+                allowed_collsion_pairs.append(make_ordered_pair(pair[0], pair[1]))
+
+        if config.allow_manipulation_collision:
+            manipulation_geom_ids = [self._env.sim.model.geom_name2id(name) for name in self._env.manpulation_geom]
+            for manipulation_geom_id in manipulation_geom_ids:
+                for geom_id in geom_ids:
+                    allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
+
         if config.ignored_contact_geoms is not None:
             ids = []
             for i, geom in enumerate(config.ignored_contact_geoms):
@@ -73,6 +88,9 @@ class Trainer(object):
                     # geom_pairs.append(pair_id)
                     if len(pair_id) != 0:
                         ids[i].append(make_ordered_pair(pair_id[0], pair_id[1]))
+                    if len(allowed_collsion_pairs) != 0:
+                        ids[i].extend(allowed_collsion_pairs)
+
             config.ignored_contact_geom_ids = ids
 
         passive_joint_idx = list(range(len(self._env.sim.data.qpos)))

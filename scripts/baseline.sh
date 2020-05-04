@@ -21,16 +21,14 @@ then
 fi
 
 workers="1"
-prefix="05.04.BASELINE.SAC-1"
+prefix="05.04.BASELINE.SAC-3"
 max_global_step="60000000"
 env="simple-pusher-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
-evaluate_interval="5"
 entropy_loss_coef="1e-3"
-buffer_size="125000"
-num_batches="50"
+buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -44,7 +42,6 @@ start_steps='10000'
 actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
-ckpt_interval='100000'
 log_root_dir="./logs"
 group='05.04.SAC'
 env_debug='False'
