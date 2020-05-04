@@ -21,10 +21,10 @@ then
 fi
 
 workers="8"
-prefix="05.02.BASELINE.PPO.sparse"
+prefix="05.03.BASELINE.PPO.tanh"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
-gpu="1"
+gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
 evaluate_interval="5"
@@ -38,7 +38,7 @@ batch_size="64"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
@@ -46,7 +46,7 @@ success_reward='150.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
-group='05.01.PPO'
+group='05.03.PPO'
 env_debug='False'
 # max_grad_norm='0.5'
 

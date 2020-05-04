@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="05.02.MP.RL.alternation.sparse_reward-3"
+prefix="05.03.MP.RL.ALTERNATION.no_tanh"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -53,7 +53,7 @@ rollout_length="1024"
 batch_size="64"
 evaluate_interval='5'
 ckpt_interval='10'
-reward_type="sparse"
+reward_type="dense"
 reward_scale="10."
 entropy_loss_coeff='1e-2'
 comment="Fixed ignored contacts"
@@ -71,16 +71,15 @@ rl_activation='tanh'
 subgoal_hindsight="True"
 env_debug='False'
 skill_ordering='False'
-group='05.01.PPO'
+group='05.03.PPO'
 contact_check='False'
 subgoal_scale='1.5'
 alternation='True'
 termination='True'
-invalid_planner_rew='-1'
+invalid_planner_rew='-0.3'
 # max_grad_norm='0.5'
 
-#mpiexec -n $workers 
-python -m rl.main \
+mpiexec -n $workers  python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
