@@ -20,10 +20,10 @@ then
     num_batches="1"
 fi
 
-workers="8"
-prefix="05.03.BASELINE.PPO.diff_obstacle"
+workers="1"
+prefix="05.04.BASELINE.SAC-1"
 max_global_step="60000000"
-env="reacher-obstacle-v0"
+env="simple-pusher-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
@@ -34,7 +34,7 @@ num_batches="50"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-batch_size="64"
+batch_size="256"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
@@ -46,11 +46,13 @@ success_reward='150.'
 has_terminal='True'
 ckpt_interval='100000'
 log_root_dir="./logs"
-group='05.03.PPO'
+group='05.04.SAC'
 env_debug='False'
+log_freq='1000'
 # max_grad_norm='0.5'
 
-mpiexec -n $workers python -m rl.main \
+#mpiexec -n $workers
+python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -80,5 +82,6 @@ mpiexec -n $workers python -m rl.main \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
     --group $group \
-    --env_debug $env_debug
+    --env_debug $env_debug \
+    --log_freq $log_freq
     # --max_grad_norm $max_grad_norm

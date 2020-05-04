@@ -126,29 +126,23 @@ class SubgoalRolloutRunner(object):
                     meta_ac_before_activation = None
                     meta_log_prob = None
 
-
                 meta_len = 0
                 meta_rew = 0
                 mp_len = 0
-
                 curr_qpos = env.sim.data.qpos.ravel().copy()
-
-
                 skill_type = pi.return_skill_type(meta_ac)
                 skill_count[skill_type] += 1
-                if 'mp' in skill_type: # Use motion planner
+
+                info = OrderedDict()
+                prev_ob = ob.copy()
+                prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
+                if 'mp' in skill_type:
                     traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac,
                                                                      ob=ob.copy(),
                                                                      random_exploration=random_exploration,
                                                                      ref_joint_pos_indexes=env.ref_joint_pos_indexes)
                     if success:
                         mp_success += 1
-
-                info = OrderedDict()
-                prev_ob = ob.copy()
-                prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
-                if 'mp' in skill_type:
-                    if success:
                         cum_rew = 0
                         for next_qpos in traj:
                             ll_ob = ob.copy()
@@ -157,7 +151,8 @@ class SubgoalRolloutRunner(object):
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                             })
                             inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            tmp_meta_ac = OrderedDict([('default', np.array([int(np.invert(bool(meta_ac['default'][0])))]))])
+                            rollout.add({'ob': ll_ob, 'meta_ac': tmp_meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac, is_planner=True)
                             meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                             rollout.add({'done': done, 'rew': reward})
@@ -177,13 +172,19 @@ class SubgoalRolloutRunner(object):
 
                             if done or ep_len >= max_step:
                                 break
+                        if self._config.subgoal_hindsight: # refer to HAC
+                            hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                        else:
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
+                        rollout.add({'done': done, 'rew': cum_rew})
 
                     else:
                         ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
-                        reward = self._config.meta_subgoal_rew
+                        reward = self._config.invalid_planner_rew
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, info)
                         rollout.add({'done': done, 'rew': reward})
@@ -302,26 +303,22 @@ class SubgoalRolloutRunner(object):
             mp_len = 0
 
             curr_qpos = env.sim.data.qpos.ravel().copy()
-
-
             skill_type = pi.return_skill_type(meta_ac)
             skill_count[skill_type] += 1
             goal_xpos = None
             goal_xquat = None
-            if 'mp' in skill_type: # Use motion planner
-                traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(),
-                                                                 ref_joint_pos_indexes=env.ref_joint_pos_indexes)
-                ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
-                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-                if success:
-                    mp_success += 1
 
             info = OrderedDict()
             prev_ob = ob.copy()
             prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
             if 'mp' in skill_type:
+                traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(),
+                                                                 ref_joint_pos_indexes=env.ref_joint_pos_indexes)
+                ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
+                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                 ll_ob = ob.copy()
                 if success:
+                    mp_success += 1
                     for next_qpos in traj:
                         ll_ob = ob.copy()
                         ac = env.form_action(next_qpos, cur_primitive)
@@ -368,7 +365,7 @@ class SubgoalRolloutRunner(object):
                     meta_rollout.add({
                         'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                     })
-                    reward = self._config.meta_subgoal_rew
+                    reward = self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, False, info)
                     rollout.add({'done': done, 'rew': reward})

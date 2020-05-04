@@ -6,31 +6,52 @@ if [ $v = 1 ]
 then
     env="simple-pusher-v0"
     primitive_skills="reach_mp push"
+    ignored_contact_geoms='None,None'
 elif [ $v = 2 ]
+then
+    env="simple-pusher-obstacle-v0"
+    primitive_skills="reach_mp push"
+    ignored_contact_geoms='None,None'
+elif [ $v = 3 ]
 then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
-elif [ $v = 3 ]
+    ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
+    # primitive_skills="reach grasp manipulation"
+    # ignored_contact_geoms='None,None'
+elif [ $v = 4 ]
 then
     env='simple-mover-obstacle-v0'
     primitive_skills="reach_mp grasp manipulation_mp"
+    ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
+elif [ $v = 5 ]
+then
+    env='simple-reacher-v0'
+    primitive_skills="reach_mp"
+    ignored_contact_geoms='None,None'
+elif [ $v = 6 ]
+then
+    env='reacher-obstacle-v0'
+    primitive_skills="reach_mp reach"
+    ignored_contact_geoms="None,None"
 fi
 
 workers="1"
-prefix="4.16.SAC"
+prefix="5.04.SAC-3"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
+primitive_skills="mp rl"
 range="1.0"
-threshold="0.5"
+threshold="0.1"
 timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
-meta_update_target="LL"
-meta_oracle="True"
-meta_subgoal_rew="0."
-max_meta_len="15"
+meta_update_target="both"
+meta_oracle="False"
+invalid_planner_rew="0."
+max_meta_len="1"
 buffer_size="1000000"
 num_batches="1"
 debug="False"
@@ -45,14 +66,15 @@ subgoal_type="joint"
 subgoal_reward="True"
 meta_algo='sac'
 start_steps='10000'
-success_reward='100.'
+success_reward='150.'
 subgoal_predictor="True"
+subgoal_hindsight="True"
 seed="1234"
 has_terminal='True'
-ignored_contact_geoms=' None,None box,l_finger_g0/box,r_finger_g0'
 log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
-group='4.16.SAC'
+group='05.04.SAC'
+log_freq='1000'
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -70,7 +92,6 @@ python -m rl.main \
     --gpu $gpu \
     --rl_hid_size $rl_hid_size \
     --meta_update_target $meta_update_target \
-    --meta_subgoal_rew $meta_subgoal_rew \
     --max_meta_len $max_meta_len \
     --buffer_size $buffer_size \
     --num_batches $num_batches \
@@ -94,4 +115,7 @@ python -m rl.main \
     --meta_oracle $meta_oracle \
     --ignored_contact_geoms $ignored_contact_geoms \
     --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
-    --group $group
+    --group $group \
+    --subgoal_hindsight $subgoal_hindsight \
+    --invalid_planner_rew $invalid_planner_rew \
+    --log_freq $log_freq

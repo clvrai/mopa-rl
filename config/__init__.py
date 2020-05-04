@@ -164,5 +164,6 @@ def argparser():
     parser.add_argument("--debug_render", type=str2bool, default=False)
 
     parser.add_argument("--comment", nargs='+', default=None)
+    parser.add_argument("--log_freq", type=int, default=1)
 
     return parser

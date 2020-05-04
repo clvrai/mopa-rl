@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
+import torch.optim as optim
 
 from rl.sac_agent import SACAgent
 from rl.normalizer import Normalizer
@@ -32,6 +33,8 @@ class LowLevelAgent(SACAgent):
         self._non_limited_idx = non_limited_idx
         self._subgoal_space = subgoal_space
         super().__init__(config, ob_space, ac_space, actor, critic)
+        self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device) for _ in range(len(config.primitive_skills))]
+        self._alpha_optim = [optim.Adam([_log_alpha], lr=config.lr_actor) for _log_alpha in self._log_alpha]
 
     def _log_creation(self):
         if self._config.is_chef:
