@@ -23,7 +23,7 @@ fi
 workers="1"
 prefix="05.04.BASELINE.SAC-3"
 max_global_step="60000000"
-env="simple-pusher-v0"
+env="simple-pusher-obstacle-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"

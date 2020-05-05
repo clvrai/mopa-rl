@@ -156,28 +156,39 @@ class SubgoalRolloutRunner(object):
                             ob, reward, done, info = env.step(ac, is_planner=True)
                             meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                             rollout.add({'done': done, 'rew': reward})
-                            cum_rew += reward
+                            meta_rew += reward
                             ep_len += 1
                             step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
-
                             if every_steps is not None and step % every_steps == 0:
                                 # last frame
                                 ll_ob = ob.copy()
                                 rollout.add({'ob': ll_ob})
                                 meta_rollout.add({'meta_ob': ob})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-
-                            if done or ep_len >= max_step:
+                            if done or ep_len >= max_step or meta_len >= config.min_path_len:
                                 break
+
+                        # meta_rollout.add({
+                        #     'meta_ob': prev_ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                        # })
+                        # # meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        # meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+
                         if self._config.subgoal_hindsight: # refer to HAC
                             hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
-                        rollout.add({'done': done, 'rew': cum_rew})
+                        rollout.add({'done': done, 'rew': meta_rew})
+                        if every_steps is not None and step % every_steps == 0:
+                            # last frame
+                            ll_ob = ob.copy()
+                            rollout.add({'ob': ll_ob})
+                            # meta_rollout.add({'meta_ob': ob})
+                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:
                         ll_ob = ob.copy()
@@ -361,7 +372,7 @@ class SubgoalRolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
-                        if done or ep_len >= max_step:
+                        if done or ep_len >= max_step or meta_len >= config.min_path_len:
                             break
 
                 else:

@@ -18,7 +18,7 @@ class MpAgent:
 
     def plan(self, start, goal):
         config = self._config
-        traj, states, success = self.planner.plan(start, goal, config.timelimit, config.max_meta_len+1)
+        traj, states, success = self.planner.plan(start, goal, config.timelimit, config.min_path_len+1)
         if success:
             return traj[1:], success
         else:
