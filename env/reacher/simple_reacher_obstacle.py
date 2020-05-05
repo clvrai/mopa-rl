@@ -39,7 +39,8 @@ class SimpleReacherObstacleEnv(BaseEnv):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
+            # goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
+            goal = np.random.uniform(low=-.2, high=.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self._init_qpos
             qpos[self.sim.model.nu:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self._init_qvel

@@ -173,8 +173,8 @@ class SubgoalPPORolloutRunner(object):
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
 
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                        #rollout.add({'done': done, 'rew': reward})
                         rollout.add({'done': done, 'rew': cum_rew})
+                        # rollout.add({'done': done, 'rew': reward})
                         if config.termination:
                             term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:

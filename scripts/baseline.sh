@@ -21,9 +21,9 @@ then
 fi
 
 workers="8"
-prefix="05.03.BASELINE.PPO.tanh"
+prefix="05.03.BASELINE.PPO.diff_obstacle"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="reacher-obstacle-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
