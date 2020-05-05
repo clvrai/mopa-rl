@@ -339,10 +339,12 @@ class Trainer(object):
                     if config.hrl:
                         if (config.meta_update_target == "HL" or \
                             config.meta_update_target == "both") and not config.meta_oracle:
-                            self._meta_agent.store_episode(meta_rollout)
+                            if len(meta_rollout['ob']) != 0:
+                                self._meta_agent.store_episode(meta_rollout)
                         if (config.meta_update_target == "LL" or \
                             config.meta_update_target == "both"):
-                            self._agent.store_episode(rollout)
+                            if len(rollout['ob']) != 0:
+                                self._agent.store_episode(rollout)
                     else:
                         self._agent.store_episode(rollout)
 
@@ -352,10 +354,12 @@ class Trainer(object):
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
                     config.meta_update_target == "both") and not config.meta_oracle:
-                    self._meta_agent.store_episode(meta_rollout)
+                    if len(meta_rollout['ob']) != 0:
+                        self._meta_agent.store_episode(meta_rollout)
                 if (config.meta_update_target == "LL" or \
                     config.meta_update_target == "both"):
-                    self._agent.store_episode(rollout)
+                    if len(rollout['ob']) != 0:
+                        self._agent.store_episode(rollout)
             else:
                 self._agent.store_episode(rollout)
 
