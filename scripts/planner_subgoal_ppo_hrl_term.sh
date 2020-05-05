@@ -32,7 +32,7 @@ then
 fi
 
 workers="8"
-prefix="05.03.MP.RL.ALTERNATION.no_tanh"
+prefix="05.03.Chaining.cum_rew"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -45,7 +45,7 @@ gpu=$gpu
 rl_hid_size="256"
 meta_update_target="LL"
 meta_oracle="True"
-max_meta_len="1"
+max_meta_len="15"
 buffer_size="12800"
 num_batches="10"
 debug="False"
@@ -73,7 +73,7 @@ env_debug='False'
 skill_ordering='False'
 group='05.03.PPO'
 contact_check='False'
-subgoal_scale='1.5'
+subgoal_scale='1.'
 alternation='True'
 termination='True'
 invalid_planner_rew='-0.3'

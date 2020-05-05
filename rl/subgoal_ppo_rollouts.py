@@ -152,11 +152,11 @@ class SubgoalPPORolloutRunner(object):
                         })
                         vpred = pi.get_value(ll_ob, meta_ac)
                         step += 1
-                        for next_qpos in traj:
+                        for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
                             ob, reward, done, info = env.step(ac, is_planner=True)
-                            cum_rew += reward
+                            cum_rew += (config.discount_factor**i) * reward
                             ep_len += 1
                             ep_rew += reward
                             meta_len += 1
@@ -173,7 +173,8 @@ class SubgoalPPORolloutRunner(object):
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
 
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                        rollout.add({'done': done, 'rew': reward})
+                        #rollout.add({'done': done, 'rew': reward})
+                        rollout.add({'done': done, 'rew': cum_rew})
                         if config.termination:
                             term = bool(subgoal_ac['term'][0])
                         if every_steps is not None and step % every_steps == 0:
@@ -244,8 +245,8 @@ class SubgoalPPORolloutRunner(object):
                         meta_len += 1
                         meta_rew += reward
                         reward_info.add(info)
-                        if config.termination:
-                            term = bool(ac['term'][0])
+                        # if config.termination:
+                        #     term = bool(ac['term'][0])
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
@@ -256,18 +257,13 @@ class SubgoalPPORolloutRunner(object):
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                        if not done and (config.skill_ordering or config.alternation) and config.termination and term: # break the loop if termination is true
-                            break
+                        # if not done and (config.skill_ordering or config.alternation) and config.termination and term: # break the loop if termination is true
+                        #     break
 
                     if len(meta_rollout) != 0:
                         meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
-                    if not done and config.skill_ordering:
-                        if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
-                            done = True
-                            done, info, _ = env._after_step(None, done, {})
-                            reward_info.add(info)
-                        else:
-                            term = True
+                    if not done:
+                        term = True
 
 
 
@@ -493,8 +489,8 @@ class SubgoalPPORolloutRunner(object):
                     meta_rew += reward
                     reward_info.add(info)
                     meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                    if config.termination:
-                        term = bool(ac['term'][0])
+                    # if config.termination:
+                    #     term = bool(ac['term'][0])
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
@@ -511,16 +507,17 @@ class SubgoalPPORolloutRunner(object):
                         vis_pos=[]
                         self._store_frame(env, frame_info, None, vis_pos=[])
 
-                    if not done and (config.skill_ordering or config.alternation) and config.termination and term: # break the loop if termination is true
-                        break
+                    # if not done and (config.skill_ordering or config.alternation) and config.termination and term: # break the loop if termination is true
+                    #     break
 
-                if not done and config.skill_ordering:
-                    if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
-                        done = True
-                        done, info, _ = env._after_step(None, done, {})
-                        reward_info.add(info)
-                    else:
-                        term = True
+                # if not done and config.skill_ordering:
+                if not done:
+                    # if cur_primitive == len(config.primitive_skills)-1 or (config.contact_check and not env.is_contact_skill_success(contact_skill_num)):
+                    #     done = True
+                    #     done, info, _ = env._after_step(None, done, {})
+                    #     reward_info.add(info)
+                    # else:
+                    term = True
 
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
