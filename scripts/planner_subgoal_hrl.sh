@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.04.SAC.collision"
+prefix="5.05.SAC.collision.no_tanh.allow_collision.change_meta_rollout.meta_rew.path_length"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -50,7 +50,7 @@ gpu=$gpu
 rl_hid_size="256"
 meta_update_target="both"
 meta_oracle="False"
-invalid_planner_rew="0."
+invalid_planner_rew="-0.3"
 max_meta_len="1"
 buffer_size="1000000"
 num_batches="1"
@@ -77,6 +77,7 @@ group='05.04.SAC'
 log_freq='1000'
 allow_self_collision="True"
 allow_manipulation_collision="True"
+min_path_len="10"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -122,4 +123,5 @@ python -m rl.main \
     --invalid_planner_rew $invalid_planner_rew \
     --log_freq $log_freq \
     --allow_manipulation_collision $allow_manipulation_collision \
-    --allow_self_collision $allow_self_collision
+    --allow_self_collision $allow_self_collision 
+    --min_path_len $min_path_len
