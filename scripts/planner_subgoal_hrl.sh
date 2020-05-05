@@ -78,6 +78,7 @@ log_freq='1000'
 allow_self_collision="True"
 allow_manipulation_collision="True"
 min_path_len="10"
+rl_activation="relu"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -123,5 +124,6 @@ python -m rl.main \
     --invalid_planner_rew $invalid_planner_rew \
     --log_freq $log_freq \
     --allow_manipulation_collision $allow_manipulation_collision \
-    --allow_self_collision $allow_self_collision 
-    --min_path_len $min_path_len
+    --allow_self_collision $allow_self_collision \
+    --min_path_len $min_path_len \
+    --rl_activation $rl_activation
