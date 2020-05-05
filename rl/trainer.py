@@ -130,7 +130,11 @@ class Trainer(object):
 
         if config.hrl:
             if config.use_subgoal_space:
-                subgoal_space = self._env.subgoal_space
+                if config.relative_goal:
+                    subgoal_space = self._env.subgoal_space
+                else:
+                    subgoal_space = spaces.Dict({'default': spaces.Box(low=self._env._jnt_minimum[self._env.ref_joint_pos_indexes],
+                                               high=self._env._jnt_maximum[self._env.ref_joint_pos_indexes])})
             else:
                 subgoal_space = ac_space
 
@@ -140,7 +144,8 @@ class Trainer(object):
             if config.algo == 'sac':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic, non_limited_idx, subgoal_space
+                    config, ll_ob_space, ac_space, actor, critic,
+                    non_limited_idx, subgoal_space,
                 )
             else:
                 from rl.low_level_ppo_agent import LowLevelPPOAgent
