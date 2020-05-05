@@ -361,6 +361,8 @@ class SubgoalRolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                        if done or ep_len >= max_step:
+                            break
 
                 else:
                     meta_rollout.add({

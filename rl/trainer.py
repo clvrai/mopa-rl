@@ -90,7 +90,6 @@ class Trainer(object):
                         ids[i].append(make_ordered_pair(pair_id[0], pair_id[1]))
                     if len(allowed_collsion_pairs) != 0:
                         ids[i].extend(allowed_collsion_pairs)
-
             config.ignored_contact_geom_ids = ids
 
         passive_joint_idx = list(range(len(self._env.sim.data.qpos)))
