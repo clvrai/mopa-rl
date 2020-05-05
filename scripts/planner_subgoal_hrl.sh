@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.04.SAC.collision"
+prefix="5.04.SAC.collision.wide_init"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
