@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.05.SAC.collision.no_tanh.allow_collision.change_meta_rollout.meta_rew.path_length"
+prefix="5.05.SAC.abs.goal"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -79,6 +79,7 @@ allow_self_collision="True"
 allow_manipulation_collision="True"
 min_path_len="10"
 rl_activation="relu"
+relative_goal="False"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -126,4 +127,5 @@ python -m rl.main \
     --allow_manipulation_collision $allow_manipulation_collision \
     --allow_self_collision $allow_self_collision \
     --min_path_len $min_path_len \
-    --rl_activation $rl_activation
+    --rl_activation $rl_activation \
+    --relative_goal $relative_goal

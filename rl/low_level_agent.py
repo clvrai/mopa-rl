@@ -143,7 +143,11 @@ class LowLevelAgent(SACAgent):
             else:
                 ac, activation = self._actors[skill_idx].act(ob, is_train)
             target_qpos = curr_qpos.copy()
-            target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
+            if self._config.relative_goal:
+                target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
+            else:
+                target_qpos[ref_joint_pos_indexes] = ac['default'][:len(ref_joint_pos_indexes)]
+
             traj, success = self._planners[skill_idx].plan(curr_qpos, target_qpos)
             return traj, success, target_qpos, ac, activation
         else:

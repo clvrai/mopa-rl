@@ -82,6 +82,7 @@ def argparser():
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_self_collision", type=str2bool, default=False)
     parser.add_argument("--min_path_len", type=int, default=10)
+    parser.add_argument("--relative_goal", type=str2bool, default=True)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
