@@ -156,14 +156,6 @@ def sync_grads(network):
     global_grads /= comm.Get_size() # average grad
     _set_flat_grads(network, grads_shape, global_grads)
 
-def sync_avg_grads(network):
-    flat_grads, grads_shape = _get_flat_grads(network)
-    comm = MPI.COMM_WORLD
-    global_grads = np.zeros_like(flat_grads)
-    comm.Allreduce(flat_grads, global_grads, op=MPI.SUM)
-    global_grads /= comm.Get_size() # average grad
-    _set_flat_grads(network, grads_shape, global_grads)
-
 def _set_flat_grads(network, grads_shape, flat_grads):
     pointer = 0
     if hasattr(network, '_config'):

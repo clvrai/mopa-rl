@@ -13,7 +13,7 @@ from util.pytorch import to_tensor, get_ckpt_path
 from util.gym import action_size, observation_size
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
-    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor, sync_avg_grads
+    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 from env.action_spec import ActionSpec
 import math
 

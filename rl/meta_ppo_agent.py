@@ -184,10 +184,6 @@ class MetaPPOAgent(BaseAgent):
             import ipdb; ipdb.set_trace()
         info['entropy_loss'] = entropy_loss.cpu().item()
 
-        # for k in actor_loss.keys():
-        #     info['actor_loss_'+k] = actor_loss[k].cpu().item()
-
-        #actor_loss = torch.stack(list(actor_loss.values())).sum()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
 
