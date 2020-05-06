@@ -52,7 +52,6 @@ class MetaSACAgent(SACAgent):
 
         if sampler is None:
             sampler = RandomSampler()
-        #buffer_keys = ['ob', 'ac', 'done', 'rew', 'ag', 'g']
         buffer_keys = ['ob', 'ac', 'done', 'rew']
         self._buffer = ReplayBuffer(buffer_keys,
                                     config.buffer_size,
@@ -173,17 +172,6 @@ class MetaSACAgent(SACAgent):
         if self._config.is_mpi:
             sync_grads(self._critics2[0])
         self._critic2_optims[0].step()
-
-        # include info from policy
-        if len(self._actors) == 1:
-            info.update(self._actors[0].info)
-        else:
-            constructed_info = {}
-            for i, _agent in enumerate(self._actors):
-                for j, _actor in enumerate(_agent):
-                    for k, v in _actor.info:
-                        constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
-            info.update(constructed_info)
 
         if self._config.is_mpi:
             return mpi_average(info)
