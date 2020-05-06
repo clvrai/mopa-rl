@@ -410,8 +410,7 @@ class Trainer(object):
 
             if self._is_chef:
                 pbar.update(step_per_batch)
-
-                if update_iter % config.log_interval == 0:
+                if update_iter % config.log_interval == 0 or len(info) != 0:
                     for k, v in info.items():
                         if isinstance(v, list):
                             ep_info[k].extend(v)
