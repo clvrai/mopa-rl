@@ -197,6 +197,7 @@ class SubgoalRolloutRunner(object):
                         })
                         # reward = self._config.invalid_planner_rew
                         reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        reward += self._config.invalid_planner_rew
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, info)
                         rollout.add({'done': done, 'rew': reward})
@@ -381,6 +382,7 @@ class SubgoalRolloutRunner(object):
                     })
                     # reward = self._config.invalid_planner_rew
                     reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
+                    reward += self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, False, info)
                     rollout.add({'done': done, 'rew': reward})

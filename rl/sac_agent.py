@@ -148,12 +148,13 @@ class SACAgent(BaseAgent):
             _critic_target.to(device)
 
     def sync_networks(self):
-        for _actor in self._actors:
-            sync_networks(_actor)
-        for _critic in self._critics1:
-            sync_networks(_critic)
-        for _critic in self._critics2:
-            sync_networks(_critic)
+        if self._config.is_mpi:
+            for _actor in self._actors:
+                sync_networks(_actor)
+            for _critic in self._critics1:
+                sync_networks(_critic)
+            for _critic in self._critics2:
+                sync_networks(_critic)
 
     def train(self):
         for i in range(self._config.num_batches):

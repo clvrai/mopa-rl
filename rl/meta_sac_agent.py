@@ -157,18 +157,21 @@ class MetaSACAgent(SACAgent):
                 _actor_optim.zero_grad()
             actor_loss.backward()
             for i, _actor in enumerate(self._actors):
-                sync_grads(_actor)
+                if self._config.is_mpi:
+                    sync_grads(_actor)
                 self._actor_optims[i].step()
 
         # update the critic
         self._critic1_optims[0].zero_grad()
         critic1_loss.backward()
-        sync_grads(self._critics1[0])
+        if self._config.is_mpi:
+            sync_grads(self._critics1[0])
         self._critic1_optims[0].step()
 
         self._critic2_optims[0].zero_grad()
         critic2_loss.backward()
-        sync_grads(self._critics2[0])
+        if self._config.is_mpi:
+            sync_grads(self._critics2[0])
         self._critic2_optims[0].step()
 
         # include info from policy
@@ -182,4 +185,7 @@ class MetaSACAgent(SACAgent):
                         constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
             info.update(constructed_info)
 
-        return mpi_average(info)
+        if self._config.is_mpi:
+            return mpi_average(info)
+        else:
+            return info

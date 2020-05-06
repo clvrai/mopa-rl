@@ -220,11 +220,14 @@ class LowLevelAgent(SACAgent):
         else:
             critic_idx = skill_idx
         self._actors[skill_idx].zero_grad()
-        sync_avg_grads(self._actors[skill_idx])
+        if self._config.is_mpi:
+            sync_grads(self._actors[skill_idx])
         self._critics1[critic_idx].zero_grad()
-        sync_avg_grads(self._critics1[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics1[critic_idx])
         self._critics2[critic_idx].zero_grad()
-        sync_avg_grads(self._critics2[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics2[critic_idx])
 
         info['min_target_q'] = 0.
         info['target_q'] = 0.
@@ -243,7 +246,10 @@ class LowLevelAgent(SACAgent):
             constructed_info = {}
             for k, v in info.items():
                 constructed_info['skill_{}/{}'.format(self._config.primitive_skills[skill_idx], k)] = v
-        return mpi_average(constructed_info)
+        if self._config.is_mpi:
+            return mpi_average(constructed_info)
+        else:
+            return constructed_info
 
     def _update_network(self, transitions, step=0, skill_idx=None):
         info = {}
@@ -330,18 +336,21 @@ class LowLevelAgent(SACAgent):
         #for _actor_optim in self._actor_optims:
         self._actor_optims[skill_idx].zero_grad()
         actor_loss.backward()
-        sync_avg_grads(self._actors[skill_idx])
+        if self._config.is_mpi:
+            sync_grads(self._actors[skill_idx])
         self._actor_optims[skill_idx].step()
 
         # update the critic
         self._critic1_optims[critic_idx].zero_grad()
         critic1_loss.backward()
-        sync_avg_grads(self._critics1[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics1[critic_idx])
         self._critic1_optims[critic_idx].step()
 
         self._critic2_optims[critic_idx].zero_grad()
         critic2_loss.backward()
-        sync_avg_grads(self._critics2[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics2[critic_idx])
         self._critic2_optims[critic_idx].step()
 
         # include info from policy
@@ -351,4 +360,7 @@ class LowLevelAgent(SACAgent):
             constructed_info = {}
             for k, v in info.items():
                 constructed_info['skill_{}/{}'.format(self._config.primitive_skills[skill_idx], k)] = v
-        return mpi_average(constructed_info)
+        if self._config.is_mpi:
+            return mpi_average(constructed_info)
+        else:
+            return constructed_info

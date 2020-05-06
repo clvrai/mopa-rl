@@ -24,6 +24,7 @@ def run(config):
     config.is_chef = rank == 0
     config.seed = config.seed + rank
     config.num_workers = MPI.COMM_WORLD.Get_size()
+    config.is_mpi = False if config.num_workers == 1 else True
 
     if torch.get_num_threads() != 1:
         fair_num_threads = max(int(torch.get_num_threads() / MPI.COMM_WORLD.Get_size()), 1)

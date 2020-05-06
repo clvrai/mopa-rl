@@ -37,20 +37,20 @@ then
 fi
 
 workers="1"
-prefix="5.05.SAC.abs.goal"
+prefix="5.06.SAC.rel.goal"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
 planner_objective="state_const_integral"
 primitive_skills="mp rl"
-range="1.0"
+range="0.5"
 threshold="0.1"
 timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
 meta_update_target="both"
 meta_oracle="False"
-invalid_planner_rew="-0.3"
+invalid_planner_rew="-0.1"
 max_meta_len="1"
 buffer_size="1000000"
 num_batches="1"
@@ -73,13 +73,14 @@ seed="1234"
 has_terminal='True'
 log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
-group='05.04.SAC'
+group='05.06.SAC'
 log_freq='1000'
 allow_self_collision="True"
 allow_manipulation_collision="True"
 min_path_len="10"
 rl_activation="relu"
-relative_goal="False"
+relative_goal="True"
+log_interval="100"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -128,4 +129,5 @@ python -m rl.main \
     --allow_self_collision $allow_self_collision \
     --min_path_len $min_path_len \
     --rl_activation $rl_activation \
-    --relative_goal $relative_goal
+    --relative_goal $relative_goal \
+    --log_interval $log_interval
