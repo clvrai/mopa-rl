@@ -39,8 +39,6 @@ def argparser():
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
                         help="whether to use HRL or not")
-    parser.add_argument("--hrl_network_to_update", type=str, default="LL",
-                        choices=["HL", "LL", "both"])
     parser.add_argument("--primitive_dir", type=str, default=None,
                         help="path to primitive directory")
     parser.add_argument("--max_meta_len", type=int, default=25)

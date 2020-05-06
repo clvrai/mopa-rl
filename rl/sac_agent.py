@@ -96,8 +96,6 @@ class SACAgent(BaseAgent):
         for _log_alpha, _log_alpha_ckpt in zip(self._log_alpha, ckpt['log_alpha']):
             _log_alpha.data = torch.tensor(_log_alpha_ckpt, requires_grad=True,
                                                 device=self._config.device)
-        # self._log_alpha.data = torch.tensor(ckpt['log_alpha'], requires_grad=True,
-        #                                     device=self._config.device)
         for _actor, actor_ckpt in zip(self._actors, ckpt['actor_state_dict']):
             _actor.load_state_dict(actor_ckpt)
         for _critic1, critic_ckpt in zip(self._critics1, ckpt['critic1_state_dict']):
@@ -115,21 +113,17 @@ class SACAgent(BaseAgent):
 
         for _alpha_optim, _alpha_optim_ckpt in zip(self._alpha_optim, ckpt['alpha_optim_state_dict']):
             _alpha_optim.load_state_dict(_alpha_optim_ckpt)
-        # self._alpha_optim.load_state_dict(ckpt['alpha_optim_state_dict'])
-
         for _actor_optim, actor_optim_ckpt in zip(self._actor_optims, ckpt['actor_optim_state_dict']):
             _actor_optim.load_state_dict(actor_optim_ckpt)
         for _critic_optim, critic_optim_ckpt in zip(self._critic1_optims, ckpt['critic1_optim_state_dict']):
             _critic_optim.load_state_dict(critic_optim_ckpt)
-
         for _critic_optim, critic_optim_ckpt in zip(self._critic1_optims, ckpt['critic2_optim_state_dict']):
             _critic_optim.load_state_dict(critic_optim_ckpt)
-        # for _alpha_optim in self._alpha_optim:
-        #     optimizer_cuda(_alpha_optim, self._config.device)
-        optimizer_cuda(self._alpha_optim, self._config.device)
+
+        for _alpha_optim in self._alpha_optim:
+            optimizer_cuda(_alpha_optim, self._config.device)
         for _actor_optim in self._actor_optims:
             optimizer_cuda(_actor_optim, self._config.device)
-
         for _critic_optim in self._critic1_optims:
             optimizer_cuda(_critic_optim, self._config.device)
         for _critic_optim in self._critic2_optims:
@@ -272,15 +266,5 @@ class SACAgent(BaseAgent):
         for i, _critic2 in enumerate(self._critics2):
             sync_grads(_critic2)
             self._critic2_optims[i].step()
-
-        # # include info from policy
-        # if len(self._actors) == 1:
-        #     info.update(self._actors[0].info)
-        # else:
-        #     constructed_info = {}
-        #     for i, _actor in enumerate(self._actors):
-        #         for k, v in _actor.info:
-        #             constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
-        #     info.update(constructed_info)
 
         return mpi_average(info)

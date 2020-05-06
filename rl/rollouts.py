@@ -55,8 +55,6 @@ class MetaRollout(object):
         batch['log_prob'] = self._history['meta_log_prob']
         batch['done'] = self._history['meta_done']
         batch['rew'] = self._history['meta_rew']
-        # batch['ag'] = self._history['ag']
-        # batch['g'] = self._history['g']
         self._history = defaultdict(list)
         return batch
 
@@ -185,7 +183,7 @@ class RolloutRunner(object):
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
-                if every_steps is not None and step % every_steps == 0 and config.hrl_network_to_update == 'HL':
+                if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
                     ll_ob = ob.copy()
                     if self._config.hrl and self._config.meta_update_target == 'HL' and self._config.goal_replace:
                         if self._config.subgoal_type == 'joint':
