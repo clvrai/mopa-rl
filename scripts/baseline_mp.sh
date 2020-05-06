@@ -1,1 +1,0 @@
-python -m rl.main --env reacher-v0 --hrl True --log_root_dir ./logs --prefix baseline.sst.sac.v6 --max_global_step 10000000 --meta_update_target both --hrl_network_to_update both --ll_type mp --planner_type sst --planner_objective state_const_integral --range 15.0 --threshold 0.05 --timelimit 1.5 --hl_type subgoal --gpu 2 --max_mp_steps 50 --max_meta_len 50 --buffer_size 50000
