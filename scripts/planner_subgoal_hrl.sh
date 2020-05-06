@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.rel.goal"
+prefix="5.06.SAC.rel.goal-2"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
