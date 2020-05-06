@@ -43,10 +43,8 @@ class SimplePusherObstacleEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            # goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
-            # box = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
-            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
-            box = np.random.uniform(low=-0.2, high=0.2, size=2)
+            goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
+            box = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
@@ -135,7 +133,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
             reach_multi = 0.3
-            move_multi = 0.7
+            move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
             # reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
             reward_reach = -dist_box_to_gripper * reach_multi

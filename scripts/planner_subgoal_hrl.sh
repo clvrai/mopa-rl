@@ -77,7 +77,6 @@ group='05.06.SAC'
 log_freq='1000'
 allow_self_collision="True"
 allow_manipulation_collision="True"
-min_path_len="10"
 rl_activation="relu"
 relative_goal="True"
 log_interval="100"
