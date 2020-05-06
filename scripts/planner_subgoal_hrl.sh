@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.abs.goal.no_col"
+prefix="5.06.SAC.rel.range.1.5.no_fixed_step"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -77,9 +77,8 @@ group='05.06.SAC'
 log_freq='1000'
 allow_self_collision="False"
 allow_manipulation_collision="False"
-min_path_len="10"
 rl_activation="relu"
-relative_goal="False"
+relative_goal="True"
 log_interval="100"
 
 #mpiexec -n $workers
@@ -127,7 +126,6 @@ python -m rl.main \
     --log_freq $log_freq \
     --allow_manipulation_collision $allow_manipulation_collision \
     --allow_self_collision $allow_self_collision \
-    --min_path_len $min_path_len \
     --rl_activation $rl_activation \
     --relative_goal $relative_goal \
     --log_interval $log_interval
