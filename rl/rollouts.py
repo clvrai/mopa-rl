@@ -66,7 +66,6 @@ class RolloutRunner(object):
         self._env_eval = env_eval
         self._meta_pi = meta_pi
         self._pi = pi
-        self._ik_env = gym.make(config.env, **config.__dict__)
 
 
     def run(self, max_step=10000, is_train=True, random_exploration=False, every_steps=None, every_episodes=None):
@@ -82,7 +81,6 @@ class RolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
-        ik_env = self._ik_env
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -98,7 +96,6 @@ class RolloutRunner(object):
             done = False
             ep_len = 0
             ep_rew = 0
-            ik_env.reset()
             ob = env.reset()
 
             # run rollout
@@ -115,36 +112,6 @@ class RolloutRunner(object):
                 meta_len = 0
                 meta_rew = 0
 
-                curr_qpos = env.sim.data.qpos.ravel().copy()
-                subgoal_site_pos = None
-
-                # Subgoal prediction + IK
-                if self._config.hrl and 'subgoal' in meta_ac.keys():
-                    joint_space = env.joint_space['default']
-                    minimum = joint_space.low
-                    maximum = joint_space.high
-
-                    if self._config.subgoal_type == 'joint':
-                        subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
-                    else: # cart
-                        subgoal_cart = meta_ac['subgoal']
-                        subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
-                        ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], env._get_pos('subgoal')[2]])
-                        result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                              joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=10, progress_thresh=20.)
-                        subgoal = result.qpos[:env.model.nu].copy()
-                    subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
-
-                    ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
-                    goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-                    subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
-                    target_qpos = np.concatenate([subgoal, env.goal])
-
-                    if self._config.hrl and self._config.subgoal_type == 'cart':
-                        subgoal_site_pos = np.array([subgoal_cart[0], subgoal_cart[1]])
-
-                    env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
-
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     if random_exploration: # Random exploration for SAC
@@ -153,21 +120,12 @@ class RolloutRunner(object):
                         stds = None
                     else:
                         if config.hrl:
-                            if self._config.meta_update_target == 'HL' and self._config.goal_replace:
-                                if self._config.subgoal_type == 'joint':
-                                    ll_ob['goal'] = subgoal_site_pos
-                                else:
-                                    ll_ob['goal'] = subgoal_cart
                             ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                         else:
                             ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     ob, reward, done, info = env.step(ac)
-                    # if config.subgoal_reward:
-                    #     subgoal_rew, info = env.compute_subgoal_reward('box', info)
-                    #     reward += subgoal_rew
-                    #
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     step += 1
@@ -185,11 +143,6 @@ class RolloutRunner(object):
                 reward_info.add({'meta_rew': meta_rew})
                 if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
                     ll_ob = ob.copy()
-                    if self._config.hrl and self._config.meta_update_target == 'HL' and self._config.goal_replace:
-                        if self._config.subgoal_type == 'joint':
-                            ll_ob['goal'] = subgoal_site_pos
-                        else:
-                            ll_ob['goal'] = subgoal_cart
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                     meta_rollout.add({'meta_ob': ob})
                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
@@ -203,11 +156,6 @@ class RolloutRunner(object):
             episode += 1
             if every_episodes is not None and episode % every_episodes == 0:
                 ll_ob = ob.copy()
-                if self._config.hrl and self._config.meta_update_target == 'HL' and self._config.goal_replace:
-                    if self._config.subgoal_type == 'joint':
-                        ll_ob['goal'] = subgoal_site_pos
-                    else:
-                        ll_ob['goal'] = subgoal_cart
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                 meta_rollout.add({'meta_ob': ob})
                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
@@ -217,7 +165,6 @@ class RolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
-        ik_env = self._ik_env
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -228,7 +175,6 @@ class RolloutRunner(object):
         done = False
         ep_len = 0
         ep_rew = 0
-        ik_env.reset()
         ob = env.reset()
         self._record_frames = []
         if record: self._store_frame(env)
@@ -250,36 +196,6 @@ class RolloutRunner(object):
             meta_len = 0
             meta_rew = 0
 
-            curr_qpos = env.sim.data.qpos.ravel().copy()
-            subgoal_site_pos = None
-
-            # Subgoal prediction + IK
-            if self._config.hrl and 'subgoal' in meta_ac.keys():
-                joint_space = env.joint_space['default']
-                minimum = joint_space.low
-                maximum = joint_space.high
-
-                if self._config.subgoal_type == 'joint':
-                    subgoal = curr_qpos[:env.model.nu]+meta_ac['subgoal']
-                else: # cart
-                    subgoal_cart = meta_ac['subgoal']
-                    subgoal_cart = np.clip(subgoal_cart, meta_pi.ac_space['subgoal'].low, meta_pi.ac_space['subgoal'].high)
-                    ik_env._set_pos('subgoal', [subgoal_cart[0], subgoal_cart[1], env._get_pos('subgoal')[2]])
-                    result = qpos_from_site_pose_sampling(ik_env, 'fingertip', target_pos=ik_env._get_pos('subgoal'), target_quat=ik_env._get_quat('subgoal'),
-                                                          joint_names=env.model.joint_names[:env.model.nu], max_steps=150, trials=10, progress_thresh=20.)
-                    subgoal = result.qpos[:env.model.nu].copy()
-                subgoal[env._is_jnt_limited] = np.clip(subgoal[env._is_jnt_limited], minimum[env._is_jnt_limited], maximum[env._is_jnt_limited])
-
-                ik_env.set_state(np.concatenate([subgoal, env.sim.data.qpos[env.model.nu:]]), env.sim.data.qvel.ravel().copy())
-                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-                subgoal_site_pos = ik_env.data.get_site_xpos("fingertip")[:-1].copy()
-                target_qpos = np.concatenate([subgoal, env.goal])
-
-                if self._config.hrl and self._config.subgoal_type == 'cart':
-                    subgoal_site_pos = np.array([subgoal_cart[0], subgoal_cart[1]])
-
-                env._set_pos('subgoal', [subgoal_site_pos[0], subgoal_site_pos[1], env._get_pos('subgoal')[2]])
-
             while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
                 if random_exploration: # Random exploration for SAC
@@ -288,20 +204,12 @@ class RolloutRunner(object):
                     stds = None
                 else:
                     if config.hrl:
-                        if self._config.meta_update_target == 'HL' and self._config.goal_replace:
-                            if self._config.subgoal_type == 'joint':
-                                ll_ob['goal'] = subgoal_site_pos
-                            else:
-                                ll_ob['goal'] = subgoal_cart
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 ob, reward, done, info = env.step(ac)
-                # if config.subgoal_reward:
-                #     subgoal_rew, info = env.compute_subgoal_reward('box', info)
-                #     reward += subgoal_rew
 
                 rollout.add({'done': done, 'rew': reward})
                 ep_len += 1
@@ -340,26 +248,11 @@ class RolloutRunner(object):
 
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
-    def _get_mp_body_pos(self, ik_env, postfix='dummy'):
-        xpos = OrderedDict()
-        xquat = OrderedDict()
-        for i in range(len(ik_env.ref_joint_pos_indexes)):
-            name = 'body'+str(i)
-            body_idx = ik_env.sim.model.body_name2id(name)
-            xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx].copy()
-            xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat[body_idx].copy()
-
-        return xpos, xquat
-
-    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[]):
+    def _store_frame(self, env, info={}):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(env._episode_length,
                                 env._episode_reward)
-
-        if self._config.hl_type == 'subgoal' and subgoal is not None:
-            env._set_pos('subgoal', [subgoal[0], subgoal[1], env._get_pos('subgoal')[2]])
-            env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
 
         for xpos, xquat in vis_pos:
             for k in xpos.keys():
@@ -370,14 +263,6 @@ class RolloutRunner(object):
                 env._set_color(k, color)
 
         frame = env.render('rgb_array') * 255.0
-        if subgoal is not None:
-            env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
-        for xpos, xquat in vis_pos:
-            if xpos is not None and xquat is not None:
-                for k in xpos.keys():
-                    color = env._get_color(k)
-                    color[-1] = 0.
-                    env._set_color(k, color)
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)

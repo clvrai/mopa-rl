@@ -48,7 +48,6 @@ def argparser():
     parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
     parser.add_argument("--hl_type", type=str, default='discrete',
                         choices=['discrete', 'subgoal'])
-    parser.add_argument("--goal_replace", type=str2bool, default=False)
     parser.add_argument("--relative_subgoal", type=str2bool, default=True)
     parser.add_argument("--meta_oracle", type=str2bool, default=False)
     parser.add_argument("--subgoal_hindsight", type=str2bool, default=False)
