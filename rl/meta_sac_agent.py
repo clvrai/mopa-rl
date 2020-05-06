@@ -46,7 +46,7 @@ class MetaSACAgent(SACAgent):
             self.ac_space = ac_space
 
         # build up networks
-        actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)
+        actor, critic = get_actor_critic_by_name(config.policy)
 
         super().__init__(config, ob_space, ac_space, actor, critic)
 

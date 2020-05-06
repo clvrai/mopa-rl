@@ -88,7 +88,6 @@ def argparser():
     parser.add_argument("--lr_actor", type=float, default=3e-4, help="the learning rate of the actor")
     parser.add_argument("--lr_critic", type=float, default=3e-4, help="the learning rate of the critic")
     parser.add_argument("--polyak", type=float, default=0.995, help="the average coefficient")
-    parser.add_argument("--use_ae", type=str2bool, default=False, help="use AutoEncoder")
     parser.add_argument("--encoder_kernel_size", nargs='+', default=[3, 3, 3])
     parser.add_argument("--encoder_conv_dim", nargs='+', default=[32, 64, 32])
     parser.add_argument("--encoder_stride", nargs='+', default=[2, 2, 1])

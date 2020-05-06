@@ -17,8 +17,6 @@ from gym import spaces
 from sklearn.externals import joblib
 
 from rl.policies import get_actor_critic_by_name
-from rl.meta_ppo_agent import MetaPPOAgent
-from rl.meta_sac_agent import MetaSACAgent
 from rl.rollouts import RolloutRunner
 from rl.subgoal_rollouts import SubgoalRolloutRunner
 from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
@@ -31,17 +29,23 @@ from util.misc import make_ordered_pair
 
 
 
-def get_agent_by_name(algo, use_ae=False):
+def get_agent_by_name(algo):
     if algo == "sac":
-        if use_ae:
-            from rl.sac_ae_agent import SACAEAgent
-            return SACAEAgent
-        else:
-            from rl.sac_agent import SACAgent
-            return SACAgent
+        from rl.sac_agent import SACAgent
+        return SACAgent
     elif algo == "ppo":
         from rl.ppo_agent import PPOAgent
         return PPOAgent
+
+def get_meta_agent_by_name(algo):
+    if algo == 'ppo':
+        from rl.meta_ppo_agent import MetaPPOAgent
+        return MetaPPOAgent
+    elif algo == 'sac':
+        from rl.meta_sac_agent import MetaSACAgent
+        return MetaSACAgent
+    else:
+        raise NotImplementedError
 
 class Trainer(object):
     def __init__(self, config):
@@ -57,7 +61,6 @@ class Trainer(object):
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
         joint_space = self._env.joint_space
-
 
         allowed_collsion_pairs = []
         if config.allow_self_collision:
@@ -98,15 +101,11 @@ class Trainer(object):
 
 
         # get actor and critic networks
-        actor, critic = get_actor_critic_by_name(config.policy, config.use_ae)
+        actor, critic = get_actor_critic_by_name(config.policy)
 
         # build up networks
         non_limited_idx = np.where(self._env.sim.model.jnt_limited[:action_size(self._env.action_space)]==0)[0]
-
-        if config.subgoal_type == 'joint':
-            meta_ac_space = joint_space
-        else:
-            meta_ac_space = spaces.Dict({'default': spaces.Box(shape=(2,), low=-0.5, high=0.5)})
+        meta_ac_space = joint_space
 
         sampler = None
         if config.her:
@@ -116,18 +115,9 @@ class Trainer(object):
                                  config.replay_k,
                                  reward_func)
 
-        if config.meta_algo == 'ppo':
-            self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space, sampler=sampler)
-        elif config.meta_algo == 'sac':
-            self._meta_agent = MetaSACAgent(config, ob_space, meta_ac_space, sampler=sampler)
-        else:
-            raise NotImplementedError
+        self._meta_agent = get_meta_agent_by_name(config.meta_algo)(config, ob_space, meta_ac_space, sampler=sampler)
 
         ll_ob_space = ob_space
-
-        if config.ll_type == 'mp':
-            config.primitive_skills = ['mp']
-
         if config.hrl:
             if config.use_subgoal_space:
                 if config.relative_goal:
@@ -154,7 +144,7 @@ class Trainer(object):
                 )
 
         else:
-            self._agent = get_agent_by_name(config.algo, config.use_ae)(
+            self._agent = get_agent_by_name(config.algo)(
                 config, ob_space, ac_space, actor, critic
             )
 
@@ -210,7 +200,6 @@ class Trainer(object):
         torch.save(state_dict, ckpt_path)
         logger.warn("Save checkpoint: %s", ckpt_path)
 
-        #if self._config.policy == 'mlp' or not self._config.use_ae:
         replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
         with gzip.open(replay_path, "wb") as f:
             if self._config.hrl:
@@ -227,7 +216,7 @@ class Trainer(object):
 
             else:
                 replay_buffers = {"replay": self._agent.replay_buffer()}
-            if self._config.policy == 'cnn' or self._config.use_ae:
+            if self._config.policy == 'cnn':
                 joblib.dump(replay_buffers, f)
             else:
                 pickle.dump(replay_buffers, f)
@@ -243,7 +232,6 @@ class Trainer(object):
             self._agent.load_state_dict(ckpt["agent"])
 
             if self._config.is_train:
-                #if self._config.policy == 'mlp' or not self._config.use_ae:
                 replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
                 logger.warn("Load replay_buffer %s", replay_path)
                 with gzip.open(replay_path, "rb") as f:
@@ -437,11 +425,6 @@ class Trainer(object):
                         else:
                             obs = rollout['ob'][0]['default'][0]
 
-                        if self._config.use_ae:
-                            _to_tensor = lambda x: to_tensor(x, self._config.device)
-                            h = self._agent._critic_encoder(_to_tensor(rollout['ob'][0]['default']).unsqueeze(0))
-                            recon = self._agent._decoder(h)[0].detach().cpu().numpy().transpose((1, 2, 0))
-                            self.log_obs(recon, 'test_ep/reconstructed', step=step)
                     self._log_test(step, info, vids, obs)
 
                 if update_iter % config.ckpt_interval == 0:

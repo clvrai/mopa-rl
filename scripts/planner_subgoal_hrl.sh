@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.rel.fix_meta"
+prefix="5.06.SAC.rel.fix_meta.debug"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -54,7 +54,7 @@ invalid_planner_rew="-0.1"
 max_meta_len="1"
 buffer_size="1000000"
 num_batches="1"
-debug="False"
+debug="True"
 rollout_length="15000"
 batch_size="256"
 reward_type="dense"
