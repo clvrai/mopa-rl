@@ -10,6 +10,7 @@ then
     ckpt_interval='50'
     rl_activation="tanh"
     num_batches="100"
+    log_interval="1"
 elif [ $algo = 2 ]
 then
     algo='sac'
@@ -18,6 +19,7 @@ then
     ckpt_interval='100000'
     rl_activation="relu"
     num_batches="1"
+    log_interval="100"
 fi
 
 workers="1"
@@ -80,5 +82,5 @@ python -m rl.main \
     --has_terminal $has_terminal \
     --group $group \
     --env_debug $env_debug \
-    --log_freq $log_freq
-    # --max_grad_norm $max_grad_norm
+    --log_freq $log_freq \
+    --log_interval $log_interval
