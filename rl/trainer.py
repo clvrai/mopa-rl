@@ -338,7 +338,10 @@ class Trainer(object):
             if random_runner is not None:
                 while init_step < self._config.start_steps:
                     rollout, meta_rollout, info = next(random_runner)
-                    step_per_batch = mpi_sum(len(rollout['ac']))
+                    if config.is_mpi:
+                        step_per_batch = mpi_sum(len(rollout['ac']))
+                    else:
+                        step_per_batch = len(rollout['ac'])
                     init_step += step_per_batch
 
                     if config.hrl:
@@ -368,7 +371,10 @@ class Trainer(object):
             else:
                 self._agent.store_episode(rollout)
 
-            step_per_batch = mpi_sum(len(rollout['ac']))
+            if config.is_mpi:
+                step_per_batch = mpi_sum(len(rollout['ac']))
+            else:
+                step_per_batch = len(rollout['ac'])
 
             # train an agent
             if step % config.log_freq == 0:
