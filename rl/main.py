@@ -126,6 +126,8 @@ if __name__ == '__main__':
         from config.pusher import add_arguments
     elif 'mover' in args.env:
         from config.mover import add_arguments
+    elif 'robosuite' in args.env:
+        from config.robosuite import add_arguments
     else:
         raise ValueError('args.env (%s) is not supported' % args.env)
 
