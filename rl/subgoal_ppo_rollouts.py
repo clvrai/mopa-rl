@@ -155,7 +155,7 @@ class SubgoalPPORolloutRunner(object):
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
-                            if done or ep_len >= max_step or meta_len >= config.min_path_len:
+                            if done or ep_len >= max_step:
                                 break
 
                         if self._config.subgoal_hindsight: # refer to HAC: subgoal hindsight
@@ -188,8 +188,6 @@ class SubgoalPPORolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation, 'vpred': vpred})
-                        # if not env.isValidState(self._config.ignored_contact_geom_ids[cur_primitive]):
-                        #     done = True
                         done, info, _ = env._after_step(reward, done, info)
                         rollout.add({'done': done, 'rew': reward})
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
@@ -378,7 +376,7 @@ class SubgoalPPORolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
-                        if done or ep_len >= max_step or meta_len >= config.min_path_len:
+                        if done or ep_len >= max_step:
                             break
 
                     if config.termination:
@@ -469,8 +467,7 @@ class SubgoalPPORolloutRunner(object):
                         vis_pos=[]
                         self._store_frame(env, frame_info, None, vis_pos=[])
 
-                if not done:
-                    term = True
+                term = True
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
         ep_info.add(skill_count)

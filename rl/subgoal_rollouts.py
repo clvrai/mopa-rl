@@ -170,11 +170,6 @@ class SubgoalRolloutRunner(object):
                             'meta_ob': prev_ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
-                        if every_steps is not None and step % every_steps == 0:
-                            # last frame
-                            ll_ob = ob.copy()
-                            meta_rollout.add({'meta_ob': ob})
-                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                         if self._config.subgoal_hindsight: # refer to HAC
                             hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
@@ -185,8 +180,7 @@ class SubgoalRolloutRunner(object):
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
-                            rollout.add({'ob': ll_ob})
-                            # meta_rollout.add({'meta_ob': ob})
+                            meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:
@@ -212,7 +206,6 @@ class SubgoalRolloutRunner(object):
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                 else:
-                    prev_ob = ob.copy()
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
                         ll_ob = ob.copy()
                         if random_exploration: # Random exploration for SAC
@@ -336,16 +329,15 @@ class SubgoalRolloutRunner(object):
                 ll_ob = ob.copy()
                 if success:
                     mp_success += 1
+                    meta_rollout.add({
+                        'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                    })
                     for next_qpos in traj:
                         ll_ob = ob.copy()
                         ac = env.form_action(next_qpos, cur_primitive)
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
                         inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                         ob, reward, done, info = env.step(ac, is_planner=True)
-                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         rollout.add({'done': done, 'rew': reward})
 
                         ep_len += 1
@@ -377,8 +369,9 @@ class SubgoalRolloutRunner(object):
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos)
-                        if done or ep_len >= max_step or meta_len >= config.min_path_len:
+                        if done or ep_len >= max_step:
                             break
+                    meta_rollout.add({'meta_done': done, 'meta_rew': reward})
 
                 else:
                     meta_rollout.add({
@@ -415,11 +408,11 @@ class SubgoalRolloutRunner(object):
                         vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                         self._store_frame(env, frame_info, None, vis_pos=vis_pos)
             else:
+                meta_rollout.add({
+                    'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                })
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
-                    meta_rollout.add({
-                        'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                    })
                     if config.hrl:
                         ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
@@ -435,7 +428,6 @@ class SubgoalRolloutRunner(object):
                     meta_len += 1
                     meta_rew += reward
                     reward_info.add(info)
-                    meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
@@ -451,7 +443,7 @@ class SubgoalRolloutRunner(object):
 
                         vis_pos=[]
                         self._store_frame(env, frame_info, None, vis_pos=[])
-
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, 'mp_success': mp_success})
         ep_info.add(skill_count)
