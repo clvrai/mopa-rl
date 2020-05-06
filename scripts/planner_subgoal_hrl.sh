@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.rel.goal-2"
+prefix="5.06.SAC.abs.goal.no_col"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -75,11 +75,11 @@ log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
 group='05.06.SAC'
 log_freq='1000'
-allow_self_collision="True"
-allow_manipulation_collision="True"
+allow_self_collision="False"
+allow_manipulation_collision="False"
 min_path_len="10"
 rl_activation="relu"
-relative_goal="True"
+relative_goal="False"
 log_interval="100"
 
 #mpiexec -n $workers
