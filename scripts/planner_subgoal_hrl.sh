@@ -37,7 +37,11 @@ then
 fi
 
 workers="1"
+<<<<<<< HEAD
 prefix="5.06.SAC.rel.fix_meta.step_size10-2"
+=======
+prefix="5.06.SAC.rel.range.1.5.no_fixed_step"
+>>>>>>> 481a98b... fix rollout
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -75,9 +79,14 @@ log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
 group='05.06.SAC'
 log_freq='1000'
+<<<<<<< HEAD
 allow_self_collision="True"
 allow_manipulation_collision="True"
 min_path_len="10"
+=======
+allow_self_collision="False"
+allow_manipulation_collision="False"
+>>>>>>> 481a98b... fix rollout
 rl_activation="relu"
 relative_goal="True"
 log_interval="100"
@@ -127,7 +136,6 @@ python -m rl.main \
     --log_freq $log_freq \
     --allow_manipulation_collision $allow_manipulation_collision \
     --allow_self_collision $allow_self_collision \
-    --min_path_len $min_path_len \
     --rl_activation $rl_activation \
     --relative_goal $relative_goal \
     --log_interval $log_interval

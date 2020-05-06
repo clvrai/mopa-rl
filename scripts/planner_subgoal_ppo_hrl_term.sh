@@ -37,11 +37,7 @@ then
 fi
 
 workers="8"
-<<<<<<< HEAD
-prefix="05.03.Chaining.cum_rew"
-=======
 prefix="05.05.HRL.PPO-2"
->>>>>>> db2aaf1... add absolute subgoal predictor
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -52,15 +48,9 @@ threshold="0.0"
 timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
-<<<<<<< HEAD
-meta_update_target="LL"
-meta_oracle="True"
-max_meta_len="15"
-=======
 meta_update_target="both"
 meta_oracle="False"
 max_meta_len="1"
->>>>>>> db2aaf1... add absolute subgoal predictor
 buffer_size="12800"
 num_batches="10"
 debug="False"
