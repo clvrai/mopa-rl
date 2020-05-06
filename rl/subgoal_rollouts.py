@@ -163,7 +163,7 @@ class SubgoalRolloutRunner(object):
                                 ll_ob = ob.copy()
                                 rollout.add({'ob': ll_ob})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-                            if done or ep_len >= max_step or meta_len >= config.min_path_len:
+                            if done or ep_len >= max_step:
                                 break
 
                         meta_rollout.add({
@@ -212,10 +212,8 @@ class SubgoalRolloutRunner(object):
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                 else:
+                    prev_ob = ob.copy()
                     while not done and ep_len < max_step and meta_len < config.max_meta_len:
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
                         ll_ob = ob.copy()
                         if random_exploration: # Random exploration for SAC
                             ac = env.action_space.sample()
@@ -237,11 +235,18 @@ class SubgoalRolloutRunner(object):
                         meta_len += 1
                         meta_rew += reward
                         reward_info.add(info)
-                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
                             rollout.add({'ob': ll_ob})
+                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                    meta_rollout.add({
+                        'meta_ob': prev_ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                    })
+                    meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                    if every_steps is not None and step % every_steps == 0:
+                            # last frame
+                            ll_ob = ob.copy()
                             meta_rollout.add({'meta_ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
