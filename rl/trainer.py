@@ -58,6 +58,21 @@ class Trainer(object):
         ac_space = self._env.action_space
         joint_space = self._env.joint_space
 
+
+        allowed_collsion_pairs = []
+        if config.allow_self_collision:
+            from itertools import combinations
+            geom_ids = [self._env.sim.model.geom_name2id(name) for name in self._env.agent_geoms]
+            comb = combinations(geom_ids, 2)
+            for pair in list(comb):
+                allowed_collsion_pairs.append(make_ordered_pair(pair[0], pair[1]))
+
+        if config.allow_manipulation_collision:
+            manipulation_geom_ids = [self._env.sim.model.geom_name2id(name) for name in self._env.manpulation_geom]
+            for manipulation_geom_id in manipulation_geom_ids:
+                for geom_id in geom_ids:
+                    allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
+
         if config.ignored_contact_geoms is not None:
             ids = []
             for i, geom in enumerate(config.ignored_contact_geoms):
@@ -73,6 +88,8 @@ class Trainer(object):
                     # geom_pairs.append(pair_id)
                     if len(pair_id) != 0:
                         ids[i].append(make_ordered_pair(pair_id[0], pair_id[1]))
+                    if len(allowed_collsion_pairs) != 0:
+                        ids[i].extend(allowed_collsion_pairs)
             config.ignored_contact_geom_ids = ids
 
         passive_joint_idx = list(range(len(self._env.sim.data.qpos)))
@@ -113,7 +130,11 @@ class Trainer(object):
 
         if config.hrl:
             if config.use_subgoal_space:
-                subgoal_space = self._env.subgoal_space
+                if config.relative_goal:
+                    subgoal_space = self._env.subgoal_space
+                else:
+                    subgoal_space = spaces.Dict({'default': spaces.Box(low=self._env._jnt_minimum[self._env.ref_joint_pos_indexes],
+                                               high=self._env._jnt_maximum[self._env.ref_joint_pos_indexes])})
             else:
                 subgoal_space = ac_space
 
@@ -123,7 +144,8 @@ class Trainer(object):
             if config.algo == 'sac':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic, non_limited_idx, subgoal_space
+                    config, ll_ob_space, ac_space, actor, critic,
+                    non_limited_idx, subgoal_space,
                 )
             else:
                 from rl.low_level_ppo_agent import LowLevelPPOAgent
@@ -316,16 +338,21 @@ class Trainer(object):
             if random_runner is not None:
                 while init_step < self._config.start_steps:
                     rollout, meta_rollout, info = next(random_runner)
-                    step_per_batch = mpi_sum(len(rollout['ac']))
+                    if config.is_mpi:
+                        step_per_batch = mpi_sum(len(rollout['ac']))
+                    else:
+                        step_per_batch = len(rollout['ac'])
                     init_step += step_per_batch
 
                     if config.hrl:
                         if (config.meta_update_target == "HL" or \
                             config.meta_update_target == "both") and not config.meta_oracle:
-                            self._meta_agent.store_episode(meta_rollout)
+                            if len(meta_rollout['ob']) != 0:
+                                self._meta_agent.store_episode(meta_rollout)
                         if (config.meta_update_target == "LL" or \
                             config.meta_update_target == "both"):
-                            self._agent.store_episode(rollout)
+                            if len(rollout['ob']) != 0:
+                                self._agent.store_episode(rollout)
                     else:
                         self._agent.store_episode(rollout)
 
@@ -335,17 +362,23 @@ class Trainer(object):
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
                     config.meta_update_target == "both") and not config.meta_oracle:
-                    self._meta_agent.store_episode(meta_rollout)
+                    if len(meta_rollout['ob']) != 0:
+                        self._meta_agent.store_episode(meta_rollout)
                 if (config.meta_update_target == "LL" or \
                     config.meta_update_target == "both"):
-                    self._agent.store_episode(rollout)
+                    if len(rollout['ob']) != 0:
+                        self._agent.store_episode(rollout)
             else:
                 self._agent.store_episode(rollout)
 
-            step_per_batch = mpi_sum(len(rollout['ac']))
+            if config.is_mpi:
+                step_per_batch = mpi_sum(len(rollout['ac']))
+            else:
+                step_per_batch = len(rollout['ac'])
 
             # train an agent
-            logger.info("Update networks %d", update_iter)
+            if step % config.log_freq == 0:
+                logger.info("Update networks %d", update_iter)
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
                     config.meta_update_target == "both") and not config.meta_oracle:
@@ -366,7 +399,8 @@ class Trainer(object):
             else:
                 train_info = self._agent.train()
 
-            logger.info("Update networks done")
+            if step % config.log_freq == 0:
+                logger.info("Update networks done")
 
             # if step < config.max_ob_norm_step and self._config.policy != 'cnn':
             #     self._update_normalizer(rollout, meta_rollout)
@@ -376,8 +410,7 @@ class Trainer(object):
 
             if self._is_chef:
                 pbar.update(step_per_batch)
-
-                if update_iter % config.log_interval == 0:
+                if update_iter % config.log_interval == 0 or len(info) != 0:
                     for k, v in info.items():
                         if isinstance(v, list):
                             ep_info[k].extend(v)

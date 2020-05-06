@@ -34,8 +34,8 @@ cdef class PyKinematicPlanner:
     def __dealloc__(self):
         del self.thisptr
 
-    cpdef plan(self, start_vec, goal_vec, timelimit, max_steps):
-        return self.thisptr.plan(start_vec, goal_vec, timelimit, max_steps)
+    cpdef plan(self, start_vec, goal_vec, timelimit, min_steps):
+        return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)
 
     cpdef removeCollision(self, geom_id, contype, conaffinity):
         return self.thisptr.removeCollision(geom_id, contype, conaffinity)

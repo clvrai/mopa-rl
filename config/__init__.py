@@ -79,6 +79,10 @@ def argparser():
     parser.add_argument("--use_ik", type=str2bool, default=False)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
     parser.add_argument("--subgoal_scale", type=float, default=1.0)
+    parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
+    parser.add_argument("--allow_self_collision", type=str2bool, default=False)
+    parser.add_argument("--min_path_len", type=int, default=10)
+    parser.add_argument("--relative_goal", type=str2bool, default=True)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
@@ -164,5 +168,6 @@ def argparser():
     parser.add_argument("--debug_render", type=str2bool, default=False)
 
     parser.add_argument("--comment", nargs='+', default=None)
+    parser.add_argument("--log_freq", type=int, default=1)
 
     return parser

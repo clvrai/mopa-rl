@@ -166,7 +166,7 @@ KinematicPlanner::~KinematicPlanner(){
 }
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, double max_steps) {
+                                                            double timelimit, double min_steps) {
 
     if (start_vec.size() != mj->m->nq) {
         std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
@@ -239,7 +239,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         // }
         og::PathGeometric p = ss->getSolutionPath();
         // ss->getSolutionPath().print(std::cout);
-        // p.interpolate(max_steps);
+        // p.interpolate(min_steps);
         std::vector<ob::State*> &states =  p.getStates();
         int n = states.size();
         std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));

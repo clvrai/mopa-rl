@@ -37,7 +37,7 @@ then
 fi
 
 workers="8"
-prefix="05.03.Chaining.cum_rew"
+prefix="05.05.HRL.PPO-2"
 #prefix="4.20.BASELINE.HRL"
 hrl="True"
 ll_type="mix"
@@ -48,9 +48,9 @@ threshold="0.0"
 timelimit="0.01"
 gpu=$gpu
 rl_hid_size="256"
-meta_update_target="LL"
-meta_oracle="True"
-max_meta_len="15"
+meta_update_target="both"
+meta_oracle="False"
+max_meta_len="1"
 buffer_size="12800"
 num_batches="10"
 debug="False"
@@ -76,12 +76,15 @@ rl_activation='tanh'
 subgoal_hindsight="True"
 env_debug='False'
 skill_ordering='False'
-group='05.03.PPO'
+group='05.05.PPO'
 contact_check='False'
 subgoal_scale='1.'
-alternation='True'
-termination='True'
+alternation='False'
+termination='False'
 invalid_planner_rew='0.'
+min_path_len='10'
+allow_self_collision="True"
+allow_manipulation_collision="True"
 # max_grad_norm='0.5'
 
 mpiexec -n $workers  python -m rl.main \
@@ -132,6 +135,9 @@ mpiexec -n $workers  python -m rl.main \
     --meta_oracle $meta_oracle \
     --subgoal_scale $subgoal_scale \
     --alternation $alternation \
-    --invalid_planner_rew $invalid_planner_rew
+    --invalid_planner_rew $invalid_planner_rew \
+    --min_path_len $min_path_len \
+    --allow_manipulation_collision $allow_manipulation_collision \
+    --allow_self_collision $allow_self_collision 
     # --meta_subgoal_rew $meta_subgoal_rew
     # --max_grad_norm $max_grad_norm 

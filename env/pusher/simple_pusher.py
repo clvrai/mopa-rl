@@ -24,8 +24,8 @@ class SimplePusherEnv(BaseEnv):
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
         self._ac_rescale = 0.5
-        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1.
+        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.5
+        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1.5
         self.subgoal_space = spaces.Dict([
             ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
         ])
@@ -57,6 +57,18 @@ class SimplePusherEnv(BaseEnv):
                 self.box = box
                 break
         return self._get_obs()
+
+    @property
+    def manpulation_geom(self):
+        return ['box']
+
+    @property
+    def body_geoms(self):
+        return ['root', 'link0', 'link1', 'link2', 'fingertip0', 'fingertip1', 'fingertip2']
+
+    @property
+    def agent_geoms(self):
+        return self.body_geoms
 
     def initialize_joints(self):
         while True:
@@ -115,8 +127,10 @@ class SimplePusherEnv(BaseEnv):
             reach_multi = 0.35
             move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            reward_reach = (1-np.tanh(5.0*dist_box_to_gripper)) * reach_multi
-            reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi
+            reward_reach = -dist_box_to_gripper * reach_multi
+            reward_move = -self._get_distance('box', 'target') * move_multi
+            # reward_reach = (1-np.tanh(5.0*dist_box_to_gripper)) * reach_multi
+            # reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi
             reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_move + reward_ctrl

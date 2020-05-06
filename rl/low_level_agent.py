@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
+import torch.optim as optim
 
 from rl.sac_agent import SACAgent
 from rl.normalizer import Normalizer
@@ -32,6 +33,8 @@ class LowLevelAgent(SACAgent):
         self._non_limited_idx = non_limited_idx
         self._subgoal_space = subgoal_space
         super().__init__(config, ob_space, ac_space, actor, critic)
+        self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device) for _ in range(len(config.primitive_skills))]
+        self._alpha_optim = [optim.Adam([_log_alpha], lr=config.lr_actor) for _log_alpha in self._log_alpha]
 
     def _log_creation(self):
         if self._config.is_chef:
@@ -140,7 +143,11 @@ class LowLevelAgent(SACAgent):
             else:
                 ac, activation = self._actors[skill_idx].act(ob, is_train)
             target_qpos = curr_qpos.copy()
-            target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
+            if self._config.relative_goal:
+                target_qpos[ref_joint_pos_indexes] += ac['default'][:len(ref_joint_pos_indexes)]
+            else:
+                target_qpos[ref_joint_pos_indexes] = ac['default'][:len(ref_joint_pos_indexes)]
+
             traj, success = self._planners[skill_idx].plan(curr_qpos, target_qpos)
             return traj, success, target_qpos, ac, activation
         else:
@@ -213,11 +220,14 @@ class LowLevelAgent(SACAgent):
         else:
             critic_idx = skill_idx
         self._actors[skill_idx].zero_grad()
-        sync_avg_grads(self._actors[skill_idx])
+        if self._config.is_mpi:
+            sync_grads(self._actors[skill_idx])
         self._critics1[critic_idx].zero_grad()
-        sync_avg_grads(self._critics1[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics1[critic_idx])
         self._critics2[critic_idx].zero_grad()
-        sync_avg_grads(self._critics2[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics2[critic_idx])
 
         info['min_target_q'] = 0.
         info['target_q'] = 0.
@@ -236,7 +246,10 @@ class LowLevelAgent(SACAgent):
             constructed_info = {}
             for k, v in info.items():
                 constructed_info['skill_{}/{}'.format(self._config.primitive_skills[skill_idx], k)] = v
-        return mpi_average(constructed_info)
+        if self._config.is_mpi:
+            return mpi_average(constructed_info)
+        else:
+            return constructed_info
 
     def _update_network(self, transitions, step=0, skill_idx=None):
         info = {}
@@ -323,18 +336,21 @@ class LowLevelAgent(SACAgent):
         #for _actor_optim in self._actor_optims:
         self._actor_optims[skill_idx].zero_grad()
         actor_loss.backward()
-        sync_avg_grads(self._actors[skill_idx])
+        if self._config.is_mpi:
+            sync_grads(self._actors[skill_idx])
         self._actor_optims[skill_idx].step()
 
         # update the critic
         self._critic1_optims[critic_idx].zero_grad()
         critic1_loss.backward()
-        sync_avg_grads(self._critics1[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics1[critic_idx])
         self._critic1_optims[critic_idx].step()
 
         self._critic2_optims[critic_idx].zero_grad()
         critic2_loss.backward()
-        sync_avg_grads(self._critics2[critic_idx])
+        if self._config.is_mpi:
+            sync_grads(self._critics2[critic_idx])
         self._critic2_optims[critic_idx].step()
 
         # include info from policy
@@ -344,4 +360,7 @@ class LowLevelAgent(SACAgent):
             constructed_info = {}
             for k, v in info.items():
                 constructed_info['skill_{}/{}'.format(self._config.primitive_skills[skill_idx], k)] = v
-        return mpi_average(constructed_info)
+        if self._config.is_mpi:
+            return mpi_average(constructed_info)
+        else:
+            return constructed_info

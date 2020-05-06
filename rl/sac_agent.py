@@ -25,10 +25,8 @@ class SACAgent(BaseAgent):
 
         self._ob_space = ob_space
         self._ac_space = ac_space
-        self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device) for _ in range(len(config.primitive_skills))]
-        # self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device) for _ in range(len(config.primitive_skills))]
-        # self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
-        self._alpha_optim = [optim.Adam([_log_alpha], lr=config.lr_actor) for _log_alpha in self._log_alpha]
+        self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device)]
+        self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
 
         # build up networks
         self._build_actor(actor)
@@ -150,12 +148,13 @@ class SACAgent(BaseAgent):
             _critic_target.to(device)
 
     def sync_networks(self):
-        for _actor in self._actors:
-            sync_networks(_actor)
-        for _critic in self._critics1:
-            sync_networks(_critic)
-        for _critic in self._critics2:
-            sync_networks(_critic)
+        if self._config.is_mpi:
+            for _actor in self._actors:
+                sync_networks(_actor)
+            for _critic in self._critics1:
+                sync_networks(_critic)
+            for _critic in self._critics2:
+                sync_networks(_critic)
 
     def train(self):
         for i in range(self._config.num_batches):

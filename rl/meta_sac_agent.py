@@ -104,11 +104,11 @@ class MetaSACAgent(SACAgent):
 
         # update alpha
         actions_real, log_pi = self.act_log(o)
-        alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy[0]).detach()).mean()
-        self._alpha_optim.zero_grad()
+        alpha_loss = -(self._log_alpha[0] * (log_pi + self._target_entropy[0]).detach()).mean()
+        self._alpha_optim[0].zero_grad()
         alpha_loss.backward()
-        self._alpha_optim.step()
-        alpha = self._log_alpha.exp()
+        self._alpha_optim[0].step()
+        alpha = self._log_alpha[0].exp()
 
         # the actor loss
         entropy_loss = (alpha * log_pi).mean()
@@ -122,8 +122,8 @@ class MetaSACAgent(SACAgent):
         # calculate the target Q value function
         with torch.no_grad():
             actions_next, log_pi_next = self.act_log(o_next)
-            q_next_value1 = self._critic1_target(o_next, actions_next)
-            q_next_value2 = self._critic2_target(o_next, actions_next)
+            q_next_value1 = self._critic1_targets[0](o_next, actions_next)
+            q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             q_next_value = torch.min(q_next_value1, q_next_value2) - alpha * log_pi_next
             target_q_value = rew * self._config.reward_scale + \
                 (1 - done) * self._config.discount_factor * q_next_value
@@ -157,18 +157,21 @@ class MetaSACAgent(SACAgent):
                 _actor_optim.zero_grad()
             actor_loss.backward()
             for i, _actor in enumerate(self._actors):
-                sync_grads(_actor)
+                if self._config.is_mpi:
+                    sync_grads(_actor)
                 self._actor_optims[i].step()
 
         # update the critic
         self._critic1_optims[0].zero_grad()
         critic1_loss.backward()
-        sync_grads(self._critics1[0])
+        if self._config.is_mpi:
+            sync_grads(self._critics1[0])
         self._critic1_optims[0].step()
 
         self._critic2_optims[0].zero_grad()
         critic2_loss.backward()
-        sync_grads(self._critics2[0])
+        if self._config.is_mpi:
+            sync_grads(self._critics2[0])
         self._critic2_optims[0].step()
 
         # include info from policy
@@ -182,4 +185,7 @@ class MetaSACAgent(SACAgent):
                         constructed_info['agent_{}/skill_{}/{}'.format(i + 1, j + 1, k)] = v
             info.update(constructed_info)
 
-        return mpi_average(info)
+        if self._config.is_mpi:
+            return mpi_average(info)
+        else:
+            return info
