@@ -139,22 +139,22 @@ class PlannerRolloutRunner(object):
                                 ll_ob = ob.copy()
                                 formed_ac = env.form_action(next_qpos)
                                 # ac = env.form_action(next_qpos)
-                                # inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
-                                # rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                                inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
+                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                 ob, reward, done, info = env.step(formed_ac, is_planner=True)
                                 # ob, reward, done, info = env.step(ac, is_planner=True)
-                                # rollout.add({'done': done, 'rew': reward})
+                                rollout.add({'done': done, 'rew': reward})
                                 meta_rew += reward
                                 ep_len += 1
                                 step += 1
                                 ep_rew += reward
                                 meta_len += 1
                                 reward_info.add(info)
-                                # if every_steps is not None and step % every_steps == 0:
-                                #     # last frame
-                                #     ll_ob = ob.copy()
-                                #     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                                #     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                                if every_steps is not None and step % every_steps == 0:
+                                    # last frame
+                                    ll_ob = ob.copy()
+                                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                                 if done or ep_len >= max_step:
                                     break
                             if self._config.subgoal_hindsight: # refer to HAC
@@ -242,6 +242,7 @@ class PlannerRolloutRunner(object):
         rollout = Rollout()
         meta_rollout = MetaRollout()
         reward_info = Info()
+        ep_info = Info()
 
         done = False
         ep_len = 0
@@ -268,7 +269,7 @@ class PlannerRolloutRunner(object):
             meta_len = 0
             meta_rew = 0
 
-            while not done and ep_len < max_step and meta_len < config.max_meta_len:
+            while not done and ep_len < max_step:
                 ll_ob = ob.copy()
                 if random_exploration: # Random exploration for SAC
                     ac = env.action_space.sample()
@@ -367,14 +368,11 @@ class PlannerRolloutRunner(object):
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
 
-        ep_info = {'len': ep_len, 'rew': ep_rew}
-        for key, value in reward_info.items():
-            if isinstance(value[0], (int, float, bool)):
-                if '_mean' in key:
-                    ep_info[key] = np.mean(value)
-                else:
-                    ep_info[key] = np.sum(value)
-
+        ep_info.add({'len': ep_len, 'rew': ep_rew})
+        ep_info.add(counter)
+        reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
+        ep_info.add(reward_info_dict)
+        # last frame
         return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
 
     def _get_mp_body_pos(self, ik_env, postfix='dummy'):
