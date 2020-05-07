@@ -33,6 +33,7 @@ def argparser():
     parser.add_argument("--use_single_critic", type=str2bool, default=False)
     parser.add_argument("--termination", type=str2bool, default=False)
     parser.add_argument("--alternation", type=str2bool, default=False)
+    parser.add_argument("--planner_integration", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -71,12 +72,14 @@ def argparser():
     parser.add_argument("--clip_range", type=float, default=5, help="the clip range after normalization of observation")
 
     # motion planning
+    parser.add_argument("--min_path_len", type=int, default=10)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
     parser.add_argument("--subgoal_scale", type=float, default=1.0)
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_self_collision", type=str2bool, default=False)
-    parser.add_argument("--min_path_len", type=int, default=10)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
+    parser.add_argument("--ac_rl_minimum", type=float, default=-1.0)
+    parser.add_argument("--ac_rl_maximum", type=float, default=1.0)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
