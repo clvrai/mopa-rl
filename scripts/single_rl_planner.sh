@@ -24,9 +24,9 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.06.single.no_reuse.fix_ac-2.formed"
+prefix="05.06.single.reuse.fix_ac-2.formed.subgoal_hindsight.v2"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-pusher-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
@@ -59,6 +59,7 @@ timelimit="0.01"
 allow_self_collision="True"
 allow_manipulation_collision="True"
 reward_scale="10."
+subgoal_hindsight="True"
 
 
 # max_grad_norm='0.5'
@@ -107,4 +108,5 @@ python -m rl.main \
     --timelimit $timelimit \
     --allow_manipulation_collision $allow_manipulation_collision \
     --allow_self_collision $allow_self_collision \
-    --reward_scale $reward_scale
+    --reward_scale $reward_scale \
+    --subgoal_hindsight $subgoal_hindsight
