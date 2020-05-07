@@ -135,7 +135,6 @@ class SubgoalRolloutRunner(object):
 
                 info = OrderedDict()
                 prev_ob = ob.copy()
-                prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
                 if 'mp' in skill_type:
                     traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac,
                                                                      ob=ob.copy(),
@@ -147,22 +146,22 @@ class SubgoalRolloutRunner(object):
                         for next_qpos in traj:
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
-                            inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)*(1./env._ac_rescale))])
+                            inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
                             tmp_meta_ac = OrderedDict([('default', np.array([int(np.invert(bool(meta_ac['default'][0])))]))])
-                            rollout.add({'ob': ll_ob, 'meta_ac': tmp_meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            # rollout.add({'ob': ll_ob, 'meta_ac': tmp_meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac, is_planner=True)
-                            rollout.add({'done': done, 'rew': reward})
+                            # rollout.add({'done': done, 'rew': reward})
                             meta_rew += reward
                             ep_len += 1
                             step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
-                            if every_steps is not None and step % every_steps == 0:
-                                # last frame
-                                ll_ob = ob.copy()
-                                rollout.add({'ob': ll_ob})
-                                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                            # if every_steps is not None and step % every_steps == 0:
+                            #     # last frame
+                            #     ll_ob = ob.copy()
+                            #     rollout.add({'ob': ll_ob})
+                            #     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
 
@@ -181,6 +180,7 @@ class SubgoalRolloutRunner(object):
                             # last frame
                             ll_ob = ob.copy()
                             meta_rollout.add({'meta_ob': ob})
+                            rollout.add({'ob': ob})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:
@@ -189,8 +189,8 @@ class SubgoalRolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         # reward = self._config.invalid_planner_rew
-                        reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
-                        reward += self._config.invalid_planner_rew
+                        # reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        reward = self._config.invalid_planner_rew
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, info)
                         rollout.add({'done': done, 'rew': reward})
@@ -320,7 +320,6 @@ class SubgoalRolloutRunner(object):
 
             info = OrderedDict()
             prev_ob = ob.copy()
-            prev_joint_qpos = env.sim.data.qpos[env.ref_joint_pos_indexes].copy()
             if 'mp' in skill_type:
                 traj, success, target_qpos, subgoal_ac, ac_before_activation = pi.plan(curr_qpos, meta_ac=meta_ac, ob=ob.copy(),
                                                                  ref_joint_pos_indexes=env.ref_joint_pos_indexes)
@@ -335,7 +334,7 @@ class SubgoalRolloutRunner(object):
                     for next_qpos in traj:
                         ll_ob = ob.copy()
                         ac = env.form_action(next_qpos, cur_primitive)
-                        inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - prev_joint_qpos)])
+                        inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes])])
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                         ob, reward, done, info = env.step(ac, is_planner=True)
                         rollout.add({'done': done, 'rew': reward})
@@ -378,8 +377,8 @@ class SubgoalRolloutRunner(object):
                         'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                     })
                     # reward = self._config.invalid_planner_rew
-                    reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
-                    reward += self._config.invalid_planner_rew
+                    # reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
+                    reward = self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': subgoal_ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, False, info)
                     rollout.add({'done': done, 'rew': reward})

@@ -254,14 +254,6 @@ class RolloutRunner(object):
         text = "{:4} {}".format(env._episode_length,
                                 env._episode_reward)
 
-        for xpos, xquat in vis_pos:
-            for k in xpos.keys():
-                env._set_pos(k, xpos[k])
-                env._set_quat(k, xquat[k])
-                color = env._get_color(k)
-                color[-1] = 0.3
-                env._set_color(k, color)
-
         frame = env.render('rgb_array') * 255.0
 
         fheight, fwidth = frame.shape[:2]

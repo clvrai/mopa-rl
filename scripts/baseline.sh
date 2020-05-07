@@ -23,9 +23,9 @@ then
 fi
 
 workers="1"
-prefix="05.04.BASELINE.SAC-3.debug"
+prefix="05.06.BASELINE"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-pusher-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
@@ -33,7 +33,7 @@ entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 seed='1234'
@@ -45,7 +45,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.04.SAC'
+group='05.06.SAC'
 env_debug='False'
 log_freq='1000'
 # max_grad_norm='0.5'

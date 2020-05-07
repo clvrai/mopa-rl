@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.rel.fix_meta.debug"
+prefix="5.06.SAC.rel.fix_meta.remove.pre_joint.no_reuse"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -50,11 +50,11 @@ gpu=$gpu
 rl_hid_size="256"
 meta_update_target="both"
 meta_oracle="False"
-invalid_planner_rew="-0.1"
+invalid_planner_rew="-0.3"
 max_meta_len="1"
 buffer_size="1000000"
 num_batches="1"
-debug="True"
+debug="False"
 rollout_length="15000"
 batch_size="256"
 reward_type="dense"
