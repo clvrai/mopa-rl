@@ -355,7 +355,6 @@ class PlannerRolloutRunner(object):
                     meta_rew += reward
                     reward_info.add(info)
                     rollout.add({'done': done, 'rew': reward})
-                    reward_info.add(info)
                     if record:
                         frame_info = info.copy()
                         frame_info['ac'] = ac['default']
