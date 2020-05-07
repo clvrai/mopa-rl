@@ -373,7 +373,7 @@ class PlannerRolloutRunner(object):
         reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
         ep_info.add(reward_info_dict)
         # last frame
-        return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
+        return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
     def _get_mp_body_pos(self, ik_env, postfix='dummy'):
         xpos = OrderedDict()
