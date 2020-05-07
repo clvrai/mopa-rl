@@ -31,9 +31,7 @@ def argparser():
     parser.add_argument("--subgoal_predictor", type=str2bool, default=False)
     parser.add_argument("--use_subgoal_space", type=str2bool, default=True)
     parser.add_argument("--use_single_critic", type=str2bool, default=False)
-    parser.add_argument("--skill_ordering", type=str2bool, default=False)
     parser.add_argument("--termination", type=str2bool, default=False)
-    parser.add_argument("--contact_check", type=str2bool, default=False)
     parser.add_argument("--alternation", type=str2bool, default=False)
 
     # hrl
@@ -73,7 +71,6 @@ def argparser():
     parser.add_argument("--clip_range", type=float, default=5, help="the clip range after normalization of observation")
 
     # motion planning
-    parser.add_argument("--use_ik", type=str2bool, default=False)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
     parser.add_argument("--subgoal_scale", type=float, default=1.0)
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
