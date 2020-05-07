@@ -157,7 +157,11 @@ class PlannerRolloutRunner(object):
                                 #     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                                 if done or ep_len >= max_step:
                                     break
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                            if self._config.subgoal_hindsight: # refer to HAC
+                                hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            else:
+                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                             rollout.add({'done': done, 'rew': meta_rew})
                             if every_steps is not None and step % every_steps == 0:
                                 # last frame
