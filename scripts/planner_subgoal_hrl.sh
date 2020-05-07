@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.rel.fix_meta.debug"
+prefix="5.06.SAC.rel.fix_meta.no_reuse"
 hrl="True"
 ll_type="mix"
 planner_type="sst"

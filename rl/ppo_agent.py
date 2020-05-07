@@ -16,7 +16,7 @@ from util.pytorch import optimizer_cuda, count_parameters, \
 
 class PPOAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic, postfix=""):
+                 actor, critic, non_limited_idx=None, postfix=""):
         super().__init__(config, ob_space)
 
         self._ac_space = ac_space

@@ -8,7 +8,7 @@ from rl.base_agent import BaseAgent
 from rl.ppo_agent import PPOAgent
 from rl.normalizer import Normalizer
 from rl.dataset import LowLevelPPOReplayBuffer, RandomSampler
-from rl.mp_agent import MpAgent
+from rl.planner_agent import PlannerAgent
 from util.logger import logger
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, \
@@ -63,7 +63,7 @@ class LowLevelPPOAgent(BaseAgent):
             if 'mp' in skill:
                 ignored_contacts = config.ignored_contact_geom_ids[i]
                 passive_joint_idx = config.passive_joint_idx
-                planner = MpAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
+                planner = PlannerAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
                 self._planners.append(planner)
             else:
                 self._planners.append(None)

@@ -7,7 +7,7 @@ import torch.optim as optim
 
 from rl.sac_agent import SACAgent
 from rl.normalizer import Normalizer
-from rl.mp_agent import MpAgent
+from rl.planner_agent import PlannerAgent
 from util.logger import logger
 from util.pytorch import to_tensor, get_ckpt_path
 from util.gym import action_size, observation_size
@@ -49,7 +49,6 @@ class LowLevelAgent(SACAgent):
         self._planners = []
 
         # load networks
-        #mp = MpAgent(config, ac_space, non_limited_idx)
 
         # Change here !!!!!!
         if config.primitive_skills:
@@ -86,7 +85,7 @@ class LowLevelAgent(SACAgent):
             if 'mp' in skill:
                 ignored_contacts = config.ignored_contact_geom_ids[planner_i]
                 passive_joint_idx = config.passive_joint_idx
-                planner = MpAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
+                planner = PlannerAgent(config, self._ac_space, self._non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
                 self._planners.append(planner)
                 planner_i += 1
             else:

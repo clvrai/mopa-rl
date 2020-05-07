@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 from rl.dataset import ReplayBuffer, RandomSampler, LowLevelReplayBuffer
 from rl.base_agent import BaseAgent
+from rl.planner_agent import PlannerAgent
 from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
@@ -20,7 +21,7 @@ from util.gym import action_size, observation_size
 
 class SACAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic):
+                 actor, critic, non_limited_idx=None):
         super().__init__(config, ob_space)
 
         self._ob_space = ob_space
@@ -53,6 +54,13 @@ class SACAgent(BaseAgent):
 
         self._log_creation()
 
+        self._planner = None
+        if config.planner_integration:
+            self._planner = PlannerAgent(config,ac_space, non_limited_idx, config.passive_joint_idx, config.ignored_contact_geom_ids[0])
+            self._ac_rl_minimum = config.ac_rl_minimum
+            self._ac_rl_maximum = config.ac_rl_maximum
+
+
     def _log_creation(self):
         if self._config.is_chef:
             logger.info('creating a sac agent')
@@ -78,6 +86,17 @@ class SACAgent(BaseAgent):
 
     def store_episode(self, rollouts):
         self._buffer.store_episode(rollouts)
+
+
+    def is_planner_ac(self, ac):
+        if np.all(ac['default'] > self._ac_rl_minimum) and np.all(ac['default'] < self._ac_rl_maximum):
+            return False
+        return True
+
+    def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
+        traj, success = self._planner.plan(curr_qpos, target_qpos)
+        return traj, success
+
 
     def state_dict(self):
         return {
@@ -249,7 +268,8 @@ class SACAgent(BaseAgent):
             _actor_optim.zero_grad()
         actor_loss.backward()
         for i, _actor in enumerate(self._actors):
-            sync_grads(_actor)
+            if self._config.is_mpi:
+                sync_grads(_actor)
             self._actor_optims[i].step()
 
         # update the critic
@@ -257,14 +277,19 @@ class SACAgent(BaseAgent):
             _critic1_optim.zero_grad()
         critic1_loss.backward()
         for i, _critic1 in enumerate(self._critics1):
-            sync_grads(_critic1)
+            if self._config.is_mpi:
+                sync_grads(_critic1)
             self._critic1_optims[i].step()
 
         for _critic2_optim in self._critic2_optims:
             _critic2_optim.zero_grad()
         critic2_loss.backward()
         for i, _critic2 in enumerate(self._critics2):
-            sync_grads(_critic2)
+            if self._config.is_mpi:
+                sync_grads(_critic2)
             self._critic2_optims[i].step()
 
-        return mpi_average(info)
+        if self._config.is_mpi:
+            return mpi_average(info)
+        else:
+            return info
