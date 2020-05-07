@@ -10,7 +10,7 @@ import time
 from motion_planners.sampling_based_planner import SamplingBasedPlanner
 from util.logger import logger
 
-class MpAgent:
+class PlannerAgent:
     def __init__(self, config, ac_space, non_limited_idx=None, passive_joint_idx=[], ignored_contacts=[]):
 
         self._config = config

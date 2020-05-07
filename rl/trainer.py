@@ -20,6 +20,7 @@ from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
 from rl.subgoal_rollouts import SubgoalRolloutRunner
 from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
+from rl.planner_rollouts import PlannerRolloutRunner
 from rl.dataset import HERSampler
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
@@ -60,6 +61,9 @@ class Trainer(object):
 
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
+        if config.planner_integration:
+            ac_space['default'].high = ac_space['default'].high * 2
+            ac_space['default'].low = ac_space['default'].low * 2
         joint_space = self._env.joint_space
 
         allowed_collsion_pairs = []
@@ -145,11 +149,15 @@ class Trainer(object):
 
         else:
             self._agent = get_agent_by_name(config.algo)(
-                config, ob_space, ac_space, actor, critic
+                config, ob_space, ac_space, actor, critic, non_limited_idx
             )
 
         self._runner = None
-        if config.hrl:
+        if config.planner_integration:
+            self._runner = PlannerRolloutRunner(
+                config, self._env, self._env_eval, self._meta_agent, self._agent
+            )
+        elif config.hrl:
             if config.subgoal_predictor:
                 if config.algo == 'sac':
                     self._runner = SubgoalRolloutRunner(
