@@ -19,11 +19,11 @@ then
     ckpt_interval='100000'
     rl_activation="relu"
     num_batches="1"
-    log_interval="100"
+    log_interval="150"
 fi
 
 workers="1"
-prefix="05.06.BASELINE"
+prefix="05.07.BASELINE.SAC"
 max_global_step="60000000"
 env="simple-pusher-v0"
 gpu=$gpu
@@ -36,7 +36,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1234'
+seed='1235'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
@@ -45,9 +45,10 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.06.SAC'
+group='05.07.SAC.BASELINE.PUSH'
 env_debug='False'
 log_freq='1000'
+reward_scale='10.'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -78,9 +79,10 @@ python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
     --group $group \
     --env_debug $env_debug \
     --log_freq $log_freq \
-    --log_interval $log_interval
+    --log_interval $log_interval \
+    --reward_scale $reward_scale
+    --success_reward $success_reward \
+    --has_terminal $has_terminal \
