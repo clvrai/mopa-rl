@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.06.single.reuse.fix_ac-2.formed.subgoal_hindsight.v2"
+prefix="05.07.SAC.REUSE"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.06.SAC.SINGLE'
+group='05.07.SAC.SINGLE.REUSE.PUSH'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -60,6 +60,7 @@ allow_self_collision="True"
 allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
+reuse_data="True"
 
 
 # max_grad_norm='0.5'
@@ -109,4 +110,5 @@ python -m rl.main \
     --allow_manipulation_collision $allow_manipulation_collision \
     --allow_self_collision $allow_self_collision \
     --reward_scale $reward_scale \
-    --subgoal_hindsight $subgoal_hindsight
+    --subgoal_hindsight $subgoal_hindsight \
+    --reuse_data $reuse_data
