@@ -128,6 +128,11 @@ register(
     entry_point='env.pusher:SimplePusherObstacleEnv',
     kwargs={}
 )
+register(
+    id='simple-pusher-obstacle-hard-v0',
+    entry_point='env.pusher:SimplePusherObstacleHardEnv',
+    kwargs={}
+)
 
 register(
     id='pusher-obstacle-v0',
