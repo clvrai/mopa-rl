@@ -37,7 +37,7 @@ then
 fi
 
 workers="1"
-prefix="5.06.SAC.rel.fix_meta.remove.pre_joint.no_reuse"
+prefix="5.07.SAC.HRL.REUSE"
 hrl="True"
 ll_type="mix"
 planner_type="sst"
@@ -69,11 +69,11 @@ start_steps='10000'
 success_reward='150.'
 subgoal_predictor="True"
 subgoal_hindsight="True"
-seed="1234"
+seed="1236"
 has_terminal='True'
 log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
-group='05.06.SAC'
+group='05.07.SAC.HRL.REUSE.PUSH-OBSTSTACLE'
 log_freq='1000'
 allow_self_collision="True"
 allow_manipulation_collision="True"

@@ -148,20 +148,22 @@ class SubgoalRolloutRunner(object):
                             ac = env.form_action(next_qpos, cur_primitive)
                             inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
                             tmp_meta_ac = OrderedDict([('default', np.array([int(np.invert(bool(meta_ac['default'][0])))]))])
-                            # rollout.add({'ob': ll_ob, 'meta_ac': tmp_meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            if config.reuse_data:
+                                rollout.add({'ob': ll_ob, 'meta_ac': tmp_meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(ac, is_planner=True)
-                            # rollout.add({'done': done, 'rew': reward})
+                            if config.reuse_data:
+                                rollout.add({'done': done, 'rew': reward})
                             meta_rew += reward
                             ep_len += 1
                             step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
-                            # if every_steps is not None and step % every_steps == 0:
-                            #     # last frame
-                            #     ll_ob = ob.copy()
-                            #     rollout.add({'ob': ll_ob})
-                            #     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                            if every_steps is not None and step % every_steps == 0 and config.reuse_data:
+                                # last frame
+                                ll_ob = ob.copy()
+                                rollout.add({'ob': ll_ob})
+                                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
 
