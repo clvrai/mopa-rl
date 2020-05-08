@@ -80,6 +80,7 @@ allow_manipulation_collision="True"
 rl_activation="relu"
 relative_goal="True"
 log_interval="100"
+reuse_data="True"
 
 #mpiexec -n $workers
 python -m rl.main \
@@ -128,4 +129,5 @@ python -m rl.main \
     --allow_self_collision $allow_self_collision \
     --rl_activation $rl_activation \
     --relative_goal $relative_goal \
-    --log_interval $log_interval
+    --log_interval $log_interval \
+    --reuse_data $reuse_data

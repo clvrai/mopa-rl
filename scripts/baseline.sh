@@ -23,7 +23,7 @@ then
 fi
 
 workers="1"
-prefix="05.07.BASELINE.SAC"
+prefix="05.07.BASELINE.SAC.Success.150"
 max_global_step="60000000"
 env="simple-pusher-v0"
 gpu=$gpu
@@ -83,6 +83,6 @@ python -m rl.main \
     --env_debug $env_debug \
     --log_freq $log_freq \
     --log_interval $log_interval \
-    --reward_scale $reward_scale
+    --reward_scale $reward_scale \
     --success_reward $success_reward \
     --has_terminal $has_terminal \

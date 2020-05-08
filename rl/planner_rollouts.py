@@ -137,20 +137,22 @@ class PlannerRolloutRunner(object):
                         if success:
                             for next_qpos in traj:
                                 ll_ob = ob.copy()
-                                formed_ac = env.form_action(next_qpos)
+                                converted_ac = env.form_action(next_qpos)
                                 # ac = env.form_action(next_qpos)
-                                inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
-                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                ob, reward, done, info = env.step(formed_ac, is_planner=True)
+                                if config.reuse_data:
+                                    inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
+                                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                                ob, reward, done, info = env.step(converted_ac, is_planner=True)
                                 # ob, reward, done, info = env.step(ac, is_planner=True)
-                                rollout.add({'done': done, 'rew': reward})
+                                if config.reuse_data:
+                                    rollout.add({'done': done, 'rew': reward})
                                 meta_rew += reward
                                 ep_len += 1
                                 step += 1
                                 ep_rew += reward
                                 meta_len += 1
                                 reward_info.add(info)
-                                if every_steps is not None and step % every_steps == 0:
+                                if every_steps is not None and step % every_steps == 0 and config.reuse_data:
                                     # last frame
                                     ll_ob = ob.copy()
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
@@ -294,9 +296,9 @@ class PlannerRolloutRunner(object):
                     if success:
                         for next_qpos in traj:
                             ll_ob = ob.copy()
-                            formed_ac = env.form_action(next_qpos)
+                            converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
-                            ob, reward, done, info = env.step(formed_ac, is_planner=True)
+                            ob, reward, done, info = env.step(converted_ac, is_planner=True)
                             # ob, reward, done, info = env.step(ac, is_planner=True)
                             meta_rew += reward
                             ep_len += 1
@@ -307,7 +309,7 @@ class PlannerRolloutRunner(object):
                             if record:
                                 frame_info = info.copy()
                                 frame_info['ac'] = ac['default']
-                                frame_info['formed_ac'] = formed_ac['default']
+                                frame_info['converted_ac'] = converted_ac['default']
                                 frame_info['target_qpos'] = target_qpos
                                 frame_info['states'] = 'Valid states'
                                 curr_qpos = env.sim.data.qpos.copy()
