@@ -81,6 +81,7 @@ def argparser():
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.0)
     parser.add_argument("--ac_rl_maximum", type=float, default=1.0)
     parser.add_argument("--reuse_data", type=str2bool, default=False)
+    parser.add_argument("--action_range", type=float, default=2.0)
 
     # off-policy rl
     parser.add_argument("--buffer_size", type=int, default=int(1e3), help="the size of the buffer")
