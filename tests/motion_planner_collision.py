@@ -12,7 +12,8 @@ parser = argparser()
 add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-env = gym.make('simple-pusher-obstacle-v0', **args.__dict__)
+args.env = 'simple-pusher-obstacle-v0'
+env = gym.make(args.env, **args.__dict__)
 
 passive_joint_idx = []
 ignored_contacts = []
