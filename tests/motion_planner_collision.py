@@ -7,8 +7,9 @@ import env
 from config.pusher import add_arguments
 from config import argparser
 from rl.planner_agent import PlannerAgent
-from util.misc import make_ordered_pair
+from util.misc import make_ordered_pair, save_video
 from config.motion_planner import add_arguments as planner_add_arguments
+import cv2
 
 
 def render_frame(env, step, info={}):
@@ -18,28 +19,27 @@ def render_frame(env, step, info={}):
     fheight, fwidth = frame.shape[:2]
     frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 
-    if record_caption:
-        font_size = 0.4
-        thickness = 1
-        offset = 12
-        x, y = 5, fheight+10
-        cv2.putText(frame, text,
-                    (x, y), cv2.FONT_HERSHEY_SIMPLEX,
-                    font_size, (255, 255, 0), thickness, cv2.LINE_AA)
+    font_size = 0.4
+    thickness = 1
+    offset = 12
+    x, y = 5, fheight+10
+    cv2.putText(frame, text,
+                (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                font_size, (255, 255, 0), thickness, cv2.LINE_AA)
 
-        for i, k in enumerate(info.keys()):
-            v = info[k]
-            key_text = '{}: '.format(k)
-            (key_width, _), _ = cv2.getTextSize(key_text, cv2.FONT_HERSHEY_SIMPLEX,
-                                              font_size, thickness)
-            cv2.putText(frame, key_text,
-                        (x, y+offset*(i+2)),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        font_size, (66, 133, 244), thickness, cv2.LINE_AA)
-            cv2.putText(frame, str(v),
-                        (x + key_width, y+offset*(i+2)),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        font_size, (255, 255, 255), thickness, cv2.LINE_AA)
+    for i, k in enumerate(info.keys()):
+        v = info[k]
+        key_text = '{}: '.format(k)
+        (key_width, _), _ = cv2.getTextSize(key_text, cv2.FONT_HERSHEY_SIMPLEX,
+                                          font_size, thickness)
+        cv2.putText(frame, key_text,
+                    (x, y+offset*(i+2)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size, (66, 133, 244), thickness, cv2.LINE_AA)
+        cv2.putText(frame, str(v),
+                    (x + key_width, y+offset*(i+2)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size, (255, 255, 255), thickness, cv2.LINE_AA)
     return frame
 
 
@@ -76,15 +76,16 @@ non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts)
 
 
-N = 5
-save_video = False
+N = 1
+is_save_video = False
 frames = []
-for _ in range(N):
+for episode in range(N):
+    print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
     step = 0
-    if save_video:
-        frames.add([render_frame(env, step)])
+    if is_save_video:
+        frames.append([render_frame(env, step)])
     else:
         env.render('human')
 
@@ -122,18 +123,24 @@ for _ in range(N):
                     color = env._get_color(key)
                     color[-1] = 0.3
                     env._set_color(key, color)
+                    if step >= 150:
+                        done = True
+                        break
 
                 step += 1
-                if save_video:
-                    frames[i].append(render_frame(env, step))
+                if is_save_video:
+                    frames[episode].append(render_frame(env, step))
                 else:
                     env.render('human')
+
         else:
             import pdb; pdb.set_trace()
 
 
-if save_video:
+if is_save_video:
     prefix_path = './tmp/motion_planning_test/'
+    if not os.path.exists(prefix_path):
+        os.makedirs(prefix_path)
     for i, episode_frames in enumerate(frames):
-        fpath = os.path.join(prefix_path, 'test_trial_{}'.format(i))
+        fpath = os.path.join(prefix_path, 'test_trial_{}.mp4'.format(i))
         save_video(fpath, episode_frames, fps=5)
