@@ -23,7 +23,7 @@ class SimplePusherEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
-        self._ac_rescale = 0.5
+        self._ac_rescale = 0.1
         subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.5
         subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1.5
         self.subgoal_space = spaces.Dict([

@@ -89,7 +89,7 @@ class SACAgent(BaseAgent):
 
 
     def is_planner_ac(self, ac):
-        if np.all(ac['default'] > self._ac_rl_minimum) and np.all(ac['default'] < self._ac_rl_maximum):
+        if np.any(ac['default'] > self._ac_rl_minimum) and np.any(ac['default'] < self._ac_rl_maximum):
             return False
         return True
 
