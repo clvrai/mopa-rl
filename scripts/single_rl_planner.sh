@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.07.SAC.REUSE"
+prefix="05.08.SAC.REUSE"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -37,7 +37,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1238'
+seed='1236'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.07.SAC.SINGLE.REUSE.PUSH-OBSTACLE'
+group='05.08.SAC.SINGLE.REUSE.PUSH-OBSTACLE'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"

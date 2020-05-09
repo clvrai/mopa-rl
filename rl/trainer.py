@@ -67,9 +67,9 @@ class Trainer(object):
         joint_space = self._env.joint_space
 
         allowed_collsion_pairs = []
+        geom_ids = [self._env.sim.model.geom_name2id(name) for name in self._env.agent_geoms]
         if config.allow_self_collision:
             from itertools import combinations
-            geom_ids = [self._env.sim.model.geom_name2id(name) for name in self._env.agent_geoms]
             comb = combinations(geom_ids, 2)
             for pair in list(comb):
                 allowed_collsion_pairs.append(make_ordered_pair(pair[0], pair[1]))
