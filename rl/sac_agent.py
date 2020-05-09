@@ -89,9 +89,9 @@ class SACAgent(BaseAgent):
 
 
     def is_planner_ac(self, ac):
-        if np.any(ac['default'] > self._ac_rl_minimum) and np.any(ac['default'] < self._ac_rl_maximum):
-            return False
-        return True
+        if np.any(ac['default'] < self._ac_rl_minimum) or np.any(ac['default'] > self._ac_rl_maximum):
+            return True
+        return False
 
     def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         traj, success = self._planner.plan(curr_qpos, target_qpos)
