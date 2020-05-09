@@ -62,8 +62,8 @@ class Trainer(object):
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
         if config.planner_integration:
-            ac_space['default'].high = config.action_range
-            ac_space['default'].low = -config.action_range
+            ac_space['default'].high = np.ones_like(ac_space['default'].high) * config.action_range
+            ac_space['default'].low = -np.ones_like(ac_space['default'].low) * config.action_range
         joint_space = self._env.joint_space
 
         allowed_collsion_pairs = []
