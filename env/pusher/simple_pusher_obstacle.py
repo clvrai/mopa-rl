@@ -24,7 +24,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
-        self._ac_rescale = 0.5
+        self._ac_rescale = 0.1
         self._subgoal_scale = kwargs['subgoal_scale']
         subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
         subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
