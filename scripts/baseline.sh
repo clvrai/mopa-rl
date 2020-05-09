@@ -23,7 +23,7 @@ then
 fi
 
 workers="1"
-prefix="05.07.BASELINE.SAC.Success.150"
+prefix="05.07.BASELINE.SAC.Success.150.debug"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -33,7 +33,7 @@ entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 batch_size="256"
 clip_param="0.2"
 seed='1234'

@@ -24,7 +24,6 @@ class SimplePusherObstacleEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
-        self._ac_rescale = 0.1
         self._subgoal_scale = kwargs['subgoal_scale']
         subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
         subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
@@ -161,11 +160,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         if not is_planner or self._prev_state is None:
             self._prev_state = self.get_joint_positions
 
-        if not is_planner:
-            rescaled_ac = action * self._ac_rescale
-        else:
-            rescaled_ac = action
-        desired_state = self._prev_state + rescaled_ac # except for gripper action
+        desired_state = self._prev_state + action # except for gripper action
 
         n_inner_loop = int(self._frame_dt/self.dt)
         reward, info = self.compute_reward(action)

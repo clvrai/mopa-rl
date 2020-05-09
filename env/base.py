@@ -112,8 +112,6 @@ class BaseEnv(gym.Env):
         minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
         maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
         minimum[is_limited], maximum[is_limited] = control_range[is_limited].T
-        maximum= np.ones(num_actions)
-        minimum = -np.ones(num_actions)
 
         self._minimum = minimum
         self._maximum = maximum
