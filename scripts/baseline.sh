@@ -23,9 +23,9 @@ then
 fi
 
 workers="1"
-prefix="05.07.BASELINE.SAC.Success.150"
+prefix="05.07.BASELINE.SAC"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
@@ -36,7 +36,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1234'
+seed='1236'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
@@ -45,7 +45,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.07.SAC.BASELINE.PUSH-OBSTACLE'
+group='05.07.SAC.BASELINE.PUSH-OBSTACLE-HARD'
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'

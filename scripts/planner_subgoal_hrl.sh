@@ -14,22 +14,27 @@ then
     ignored_contact_geoms='None,None'
 elif [ $v = 3 ]
 then
+    env="simple-pusher-obstacle-hard-v0"
+    primitive_skills="reach_mp push"
+    ignored_contact_geoms='None,None'
+elif [ $v = 4 ]
+then
     env="simple-mover-v0"
     primitive_skills="reach_mp grasp manipulation_mp"
     ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
     # primitive_skills="reach grasp manipulation"
     # ignored_contact_geoms='None,None'
-elif [ $v = 4 ]
+elif [ $v = 5 ]
 then
     env='simple-mover-obstacle-v0'
     primitive_skills="reach_mp grasp manipulation_mp"
     ignored_contact_geoms='None,None None,None box,l_finger_g0/box,r_finger_g0/box,gripper_base_geom'
-elif [ $v = 5 ]
+elif [ $v = 6 ]
 then
     env='simple-reacher-v0'
     primitive_skills="reach_mp"
     ignored_contact_geoms='None,None'
-elif [ $v = 6 ]
+elif [ $v = 7 ]
 then
     env='reacher-obstacle-v0'
     primitive_skills="reach_mp reach"
@@ -69,11 +74,11 @@ start_steps='10000'
 success_reward='150.'
 subgoal_predictor="True"
 subgoal_hindsight="True"
-seed="1236"
+seed="1234"
 has_terminal='True'
 log_root_dir='./logs'
 use_automatic_entropy_tuning="True"
-group='05.07.SAC.HRL.REUSE.PUSH-OBSTSTACLE'
+group='05.07.SAC.HRL.REUSE.PUSH-OBSTSTACLE-HARD'
 log_freq='1000'
 allow_self_collision="True"
 allow_manipulation_collision="True"
