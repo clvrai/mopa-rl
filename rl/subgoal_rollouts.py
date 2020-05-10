@@ -146,7 +146,7 @@ class SubgoalRolloutRunner(object):
                         for next_qpos in traj:
                             ll_ob = ob.copy()
                             ac = env.form_action(next_qpos, cur_primitive)
-                            inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy()])
+                            inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())])
                             tmp_meta_ac = OrderedDict([('default', np.array([int(np.invert(bool(meta_ac['default'][0])))]))])
                             if config.reuse_data:
                                 rollout.add({'ob': ll_ob, 'meta_ac': tmp_meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
