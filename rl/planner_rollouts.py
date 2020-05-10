@@ -129,7 +129,10 @@ class PlannerRolloutRunner(object):
 
                     curr_qpos = env.sim.data.qpos.copy()
                     prev_ob = ob.copy()
-                    if pi.is_planner_ac(ac):
+                    is_planner = False
+                    if config.extended_action:
+                        is_planner = bool(ac['ac_type'][0])
+                    if pi.is_planner_ac(ac) or is_planner:
                         counter['mp'] += 1
                         target_qpos = curr_qpos.copy()
                         if config.relative_goal:
@@ -292,6 +295,9 @@ class PlannerRolloutRunner(object):
                 curr_qpos = env.sim.data.qpos.copy()
                 prev_joint_qpos = curr_qpos[env.ref_joint_pos_indexes]
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                is_planner = False
+                if config.extended_action:
+                    is_planner = bool(ac['ac_type'][0])
                 if pi.is_planner_ac(ac):
                     counter['mp'] += 1
                     target_qpos = curr_qpos.copy()

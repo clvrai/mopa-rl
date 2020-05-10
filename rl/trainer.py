@@ -139,6 +139,8 @@ class Trainer(object):
             if config.termination:
                 subgoal_space.spaces['term'] = spaces.Discrete(2)
                 ac_space.spaces['term'] = spaces.Discrete(2)
+            if config.planner_integration and config.extended_action:
+                ac_space.spaces['ac_type'] = spaces.Discrete(2)
             if config.algo == 'sac':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(
