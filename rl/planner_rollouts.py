@@ -410,7 +410,7 @@ class PlannerRolloutRunner(object):
             for k in env.body_geoms:
                 geom_idx = env.sim.model.geom_name2id(k)
                 color = env.sim.model.geom_rgba[geom_idx]
-                geom_colors[geom_idx] = color
+                geom_colors[geom_idx] = color.copy()
                 color[0] = 0.0
                 color[1] = 0.6
                 color[2] = 0.4
