@@ -321,7 +321,7 @@ class PlannerRolloutRunner(object):
                             ik_env.set_state(ik_qpos, ik_env.sim.data.qvel.ravel())
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                            self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                            self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
                             if done or ep_len >= max_step:
                                 break
                         rollout.add({'done': done, 'rew': meta_rew})
@@ -347,7 +347,7 @@ class PlannerRolloutRunner(object):
 
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                            self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                            self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
                 else:
                     counter['rl'] += 1
                     ob, reward, done, info = env.step(ac)
@@ -387,7 +387,7 @@ class PlannerRolloutRunner(object):
 
         return xpos, xquat
 
-    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[]):
+    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[], planner=True):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(env._episode_length,
@@ -405,6 +405,17 @@ class PlannerRolloutRunner(object):
                 color[-1] = 0.3
                 env._set_color(k, color)
 
+        geom_colors = {}
+        if planner:
+            for k in env.body_geoms:
+                geom_idx = env.sim.model.geom_name2id(k)
+                color = env.sim.model.geom_rgba[geom_idx]
+                geom_colors[geom_idx] = color
+                color[0] = 0.0
+                color[1] = 0.6
+                color[2] = 0.4
+                env.sim.model.geom_rgba[geom_idx] = color
+
         frame = env.render('rgb_array') * 255.0
         env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
         for xpos, xquat in vis_pos:
@@ -413,6 +424,10 @@ class PlannerRolloutRunner(object):
                     color = env._get_color(k)
                     color[-1] = 0.
                     env._set_color(k, color)
+
+        if planner:
+            for geom_idx, color in geom_colors.items():
+                env.sim.model.geom_rgba[geom_idx] = color
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)

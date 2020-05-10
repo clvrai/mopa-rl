@@ -78,8 +78,8 @@ def argparser():
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_self_collision", type=str2bool, default=False)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
-    parser.add_argument("--ac_rl_minimum", type=float, default=-0.1)
-    parser.add_argument("--ac_rl_maximum", type=float, default=0.1)
+    parser.add_argument("--ac_rl_minimum", type=float, default=-1.)
+    parser.add_argument("--ac_rl_maximum", type=float, default=1.)
     parser.add_argument("--reuse_data", type=str2bool, default=False)
     parser.add_argument("--action_range", type=float, default=1.0)
 
