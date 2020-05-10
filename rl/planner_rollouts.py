@@ -387,7 +387,7 @@ class PlannerRolloutRunner(object):
 
         return xpos, xquat
 
-    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[], planner=True):
+    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[], planner=False):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(env._episode_length,
