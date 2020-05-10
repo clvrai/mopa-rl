@@ -132,7 +132,13 @@ class PlannerRolloutRunner(object):
                     if pi.is_planner_ac(ac):
                         counter['mp'] += 1
                         target_qpos = curr_qpos.copy()
-                        target_qpos[env.ref_joint_pos_indexes] += ac['default']
+                        if config.relative_goal:
+                            target_qpos[env.ref_joint_pos_indexes] += ac['default']
+                            tmp_target_qpos = target_qpos.copy()
+                            target_qpos = np.clip(target_qpos, env._jnt_minimum, env._jnt_maximum)
+                            target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
+                        else:
+                            target_qpos[env.ref_joint_pos_indexes] = ac['default']
                         traj, success = pi.plan(curr_qpos, target_qpos)
                         if success:
                             for next_qpos in traj:

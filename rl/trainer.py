@@ -62,10 +62,12 @@ class Trainer(object):
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
         if config.planner_integration:
-            # ac_space['default'].high = np.ones_like(ac_space['default'].high) * config.action_range
-            ac_space['default'].high = self._env._jnt_maximum[self._env.ref_joint_pos_indexes]
-            # ac_space['default'].low = -np.ones_like(ac_space['default'].low) * config.action_range
-            ac_space['default'].low = self._env._jnt_minimum[self._env.ref_joint_pos_indexes]
+            if config.relative_goal:
+                ac_space['default'].high = np.ones_like(ac_space['default'].high) * config.action_range
+                ac_space['default'].low = -np.ones_like(ac_space['default'].low) * config.action_range
+            else:
+                ac_space['default'].high = self._env._jnt_maximum[self._env.ref_joint_pos_indexes]
+                ac_space['default'].low = self._env._jnt_minimum[self._env.ref_joint_pos_indexes]
         joint_space = self._env.joint_space
 
         allowed_collsion_pairs = []
