@@ -10,10 +10,7 @@ from rl.planner_agent import PlannerAgent
 from util.misc import make_ordered_pair, save_video
 from config.motion_planner import add_arguments as planner_add_arguments
 import cv2
-<<<<<<< HEAD
 import time
-=======
->>>>>>> 099a862... implemented contact_threshold that lets the planner ignore slight penetrations
 import timeit
 
 
@@ -82,7 +79,7 @@ planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_id
 
 
 N = 1
-is_save_video = True
+is_save_video = False
 frames = []
 start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
 # ob = env.reset()
