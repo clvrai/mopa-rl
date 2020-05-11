@@ -198,6 +198,9 @@ class BaseEnv(gym.Env):
         self._fail = False
         self._i_term = np.zeros_like(self.sim.data.qpos[self.ref_joint_pos_indexes])
 
+    def _reset_prev_state(self):
+        self._prev_state = None
+
 
     def step(self, action, is_planner=False):
         if isinstance(action, list):
@@ -309,6 +312,11 @@ class BaseEnv(gym.Env):
                 self.data.ctrl[:] = a[:]
             self.sim.forward()
             self.sim.step()
+            if np.any(self.sim.data.qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(self.sim.data.qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+                tmp_pos = self.sim.data.qpos.copy()
+                new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+                new_pos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+                self.set_state(new_pos, self.sim.data.qvel.ravel())
         except Exception as e:
             logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
             logger.warn(e)

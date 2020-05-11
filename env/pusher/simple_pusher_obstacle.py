@@ -112,7 +112,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:self.sim.model.nu]
+        return self.sim.data.qpos.ravel()[self.ref_joint_pos_indexes]
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
@@ -185,6 +185,7 @@ class SimplePusherObstacleEnv(BaseEnv):
                     self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
+
 
     def compute_subgoal_reward(self, name, info):
         reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")

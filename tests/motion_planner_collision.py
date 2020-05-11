@@ -10,6 +10,8 @@ from rl.planner_agent import PlannerAgent
 from util.misc import make_ordered_pair, save_video
 from config.motion_planner import add_arguments as planner_add_arguments
 import cv2
+import time
+import timeit
 
 
 def render_frame(env, step, info={}):
@@ -57,9 +59,9 @@ mp_env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="sst"
 args.planner_objective="state_const_integral"
-args.range=0.1
-args.threshold=0.1
-args.timelimit=0.01
+args.range = 0.1
+args.threshold = 0.1
+args.timelimit = 2.0
 
 ignored_contacts = []
 # Allow collision with manipulatable object
@@ -73,16 +75,21 @@ passive_joint_idx = list(range(len(env.sim.data.qpos)))
 [passive_joint_idx.remove(idx) for idx in env.ref_joint_pos_indexes]
 
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
-planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts)
+planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, -0.001)
 
 
 N = 1
 is_save_video = False
 frames = []
+start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
+# ob = env.reset()
+# env.set_state(start_pos, env.sim.data.qvel.copy())
+
 for episode in range(N):
     print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
+    env.set_state(start_pos, env.sim.data.qvel.copy())
     step = 0
     if is_save_video:
         frames.append([render_frame(env, step)])
@@ -93,10 +100,13 @@ for episode in range(N):
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success = planner.plan(current_qpos, target_qpos)
         mp_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
+        print(target_qpos)
+        print(len(traj))
 
         for i in range(len(mp_env.ref_joint_pos_indexes)):
             name = 'body'+str(i)
@@ -113,7 +123,7 @@ for episode in range(N):
                 action = env.form_action(next_qpos)
                 ob, reward, done, info = env.step(action, is_planner=True)
 
-                mp_env.set_state(next_qpos, env.sim.data.qvel.copy())
+                mp_env.set_state(next_qpos.copy(), env.sim.data.qvel.copy())
                 for i in range(len(mp_env.ref_joint_pos_indexes)):
                     name = 'body'+str(i)
                     body_idx = mp_env.sim.model.body_name2id(name)
@@ -123,18 +133,23 @@ for episode in range(N):
                     color = env._get_color(key)
                     color[-1] = 0.3
                     env._set_color(key, color)
-                    if step >= 150:
-                        done = True
-                        break
+                    # if step >= 150:
+                    #     done = True
+                    #     break
 
                 step += 1
                 if is_save_video:
                     frames[episode].append(render_frame(env, step))
                 else:
+                    import timeit
                     env.render('human')
+                    t = timeit.default_timer()
+                    while timeit.default_timer() - t < 0.1:
+                        pass
 
         else:
-            import pdb; pdb.set_trace()
+            # env.render('human')
+            print("Invalid state")
 
 
 if is_save_video:
