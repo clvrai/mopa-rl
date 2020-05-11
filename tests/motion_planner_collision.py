@@ -10,6 +10,8 @@ from rl.planner_agent import PlannerAgent
 from util.misc import make_ordered_pair, save_video
 from config.motion_planner import add_arguments as planner_add_arguments
 import cv2
+import time
+import timeit
 
 
 def render_frame(env, step, info={}):
@@ -57,9 +59,9 @@ mp_env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="sst"
 args.planner_objective="state_const_integral"
-args.range=0.1
-args.threshold=0.1
-args.timelimit=0.01
+args.range=0.4
+args.threshold=0.
+args.timelimit=0.05
 
 ignored_contacts = []
 # Allow collision with manipulatable object
@@ -77,7 +79,7 @@ planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_id
 
 
 N = 1
-is_save_video = False
+is_save_video = True
 frames = []
 for episode in range(N):
     print("Episode: {}".format(episode))
@@ -114,7 +116,7 @@ for episode in range(N):
                 action = env.form_action(next_qpos)
                 ob, reward, done, info = env.step(action, is_planner=True)
 
-                mp_env.set_state(next_qpos, env.sim.data.qvel.copy())
+                mp_env.set_state(next_qpos.copy(), env.sim.data.qvel.copy())
                 for i in range(len(mp_env.ref_joint_pos_indexes)):
                     name = 'body'+str(i)
                     body_idx = mp_env.sim.model.body_name2id(name)
@@ -132,10 +134,14 @@ for episode in range(N):
                 if is_save_video:
                     frames[episode].append(render_frame(env, step))
                 else:
-                    env.render('human')
+                    time.sleep(0.5)
+                    t = timeit.default_timer()
+                    while timeit.default_timer() - t < 0.1:
+                        env.render('human')
+            env._reset_prev_state()
 
         else:
-            env.render('human')
+            # env.render('human')
             print("Invalid state")
 
 

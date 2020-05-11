@@ -198,6 +198,9 @@ class BaseEnv(gym.Env):
         self._fail = False
         self._i_term = np.zeros_like(self.sim.data.qpos[self.ref_joint_pos_indexes])
 
+    def _reset_prev_state(self):
+        self._prev_state = None
+
 
     def step(self, action, is_planner=False):
         if isinstance(action, list):
