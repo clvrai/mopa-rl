@@ -178,12 +178,14 @@ class MujocoStateValidityChecker : public ompl::base::StateValidityChecker {
             std::shared_ptr<MuJoCo> mj,
             std::vector<int> passive_joint_idx,
             bool useVelocities=true,
-            std::vector<std::pair<int, int>> ignored_contacts = {})
+            std::vector<std::pair<int, int>> ignored_contacts = {},
+            double contact_threshold=0.0)
             : ompl::base::StateValidityChecker(si),
               mj(mj),
               passive_joint_idx(passive_joint_idx),
               ignored_contacts(ignored_contacts),
-              useVelocities(useVelocities)
+              useVelocities(useVelocities),
+              contact_threshold(contact_threshold)
     {
     }
 
@@ -205,6 +207,7 @@ class MujocoStateValidityChecker : public ompl::base::StateValidityChecker {
     std::vector<std::pair<int, int>> ignored_contacts;
     bool useVelocities;
     GlueTransformation *glue_transformation = NULL;
+    double contact_threshold;
     bool isValid(const ompl::base::State *state, std::vector<std::pair<int, int>> ignored_contacts) const;
 
 };
