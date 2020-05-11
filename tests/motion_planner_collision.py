@@ -93,6 +93,7 @@ for episode in range(N):
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success = planner.plan(current_qpos, target_qpos)
         mp_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
         xpos = OrderedDict()
@@ -134,7 +135,8 @@ for episode in range(N):
                     env.render('human')
 
         else:
-            import pdb; pdb.set_trace()
+            env.render('human')
+            print("Invalid state")
 
 
 if is_save_video:

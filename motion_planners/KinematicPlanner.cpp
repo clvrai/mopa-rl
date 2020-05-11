@@ -218,6 +218,11 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
 
     ss->setStartAndGoalStates(start_ss, goal_ss, threshold);
+    if (!ss->getStateValidityChecker()->isValid(goal_ss.get())){
+        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
+        OMPL_DEBUG("Invalid Goal");
+        return failedSolutions;
+    }
 
     // Call the planner
     ob::PlannerStatus solved;
