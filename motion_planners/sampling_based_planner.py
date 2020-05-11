@@ -59,6 +59,9 @@ class SamplingBasedPlanner:
     def remove_collision(self, geom_id, contype, conaffinity):
         self.planner.removeCollision(geom_id, contype, conaffinity)
 
+    def get_planner_status(self):
+        return self.planner.getPlannerStatus().decode('utf-8')
+
 
 class SamplingBasedKinodynamicPlanner:
     def __init__(self, config, xml_path, num_actions):

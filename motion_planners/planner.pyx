@@ -26,6 +26,7 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
 
         vector[vector[double]] plan(vector[double], vector[double], double, double)
         void removeCollision(int, int, int)
+        string getPlannerStatus()
 
 cdef class PyKinematicPlanner:
     cdef KinematicPlanner *thisptr
@@ -41,3 +42,5 @@ cdef class PyKinematicPlanner:
     cpdef removeCollision(self, geom_id, contype, conaffinity):
         return self.thisptr.removeCollision(geom_id, contype, conaffinity)
 
+    cpdef getPlannerStatus(self):
+        return self.thisptr.getPlannerStatus()

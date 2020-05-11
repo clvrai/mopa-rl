@@ -80,6 +80,7 @@ namespace MotionPlanner
             ~KinematicPlanner();
             std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double min_steps);
             void removeCollision(int geom_id, int contype, int conaffinity);
+            std::string getPlannerStatus();
     };
 }
 
