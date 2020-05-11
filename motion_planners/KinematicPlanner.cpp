@@ -48,7 +48,7 @@ using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts)
+                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -93,7 +93,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     // Setup OMPL environment
     si = MjOmpl::createSpaceInformationKinematic(mj->m, passive_joint_idx);
 
-    msvc = std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false, ignored_contacts);
+    msvc = std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false, ignored_contacts, contact_threshold);
     si->setStateValidityChecker(msvc);
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
@@ -221,6 +221,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     if (!ss->getStateValidityChecker()->isValid(goal_ss.get())){
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
         OMPL_DEBUG("Invalid Goal");
+        std::cout << "Invalid Goal" << std::endl;
         return failedSolutions;
     }
 

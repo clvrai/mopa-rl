@@ -11,10 +11,10 @@ from motion_planners.sampling_based_planner import SamplingBasedPlanner
 from util.logger import logger
 
 class PlannerAgent:
-    def __init__(self, config, ac_space, non_limited_idx=None, passive_joint_idx=[], ignored_contacts=[]):
+    def __init__(self, config, ac_space, non_limited_idx=None, passive_joint_idx=[], ignored_contacts=[], contact_threshold=0.0):
 
         self._config = config
-        self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts)
+        self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts, contact_threshold=contact_threshold)
 
     def plan(self, start, goal):
         config = self._config
