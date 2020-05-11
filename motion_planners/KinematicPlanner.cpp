@@ -48,7 +48,7 @@ using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold)
+                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -113,6 +113,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         sst_planner->setSelectionRadius(sst_selection_radius); // default 0.2
         sst_planner->setPruningRadius(sst_pruning_radius); // default 0.1
         sst_planner->setRange(_range);
+        sst_planner->setGoalBias(goal_bias);
         ss->setPlanner(sst_planner);
 
         std::cout << "Using SST planner with selection radius ["
@@ -349,7 +350,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
     return failedSolutions;
 }
-
 
 void KinematicPlanner::removeCollision(int geom_id, int contype, int conaffinity){
     mj->m->geom_contype[geom_id] = contype;

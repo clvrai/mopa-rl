@@ -151,7 +151,6 @@ for episode in range(N):
                     env.render('human')
                     t = timeit.default_timer()
                     while timeit.default_timer() - t < 0.1:
-                        pass
         else:
             # env.render('human')
             print("Invalid state")

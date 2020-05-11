@@ -220,6 +220,12 @@ class BaseEnv(gym.Env):
         pass
 
     def _after_step(self, reward, terminal, info):
+        if np.any(self.sim.data.qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(self.sim.data.qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+            tmp_pos = self.sim.data.qpos.copy()
+            new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+            new_pos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            self.set_state(new_pos, self.sim.data.qvel.ravel())
+
         step_log = dict(info)
         self._terminal = terminal
         penalty = 0
@@ -312,11 +318,6 @@ class BaseEnv(gym.Env):
                 self.data.ctrl[:] = a[:]
             self.sim.forward()
             self.sim.step()
-            if np.any(self.sim.data.qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(self.sim.data.qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
-                tmp_pos = self.sim.data.qpos.copy()
-                new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum, self._jnt_maximum)
-                new_pos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
-                self.set_state(new_pos, self.sim.data.qvel.ravel())
         except Exception as e:
             logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
             logger.warn(e)
