@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.09.SAC.REUSE.NO.SuccessReward"
+prefix="05.09.SAC.REUSE.No.SuccessReward"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -37,7 +37,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1236'
+seed='1242'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
