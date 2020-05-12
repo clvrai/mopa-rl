@@ -101,8 +101,8 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        # target_qpos[env.ref_joint_pos_indexes] = np.array([2.01, -1.48, 1.33])
-        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] = np.array([2.01, -1.48, 1.33])
+        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)
         mp_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
@@ -119,11 +119,11 @@ for episode in range(N):
             color[-1] = 0.3
             env._set_color(key, color)
 
-        if success:
-            print("Simple planner is executed")
-        else:
-            print("Normal planner is executed")
+        if "Approximate solution" == simple_planner.get_planner_status():
             traj, success = planner.plan(current_qpos, target_qpos)
+            print("Normal planner is executed")
+        else:
+            print("Invalid state")
 
         if success:
             for j, next_qpos in enumerate(traj):
