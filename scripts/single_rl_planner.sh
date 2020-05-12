@@ -19,12 +19,12 @@ then
     ckpt_interval='200000'
     rl_activation="relu"
     num_batches="1"
-    log_interval="100"
+    log_interval="150"
 fi
 
 workers="1"
 tanh="True"
-prefix="05.10.SAC.REUSE.EXTENDED_ACTION.RANGE.2.0.INVALID.REW-0.2"
+prefix="05.12.SAC.REUSE.EXTENDED_ACTION.RANGE.0.2.REW-0.3"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -37,7 +37,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1239'
+seed='1236'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Fix motion planner'
@@ -46,14 +46,14 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.10.SAC.SINGLE.REUSE.PUSH-OBSTACLE-EXTENDED_ACTION.RANGE.2.0.INVALID.REW-0.2'
+group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.EXTENDED_ACTION.RANGE.0.2.INVALID.REW-0.3'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="sst"
 planner_objective="state_const_integral"
-range="0.3"
+range="0.1"
 threshold="0.1"
 timelimit="1.0"
 allow_self_collision="False"
@@ -64,9 +64,9 @@ reuse_data="True"
 relative_goal="True"
 simple_planner_timelimit="0.01"
 action_range="2.0"
-ac_rl_minimum="-0.3"
-ac_rl_maximum="0.3"
-invalid_planner_rew="-0.2"
+ac_rl_minimum="-0.1"
+ac_rl_maximum="0.1"
+invalid_planner_rew="-0.3"
 extended_action="True"
 
 
