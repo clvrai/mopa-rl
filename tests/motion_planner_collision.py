@@ -54,6 +54,10 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 args.env = 'simple-pusher-obstacle-v0'
+args.kp = 150.
+args.kd = 20.
+args.ki = 0.1
+
 env = gym.make(args.env, **args.__dict__)
 mp_env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
