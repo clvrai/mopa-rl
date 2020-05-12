@@ -24,9 +24,9 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.10.SAC.REUSE.FIXED-PLANNER"
+prefix="05.10.SAC.REUSE.FIXED-PLANNER.AC-RANGE.2.0"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="simple-pusher-obstacle-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.10.SAC.SINGLE.REUSE.PUSH-OBSTACLE-FIXED-PLANNER'
+group='05.10.SAC.SINGLE.REUSE.PUSH-OBSTACLE-FIXED-PLANNER.AC-RANGE.2.0'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
