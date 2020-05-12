@@ -51,7 +51,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
                  double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias)
 {
     // std::string xml_filename = XML_filename;
-    // ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
+    ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;

@@ -61,7 +61,7 @@ args.planner_type="sst"
 args.planner_objective="state_const_integral"
 args.range = 0.1
 args.threshold = 0
-args.timelimit = 2.0
+args.timelimit = 1.0
 args.contact_threshold = -0.001
 
 ignored_contacts = []
