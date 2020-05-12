@@ -152,7 +152,10 @@ class SimplePusherEnv(BaseEnv):
         if not is_planner or self._prev_state is None:
             self._prev_state = self.get_joint_positions
 
-        desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        if not is_planner:
+            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        else:
+            desired_state = self._prev_state + action
 
         n_inner_loop = int(self._frame_dt/self.dt)
         reward, info = self.compute_reward(action)

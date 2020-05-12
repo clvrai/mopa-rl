@@ -162,8 +162,11 @@ class SimplePusherObstacleEnv(BaseEnv):
 
         info = {}
         done = False
-        if not is_planner or self._prev_state is None:
-            self._prev_state = self.get_joint_positions
+
+        if not is_planner:
+            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        else:
+            desired_state = self._prev_state + action
 
         desired_state = self._prev_state + self._ac_scale * action # except for gripper action
 
