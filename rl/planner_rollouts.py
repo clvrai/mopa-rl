@@ -156,7 +156,7 @@ class PlannerRolloutRunner(object):
                                 converted_ac = env.form_action(next_qpos)
                                 # ac = env.form_action(next_qpos)
                                 if config.reuse_data:
-                                    inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())])
+                                    inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())/env._ac_scale)])
                                     if config.extended_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
