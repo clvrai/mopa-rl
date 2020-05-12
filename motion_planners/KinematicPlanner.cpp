@@ -169,25 +169,6 @@ KinematicPlanner::~KinematicPlanner(){
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
                                                             double timelimit, double min_steps) {
 
-    if (algo == "sst") {
-        ss->getPlanner()->as<og::SST>()->clear();
-    } else if (algo == "pdst") {
-        ss->getPlanner()->as<og::PDST>()->clear();
-    } else if (algo == "est") {
-        ss->getPlanner()->as<og::EST>()->clear();
-    } else if (algo == "kpiece") {
-        ss->getPlanner()->as<og::KPIECE1>()->clear();
-    } else if (algo == "rrt"){
-        ss->getPlanner()->as<og::RRTstar>()->clear();
-    } else if (algo == "sst"){
-        ss->getPlanner()->as<og::SST>()->clear();
-    } else if (algo == "rrt_connect"){
-        ss->getPlanner()->as<og::RRTConnect>()->clear();
-    } else if (algo == "prm_star"){
-        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
-    } else if (algo == "spars"){
-        ss->getPlanner()->as<og::SPARS>()->clearQuery();
-    }
     if (start_vec.size() != mj->m->nq) {
         std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
         << " but should be nq: " << mj->m->nq;
@@ -322,11 +303,49 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         }
         // Write solution to file
         //ss->clear();
+        if (algo == "sst") {
+            ss->getPlanner()->as<og::SST>()->clear();
+        } else if (algo == "pdst") {
+            ss->getPlanner()->as<og::PDST>()->clear();
+        } else if (algo == "est") {
+            ss->getPlanner()->as<og::EST>()->clear();
+        } else if (algo == "kpiece") {
+            ss->getPlanner()->as<og::KPIECE1>()->clear();
+        } else if (algo == "rrt"){
+            ss->getPlanner()->as<og::RRTstar>()->clear();
+        } else if (algo == "sst"){
+            ss->getPlanner()->as<og::SST>()->clear();
+        } else if (algo == "rrt_connect"){
+            ss->getPlanner()->as<og::RRTConnect>()->clear();
+        } else if (algo == "prm_star"){
+            ss->getPlanner()->as<og::PRMstar>()->clearQuery();
+        } else if (algo == "spars"){
+            ss->getPlanner()->as<og::SPARS>()->clearQuery();
+        }
         return solutions;
     }
 
     // return solutions;
     //return 0;
+    if (algo == "sst") {
+        ss->getPlanner()->as<og::SST>()->clear();
+    } else if (algo == "pdst") {
+        ss->getPlanner()->as<og::PDST>()->clear();
+    } else if (algo == "est") {
+        ss->getPlanner()->as<og::EST>()->clear();
+    } else if (algo == "kpiece") {
+        ss->getPlanner()->as<og::KPIECE1>()->clear();
+    } else if (algo == "rrt"){
+        ss->getPlanner()->as<og::RRTstar>()->clear();
+    } else if (algo == "sst"){
+        ss->getPlanner()->as<og::SST>()->clear();
+    } else if (algo == "rrt_connect"){
+        ss->getPlanner()->as<og::RRTConnect>()->clear();
+    } else if (algo == "prm_star"){
+        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
+    } else if (algo == "spars"){
+        ss->getPlanner()->as<og::SPARS>()->clearQuery();
+    }
     std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
     return failedSolutions;
 }

@@ -184,6 +184,7 @@ class PlannerRolloutRunner(object):
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                         else:
+                            counter['mp_fail'] += 1
                             ll_ob = ob.copy()
                             meta_rollout.add({
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -206,7 +207,6 @@ class PlannerRolloutRunner(object):
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                     else:
-                        counter['mp_fail'] += 1
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         counter['rl'] += 1
                         ob, reward, done, info = env.step(ac)
@@ -272,7 +272,7 @@ class PlannerRolloutRunner(object):
 
         # run rollout
         meta_ac = None
-        counter = {'mp': 0, 'rl': 0, 'interpolation': 0}
+        counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0}
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
