@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.10.SAC.REUSE.debug"
+prefix="05.10.SAC.REUSE"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -34,7 +34,7 @@ entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 seed='1242'
@@ -63,6 +63,9 @@ subgoal_hindsight="True"
 reuse_data="True"
 relative_goal="False"
 simple_planner_timelimit="0.01"
+action_range="2.0"
+ac_rl_minimum="0.3"
+ac_rl_maximum="0.3"
 
 
 # max_grad_norm='0.5'
