@@ -128,6 +128,7 @@ class PlannerRolloutRunner(object):
 
 
                     curr_qpos = env.sim.data.qpos.copy()
+                    target_qpos = curr_qpos.copy()
                     prev_ob = ob.copy()
                     is_planner = False
                     if config.extended_action:
