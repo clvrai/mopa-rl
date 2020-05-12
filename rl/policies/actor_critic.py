@@ -35,7 +35,7 @@ class Actor(nn.Module):
                     stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
-                if self._config.meta_algo == 'sac':
+                if self._config.meta_algo == 'sac' or self._config.algo == 'sac':
                     dists[k] = FixedGumbelSoftmax(torch.tensor(self._config.temperature), logits=means[k])
                 else:
                     dists[k] = FixedCategorical(logits=means[k])
@@ -62,7 +62,6 @@ class Actor(nn.Module):
                     log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
-
             actions[k] = action.detach().cpu().numpy().squeeze(0)
             activations[k] = z.detach().cpu().numpy().squeeze(0)
 
@@ -92,7 +91,7 @@ class Actor(nn.Module):
                     stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
-                if self._config.meta_algo == 'sac':
+                if self._config.meta_algo == 'sac' or self._config.algo == 'sac':
                     dists[k] = FixedGumbelSoftmax(torch.tensor(self._config.temperature), logits=means[k])
                 else:
                     dists[k] = FixedCategorical(logits=means[k])

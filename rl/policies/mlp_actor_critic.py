@@ -82,7 +82,6 @@ class MlpCritic(Critic):
         inp = list(ob.values())
         if len(inp[0].shape) == 1:
             inp = [x.unsqueeze(0) for x in inp]
-
         if ac is not None:
             ac = list(ac.values())
             if len(ac[0].shape) == 1:

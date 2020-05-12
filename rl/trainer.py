@@ -126,6 +126,8 @@ class Trainer(object):
         self._meta_agent = get_meta_agent_by_name(config.meta_algo)(config, ob_space, meta_ac_space, sampler=sampler)
 
         ll_ob_space = ob_space
+        if config.planner_integration and config.extended_action:
+            ac_space.spaces['ac_type'] = spaces.Discrete(2)
         if config.hrl:
             if config.use_subgoal_space:
                 if config.relative_goal:
@@ -139,8 +141,6 @@ class Trainer(object):
             if config.termination:
                 subgoal_space.spaces['term'] = spaces.Discrete(2)
                 ac_space.spaces['term'] = spaces.Discrete(2)
-            if config.planner_integration and config.extended_action:
-                ac_space.spaces['ac_type'] = spaces.Discrete(2)
             if config.algo == 'sac':
                 from rl.low_level_agent import LowLevelAgent
                 self._agent = LowLevelAgent(

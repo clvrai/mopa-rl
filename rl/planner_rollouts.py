@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import cv2
 import gym
+from gym import spaces
 from collections import OrderedDict
 from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 from util.logger import logger
@@ -117,7 +118,10 @@ class PlannerRolloutRunner(object):
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     if random_exploration: # Random exploration for SAC
-                        ac = env.action_space.sample()
+                        ac = pi._ac_space.sample()
+                        for k, space in pi._ac_space.spaces.items():
+                            if isinstance(space, spaces.Discrete):
+                                ac[k] = np.array([ac[k]])
                         ac_before_activation = None
                         stds = None
                     else:
@@ -125,7 +129,6 @@ class PlannerRolloutRunner(object):
                             ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                         else:
                             ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-
 
                     curr_qpos = env.sim.data.qpos.copy()
                     target_qpos = curr_qpos.copy()
@@ -154,6 +157,8 @@ class PlannerRolloutRunner(object):
                                 # ac = env.form_action(next_qpos)
                                 if config.reuse_data:
                                     inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())])
+                                    if config.extended_action:
+                                        inter_subgoal_ac['ac_type'] = ac['ac_type']
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                 ob, reward, done, info = env.step(converted_ac, is_planner=True)
                                 # ob, reward, done, info = env.step(ac, is_planner=True)
@@ -174,6 +179,8 @@ class PlannerRolloutRunner(object):
                                     break
                             if self._config.subgoal_hindsight: # refer to HAC
                                 hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                                if config.extended_action:
+                                    hindsight_subgoal_ac['ac_type'] = ac['ac_type']
                                 rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             else:
                                 rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
@@ -303,7 +310,7 @@ class PlannerRolloutRunner(object):
                 is_planner = False
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
-                if pi.is_planner_ac(ac):
+                if pi.is_planner_ac(ac) or is_planner:
                     target_qpos = curr_qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] += ac['default']
                     traj, success, interpolation = pi.plan(curr_qpos, target_qpos)

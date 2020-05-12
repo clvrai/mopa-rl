@@ -17,6 +17,7 @@ from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 from util.gym import action_size, observation_size
+from gym import spaces
 
 
 class SACAgent(BaseAgent):
@@ -255,6 +256,9 @@ class SACAgent(BaseAgent):
             # target_q_value = torch.clamp(target_q_value, -clip_return, clip_return)
 
         # the q loss
+        for k, space in self._ac_space.spaces.items():
+            if isinstance(space, spaces.Discrete):
+                ac[k] = F.one_hot(ac[k].long(), action_size(self._ac_space[k])).float().squeeze(1)
         real_q_value1 = self._critics1[0](o, ac)
         real_q_value2 = self._critics2[0](o, ac)
         critic1_loss = 0.5 * (target_q_value - real_q_value1).pow(2).mean()

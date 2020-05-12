@@ -206,7 +206,7 @@ class BaseEnv(gym.Env):
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action and key != 'term'])
+            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action and key != 'term' and key != 'ac_type'])
 
         self._pre_action(action)
         ob, reward, done, info = self._step(action, is_planner)
