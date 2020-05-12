@@ -46,7 +46,7 @@ class BaseEnv(gym.Env):
         self._kp = kwargs['kp']
         self._kd = kwargs['kd']
         self._ki = kwargs['ki']
-        self._frame_dt = 1.
+        self._frame_dt = kwargs['frame_dt']
         self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
         self._camera_name = kwargs['camera_name']
         self._kwargs = kwargs

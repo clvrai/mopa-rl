@@ -12,7 +12,6 @@ class SimplePusherEnv(BaseEnv):
     def __init__(self, **kwargs):
         super().__init__("simple_pusher.xml", **kwargs)
         self._env_config.update({
-            'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward'],
             'has_terminal': kwargs['has_terminal']
         })

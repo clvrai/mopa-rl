@@ -53,10 +53,11 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-args.env = 'simple-pusher-obstacle-v0'
+args.env = 'simple-pusher-v0'
 args.kp = 150.
 args.kd = 20.
 args.ki = 0.1
+args.frame_dt = 1.
 
 env = gym.make(args.env, **args.__dict__)
 mp_env = gym.make(args.env, **args.__dict__)
@@ -65,7 +66,7 @@ args.planner_type="sst"
 args.planner_objective="state_const_integral"
 args.range = 0.1
 args.threshold = 0
-args.timelimit = 1.0
+args.timelimit = 2.0
 args.contact_threshold = -0.001
 
 ignored_contacts = []
