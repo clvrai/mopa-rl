@@ -98,7 +98,7 @@ class SACAgent(BaseAgent):
         interpolation = True
         traj, success = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         status = self._simple_planner.get_planner_status()
-        if 'Approximate solution' == status:
+        if not success:
             traj, success = self._planner.plan(curr_qpos, target_qpos)
             interpolation = False
         return traj, success, interpolation

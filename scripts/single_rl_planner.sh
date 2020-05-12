@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.10.SAC.REUSE.FIXED-PLANNER.AC-RANGE.2.0"
+prefix="05.10.SAC.REUSE.FIXED-PLANNER.AC-RANGE.2.0.debug"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -34,7 +34,7 @@ entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 batch_size="256"
 clip_param="0.2"
 seed='1234'
@@ -53,7 +53,7 @@ planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="sst"
 planner_objective="state_const_integral"
-range="0.3"
+range="0.1"
 threshold="0.0"
 timelimit="1.0"
 allow_self_collision="False"

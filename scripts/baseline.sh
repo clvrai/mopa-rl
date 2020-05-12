@@ -25,7 +25,7 @@ fi
 workers="1"
 prefix="05.09.BASELINE.SAC.SPARSE.debug"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="simple-pusher-obstacle-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="150"

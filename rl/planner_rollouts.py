@@ -101,7 +101,7 @@ class PlannerRolloutRunner(object):
 
             # run rollout
             meta_ac = None
-            counter = {'mp': 0, 'rl': 0, 'interpolation': 0}
+            counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0}
             while not done and ep_len < max_step:
                 meta_ac, meta_ac_before_activation, meta_log_prob =\
                         meta_pi.act(ob, is_train=is_train)
@@ -142,12 +142,12 @@ class PlannerRolloutRunner(object):
                         else:
                             target_qpos[env.ref_joint_pos_indexes] = ac['default']
                         traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
-                        if interpolation:
-                            counter['interpolation'] += 1
-                        else:
-                            counter['mp'] += 1
                         target_qpos = curr_qpos.copy()
                         if success:
+                            if interpolation:
+                                counter['interpolation'] += 1
+                            else:
+                                counter['mp'] += 1
                             for next_qpos in traj:
                                 ll_ob = ob.copy()
                                 converted_ac = env.form_action(next_qpos)
@@ -206,6 +206,7 @@ class PlannerRolloutRunner(object):
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                     else:
+                        counter['mp_fail'] += 1
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         counter['rl'] += 1
                         ob, reward, done, info = env.step(ac)
@@ -306,13 +307,13 @@ class PlannerRolloutRunner(object):
                     target_qpos = curr_qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] += ac['default']
                     traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
-                    if interpolation:
-                        counter['interpolation'] += 1
-                    else:
-                        counter['mp'] += 1
                     ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                     goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                     if success:
+                        if interpolation:
+                            counter['interpolation'] += 1
+                        else:
+                            counter['mp'] += 1
                         for next_qpos in traj:
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
@@ -345,6 +346,7 @@ class PlannerRolloutRunner(object):
                                 break
                         rollout.add({'done': done, 'rew': meta_rew})
                     else:
+                        counter['mp_fail'] += 1
                         # reward = self._config.invalid_planner_rew
                         reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
                         reward += self._config.invalid_planner_rew
