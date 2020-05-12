@@ -1,9 +1,7 @@
 import os, sys
 import numpy as np
 import shutil
-
 from motion_planners.sampling_based_planner import SamplingBasedPlanner
-import env
 import gym
 from config import argparser
 from env.inverse_kinematics import qpos_from_site_pose, qpos_from_site_pose_sampling
@@ -14,6 +12,7 @@ from util.gym import action_size
 import time
 import cv2
 
+import env
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)

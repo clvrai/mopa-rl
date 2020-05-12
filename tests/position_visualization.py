@@ -90,8 +90,6 @@ for episode, pos in enumerate(position):
 
         action = np.ones(len(env.ref_joint_pos_indexes)) * -pos
         env.step(action)
-        import pdb
-        pdb.set_trace()
 
         info['joint_diff'] = pos
         frames[episode].append(render_frame(env, step, info))

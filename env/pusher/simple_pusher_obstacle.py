@@ -35,6 +35,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         if len(self._primitive_skills) != 2:
             self._primitive_skills = ['reach', 'push']
         self._num_primitives = len(self._primitive_skills)
+        self._ac_scale = 0.1
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -164,7 +165,7 @@ class SimplePusherObstacleEnv(BaseEnv):
         if not is_planner or self._prev_state is None:
             self._prev_state = self.get_joint_positions
 
-        desired_state = self._prev_state + action # except for gripper action
+        desired_state = self._prev_state + self._ac_scale * action # except for gripper action
 
         n_inner_loop = int(self._frame_dt/self.dt)
         reward, info = self.compute_reward(action)
