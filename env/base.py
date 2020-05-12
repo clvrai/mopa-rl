@@ -112,8 +112,6 @@ class BaseEnv(gym.Env):
         minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
         maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
         minimum[is_limited], maximum[is_limited] = control_range[is_limited].T
-        maximum= np.ones(num_actions)
-        minimum = -np.ones(num_actions)
 
         self._minimum = minimum
         self._maximum = maximum
@@ -200,6 +198,9 @@ class BaseEnv(gym.Env):
         self._fail = False
         self._i_term = np.zeros_like(self.sim.data.qpos[self.ref_joint_pos_indexes])
 
+    def _reset_prev_state(self):
+        self._prev_state = None
+
 
     def step(self, action, is_planner=False):
         if isinstance(action, list):
@@ -219,6 +220,12 @@ class BaseEnv(gym.Env):
         pass
 
     def _after_step(self, reward, terminal, info):
+        if np.any(self.sim.data.qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(self.sim.data.qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+            tmp_pos = self.sim.data.qpos.copy()
+            new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+            new_pos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            self.set_state(new_pos, self.sim.data.qvel.ravel())
+
         step_log = dict(info)
         self._terminal = terminal
         penalty = 0

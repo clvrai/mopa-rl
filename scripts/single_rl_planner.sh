@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.07.SAC.REUSE"
+prefix="05.10.SAC.REUSE"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
@@ -37,30 +37,35 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1236'
+seed='1234'
 ctrl_reward='1e-2'
 reward_type='dense'
-comment='Baseline'
+comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.07.SAC.SINGLE.REUSE.PUSH-OBSTACLE-HARD'
+group='05.10.SAC.SINGLE.REUSE.PUSH-OBSTACLE'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="sst"
 planner_objective="state_const_integral"
-range="0.1"
-threshold="0.1"
-timelimit="0.01"
+range="0.3"
+threshold="0.0"
+timelimit="1.0"
 allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
 reuse_data="True"
+relative_goal="False"
+simple_planner_timelimit="0.01"
+action_range="2.0"
+ac_rl_minimum="0.3"
+ac_rl_maximum="0.3"
 
 
 # max_grad_norm='0.5'
@@ -111,4 +116,6 @@ python -m rl.main \
     --allow_self_collision $allow_self_collision \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
-    --reuse_data $reuse_data
+    --reuse_data $reuse_data \
+    --relative_goal $relative_goal \
+    --simple_planner_timelimit $simple_planner_timelimit

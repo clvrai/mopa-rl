@@ -23,7 +23,6 @@ class SimpleReacherEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
-        self._ac_rescale = 0.5
         self._primitive_skills = kwargs['primitive_skills']
         if len(self._primitive_skills) != 1:
             self._primitive_skills = ['reach']
@@ -110,12 +109,7 @@ class SimpleReacherEnv(BaseEnv):
         info = {}
         done = False
 
-        if not is_planner:
-            rescaled_ac = action * self._ac_rescale
-        else:
-            rescaled_ac = action
-
-        desired_state = self.get_joint_positions + rescaled_ac
+        desired_state = self.get_joint_positions + action
         reward, info = self.compute_reward(action)
 
         n_inner_loop = int(self._frame_dt/self.dt)

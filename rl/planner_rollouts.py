@@ -101,7 +101,7 @@ class PlannerRolloutRunner(object):
 
             # run rollout
             meta_ac = None
-            counter = {'mp': 0, 'rl': 0}
+            counter = {'mp': 0, 'rl': 0, 'interpolation': 0}
             while not done and ep_len < max_step:
                 meta_ac, meta_ac_before_activation, meta_log_prob =\
                         meta_pi.act(ob, is_train=is_train)
@@ -129,18 +129,30 @@ class PlannerRolloutRunner(object):
 
                     curr_qpos = env.sim.data.qpos.copy()
                     prev_ob = ob.copy()
-                    if pi.is_planner_ac(ac):
-                        counter['mp'] += 1
+                    is_planner = False
+                    if config.extended_action:
+                        is_planner = bool(ac['ac_type'][0])
+                    if pi.is_planner_ac(ac) or is_planner:
+                        if config.relative_goal:
+                            target_qpos[env.ref_joint_pos_indexes] += ac['default']
+                            tmp_target_qpos = target_qpos.copy()
+                            target_qpos = np.clip(target_qpos, env._jnt_minimum, env._jnt_maximum)
+                            target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
+                        else:
+                            target_qpos[env.ref_joint_pos_indexes] = ac['default']
+                        traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
+                        if interpolation:
+                            counter['interpolation'] += 1
+                        else:
+                            counter['mp'] += 1
                         target_qpos = curr_qpos.copy()
-                        target_qpos[env.ref_joint_pos_indexes] += ac['default']
-                        traj, success = pi.plan(curr_qpos, target_qpos)
                         if success:
                             for next_qpos in traj:
                                 ll_ob = ob.copy()
                                 converted_ac = env.form_action(next_qpos)
                                 # ac = env.form_action(next_qpos)
                                 if config.reuse_data:
-                                    inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())*(1./env._ac_rescale))])
+                                    inter_subgoal_ac = OrderedDict([('default', next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())])
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                 ob, reward, done, info = env.step(converted_ac, is_planner=True)
                                 # ob, reward, done, info = env.step(ac, is_planner=True)
@@ -179,7 +191,7 @@ class PlannerRolloutRunner(object):
                             reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
                             reward += self._config.invalid_planner_rew
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                            done, info, _ = env._after_step(reward, False, info)
+                            done, info, _ = env._after_step(reward, False, {})
                             rollout.add({'done': done, 'rew': reward})
                             ep_len += 1
                             step += 1
@@ -258,7 +270,7 @@ class PlannerRolloutRunner(object):
 
         # run rollout
         meta_ac = None
-        counter = {'mp': 0, 'rl': 0}
+        counter = {'mp': 0, 'rl': 0, 'interpolation': 0}
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
@@ -286,11 +298,17 @@ class PlannerRolloutRunner(object):
                 curr_qpos = env.sim.data.qpos.copy()
                 prev_joint_qpos = curr_qpos[env.ref_joint_pos_indexes]
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                is_planner = False
+                if config.extended_action:
+                    is_planner = bool(ac['ac_type'][0])
                 if pi.is_planner_ac(ac):
-                    counter['mp'] += 1
                     target_qpos = curr_qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] += ac['default']
-                    traj, success = pi.plan(curr_qpos, target_qpos)
+                    traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
+                    if interpolation:
+                        counter['interpolation'] += 1
+                    else:
+                        counter['mp'] += 1
                     ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                     goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                     if success:
@@ -321,7 +339,7 @@ class PlannerRolloutRunner(object):
                             ik_env.set_state(ik_qpos, ik_env.sim.data.qvel.ravel())
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                            self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                            self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
                             if done or ep_len >= max_step:
                                 break
                         rollout.add({'done': done, 'rew': meta_rew})
@@ -347,7 +365,7 @@ class PlannerRolloutRunner(object):
 
                             xpos, xquat = self._get_mp_body_pos(ik_env)
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                            self._store_frame(env, frame_info, None, vis_pos=vis_pos)
+                            self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
                 else:
                     counter['rl'] += 1
                     ob, reward, done, info = env.step(ac)
@@ -387,7 +405,7 @@ class PlannerRolloutRunner(object):
 
         return xpos, xquat
 
-    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[]):
+    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[], planner=False):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(env._episode_length,
@@ -405,6 +423,17 @@ class PlannerRolloutRunner(object):
                 color[-1] = 0.3
                 env._set_color(k, color)
 
+        geom_colors = {}
+        if planner:
+            for k in env.body_geoms:
+                geom_idx = env.sim.model.geom_name2id(k)
+                color = env.sim.model.geom_rgba[geom_idx]
+                geom_colors[geom_idx] = color.copy()
+                color[0] = 0.0
+                color[1] = 0.6
+                color[2] = 0.4
+                env.sim.model.geom_rgba[geom_idx] = color
+
         frame = env.render('rgb_array') * 255.0
         env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
         for xpos, xquat in vis_pos:
@@ -413,6 +442,10 @@ class PlannerRolloutRunner(object):
                     color = env._get_color(k)
                     color[-1] = 0.
                     env._set_color(k, color)
+
+        if planner:
+            for geom_idx, color in geom_colors.items():
+                env.sim.model.geom_rgba[geom_idx] = color
 
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
