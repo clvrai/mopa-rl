@@ -53,15 +53,16 @@ planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="sst"
 planner_objective="state_const_integral"
-range="0.4"
+range="0.3"
 threshold="0.0"
-timelimit="0.05"
+timelimit="1.0"
 allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
 reuse_data="True"
 relative_goal="False"
+simple_planner_timelimit="0.01"
 
 
 # max_grad_norm='0.5'
@@ -113,4 +114,5 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
     --reuse_data $reuse_data \
-    --relative_goal $relative_goal
+    --relative_goal $relative_goal \
+    --simple_planner_timelimit $simple_planner_timelimit

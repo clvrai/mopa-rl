@@ -66,6 +66,10 @@ class SimplePusherObstacleEnv(BaseEnv):
         return ['root', 'link0', 'link1', 'link2', 'fingertip0', 'fingertip1', 'fingertip2']
 
     @property
+    def static_geoms(self):
+        return ['obstacle1_geom', 'obstacle2_geom']
+
+    @property
     def agent_geoms(self):
         return self.body_geoms
 
