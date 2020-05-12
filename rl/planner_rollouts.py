@@ -101,7 +101,7 @@ class PlannerRolloutRunner(object):
 
             # run rollout
             meta_ac = None
-            counter = {'mp': 0, 'rl': 0}
+            counter = {'mp': 0, 'rl': 0, 'interpolation': 0}
             while not done and ep_len < max_step:
                 meta_ac, meta_ac_before_activation, meta_log_prob =\
                         meta_pi.act(ob, is_train=is_train)
@@ -133,8 +133,6 @@ class PlannerRolloutRunner(object):
                     if config.extended_action:
                         is_planner = bool(ac['ac_type'][0])
                     if pi.is_planner_ac(ac) or is_planner:
-                        counter['mp'] += 1
-                        target_qpos = curr_qpos.copy()
                         if config.relative_goal:
                             target_qpos[env.ref_joint_pos_indexes] += ac['default']
                             tmp_target_qpos = target_qpos.copy()
@@ -142,7 +140,12 @@ class PlannerRolloutRunner(object):
                             target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
                         else:
                             target_qpos[env.ref_joint_pos_indexes] = ac['default']
-                        traj, success = pi.plan(curr_qpos, target_qpos)
+                        traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
+                        if interpolation:
+                            counter['interpolation'] += 1
+                        else:
+                            counter['mp'] += 1
+                        target_qpos = curr_qpos.copy()
                         if success:
                             for next_qpos in traj:
                                 ll_ob = ob.copy()
@@ -267,7 +270,7 @@ class PlannerRolloutRunner(object):
 
         # run rollout
         meta_ac = None
-        counter = {'mp': 0, 'rl': 0}
+        counter = {'mp': 0, 'rl': 0, 'interpolation': 0}
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
@@ -299,10 +302,13 @@ class PlannerRolloutRunner(object):
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
                 if pi.is_planner_ac(ac):
-                    counter['mp'] += 1
                     target_qpos = curr_qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] += ac['default']
-                    traj, success = pi.plan(curr_qpos, target_qpos)
+                    traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
+                    if interpolation:
+                        counter['interpolation'] += 1
+                    else:
+                        counter['mp'] += 1
                     ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                     goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                     if success:

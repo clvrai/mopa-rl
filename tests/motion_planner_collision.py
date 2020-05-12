@@ -60,7 +60,7 @@ args._xml_path = env.xml_path
 args.planner_type="sst"
 args.planner_objective="state_const_integral"
 args.range = 0.1
-args.threshold = 0.1
+args.threshold = 0
 args.timelimit = 2.0
 args.contact_threshold = -0.001
 
@@ -83,7 +83,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 N = 1
 is_save_video = False
 frames = []
-start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
+# start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
 # ob = env.reset()
 # env.set_state(start_pos, env.sim.data.qvel.copy())
 
@@ -91,7 +91,7 @@ for episode in range(N):
     print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
-    env.set_state(start_pos, env.sim.data.qvel.copy())
+    # env.set_state(start_pos, env.sim.data.qvel.copy())
     step = 0
     if is_save_video:
         frames.append([render_frame(env, step)])
@@ -101,6 +101,7 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
+        # target_qpos[env.ref_joint_pos_indexes] = np.array([2.01, -1.48, 1.33])
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)

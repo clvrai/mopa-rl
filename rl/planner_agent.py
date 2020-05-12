@@ -30,8 +30,8 @@ class PlannerAgent:
         self.planner.remove_collision(geom, contype, conaffinity)
         logger.info('change (%s): contype (%d) conaffinity (%d)', geom, contype, conaffinity)
 
-    def last_planner_status(self):
-        return self.planner.last_planner_status()
+    def get_planner_status(self):
+        return self.planner.get_planner_status()
 
 
 

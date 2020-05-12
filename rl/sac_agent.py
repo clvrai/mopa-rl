@@ -57,6 +57,7 @@ class SACAgent(BaseAgent):
         self._planner = None
         if config.planner_integration:
             self._planner = PlannerAgent(config,ac_space, non_limited_idx, config.passive_joint_idx, config.ignored_contact_geom_ids[0])
+            self._simple_planner = PlanenrAgent(config, ac_space, non_limited_idx, config.passive_joint_idx, config.ignored_contact_geom_ids[0], goal_bias=1.0)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 
@@ -94,8 +95,13 @@ class SACAgent(BaseAgent):
         return False
 
     def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
-        traj, success = self._planner.plan(curr_qpos, target_qpos)
-        return traj, success
+        interpolation = True
+        traj, success = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        status = self._simple_planner.get_planner_status()
+        if 'Approximate solution' == status:
+            traj, success = self._planner.plan(curr_qpos, target_qpos)
+            interpolation = False
+        return traj, success, interpolation
 
 
     def state_dict(self):
