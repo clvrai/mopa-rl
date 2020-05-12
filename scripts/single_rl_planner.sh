@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.10.SAC.REUSE"
+prefix="05.10.SAC.REUSE.FIXED-PLANNER"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.10.SAC.SINGLE.REUSE.PUSH-OBSTACLE'
+group='05.10.SAC.SINGLE.REUSE.PUSH-OBSTACLE-FIXED-PLANNER'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -61,10 +61,10 @@ allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
 reuse_data="True"
-relative_goal="False"
+relative_goal="True"
 simple_planner_timelimit="0.01"
 action_range="2.0"
-ac_rl_minimum="0.3"
+ac_rl_minimum="-0.3"
 ac_rl_maximum="0.3"
 
 
@@ -118,4 +118,7 @@ python -m rl.main \
     --subgoal_hindsight $subgoal_hindsight \
     --reuse_data $reuse_data \
     --relative_goal $relative_goal \
-    --simple_planner_timelimit $simple_planner_timelimit
+    --simple_planner_timelimit $simple_planner_timelimit \
+    --action_range $action_range \
+    --ac_rl_maximum $ac_rl_maximum \
+    --ac_rl_minimum $ac_rl_minimum
