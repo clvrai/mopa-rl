@@ -7,22 +7,18 @@
             "include/KinematicPlanner.h"
         ],
         "extra_compile_args": [
-            "-std=c++11",
-            "-stdlib=libc++"
+            "-std=c++11"
         ],
         "extra_objects": [
-            "/usr/local/lib/libompl.dylib",
-            "/Users/yamadajun/.mujoco/mujoco200/bin/libmujoco200.dylib"
+            "/usr/local/lib/libompl.so",
+            "/home/jun/.mujoco/mujoco200/bin/libmujoco200.so"
         ],
         "include_dirs": [
             "./include/",
-            "/opt/local/include",
             "/usr/local/include/eigen3",
             "./3rd_party/include/",
-            "/opt/local/include/boost/",
-            "/Users/yamadajun/.mujoco/mujoco200/include/",
-            "/usr/local/include/ompl",
-            "/usr/local/include"
+            "/home/jun/.mujoco/mujoco200/include/",
+            "/usr/local/include/ompl"
         ],
         "language": "c++",
         "name": "planner",
@@ -884,7 +880,7 @@ struct __pyx_obj_7planner_PyKinematicPlanner {
 
 
 struct __pyx_vtabstruct_7planner_PyKinematicPlanner {
-  PyObject *(*plan)(struct __pyx_obj_7planner_PyKinematicPlanner *, PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch);
+  PyObject *(*plan)(struct __pyx_obj_7planner_PyKinematicPlanner *, PyObject *, PyObject *, PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch);
   PyObject *(*removeCollision)(struct __pyx_obj_7planner_PyKinematicPlanner *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch);
   PyObject *(*getPlannerStatus)(struct __pyx_obj_7planner_PyKinematicPlanner *, int __pyx_skip_dispatch);
 };
@@ -1241,7 +1237,7 @@ static int __Pyx_check_binary_version(void);
 /* InitStrings.proto */
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
-static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps, PyObject *__pyx_v_is_simplified, PyObject *__pyx_v_simplified_duration, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_7planner_18PyKinematicPlanner_removeCollision(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_geom_id, PyObject *__pyx_v_contype, PyObject *__pyx_v_conaffinity, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_7planner_18PyKinematicPlanner_getPlannerStatus(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 
@@ -1306,6 +1302,7 @@ static const char __pyx_k_glue_bodies[] = "glue_bodies";
 static const char __pyx_k_num_actions[] = "num_actions";
 static const char __pyx_k_xml_filename[] = "xml_filename";
 static const char __pyx_k_constructTime[] = "constructTime";
+static const char __pyx_k_is_simplified[] = "is_simplified";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_removeCollision[] = "removeCollision";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
@@ -1316,6 +1313,7 @@ static const char __pyx_k_passive_joint_idx[] = "passive_joint_idx";
 static const char __pyx_k_PyKinematicPlanner[] = "PyKinematicPlanner";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_sst_pruning_radius[] = "sst_pruning_radius";
+static const char __pyx_k_simplified_duration[] = "simplified_duration";
 static const char __pyx_k_sst_selection_radius[] = "sst_selection_radius";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static PyObject *__pyx_n_s_PyKinematicPlanner;
@@ -1333,6 +1331,7 @@ static PyObject *__pyx_n_s_glue_bodies;
 static PyObject *__pyx_n_s_goal_bias;
 static PyObject *__pyx_n_s_goal_vec;
 static PyObject *__pyx_n_s_ignored_contacts;
+static PyObject *__pyx_n_s_is_simplified;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_min_steps;
 static PyObject *__pyx_n_s_name;
@@ -1350,6 +1349,7 @@ static PyObject *__pyx_n_s_reduce_ex;
 static PyObject *__pyx_n_s_removeCollision;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
+static PyObject *__pyx_n_s_simplified_duration;
 static PyObject *__pyx_n_s_sst_pruning_radius;
 static PyObject *__pyx_n_s_sst_selection_radius;
 static PyObject *__pyx_n_s_start_vec;
@@ -1359,7 +1359,7 @@ static PyObject *__pyx_n_s_timelimit;
 static PyObject *__pyx_n_s_xml_filename;
 static int __pyx_pf_7planner_18PyKinematicPlanner___cinit__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, std::string __pyx_v_xml_filename, std::string __pyx_v_algo, int __pyx_v_num_actions, double __pyx_v_sst_selection_radius, double __pyx_v_sst_pruning_radius, std::string __pyx_v_opt, double __pyx_v_threshold, double __pyx_v__range, double __pyx_v_constructTime, std::vector<int>  __pyx_v_passive_joint_idx, std::vector<std::string>  __pyx_v_glue_bodies, std::vector<std::pair<int,int> >  __pyx_v_ignored_contacts, double __pyx_v_contact_threshold, double __pyx_v_goal_bias); /* proto */
 static void __pyx_pf_7planner_18PyKinematicPlanner_2__dealloc__(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_4plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps); /* proto */
+static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_4plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps, PyObject *__pyx_v_is_simplified, PyObject *__pyx_v_simplified_duration); /* proto */
 static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_6removeCollision(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_geom_id, PyObject *__pyx_v_contype, PyObject *__pyx_v_conaffinity); /* proto */
 static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_8getPlannerStatus(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_10__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self); /* proto */
@@ -1638,7 +1638,7 @@ static void __pyx_pf_7planner_18PyKinematicPlanner_2__dealloc__(struct __pyx_obj
  *     def __dealloc__(self):
  *         del self.thisptr             # <<<<<<<<<<<<<<
  * 
- *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps):
+ *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration):
  */
   delete __pyx_v_self->thisptr;
 
@@ -1657,13 +1657,13 @@ static void __pyx_pf_7planner_18PyKinematicPlanner_2__dealloc__(struct __pyx_obj
 /* "planner.pyx":39
  *         del self.thisptr
  * 
- *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps):             # <<<<<<<<<<<<<<
- *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)
+ *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration):             # <<<<<<<<<<<<<<
+ *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration)
  * 
  */
 
 static PyObject *__pyx_pw_7planner_18PyKinematicPlanner_5plan(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps, int __pyx_skip_dispatch) {
+static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps, PyObject *__pyx_v_is_simplified, PyObject *__pyx_v_simplified_duration, int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1676,6 +1676,7 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7pl
   std::vector<double>  __pyx_t_8;
   double __pyx_t_9;
   double __pyx_t_10;
+  double __pyx_t_11;
   __Pyx_RefNannySetupContext("plan", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
@@ -1705,22 +1706,22 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7pl
         }
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
-          PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 4+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 39, __pyx_L1_error)
+          PyObject *__pyx_temp[7] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps, __pyx_v_is_simplified, __pyx_v_simplified_duration};
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 6+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 39, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-          PyObject *__pyx_temp[5] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 4+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 39, __pyx_L1_error)
+          PyObject *__pyx_temp[7] = {__pyx_t_4, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps, __pyx_v_is_simplified, __pyx_v_simplified_duration};
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 6+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 39, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(4+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 39, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(6+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 39, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           if (__pyx_t_4) {
             __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -1737,6 +1738,12 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7pl
           __Pyx_INCREF(__pyx_v_min_steps);
           __Pyx_GIVEREF(__pyx_v_min_steps);
           PyTuple_SET_ITEM(__pyx_t_6, 3+__pyx_t_5, __pyx_v_min_steps);
+          __Pyx_INCREF(__pyx_v_is_simplified);
+          __Pyx_GIVEREF(__pyx_v_is_simplified);
+          PyTuple_SET_ITEM(__pyx_t_6, 4+__pyx_t_5, __pyx_v_is_simplified);
+          __Pyx_INCREF(__pyx_v_simplified_duration);
+          __Pyx_GIVEREF(__pyx_v_simplified_duration);
+          PyTuple_SET_ITEM(__pyx_t_6, 5+__pyx_t_5, __pyx_v_simplified_duration);
           __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 39, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -1762,8 +1769,8 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7pl
 
   /* "planner.pyx":40
  * 
- *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps):
- *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)             # <<<<<<<<<<<<<<
+ *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration):
+ *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration)             # <<<<<<<<<<<<<<
  * 
  *     cpdef removeCollision(self, geom_id, contype, conaffinity):
  */
@@ -1772,7 +1779,8 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7pl
   __pyx_t_8 = __pyx_convert_vector_from_py_double(__pyx_v_goal_vec); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 40, __pyx_L1_error)
   __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_timelimit); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 40, __pyx_L1_error)
   __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_v_min_steps); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 40, __pyx_L1_error)
-  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->plan(__pyx_t_7, __pyx_t_8, __pyx_t_9, __pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 40, __pyx_L1_error)
+  __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_simplified_duration); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 40, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py_std_3a__3a_vector_3c_double_3e___(__pyx_v_self->thisptr->plan(__pyx_t_7, __pyx_t_8, __pyx_t_9, __pyx_t_10, __pyx_v_is_simplified, __pyx_t_11)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1781,8 +1789,8 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_plan(struct __pyx_obj_7pl
   /* "planner.pyx":39
  *         del self.thisptr
  * 
- *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps):             # <<<<<<<<<<<<<<
- *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)
+ *     cpdef plan(self, start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration):             # <<<<<<<<<<<<<<
+ *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration)
  * 
  */
 
@@ -1808,16 +1816,22 @@ static PyObject *__pyx_pw_7planner_18PyKinematicPlanner_5plan(PyObject *__pyx_v_
   PyObject *__pyx_v_goal_vec = 0;
   PyObject *__pyx_v_timelimit = 0;
   PyObject *__pyx_v_min_steps = 0;
+  PyObject *__pyx_v_is_simplified = 0;
+  PyObject *__pyx_v_simplified_duration = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("plan (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start_vec,&__pyx_n_s_goal_vec,&__pyx_n_s_timelimit,&__pyx_n_s_min_steps,0};
-    PyObject* values[4] = {0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start_vec,&__pyx_n_s_goal_vec,&__pyx_n_s_timelimit,&__pyx_n_s_min_steps,&__pyx_n_s_is_simplified,&__pyx_n_s_simplified_duration,0};
+    PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
         CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
@@ -1838,59 +1852,75 @@ static PyObject *__pyx_pw_7planner_18PyKinematicPlanner_5plan(PyObject *__pyx_v_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_goal_vec)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("plan", 1, 4, 4, 1); __PYX_ERR(1, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("plan", 1, 6, 6, 1); __PYX_ERR(1, 39, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_timelimit)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("plan", 1, 4, 4, 2); __PYX_ERR(1, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("plan", 1, 6, 6, 2); __PYX_ERR(1, 39, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_min_steps)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("plan", 1, 4, 4, 3); __PYX_ERR(1, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("plan", 1, 6, 6, 3); __PYX_ERR(1, 39, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_is_simplified)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("plan", 1, 6, 6, 4); __PYX_ERR(1, 39, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_simplified_duration)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("plan", 1, 6, 6, 5); __PYX_ERR(1, 39, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "plan") < 0)) __PYX_ERR(1, 39, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
     __pyx_v_start_vec = values[0];
     __pyx_v_goal_vec = values[1];
     __pyx_v_timelimit = values[2];
     __pyx_v_min_steps = values[3];
+    __pyx_v_is_simplified = values[4];
+    __pyx_v_simplified_duration = values[5];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("plan", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 39, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("plan", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 39, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("planner.PyKinematicPlanner.plan", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7planner_18PyKinematicPlanner_4plan(((struct __pyx_obj_7planner_PyKinematicPlanner *)__pyx_v_self), __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps);
+  __pyx_r = __pyx_pf_7planner_18PyKinematicPlanner_4plan(((struct __pyx_obj_7planner_PyKinematicPlanner *)__pyx_v_self), __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps, __pyx_v_is_simplified, __pyx_v_simplified_duration);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_4plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps) {
+static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_4plan(struct __pyx_obj_7planner_PyKinematicPlanner *__pyx_v_self, PyObject *__pyx_v_start_vec, PyObject *__pyx_v_goal_vec, PyObject *__pyx_v_timelimit, PyObject *__pyx_v_min_steps, PyObject *__pyx_v_is_simplified, PyObject *__pyx_v_simplified_duration) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("plan", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7planner_18PyKinematicPlanner_plan(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 39, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7planner_18PyKinematicPlanner_plan(__pyx_v_self, __pyx_v_start_vec, __pyx_v_goal_vec, __pyx_v_timelimit, __pyx_v_min_steps, __pyx_v_is_simplified, __pyx_v_simplified_duration, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1908,7 +1938,7 @@ static PyObject *__pyx_pf_7planner_18PyKinematicPlanner_4plan(struct __pyx_obj_7
 }
 
 /* "planner.pyx":42
- *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)
+ *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration)
  * 
  *     cpdef removeCollision(self, geom_id, contype, conaffinity):             # <<<<<<<<<<<<<<
  *         return self.thisptr.removeCollision(geom_id, contype, conaffinity)
@@ -2026,7 +2056,7 @@ static PyObject *__pyx_f_7planner_18PyKinematicPlanner_removeCollision(struct __
   goto __pyx_L0;
 
   /* "planner.pyx":42
- *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)
+ *         return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps, is_simplified, simplified_duration)
  * 
  *     cpdef removeCollision(self, geom_id, contype, conaffinity):             # <<<<<<<<<<<<<<
  *         return self.thisptr.removeCollision(geom_id, contype, conaffinity)
@@ -3540,6 +3570,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_goal_bias, __pyx_k_goal_bias, sizeof(__pyx_k_goal_bias), 0, 0, 1, 1},
   {&__pyx_n_s_goal_vec, __pyx_k_goal_vec, sizeof(__pyx_k_goal_vec), 0, 0, 1, 1},
   {&__pyx_n_s_ignored_contacts, __pyx_k_ignored_contacts, sizeof(__pyx_k_ignored_contacts), 0, 0, 1, 1},
+  {&__pyx_n_s_is_simplified, __pyx_k_is_simplified, sizeof(__pyx_k_is_simplified), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_min_steps, __pyx_k_min_steps, sizeof(__pyx_k_min_steps), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
@@ -3557,6 +3588,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_removeCollision, __pyx_k_removeCollision, sizeof(__pyx_k_removeCollision), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
+  {&__pyx_n_s_simplified_duration, __pyx_k_simplified_duration, sizeof(__pyx_k_simplified_duration), 0, 0, 1, 1},
   {&__pyx_n_s_sst_pruning_radius, __pyx_k_sst_pruning_radius, sizeof(__pyx_k_sst_pruning_radius), 0, 0, 1, 1},
   {&__pyx_n_s_sst_selection_radius, __pyx_k_sst_selection_radius, sizeof(__pyx_k_sst_selection_radius), 0, 0, 1, 1},
   {&__pyx_n_s_start_vec, __pyx_k_start_vec, sizeof(__pyx_k_start_vec), 0, 0, 1, 1},
@@ -3647,7 +3679,7 @@ static int __Pyx_modinit_type_init_code(void) {
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_init_code", 0);
   /*--- Type init code ---*/
   __pyx_vtabptr_7planner_PyKinematicPlanner = &__pyx_vtable_7planner_PyKinematicPlanner;
-  __pyx_vtable_7planner_PyKinematicPlanner.plan = (PyObject *(*)(struct __pyx_obj_7planner_PyKinematicPlanner *, PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_7planner_18PyKinematicPlanner_plan;
+  __pyx_vtable_7planner_PyKinematicPlanner.plan = (PyObject *(*)(struct __pyx_obj_7planner_PyKinematicPlanner *, PyObject *, PyObject *, PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_7planner_18PyKinematicPlanner_plan;
   __pyx_vtable_7planner_PyKinematicPlanner.removeCollision = (PyObject *(*)(struct __pyx_obj_7planner_PyKinematicPlanner *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch))__pyx_f_7planner_18PyKinematicPlanner_removeCollision;
   __pyx_vtable_7planner_PyKinematicPlanner.getPlannerStatus = (PyObject *(*)(struct __pyx_obj_7planner_PyKinematicPlanner *, int __pyx_skip_dispatch))__pyx_f_7planner_18PyKinematicPlanner_getPlannerStatus;
   if (PyType_Ready(&__pyx_type_7planner_PyKinematicPlanner) < 0) __PYX_ERR(1, 31, __pyx_L1_error)

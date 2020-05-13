@@ -33,10 +33,10 @@ class SamplingBasedPlanner:
                 state[idx] = joint_convert(state[idx])
         return state
 
-    def plan(self, start, goal, timelimit=1., min_steps=10):
+    def plan(self, start, goal, timelimit=1., min_steps=10, is_simplified=False, simplified_duration=0.1):
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
-        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps))
+        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps, is_simplified, simplified_duration))
         if np.unique(states).size == 1 and states[0][0] == -1:
             return states, states, False
 

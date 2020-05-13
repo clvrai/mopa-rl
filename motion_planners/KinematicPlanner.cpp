@@ -167,7 +167,7 @@ KinematicPlanner::~KinematicPlanner(){
 }
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, double min_steps) {
+                                                            double timelimit, double min_steps, bool is_simplified, double simplified_duration) {
 
     if (start_vec.size() != mj->m->nq) {
         std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
@@ -239,9 +239,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     if (ss->haveExactSolutionPath()) {
         // ss.getSolutionPath().print(std::cout);
-        // if (is_simplified){
-        //     ss->simplifySolution(simplified_duration);
-        // }
+        if (is_simplified){
+            ss->simplifySolution(simplified_duration);
+        }
         og::PathGeometric p = ss->getSolutionPath();
         // ss->getSolutionPath().print(std::cout);
         // p.interpolate(min_steps);
