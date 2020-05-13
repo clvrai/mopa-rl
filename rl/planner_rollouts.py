@@ -214,7 +214,7 @@ class PlannerRolloutRunner(object):
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                     else:
-                        ac['default'] /= config.ac_rl_maximum
+                        ac['default'] /= env._ac_scale
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         counter['rl'] += 1
                         ob, reward, done, info = env.step(ac)
@@ -378,7 +378,7 @@ class PlannerRolloutRunner(object):
                             vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
                             self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
                 else:
-                    ac['default'] /= config.ac_rl_maximum
+                    ac['default'] /= env._ac_scale
                     counter['rl'] += 1
                     ob, reward, done, info = env.step(ac)
                     ep_len += 1
