@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.12.SAC.REUSE.EXTENDED_ACTION.RANGE.0.2.REW-0.3"
+prefix="05.12.SAC.REUSE.RANGE.MAX.REW-0.3"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -37,7 +37,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1236'
+seed='1239'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Fix motion planner'
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.EXTENDED_ACTION.RANGE.0.2.INVALID.REW-0.3'
+group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.MAX.INVALID.REW-0.3'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -61,13 +61,13 @@ allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
 reuse_data="True"
-relative_goal="True"
+relative_goal="False"
 simple_planner_timelimit="0.01"
 action_range="2.0"
 ac_rl_minimum="-0.1"
 ac_rl_maximum="0.1"
 invalid_planner_rew="-0.3"
-extended_action="True"
+extended_action="False"
 
 
 # max_grad_norm='0.5'
