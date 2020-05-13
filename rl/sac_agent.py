@@ -57,8 +57,11 @@ class SACAgent(BaseAgent):
 
         self._planner = None
         if config.planner_integration:
-            self._planner = PlannerAgent(config,ac_space, non_limited_idx, config.passive_joint_idx, config.ignored_contact_geom_ids[0])
-            self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, config.passive_joint_idx, config.ignored_contact_geom_ids[0], goal_bias=1.0)
+            self._planner = PlannerAgent(config,ac_space, non_limited_idx,
+                                         config.passive_joint_idx, config.ignored_contact_geom_ids[0],
+                                         config.is_simplified, config.simplified_duration)
+            self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, config.passive_joint_idx,
+                                                config.ignored_contact_geom_ids[0], goal_bias=1.0)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 

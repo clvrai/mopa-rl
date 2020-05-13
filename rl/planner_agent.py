@@ -11,16 +11,19 @@ from motion_planners.sampling_based_planner import SamplingBasedPlanner
 from util.logger import logger
 
 class PlannerAgent:
-    def __init__(self, config, ac_space, non_limited_idx=None, passive_joint_idx=[], ignored_contacts=[], goal_bias=0.05):
+    def __init__(self, config, ac_space, non_limited_idx=None, passive_joint_idx=[], ignored_contacts=[], goal_bias=0.05, is_simplified=False, simplified_duration=0.1):
 
         self._config = config
         self.planner = SamplingBasedPlanner(config, config._xml_path, action_size(ac_space), non_limited_idx, passive_joint_idx=passive_joint_idx, ignored_contacts=ignored_contacts, contact_threshold=config.contact_threshold, goal_bias=goal_bias)
+
+        self._is_simplified = is_simplified
+        self._simplified_duration = simplified_duration
 
     def plan(self, start, goal, timelimit=None):
         config = self._config
         if timelimit is None:
             timelimit = config.timelimit
-        traj, states, success = self.planner.plan(start, goal, timelimit, config.min_path_len+1)
+        traj, states, success = self.planner.plan(start, goal, timelimit, config.min_path_len+1, self._is_simplified, self._simplified_duration)
         if success:
             return traj[1:], success
         else:

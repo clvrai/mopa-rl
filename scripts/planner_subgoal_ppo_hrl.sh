@@ -71,6 +71,8 @@ group='4.20.PPO'
 rl_activation='tanh'
 subgoal_hindsight="True"
 env_debug='False'
+is_simplified="True"
+simplified_duration="0.1"
 # max_grad_norm='0.5'
 
 mpiexec -n $workers python -m rl.main \
@@ -116,5 +118,7 @@ mpiexec -n $workers python -m rl.main \
     --group $group \
     --rl_activation $rl_activation \
     --subgoal_hindsight $subgoal_hindsight \
-    --env_debug $env_debug
+    --env_debug $env_debug \
+    --is_simplified $is_simplified \
+    --simplified_duration $simplified_duration
     # --max_grad_norm $max_grad_norm

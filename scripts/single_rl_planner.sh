@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.12.SAC.REUSE.RANGE.2.0.REW-0.3.THRESH.0.3"
+prefix="05.12.SAC.REUSE.RANGE.2.0.REW-0.3.simplified"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -37,7 +37,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1236'
+seed='1234'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Fix motion planner'
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.2.0.INVALID.REW-0.3.THRESH.0.3'
+group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.2.0.INVALID.REW-0.3.simplified'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -64,10 +64,12 @@ reuse_data="True"
 relative_goal="True"
 simple_planner_timelimit="0.01"
 action_range="2.0"
-ac_rl_minimum="-0.3"
-ac_rl_maximum="0.3"
+ac_rl_minimum="-0.1"
+ac_rl_maximum="0.1"
 invalid_planner_rew="-0.3"
 extended_action="False"
+is_simplified="True"
+simplified_duration="0.3"
 
 
 # max_grad_norm='0.5'
@@ -125,4 +127,6 @@ python -m rl.main \
     --ac_rl_maximum $ac_rl_maximum \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
-    --extended_action $extended_action
+    --extended_action $extended_action \
+    --is_simplified $is_simplified \
+    --simplified_duration $simplified_duration
