@@ -239,9 +239,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     if (ss->haveExactSolutionPath()) {
         // ss.getSolutionPath().print(std::cout);
-        if (is_simplified){
-            ss->simplifySolution(simplified_duration);
-        }
+        // if (is_simplified){
+        //     ss->simplifySolution(simplified_duration);
+        // }
         og::PathGeometric p = ss->getSolutionPath();
         // ss->getSolutionPath().print(std::cout);
         // p.interpolate(min_steps);

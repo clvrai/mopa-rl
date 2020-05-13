@@ -54,10 +54,6 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 args.env = 'simple-pusher-v0'
-args.kp = 150.
-args.kd = 20.
-args.ki = 0.1
-args.frame_dt = 1.
 
 env = gym.make(args.env, **args.__dict__)
 mp_env = gym.make(args.env, **args.__dict__)
@@ -66,7 +62,7 @@ args.planner_type="sst"
 args.planner_objective="state_const_integral"
 args.range = 0.1
 args.threshold = 0
-args.timelimit = 2.0
+args.timelimit = 1.0
 args.contact_threshold = -0.001
 
 ignored_contacts = []
@@ -82,6 +78,7 @@ passive_joint_idx = list(range(len(env.sim.data.qpos)))
 
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts) # default goal bias is 0.05
+# planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=True, simplified_duration=0.5) # default goal bias is 0.05
 simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, 1.0)
 
 
@@ -124,11 +121,12 @@ for episode in range(N):
             color[-1] = 0.3
             env._set_color(key, color)
 
-        if "Approximate solution" == simple_planner.get_planner_status():
-            traj, success = planner.plan(current_qpos, target_qpos)
-            print("Normal planner is executed")
-        else:
-            print("Invalid state")
+        # if not success:
+        #     traj, success = planner.plan(current_qpos, target_qpos)
+        #     print("Normal planner is executed")
+        # else:
+        #     print("Invalid state")
+        traj, success = planner.plan(current_qpos, target_qpos)
 
         if success:
             for j, next_qpos in enumerate(traj):
@@ -154,10 +152,9 @@ for episode in range(N):
                     frames[episode].append(render_frame(env, step))
                 else:
                     import timeit
-                    env.render('human')
                     t = timeit.default_timer()
                     while timeit.default_timer() - t < 0.1:
-                        pass
+                        env.render('human')
         else:
             # env.render('human')
             print("Invalid state")

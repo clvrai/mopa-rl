@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.12.SAC.REUSE.RANGE.2.0.REW-0.3.simplified"
+prefix="05.12.SAC.REUSE.RANGE.2.0.REW-0.3"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.2.0.INVALID.REW-0.3.simplified'
+group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.2.0.INVALID.REW-0.3'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -68,8 +68,6 @@ ac_rl_minimum="-0.1"
 ac_rl_maximum="0.1"
 invalid_planner_rew="-0.3"
 extended_action="False"
-is_simplified="True"
-simplified_duration="0.3"
 
 
 # max_grad_norm='0.5'
@@ -128,5 +126,3 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
-    --is_simplified $is_simplified \
-    --simplified_duration $simplified_duration
