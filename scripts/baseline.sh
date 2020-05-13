@@ -9,7 +9,7 @@ then
     evaluate_interval="10"
     ckpt_interval='50'
     rl_activation="tanh"
-    num_batches="100"
+    num_batches="50"
     log_interval="1"
 elif [ $algo = 2 ]
 then
@@ -42,7 +42,7 @@ reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
-success_reward='0.'
+success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
 group='05.12.SAC.BASELINE.PUSH-OBSTACLE'
