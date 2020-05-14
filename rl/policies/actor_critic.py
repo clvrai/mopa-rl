@@ -54,13 +54,13 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action_scale = to_tensor((self._ac_space[k].high), self._config.device).detach()
-                action = torch.tanh(z) * action_scale
-                # action = torch.tanh(z)
+                # action_scale = to_tensor((self._ac_space[k].high), self._config.device).detach()
+                # action = torch.tanh(z) * action_scale
+                action = torch.tanh(z)
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
-                    # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                    log_det_jacobian = torch.log(action_scale*(1-torch.tanh(z).pow(2))+1e-6)
+                    log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                    # log_det_jacobian = torch.log(action_scale*(1-torch.tanh(z).pow(2))+1e-6)
                     log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -117,12 +117,12 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations_[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action_scale = to_tensor((self._ac_space[k].high), self._config.device).detach()
-                action = torch.tanh(z) * action_scale
+                # action_scale = to_tensor((self._ac_space[k].high), self._config.device).detach()
+                action = torch.tanh(z)
                 # action = torch.tanh(z)
                 # follow the Appendix C. Enforcing Action Bounds
-                # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                log_det_jacobian = torch.log(action_scale*(1-torch.tanh(z).pow(2))+1e-6)
+                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                # log_det_jacobian = torch.log(action_scale*(1-torch.tanh(z).pow(2))+1e-6)
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z

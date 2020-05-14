@@ -24,7 +24,6 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
-        self._ac_rescale = 0.5
         self._subgoal_scale = kwargs['subgoal_scale']
         subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
         subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
@@ -36,6 +35,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         if len(self._primitive_skills) != 2:
             self._primitive_skills = ['reach', 'push']
         self._num_primitives = len(self._primitive_skills)
+        self._ac_scale = 0.1
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -43,8 +43,8 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
-            box = np.random.uniform(low=-0.2, high=0.2, size=2)
+            goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
+            box = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
@@ -52,7 +52,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1 and np.linalg.norm(goal) > 0.1:
+            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1:
                 self.goal = goal
                 self.box = box
                 break
@@ -65,6 +65,10 @@ class SimplePusherObstacleHardEnv(BaseEnv):
     @property
     def body_geoms(self):
         return ['root', 'link0', 'link1', 'link2', 'fingertip0', 'fingertip1', 'fingertip2']
+
+    @property
+    def static_geoms(self):
+        return ['obstacle1_geom', 'obstacle2_geom']
 
     @property
     def agent_geoms(self):
@@ -113,7 +117,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:self.sim.model.nu]
+        return self.sim.data.qpos.ravel()[self.ref_joint_pos_indexes]
 
     def check_stage(self):
         dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
@@ -158,14 +162,16 @@ class SimplePusherObstacleHardEnv(BaseEnv):
 
         info = {}
         done = False
+
         if not is_planner or self._prev_state is None:
             self._prev_state = self.get_joint_positions
 
         if not is_planner:
-            rescaled_ac = action * self._ac_rescale
+            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
         else:
-            rescaled_ac = action
-        desired_state = self._prev_state + rescaled_ac # except for gripper action
+            desired_state = self._prev_state + action
+
+        desired_state = self._prev_state + action # except for gripper action
 
         n_inner_loop = int(self._frame_dt/self.dt)
         reward, info = self.compute_reward(action)
@@ -190,6 +196,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
                     self._success = True
             reward += self._env_config['success_reward']
         return obs, reward, done, info
+
 
     def compute_subgoal_reward(self, name, info):
         reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")

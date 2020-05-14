@@ -53,7 +53,7 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-args.env = 'simple-pusher-v0'
+args.env = 'simple-pusher-obstacle-hard-v0'
 
 env = gym.make(args.env, **args.__dict__)
 mp_env = gym.make(args.env, **args.__dict__)
@@ -83,7 +83,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = False
+is_save_video = True
 frames = []
 # start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
 # ob = env.reset()
@@ -155,6 +155,7 @@ for episode in range(N):
                     t = timeit.default_timer()
                     while timeit.default_timer() - t < 0.1:
                         env.render('human')
+            done = True
         else:
             # env.render('human')
             print("Invalid state")
