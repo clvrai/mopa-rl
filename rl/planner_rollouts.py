@@ -138,7 +138,7 @@ class PlannerRolloutRunner(object):
                         is_planner = bool(ac['ac_type'][0])
                     if pi.is_planner_ac(ac) or is_planner:
                         if config.relative_goal:
-                            target_qpos[env.ref_joint_pos_indexes] += ac['default']
+                            target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
                             tmp_target_qpos = target_qpos.copy()
                             target_qpos = np.clip(target_qpos, env._jnt_minimum, env._jnt_maximum)
                             target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
@@ -217,7 +217,9 @@ class PlannerRolloutRunner(object):
                         ac['default'] /= env._ac_scale
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         counter['rl'] += 1
-                        ob, reward, done, info = env.step(ac)
+                        rescaled_ac = ac.copy()
+                        rescaled_ac['default'] *= config.action_range
+                        ob, reward, done, info = env.step(rescaled_ac)
                         rollout.add({'done': done, 'rew': reward})
                         ep_len += 1
                         step += 1
@@ -313,7 +315,7 @@ class PlannerRolloutRunner(object):
                     is_planner = bool(ac['ac_type'][0])
                 if pi.is_planner_ac(ac) or is_planner:
                     target_qpos = curr_qpos.copy()
-                    target_qpos[env.ref_joint_pos_indexes] += ac['default']
+                    target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
                     traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
                     ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                     goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
@@ -380,7 +382,9 @@ class PlannerRolloutRunner(object):
                 else:
                     ac['default'] /= env._ac_scale
                     counter['rl'] += 1
-                    ob, reward, done, info = env.step(ac)
+                    rescaled_ac = ac.copy()
+                    rescaled_ac['default'] *= config.action_range
+                    ob, reward, done, info = env.step(rescaled_ac)
                     ep_len += 1
                     ep_rew += reward
                     meta_len += 1
