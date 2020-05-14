@@ -18,13 +18,13 @@ then
     evaluate_interval="1000"
     ckpt_interval='200000'
     rl_activation="relu"
-    num_batches="1"
+    num_batches="4"
     log_interval="150"
 fi
 
 workers="1"
 tanh="True"
-prefix="05.12.SAC.REUSE.RANGE.2.0.REW-0.3"
+prefix="05.13.SAC.REUSE.RANGE.2.0.REW-0.3.CHANGE.LOGPI"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -46,7 +46,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.12.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.2.0.INVALID.REW-0.3'
+group='05.13.SAC.SINGLE.REUSE.PUSH-OBSTACLE.RANGE.2.0.INVALID.REW-0.3.CHANGE.LOGPI'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"

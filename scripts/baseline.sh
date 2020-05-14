@@ -18,12 +18,12 @@ then
     evaluate_interval="1000"
     ckpt_interval='100000'
     rl_activation="relu"
-    num_batches="1"
+    num_batches="4"
     log_interval="150"
 fi
 
 workers="1"
-prefix="05.12.BASELINE.SAC"
+prefix="05.13.BASELINE.SAC.EDIT.LOGPI"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 gpu=$gpu
@@ -36,7 +36,7 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1239'
+seed='1234'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
@@ -45,7 +45,7 @@ actor_num_hid_layers='2'
 success_reward='150.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.12.SAC.BASELINE.PUSH-OBSTACLE'
+group='05.13.SAC.BASELINE.PUSH-OBSTACLE.EDIT.LOGPI'
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'
