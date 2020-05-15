@@ -102,7 +102,7 @@ class PlannerRolloutRunner(object):
 
             # run rollout
             meta_ac = None
-            counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0}
+            counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
             while not done and ep_len < max_step:
                 meta_ac, meta_ac_before_activation, meta_log_prob =\
                         meta_pi.act(ob, is_train=is_train)
@@ -192,6 +192,10 @@ class PlannerRolloutRunner(object):
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                         else:
                             counter['mp_fail'] += 1
+                            if not exact:
+                                counter['approximate'] += 1
+                            elif not valid:
+                                counter['invalid'] += 1
                             ll_ob = ob.copy()
                             meta_rollout.add({
                                 'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -282,7 +286,7 @@ class PlannerRolloutRunner(object):
 
         # run rollout
         meta_ac = None
-        counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0}
+        counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
@@ -357,6 +361,10 @@ class PlannerRolloutRunner(object):
                         rollout.add({'done': done, 'rew': meta_rew})
                     else:
                         counter['mp_fail'] += 1
+                        if not exact:
+                            counter['approximate'] += 1
+                        elif not valid:
+                            counter['invalid'] += 1
                         # reward = self._config.invalid_planner_rew
                         reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
                         reward += self._config.invalid_planner_rew
