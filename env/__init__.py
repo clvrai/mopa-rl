@@ -254,3 +254,8 @@ register(
     entry_point='env.robosuite:SawyerTestEnv',
     kwargs={}
 )
+register(
+    id='sawyer-lift-robosuite-v0',
+    entry_point='env.robosuite:SawyerLiftEnv',
+    kwargs={}
+)

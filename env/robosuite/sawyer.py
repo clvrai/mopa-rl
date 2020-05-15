@@ -105,10 +105,10 @@ class SawyerEnv(BaseEnv):
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
 
-        jnt_range = self.sim.model.jnt_range[:num_actions]
-        is_jnt_limited = self.sim.model.jnt_limited[:num_actions].astype(np.bool)
-        jnt_minimum = np.full(num_actions, fill_value=-np.inf, dtype=np.float)
-        jnt_maximum = np.full(num_actions, fill_value=np.inf, dtype=np.float)
+        jnt_range = self.sim.model.jnt_range
+        is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
+        jnt_minimum = np.full(len(is_jnt_limited), fill_value=-np.inf, dtype=np.float)
+        jnt_maximum = np.full(len(is_jnt_limited), fill_value=np.inf, dtype=np.float)
         jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
@@ -172,6 +172,11 @@ class SawyerEnv(BaseEnv):
                 self.ref_gripper_joint_pos_indexes
             ] = self.gripper.init_qpos
         return self._get_obs()
+
+    def form_action(self, next_qpos):
+        joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+        ac = OrderedDict([('default', np.concatenate([joint_ac, [0.]]))])
+        return ac
 
     def _get_reference(self):
         """
@@ -293,6 +298,18 @@ class SawyerEnv(BaseEnv):
         #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
         #     ]
 
+    @property
+    def agent_geom_ids(self):
+        body_ids = []
+        for body_name in self.mujoco_robot.bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
+        geom_ids = []
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            if body_id in body_ids:
+                geom_ids.append(geom_id)
+        return geom_ids
+
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
         # import pdb
@@ -365,6 +382,31 @@ class SawyerEnv(BaseEnv):
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
         return self._get_obs(), reward, self._terminal, {}
+
+    def _after_step(self, reward, terminal, info):
+        step_log = dict(info)
+        self._terminal = terminal
+        penalty = 0
+
+        if reward is not None:
+            self._episode_reward += reward
+            self._episode_length += 1
+
+        if self._episode_length == self.max_episode_steps or self._fail:
+            self._terminal = True
+            if self._fail:
+                self._fail = False
+                penalty = -self._env_config["unstable_penalty"]
+
+        if self._terminal:
+            total_time = time.time() - self._episode_time
+            step_log["episode_success"] = int(self._success)
+            step_log["episode_reward"] = self._episode_reward + penalty
+            step_log["episode_length"] = self._episode_length
+            step_log["episode_time"] = total_time
+            step_log["episode_unstable"] = penalty
+
+        return self._terminal, step_log, penalty
 
     def _get_obs(self):
         """

@@ -9,4 +9,5 @@ from env.robosuite.sawyer_nut_assembly import (SawyerNutAssemblyEnv,
                                                SawyerNutAssemblySquareEnv,
                                                SawyerNutAssemblyRoundEnv)
 from env.robosuite.sawyer_test import SawyerTestEnv
+from env.robosuite.sawyer_lift import SawyerLiftEnv
 

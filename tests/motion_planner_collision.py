@@ -4,7 +4,6 @@ import shutil
 from collections import OrderedDict
 import gym
 import env
-from config.pusher import add_arguments
 from config import argparser
 from rl.planner_agent import PlannerAgent
 from util.misc import make_ordered_pair, save_video
@@ -49,11 +48,16 @@ def render_frame(env, step, info={}):
 
 
 parser = argparser()
-add_arguments(parser)
+args, unparsed = parser.parse_known_args()
+if 'pusher' in args.env:
+    from config.pusher import add_arguments
+    add_arguments(parser)
+elif 'robosuite' in args.env:
+    from config.robosuite import add_arguments
+    add_arguments(parser)
+
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
-
-args.env = 'simple-pusher-obstacle-hard-v0'
 
 env = gym.make(args.env, **args.__dict__)
 mp_env = gym.make(args.env, **args.__dict__)
@@ -67,9 +71,8 @@ args.contact_threshold = -0.001
 
 ignored_contacts = []
 # Allow collision with manipulatable object
-geom_ids = [env.sim.model.geom_name2id(name) for name in env.agent_geoms]
-manipulation_geom_ids = [env.sim.model.geom_name2id(name) for name in env.manpulation_geom]
-for manipulation_geom_id in manipulation_geom_ids:
+geom_ids = env.agent_geom_ids
+for manipulation_geom_id in env.manipulation_geom_ids:
     for geom_id in geom_ids:
         ignored_contacts.append(make_ordered_pair(manipulation_geom_id, geom_id))
 
@@ -83,7 +86,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = True
+is_save_video = False
 frames = []
 # start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
 # ob = env.reset()
@@ -103,30 +106,30 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        target_qpos[env.ref_joint_pos_indexes] = np.array([-1.35, -0.986, -0.667])
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.35, -0.986, -0.667])
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)
         mp_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
 
-        for i in range(len(mp_env.ref_joint_pos_indexes)):
-            name = 'body'+str(i)
-            body_idx = mp_env.sim.model.body_name2id(name)
-            key = name+'-goal'
-            env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
-            env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
-            color = env._get_color(key)
-            color[-1] = 0.3
-            env._set_color(key, color)
-
-        # if not success:
-        #     traj, success = planner.plan(current_qpos, target_qpos)
-        #     print("Normal planner is executed")
-        # else:
-        #     print("Invalid state")
-        traj, success = planner.plan(current_qpos, target_qpos)
+        # for i in range(len(mp_env.ref_joint_pos_indexes)):
+        #     name = 'body'+str(i)
+        #     body_idx = mp_env.sim.model.body_name2id(name)
+        #     key = name+'-goal'
+        #     env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
+        #     env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
+        #     color = env._get_color(key)
+        #     color[-1] = 0.3
+        #     env._set_color(key, color)
+        #
+        if not success:
+            traj, success = planner.plan(current_qpos, target_qpos)
+            print("Normal planner is executed")
+        else:
+            print("Invalid state")
+        # traj, success = planner.plan(current_qpos, target_qpos)
 
         if success:
             for j, next_qpos in enumerate(traj):
@@ -134,18 +137,15 @@ for episode in range(N):
                 ob, reward, done, info = env.step(action, is_planner=True)
 
                 mp_env.set_state(next_qpos.copy(), env.sim.data.qvel.copy())
-                for i in range(len(mp_env.ref_joint_pos_indexes)):
-                    name = 'body'+str(i)
-                    body_idx = mp_env.sim.model.body_name2id(name)
-                    key = name+'-dummy'
-                    env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
-                    env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
-                    color = env._get_color(key)
-                    color[-1] = 0.3
-                    env._set_color(key, color)
-                    # if step >= 150:
-                    #     done = True
-                    #     break
+                # for i in range(len(mp_env.ref_joint_pos_indexes)):
+                #     name = 'body'+str(i)
+                #     body_idx = mp_env.sim.model.body_name2id(name)
+                #     key = name+'-dummy'
+                #     env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
+                #     env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
+                #     color = env._get_color(key)
+                #     color[-1] = 0.3
+                #     env._set_color(key, color)
 
                 step += 1
                 if is_save_video:
@@ -155,10 +155,6 @@ for episode in range(N):
                     t = timeit.default_timer()
                     while timeit.default_timer() - t < 0.1:
                         env.render('human')
-            done = True
-        else:
-            # env.render('human')
-            print("Invalid state")
 
 
 if is_save_video:

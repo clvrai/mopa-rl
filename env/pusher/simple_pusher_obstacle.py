@@ -59,8 +59,13 @@ class SimplePusherObstacleEnv(BaseEnv):
         return self._get_obs()
 
     @property
-    def manpulation_geom(self):
+    def manipulation_geom(self):
         return ['box']
+
+    @property
+    def manipulation_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
+
 
     @property
     def body_geoms(self):
@@ -68,11 +73,19 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     @property
     def static_geoms(self):
-        return ['obstacle1_geom', 'obstacle2_geom']
+        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
 
     @property
     def agent_geoms(self):
         return self.body_geoms
+
+    @property
+    def agent_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.agent_geoms]
+
+    @property
+    def static_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
 
     def initialize_joints(self):
         while True:
