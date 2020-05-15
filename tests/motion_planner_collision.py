@@ -60,7 +60,6 @@ planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
-mp_env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="sst"
 args.planner_objective="state_const_integral"
@@ -110,20 +109,11 @@ for episode in range(N):
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)
-        mp_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
+        env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes])
         xpos = OrderedDict()
         xquat = OrderedDict()
 
-        # for i in range(len(mp_env.ref_joint_pos_indexes)):
-        #     name = 'body'+str(i)
-        #     body_idx = mp_env.sim.model.body_name2id(name)
-        #     key = name+'-goal'
-        #     env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
-        #     env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
-        #     color = env._get_color(key)
-        #     color[-1] = 0.3
-        #     env._set_color(key, color)
-        #
+
         if not success:
             traj, success = planner.plan(current_qpos, target_qpos)
             print("Normal planner is executed")
@@ -136,16 +126,7 @@ for episode in range(N):
                 action = env.form_action(next_qpos)
                 ob, reward, done, info = env.step(action, is_planner=True)
 
-                mp_env.set_state(next_qpos.copy(), env.sim.data.qvel.copy())
-                # for i in range(len(mp_env.ref_joint_pos_indexes)):
-                #     name = 'body'+str(i)
-                #     body_idx = mp_env.sim.model.body_name2id(name)
-                #     key = name+'-dummy'
-                #     env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
-                #     env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
-                #     color = env._get_color(key)
-                #     color[-1] = 0.3
-                #     env._set_color(key, color)
+                env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes])
 
                 step += 1
                 if is_save_video:

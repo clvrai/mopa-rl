@@ -24,6 +24,13 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
+        self.ref_indicator_joint_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x+'-goal') for x in self.joint_names
+        ]
+        self.ref_dummy_joint_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x+'-dummy') for x in self.joint_names
+        ]
+
         self._subgoal_scale = kwargs['subgoal_scale']
         subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
         subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
@@ -61,6 +68,35 @@ class SimplePusherObstacleHardEnv(BaseEnv):
     @property
     def manipulation_geom(self):
         return ['box']
+
+    def visualize_goal_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
+        for body_name in self.body_names:
+            key = body_name + '-goal'
+            color = self._get_color(key)
+            color[-1] = 0.3
+            self._set_color(key, color)
+
+    def visualize_dummy_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_dummy_joint_pos_indexes] = qpos
+        for body_name in self.body_names:
+            key = body_name + '-dummy'
+            color = self._get_color(key)
+            color[-1] = 0.3
+            self._set_color(key, color)
+
+    def reset_visualized_indicator(self):
+        for body_name in self.body_names:
+            for postfix in ['-goal', '-dummy']:
+                key = body_name + postfix
+                color = self._get_color(key)
+                color[-1] = 0.3
+                self._set_color(key, color)
+
+    @property
+    def body_names(self):
+        return ['body0', 'body1', 'body2', 'fingertip']
+
 
     @property
     def manipulation_geom_ids(self):
