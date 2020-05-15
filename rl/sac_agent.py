@@ -102,7 +102,7 @@ class SACAgent(BaseAgent):
         interpolation = True
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         if not success and not exact:
-            traj, success = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
+            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
             interpolation = False
         return traj, success, interpolation, valid, exact
 
