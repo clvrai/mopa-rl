@@ -115,135 +115,129 @@ class PlannerRolloutRunner(object):
                 meta_len = 0
                 meta_rew = 0
 
-                while not done and ep_len < max_step and meta_len < config.max_meta_len:
-                    ll_ob = ob.copy()
-                    if random_exploration: # Random exploration for SAC
-                        ac = pi._ac_space.sample()
-                        for k, space in pi._ac_space.spaces.items():
-                            if isinstance(space, spaces.Discrete):
-                                ac[k] = np.array([ac[k]])
-                        ac_before_activation = None
-                        stds = None
+                ll_ob = ob.copy()
+                if random_exploration: # Random exploration for SAC
+                    ac = pi._ac_space.sample()
+                    for k, space in pi._ac_space.spaces.items():
+                        if isinstance(space, spaces.Discrete):
+                            ac[k] = np.array([ac[k]])
+                    ac_before_activation = None
+                    stds = None
+                else:
+                    if config.hrl:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                     else:
-                        if config.hrl:
-                            ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
-                        else:
-                            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
-                    curr_qpos = env.sim.data.qpos.copy()
+                curr_qpos = env.sim.data.qpos.copy()
+                target_qpos = curr_qpos.copy()
+                prev_ob = ob.copy()
+                is_planner = False
+                if config.extended_action:
+                    is_planner = bool(ac['ac_type'][0])
+                if pi.is_planner_ac(ac) or is_planner:
+                    if config.relative_goal:
+                        target_qpos[env.ref_joint_pos_indexes] += (ac['default'] * config.action_range)
+                        tmp_target_qpos = target_qpos.copy()
+                        target_qpos = np.clip(target_qpos, env._jnt_minimum, env._jnt_maximum)
+                        target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
+                    else:
+                        target_qpos[env.ref_joint_pos_indexes] = ac['default']
+                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
                     target_qpos = curr_qpos.copy()
-                    prev_ob = ob.copy()
-                    is_planner = False
-                    if config.extended_action:
-                        is_planner = bool(ac['ac_type'][0])
-                    if pi.is_planner_ac(ac) or is_planner:
-                        if config.relative_goal:
-                            target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
-                            tmp_target_qpos = target_qpos.copy()
-                            target_qpos = np.clip(target_qpos, env._jnt_minimum, env._jnt_maximum)
-                            target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
+                    if success:
+                        if interpolation:
+                            counter['interpolation'] += 1
                         else:
-                            target_qpos[env.ref_joint_pos_indexes] = ac['default']
-                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
-                        target_qpos = curr_qpos.copy()
-                        if success:
-                            if interpolation:
-                                counter['interpolation'] += 1
-                            else:
-                                counter['mp'] += 1
-                            for next_qpos in traj:
-                                ll_ob = ob.copy()
-                                converted_ac = env.form_action(next_qpos)
-                                # ac = env.form_action(next_qpos)
-                                if config.reuse_data:
-                                    inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())/env._ac_scale)])
-                                    if config.extended_action:
-                                        inter_subgoal_ac['ac_type'] = ac['ac_type']
-                                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                ob, reward, done, info = env.step(converted_ac, is_planner=True)
-                                # ob, reward, done, info = env.step(ac, is_planner=True)
-                                if config.reuse_data:
-                                    rollout.add({'done': done, 'rew': reward})
-                                meta_rew += reward
-                                ep_len += 1
-                                step += 1
-                                ep_rew += reward
-                                meta_len += 1
-                                reward_info.add(info)
-                                if every_steps is not None and step % every_steps == 0 and config.reuse_data:
-                                    # last frame
-                                    ll_ob = ob.copy()
-                                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-                                if done or ep_len >= max_step:
-                                    break
-                            if self._config.subgoal_hindsight: # refer to HAC
-                                hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
-                                if config.extended_action:
-                                    hindsight_subgoal_ac['ac_type'] = ac['ac_type']
-                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                            else:
-                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                            rollout.add({'done': done, 'rew': meta_rew})
-                            if every_steps is not None and step % every_steps == 0:
-                                # last frame
-                                ll_ob = ob.copy()
-                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-                        else:
-                            counter['mp_fail'] += 1
-                            if not exact:
-                                counter['approximate'] += 1
-                            elif not valid:
-                                counter['invalid'] += 1
+                            counter['mp'] += 1
+                        for next_qpos in traj:
                             ll_ob = ob.copy()
-                            meta_rollout.add({
-                                'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                            })
-                            # reward = self._config.invalid_planner_rew
-                            reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
-                            reward += self._config.invalid_planner_rew
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                            done, info, _ = env._after_step(reward, False, {})
-                            rollout.add({'done': done, 'rew': reward})
+                            converted_ac = env.form_action(next_qpos)
+                            # ac = env.form_action(next_qpos)
+                            if config.reuse_data:
+                                inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())/env._ac_scale)])
+                                if config.extended_action:
+                                    inter_subgoal_ac['ac_type'] = ac['ac_type']
+                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            ob, reward, done, info = env.step(converted_ac, is_planner=True)
+                            # ob, reward, done, info = env.step(ac, is_planner=True)
+                            if config.reuse_data:
+                                rollout.add({'done': done, 'rew': reward})
+                            meta_rew += reward
                             ep_len += 1
                             step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
-                            meta_rollout.add({'meta_done': done, 'meta_rew': reward})
-                            if every_steps is not None and step % every_steps == 0:
+                            if every_steps is not None and step % every_steps == 0 and config.reuse_data:
                                 # last frame
                                 ll_ob = ob.copy()
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-                    else:
-                        ac['default'] /= env._ac_scale
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                        counter['rl'] += 1
-                        rescaled_ac = ac.copy()
-                        rescaled_ac['default'] *= config.action_range
-                        ob, reward, done, info = env.step(rescaled_ac)
-                        rollout.add({'done': done, 'rew': reward})
-                        ep_len += 1
-                        step += 1
-                        ep_rew += reward
-                        meta_len += 1
-                        meta_rew += reward
-                        reward_info.add(info)
+                            if done or ep_len >= max_step:
+                                break
+                        if self._config.subgoal_hindsight: # refer to HAC
+                            hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
+                            if config.extended_action:
+                                hindsight_subgoal_ac['ac_type'] = ac['ac_type']
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                        else:
+                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                        rollout.add({'done': done, 'rew': meta_rew})
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                    else:
+                        counter['mp_fail'] += 1
+                        if not exact:
+                            counter['approximate'] += 1
+                        elif not valid:
+                            counter['invalid'] += 1
+                        ll_ob = ob.copy()
+                        meta_rollout.add({
+                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
+                        })
+                        # reward = self._config.invalid_planner_rew
+                        reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        reward += self._config.invalid_planner_rew
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                        done, info, _ = env._after_step(reward, False, {})
+                        rollout.add({'done': done, 'rew': reward})
+                        ep_len += 1
+                        step += 1
+                        ep_rew += reward
+                        meta_len += 1
+                        reward_info.add(info)
+                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
+                        if every_steps is not None and step % every_steps == 0:
+                            # last frame
+                            ll_ob = ob.copy()
+                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                else:
+                    ac['default'] /= env._ac_scale
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                    counter['rl'] += 1
+                    rescaled_ac = ac.copy()
+                    rescaled_ac['default'] *= config.action_range
+                    ob, reward, done, info = env.step(rescaled_ac)
+                    rollout.add({'done': done, 'rew': reward})
+                    ep_len += 1
+                    step += 1
+                    ep_rew += reward
+                    meta_len += 1
+                    meta_rew += reward
+                    reward_info.add(info)
+                    if every_steps is not None and step % every_steps == 0:
+                        # last frame
+                        ll_ob = ob.copy()
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
-                if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
-                    ll_ob = ob.copy()
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                    meta_rollout.add({'meta_ob': ob})
-                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
             ep_info.add({'len': ep_len, 'rew': ep_rew})
             ep_info.add(counter)
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
@@ -299,111 +293,111 @@ class PlannerRolloutRunner(object):
             meta_len = 0
             meta_rew = 0
 
-            while not done and ep_len < max_step:
-                ll_ob = ob.copy()
-                if random_exploration: # Random exploration for SAC
-                    ac = env.action_space.sample()
-                    ac_before_activation = None
-                    stds = None
+            ll_ob = ob.copy()
+            if random_exploration: # Random exploration for SAC
+                ac = env.action_space.sample()
+                ac_before_activation = None
+                stds = None
+            else:
+                if config.hrl:
+                    ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
                 else:
-                    if config.hrl:
-                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
-                    else:
-                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
-                curr_qpos = env.sim.data.qpos.copy()
-                prev_joint_qpos = curr_qpos[env.ref_joint_pos_indexes]
-                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                is_planner = False
-                if config.extended_action:
-                    is_planner = bool(ac['ac_type'][0])
-                if pi.is_planner_ac(ac) or is_planner:
-                    target_qpos = curr_qpos.copy()
-                    target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
-                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
-                    ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
-                    goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
-                    if success:
-                        if interpolation:
-                            counter['interpolation'] += 1
-                        else:
-                            counter['mp'] += 1
-                        for next_qpos in traj:
-                            ll_ob = ob.copy()
-                            converted_ac = env.form_action(next_qpos)
-                            # ac = env.form_action(next_qpos)
-                            ob, reward, done, info = env.step(converted_ac, is_planner=True)
-                            # ob, reward, done, info = env.step(ac, is_planner=True)
-                            meta_rew += reward
-                            ep_len += 1
-                            ep_rew += reward
-                            meta_len += 1
-                            reward_info.add(info)
-
-                            if record:
-                                frame_info = info.copy()
-                                frame_info['ac'] = ac['default']
-                                frame_info['converted_ac'] = converted_ac['default']
-                                frame_info['target_qpos'] = target_qpos
-                                frame_info['states'] = 'Valid states'
-                                curr_qpos = env.sim.data.qpos.copy()
-                                frame_info['curr_qpos'] = curr_qpos
-                                frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
-                                frame_info['goal'] = env.goal
-                            ik_qpos = env.sim.data.qpos.ravel().copy()
-                            ik_qpos[env.ref_joint_pos_indexes] = next_qpos[env.ref_joint_pos_indexes]
-                            ik_env.set_state(ik_qpos, ik_env.sim.data.qvel.ravel())
-                            xpos, xquat = self._get_mp_body_pos(ik_env)
-                            vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                            self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
-                            if done or ep_len >= max_step:
-                                break
-                        rollout.add({'done': done, 'rew': meta_rew})
+            curr_qpos = env.sim.data.qpos.copy()
+            prev_joint_qpos = curr_qpos[env.ref_joint_pos_indexes]
+            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+            is_planner = False
+            if config.extended_action:
+                is_planner = bool(ac['ac_type'][0])
+            if pi.is_planner_ac(ac) or is_planner:
+                target_qpos = curr_qpos.copy()
+                target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
+                traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
+                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+                if success:
+                    if interpolation:
+                        counter['interpolation'] += 1
                     else:
-                        counter['mp_fail'] += 1
-                        if not exact:
-                            counter['approximate'] += 1
-                        elif not valid:
-                            counter['invalid'] += 1
-                        # reward = self._config.invalid_planner_rew
-                        reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
-                        reward += self._config.invalid_planner_rew
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
-                        done, info, _ = env._after_step(reward, False, {})
-                        rollout.add({'done': done, 'rew': reward})
+                        counter['mp'] += 1
+
+                    for next_qpos in traj:
+                        ll_ob = ob.copy()
+                        converted_ac = env.form_action(next_qpos)
+                        # ac = env.form_action(next_qpos)
+                        ob, reward, done, info = env.step(converted_ac, is_planner=True)
+                        # ob, reward, done, info = env.step(ac, is_planner=True)
+                        meta_rew += reward
                         ep_len += 1
                         ep_rew += reward
                         meta_len += 1
                         reward_info.add(info)
+
                         if record:
                             frame_info = info.copy()
-                            frame_info['states'] = 'Invalid states'
+                            frame_info['ac'] = ac['default']
+                            frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
+                            frame_info['states'] = 'Valid states'
                             curr_qpos = env.sim.data.qpos.copy()
                             frame_info['curr_qpos'] = curr_qpos
+                            frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
                             frame_info['goal'] = env.goal
-                            frame_info['contacts'] = env.sim.data.ncon
-
-                            xpos, xquat = self._get_mp_body_pos(ik_env)
-                            vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                            self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
+                        ik_qpos = env.sim.data.qpos.ravel().copy()
+                        ik_qpos[env.ref_joint_pos_indexes] = next_qpos[env.ref_joint_pos_indexes]
+                        ik_env.set_state(ik_qpos, ik_env.sim.data.qvel.ravel())
+                        xpos, xquat = self._get_mp_body_pos(ik_env)
+                        vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                        self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
+                        if done or ep_len >= max_step:
+                            break
+                    rollout.add({'done': done, 'rew': meta_rew})
                 else:
-                    ac['default'] /= env._ac_scale
-                    counter['rl'] += 1
-                    rescaled_ac = ac.copy()
-                    rescaled_ac['default'] *= config.action_range
-                    ob, reward, done, info = env.step(rescaled_ac)
+                    counter['mp_fail'] += 1
+                    if not exact:
+                        counter['approximate'] += 1
+                    elif not valid:
+                        counter['invalid'] += 1
+                    # reward = self._config.invalid_planner_rew
+                    reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
+                    reward += self._config.invalid_planner_rew
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
+                    done, info, _ = env._after_step(reward, False, {})
+                    rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     ep_rew += reward
                     meta_len += 1
-                    meta_rew += reward
                     reward_info.add(info)
-                    rollout.add({'done': done, 'rew': reward})
                     if record:
                         frame_info = info.copy()
-                        frame_info['ac'] = ac['default']
-                        frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
-                        self._store_frame(env, frame_info)
+                        frame_info['states'] = 'Invalid states'
+                        frame_info['target_qpos'] = target_qpos
+                        curr_qpos = env.sim.data.qpos.copy()
+                        frame_info['curr_qpos'] = curr_qpos
+                        frame_info['goal'] = env.goal
+                        frame_info['contacts'] = env.sim.data.ncon
+
+                        xpos, xquat = self._get_mp_body_pos(ik_env)
+                        vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
+                        self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
+            else:
+                ac['default'] /= env._ac_scale
+                counter['rl'] += 1
+                rescaled_ac = ac.copy()
+                rescaled_ac['default'] *= config.action_range
+                ob, reward, done, info = env.step(rescaled_ac)
+                ep_len += 1
+                ep_rew += reward
+                meta_len += 1
+                meta_rew += reward
+                reward_info.add(info)
+                rollout.add({'done': done, 'rew': reward})
+                if record:
+                    frame_info = info.copy()
+                    frame_info['ac'] = ac['default']
+                    frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
+                    self._store_frame(env, frame_info)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame

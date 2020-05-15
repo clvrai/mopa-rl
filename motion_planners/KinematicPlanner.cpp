@@ -243,10 +243,10 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
         return failedSolutions;
     }
-    if (!ss->getStateValidityChecker()->isValid(start_ss.get())){
-        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
-        return failedSolutions;
-    }
+    // if (!ss->getStateValidityChecker()->isValid(start_ss.get())){
+    //     std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
+    //     return failedSolutions;
+    // }
 
     // Call the planner
     ob::PlannerStatus solved;

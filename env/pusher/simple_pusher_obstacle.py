@@ -108,7 +108,7 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     @property
     def static_geoms(self):
-        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
+        return ['obstacle1_geom', 'obstacle2_geom']
 
     @property
     def agent_geoms(self):
@@ -140,17 +140,17 @@ class SimplePusherObstacleEnv(BaseEnv):
         return np.concatenate([obstacle_states, obstacle_size])
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
+        theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.sim.model.nu],
+                self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
                 self._get_pos('fingertip')
             ])),
-            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
+            ('goal', self.sim.data.qpos.flat[-4:-2])
         ])
 
     @property
