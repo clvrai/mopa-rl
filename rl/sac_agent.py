@@ -101,9 +101,8 @@ class SACAgent(BaseAgent):
     def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         interpolation = True
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
-        status = self._simple_planner.get_planner_status()
         if not success and not exact:
-            traj, success = self._planner.plan(curr_qpos, target_qpos)
+            traj, success = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
             interpolation = False
         return traj, success, interpolation, valid, exact
 

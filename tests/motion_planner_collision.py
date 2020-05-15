@@ -85,7 +85,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = False
+is_save_video = True
 frames = []
 # start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
 # ob = env.reset()
@@ -106,21 +106,28 @@ for episode in range(N):
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.35, -0.986, -0.667])
-        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1., high=1., size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2., high=2., size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
 
-        if not success and not exact:
+        if not success:
             traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
             print("Normal planner is called")
-        elif not success and not valid:
-            print("Invalid state")
+
+            if not success and not exact:
+                print("Approximate")
+            elif not success and not valid:
+                print("Invalid state")
+            else:
+                print("Success")
         else:
             print("Interpolation")
         # traj, success = planner.plan(current_qpos, target_qpos)
+        print("==============")
+        print(step)
 
         if success:
             for j, next_qpos in enumerate(traj):
@@ -137,6 +144,10 @@ for episode in range(N):
                     t = timeit.default_timer()
                     while timeit.default_timer() - t < 0.1:
                         env.render('human')
+                if done:
+                    break
+        # else:
+        #     env.render('human')
 
 
 if is_save_video:
