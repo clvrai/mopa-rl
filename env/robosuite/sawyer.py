@@ -8,7 +8,7 @@ from gym import spaces
 from mujoco_py import MjSim, MjRenderContextOffscreen
 from mujoco_py import load_model_from_xml
 from env.robosuite.models.grippers import gripper_factory
-from env.robosuite.models.robots import Sawyer, SawyerIndicator
+from env.robosuite.models.robots import Sawyer, SawyerIndicator, SawyerTargetIndicator
 from env.robosuite.utils.mjcf_utils import new_joint, array_to_string
 
 from collections import OrderedDict
@@ -33,6 +33,7 @@ class SawyerEnv(BaseEnv):
         img_width=256,
         img_depth=False,
         use_robot_indicator=False,
+        use_target_robot_indicator=False,
         use_camera_obs = False,
         **kwargs):
         """
@@ -70,6 +71,7 @@ class SawyerEnv(BaseEnv):
         self.use_indicator_object = use_indicator_object
         self.control_freq = control_freq
         self.use_robot_indicator = use_robot_indicator
+        self.use_target_robot_indicator = use_target_robot_indicator
         self.use_camera_obs = use_camera_obs
 
         xml_name = kwargs['env'].replace("-v0", "")
@@ -130,6 +132,11 @@ class SawyerEnv(BaseEnv):
             self.mujoco_robot_indicator = SawyerIndicator()
         else:
             self.mujoco_robot_indicator = None
+
+        if self.use_target_robot_indicator:
+            self.mujoco_target_robot_indicator = SawyerTargetIndicator()
+        else:
+            self.mujoco_target_robot_indicator = None
 
         if self.has_gripper:
             self.gripper = gripper_factory(self.gripper_type)
@@ -193,6 +200,15 @@ class SawyerEnv(BaseEnv):
             ]
             self.ref_indicator_joint_vel_indexes = [
                 self.sim.model.get_joint_qvel_addr(x) for x in self.robot_indicator_joints
+            ]
+
+        if self.use_target_robot_indicator:
+            self.target_robot_indicator_joints = list(self.mujoco_target_robot_indicator.joints)
+            self.ref_target_indicator_joint_pos_indexes = [
+                self.sim.model.get_joint_qpos_addr(x) for x in self.target_robot_indicator_joints
+            ]
+            self.ref_target_indicator_joint_vel_indexes = [
+                self.sim.model.get_joint_qvel_addr(x) for x in self.target_robot_indicator_joints
             ]
 
         self.ref_joint_pos_indexes = [
@@ -298,6 +314,14 @@ class SawyerEnv(BaseEnv):
         #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
         #     ]
 
+    def visualize_goal_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_target_indicator_joint_pos_indexes] = qpos
+        self.sim.forward()
+
+    def visualize_dummy_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
+        self.sim.forward()
+
     @property
     def agent_geom_ids(self):
         body_ids = []
@@ -366,6 +390,13 @@ class SawyerEnv(BaseEnv):
                     self.ref_indicator_joint_pos_indexes
                 ] = self.sim.data.qfrc_bias[
                     self.ref_indicator_joint_pos_indexes
+                ]
+
+            if self.use_target_robot_indicator:
+                self.sim.data.qfrc_applied[
+                    self.ref_target_indicator_joint_pos_indexes
+                ] = self.sim.data.qfrc_bias[
+                    self.ref_target_indicator_joint_pos_indexes
                 ]
 
             arm_action = self._get_control(desired_state, self._prev_state, target_vel)

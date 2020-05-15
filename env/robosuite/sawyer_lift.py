@@ -39,6 +39,7 @@ class SawyerLiftEnv(SawyerEnv):
         camera_width=256,
         camera_depth=False,
         use_robot_indicator=True,
+        use_target_robot_indicator=True,
         use_target_object=False,
         **kwargs
     ):
@@ -139,6 +140,7 @@ class SawyerLiftEnv(SawyerEnv):
             camera_width=camera_width,
             camera_depth=camera_depth,
             use_robot_indicator=use_robot_indicator,
+            use_target_robot_indicator=use_target_robot_indicator,
             **kwargs
         )
 
@@ -155,6 +157,11 @@ class SawyerLiftEnv(SawyerEnv):
         )
         if self.use_indicator_object:
             self.mujoco_arena.add_pos_indicator()
+
+        if self.use_robot_indicator:
+            self.mujoco_robot_indicator.set_base_xpos([0, 0, 0])
+        if self.use_target_robot_indicator:
+            self.mujoco_target_robot_indicator.set_base_xpos([0, 0, 0])
 
         # The sawyer robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
@@ -173,7 +180,8 @@ class SawyerLiftEnv(SawyerEnv):
             self.mujoco_robot,
             self.mujoco_objects,
             initializer=self.placement_initializer,
-            mujoco_robot_indicator=self.mujoco_robot_indicator
+            mujoco_robot_indicator=self.mujoco_robot_indicator,
+            mujoco_target_robot_indicator=self.mujoco_target_robot_indicator
         )
         self.model.place_objects()
 
