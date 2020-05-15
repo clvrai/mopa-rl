@@ -144,7 +144,7 @@ class PlannerRolloutRunner(object):
                             target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
                         else:
                             target_qpos[env.ref_joint_pos_indexes] = ac['default']
-                        traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
+                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
                         target_qpos = curr_qpos.copy()
                         if success:
                             if interpolation:
@@ -316,7 +316,7 @@ class PlannerRolloutRunner(object):
                 if pi.is_planner_ac(ac) or is_planner:
                     target_qpos = curr_qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
-                    traj, success, interpolation = pi.plan(curr_qpos, target_qpos)
+                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
                     ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
                     goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
                     if success:

@@ -23,6 +23,7 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
         vector[string] glue_bodies
         vector[pair[int, int]] ignored_contacts
         double contact_threshold
+        string planner_status
 
         vector[vector[double]] plan(vector[double], vector[double], double, double, bool, double)
         void removeCollision(int, int, int)

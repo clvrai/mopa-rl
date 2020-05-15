@@ -108,17 +108,18 @@ for episode in range(N):
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.35, -0.986, -0.667])
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1., high=1., size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
-        traj, success = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)
+        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=0.01)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
 
-
-        if not success:
-            traj, success = planner.plan(current_qpos, target_qpos)
-            print("Normal planner is executed")
-        else:
+        if not success and not exact:
+            traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
+            print("Normal planner is called")
+        elif not success and not valid:
             print("Invalid state")
+        else:
+            print("Interpolation")
         # traj, success = planner.plan(current_qpos, target_qpos)
 
         if success:

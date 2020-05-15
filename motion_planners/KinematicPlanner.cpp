@@ -64,6 +64,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     passive_joint_idx = Passive_joint_idx;
     glue_bodies = Glue_bodies;
     ignored_contacts = Ignored_contacts;
+    planner_status = "none";
 
     std::string homedir = std::getenv("HOME");
     mjkey_filename = homedir + "/.mujoco/mjkey.txt";
@@ -177,6 +178,25 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cerr << "ERROR: goal vector has dimension: " << goal_vec.size()
              << " which should be nq: " << mj->m->nq;
     }
+    if (algo == "sst") {
+        ss->getPlanner()->as<og::SST>()->clear();
+    } else if (algo == "pdst") {
+        ss->getPlanner()->as<og::PDST>()->clear();
+    } else if (algo == "est") {
+        ss->getPlanner()->as<og::EST>()->clear();
+    } else if (algo == "kpiece") {
+        ss->getPlanner()->as<og::KPIECE1>()->clear();
+    } else if (algo == "rrt"){
+        ss->getPlanner()->as<og::RRTstar>()->clear();
+    } else if (algo == "sst"){
+        ss->getPlanner()->as<og::SST>()->clear();
+    } else if (algo == "rrt_connect"){
+        ss->getPlanner()->as<og::RRTConnect>()->clear();
+    } else if (algo == "prm_star"){
+        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
+    } else if (algo == "spars"){
+        ss->getPlanner()->as<og::SPARS>()->clearQuery();
+    }
 
     // split start_vec/goal_vec in active and passive dimensions
     std::vector<double> start_vec_active;
@@ -220,7 +240,11 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     ss->setStartAndGoalStates(start_ss, goal_ss, threshold);
     if (!ss->getStateValidityChecker()->isValid(goal_ss.get())){
-        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
+        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
+        return failedSolutions;
+    }
+    if (!ss->getStateValidityChecker()->isValid(start_ss.get())){
+        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
         return failedSolutions;
     }
 
@@ -234,6 +258,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
     }
     solved = ss->solve(timelimit);
+    planner_status = solved.asString();
 
     // std::cout << "solved " << solved << std::endl;
 
@@ -303,55 +328,18 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         }
         // Write solution to file
         //ss->clear();
-        if (algo == "sst") {
-            ss->getPlanner()->as<og::SST>()->clear();
-        } else if (algo == "pdst") {
-            ss->getPlanner()->as<og::PDST>()->clear();
-        } else if (algo == "est") {
-            ss->getPlanner()->as<og::EST>()->clear();
-        } else if (algo == "kpiece") {
-            ss->getPlanner()->as<og::KPIECE1>()->clear();
-        } else if (algo == "rrt"){
-            ss->getPlanner()->as<og::RRTstar>()->clear();
-        } else if (algo == "sst"){
-            ss->getPlanner()->as<og::SST>()->clear();
-        } else if (algo == "rrt_connect"){
-            ss->getPlanner()->as<og::RRTConnect>()->clear();
-        } else if (algo == "prm_star"){
-            ss->getPlanner()->as<og::PRMstar>()->clearQuery();
-        } else if (algo == "spars"){
-            ss->getPlanner()->as<og::SPARS>()->clearQuery();
-        }
         return solutions;
     }
 
     // return solutions;
     //return 0;
-    if (algo == "sst") {
-        ss->getPlanner()->as<og::SST>()->clear();
-    } else if (algo == "pdst") {
-        ss->getPlanner()->as<og::PDST>()->clear();
-    } else if (algo == "est") {
-        ss->getPlanner()->as<og::EST>()->clear();
-    } else if (algo == "kpiece") {
-        ss->getPlanner()->as<og::KPIECE1>()->clear();
-    } else if (algo == "rrt"){
-        ss->getPlanner()->as<og::RRTstar>()->clear();
-    } else if (algo == "sst"){
-        ss->getPlanner()->as<og::SST>()->clear();
-    } else if (algo == "rrt_connect"){
-        ss->getPlanner()->as<og::RRTConnect>()->clear();
-    } else if (algo == "prm_star"){
-        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
-    } else if (algo == "spars"){
-        ss->getPlanner()->as<og::SPARS>()->clearQuery();
-    }
-    std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -1));
+    std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -4));
     return failedSolutions;
 }
 
 std::string KinematicPlanner::getPlannerStatus(){
-    return ss->getLastPlannerStatus().asString();
+    // return ss->getLastPlannerStatus().asString();
+    return planner_status;
 }
 
 void KinematicPlanner::removeCollision(int geom_id, int contype, int conaffinity){

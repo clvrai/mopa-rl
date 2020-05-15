@@ -34,11 +34,18 @@ class SamplingBasedPlanner:
         return state
 
     def plan(self, start, goal, timelimit=1., min_steps=10, is_simplified=False, simplified_duration=0.1):
+        valid_state = True
+        exact = True
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
         states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps, is_simplified, simplified_duration))
-        if np.unique(states).size == 1 and states[0][0] == -1:
-            return states, states, False
+
+        if np.unique(states).size == 1:
+            if states[0][0] == -5:
+                valid_state = False
+            if states[0][0] == -4:
+                exact = False
+            return states, states, valid_state, exact
 
         traj = [start]
         pre_state = states[0]
@@ -54,7 +61,7 @@ class SamplingBasedPlanner:
                             tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
             pre_state = state
             traj.append(tmp_state)
-        return np.array(traj), states, True
+        return np.array(traj), states, valid_state, exact
 
     def remove_collision(self, geom_id, contype, conaffinity):
         self.planner.removeCollision(geom_id, contype, conaffinity)

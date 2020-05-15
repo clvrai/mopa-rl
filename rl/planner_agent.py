@@ -23,11 +23,12 @@ class PlannerAgent:
         config = self._config
         if timelimit is None:
             timelimit = config.timelimit
-        traj, states, success = self.planner.plan(start, goal, timelimit, config.min_path_len+1, self._is_simplified, self._simplified_duration)
+        traj, states, valid, exact = self.planner.plan(start, goal, timelimit, config.min_path_len+1, self._is_simplified, self._simplified_duration)
+        success = valid and exact
         if success:
-            return traj[1:], success
+            return traj[1:], success, valid, exact
         else:
-            return traj, success
+            return traj, success, valid, exact
 
     def remove_collision(self, geom, contype=0, conaffinity=0):
         self.planner.remove_collision(geom, contype, conaffinity)
