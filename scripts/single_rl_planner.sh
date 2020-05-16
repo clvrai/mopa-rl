@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.15.SAC.REUSE.RRT-connect.debug"
+prefix="05.16.SAC.REUSE.RRT-connect"
 max_global_step="60000000"
 env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.15.SAC.PLANNER.REUSE.RRT-connect'
+group='05.16.SAC.PLANNER.REUSE.RRT-connect'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"

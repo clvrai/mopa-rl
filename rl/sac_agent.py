@@ -95,7 +95,7 @@ class SACAgent(BaseAgent):
 
 
     def is_planner_ac(self, ac):
-        if np.any(ac['default'][self._ref_joint_pos_indexes] < self._ac_rl_minimum) or np.any(ac['default'][self._ref_joint_pos_indexes] > self._ac_rl_maximum):
+        if np.any(ac['default'][:len(self._ref_joint_pos_indexes)] < self._ac_rl_minimum) or np.any(ac['default'][:len(self._ref_joint_pos_indexes)] > self._ac_rl_maximum):
             return True
         return False
 
