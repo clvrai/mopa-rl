@@ -62,9 +62,9 @@ args, unparsed = parser.parse_known_args()
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="sst"
-args.planner_objective="state_const_integral"
-args.range = 0.1
-args.threshold = 0
+args.planner_objective="path_length"
+args.range = 0.05
+args.threshold = 0.05
 args.timelimit = 1.0
 args.contact_threshold = -0.001
 
@@ -85,7 +85,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = True
+is_save_video = False
 frames = []
 # start_pos = np.array([-2.77561, 0.106835, 0.047638, -0.15049436,  0.16670527, -0.00635442, 0.14496655])
 # ob = env.reset()
@@ -134,7 +134,7 @@ for episode in range(N):
                 action = env.form_action(next_qpos)
                 ob, reward, done, info = env.step(action, is_planner=True)
 
-                env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes])
+                env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
 
                 step += 1
                 if is_save_video:

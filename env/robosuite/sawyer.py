@@ -390,14 +390,14 @@ class SawyerEnv(BaseEnv):
                     self.ref_indicator_joint_pos_indexes
                 ] = self.sim.data.qfrc_bias[
                     self.ref_indicator_joint_pos_indexes
-                ]
+                ].copy()
 
             if self.use_target_robot_indicator:
                 self.sim.data.qfrc_applied[
                     self.ref_target_indicator_joint_pos_indexes
                 ] = self.sim.data.qfrc_bias[
                     self.ref_target_indicator_joint_pos_indexes
-                ]
+                ].copy()
 
             arm_action = self._get_control(desired_state, self._prev_state, target_vel)
             gripper_action = self.gripper.format_action(np.array([action[-1]]))
