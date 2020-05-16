@@ -79,7 +79,7 @@ class SawyerPickMoveEnv(SawyerEnv):
             camera_width (int): width of camera frame.
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
-
+        use_robot_indicator = True
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction

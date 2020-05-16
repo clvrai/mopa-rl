@@ -77,19 +77,21 @@ inner_dt = env.sim.model.opt.timestep
 
 n_inner_loop = int(outer_dt / inner_dt)
 
+N = 10
+
 # create a dummy trajectory
 q_0 = np.zeros(env.mujoco_robot.dof)
 q_f = np.zeros(env.mujoco_robot.dof)
-q_f -= 0.3
+q_f -= 0.03 * N
 
 gripper_0 = np.zeros(len(env.ref_gripper_joint_pos_indexes))
 gripper_f = np.array([-0.01, 0.01])
 
-N = 50
+
 traj = np.linspace(q_0, q_f, N)
 gripper_traj = np.linspace(gripper_0, gripper_f, N)
-Kp = 300.0
-Kd = 5.
+Kp = 40.0
+Kd = 1.0
 Ki = 0.0 #5.0
 alpha = 0.95
 
@@ -97,7 +99,7 @@ error = 0
 x_traj_prev = traj[0, :]
 i_term = np.zeros_like(x_traj_prev)
 x_prev = env.sim.data.qpos[env.ref_joint_pos_indexes]
-use_step = True
+use_step = False
 
 for t in range(1, N):
     x_traj = traj[t, :]
@@ -114,8 +116,10 @@ for t in range(1, N):
         action = np.append(action, gripper_action[0])
         env.step(action=action, is_planner=True)
 
-        env.render()
-        time.sleep(outer_dt)
+        import timeit
+        t = timeit.default_timer()
+        while (timeit.default_timer() - t) < outer_dt:
+            env.render(mode='human')
     else:
         for i in range(n_inner_loop):
             # gravity compensation
