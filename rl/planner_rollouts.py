@@ -153,7 +153,7 @@ class PlannerRolloutRunner(object):
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
                             if config.reuse_data:
-                                inter_subgoal_ac = OrderedDict([('default', converted_ac['default'].copy())])
+                                inter_subgoal_ac = env.form_action(next_qpos)
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
                                 if config.extended_action:
                                     inter_subgoal_ac['ac_type'] = ac['ac_type']
@@ -216,11 +216,11 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                 else:
-                    ac['default'] /= env._ac_scale
+                    ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                    rescaled_ac['default'] *= config.action_range
+                    rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.action_range
                     ob, reward, done, info = env.step(rescaled_ac)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
@@ -381,7 +381,7 @@ class PlannerRolloutRunner(object):
                 ac['default'] /= env._ac_scale
                 counter['rl'] += 1
                 rescaled_ac = ac.copy()
-                rescaled_ac['default'] *= config.action_range
+                rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.action_range
                 ob, reward, done, info = env.step(rescaled_ac)
                 ep_len += 1
                 ep_rew += reward
