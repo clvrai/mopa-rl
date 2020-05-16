@@ -7,6 +7,7 @@ import torch.optim as optim
 
 from rl.dataset import ReplayBuffer, RandomSampler
 from rl.base_agent import BaseAgent
+from rl.planner_agent import PlannerAgent
 from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import optimizer_cuda, count_parameters, \
@@ -37,6 +38,17 @@ class PPOAgent(BaseAgent):
                                     config.buffer_size,
                                     sampler.sample_func)
 
+        self._planner = None
+        if config.planner_integration:
+            self._planner = PlannerAgent(config,ac_space, non_limited_idx,
+                                         config.passive_joint_idx, config.ignored_contact_geom_ids[0],
+                                         config.is_simplified, config.simplified_duration)
+            self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, config.passive_joint_idx,
+                                                config.ignored_contact_geom_ids[0], goal_bias=1.0)
+            self._ac_rl_minimum = config.ac_rl_minimum
+            self._ac_rl_maximum = config.ac_rl_maximum
+
+
         if config.is_chef:
             logger.info('Creating a PPO agent')
             logger.info('The actor has %d parameters', count_parameters(self._actor))
@@ -45,6 +57,19 @@ class PPOAgent(BaseAgent):
     def store_episode(self, rollouts):
         self._compute_gae(rollouts)
         self._buffer.store_episode(rollouts)
+
+    def is_planner_ac(self, ac):
+        if np.any(ac['default'][:len(self._ref_joint_pos_indexes)] < self._ac_rl_minimum) or np.any(ac['default'][:len(self._ref_joint_pos_indexes)] > self._ac_rl_maximum):
+            return True
+        return False
+
+    def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
+        interpolation = True
+        traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        if not success and not exact:
+            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+            interpolation = False
+        return traj, success, interpolation, valid, exact
 
     def _compute_gae(self, rollouts):
         T = len(rollouts['done'])
