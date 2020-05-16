@@ -143,7 +143,6 @@ class PlannerRolloutRunner(object):
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
-                    target_qpos = curr_qpos.copy()
                     if success:
                         if interpolation:
                             counter['interpolation'] += 1

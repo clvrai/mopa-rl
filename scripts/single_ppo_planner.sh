@@ -2,17 +2,16 @@
 gpu=$1
 seed=$2
 
-algo='sac'
-rollout_length="1000"
-evaluate_interval="1000"
-ckpt_interval='200000'
-rl_activation="relu"
-num_batches="1"
-log_interval="150"
-
-workers="1"
+workers="4"
+algo='ppo'
+rollout_length="512"
+evaluate_interval="10"
+ckpt_interval='50'
+rl_activation="tanh"
+num_batches="50"
+log_interval="1"
 tanh="True"
-prefix="05.15.SAC.REUSE.RRT-connect.timelimit.1.0.SPARSE"
+prefix="05.15.PPO.SINGLE.PLANNNER"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -22,31 +21,31 @@ buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
-batch_size="256"
+batch_size="32"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 success_reward='0.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.15.SAC.PLANNER.REUSE.RRT-connect.timelimit.1.0.SPARSE'
+group='05.15.PPO.SINGLE.PLANNER'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="rrt_connect"
+planner_type="sst"
 planner_objective="path_length"
 range="0.1"
 threshold="0.01"
-timelimit="0.5"
+timelimit="3."
 allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
-reuse_data="True"
+reuse_data="False"
 relative_goal="True"
 simple_planner_timelimit="0.02"
 action_range="2.0"
@@ -54,12 +53,13 @@ ac_rl_minimum="-0.05"
 ac_rl_maximum="0.05"
 invalid_planner_rew="-0.3"
 extended_action="False"
+sst_selection_radius="0.05"
+sst_pruning_radius="0.1"
 
 
 # max_grad_norm='0.5'
 
-#mpiexec -n $workers
-python -m rl.main \
+mpiexec -n $workers python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
@@ -112,3 +112,5 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
+    --sst_selection_radius $sst_selection_radius \
+    --sst_pruning_radius $sst_pruning_radius
