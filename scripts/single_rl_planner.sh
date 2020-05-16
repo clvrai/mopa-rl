@@ -24,7 +24,7 @@ fi
 
 workers="1"
 tanh="True"
-prefix="05.15.SAC.REUSE.RANGE.2.0.REW-0.3.thresh.0.1"
+prefix="05.15.SAC.REUSE.RRT-connect.timelimit.1.0"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
@@ -46,15 +46,15 @@ actor_num_hid_layers='2'
 success_reward='0.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.15.SAC.SINGLE.REUSE.PUSH-OBSTACLE-HARD.RANGE.2.0.INVALID.REW-0.3.thresh.0.1'
+group='05.15.SAC.PLANNER.REUSE.RRT-connect.timelimit.1.0'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="sst"
+planner_type="rrt-connect"
 planner_objective="path_length"
 range="0.1"
-threshold="0.05"
+threshold="0.01"
 timelimit="1."
 allow_self_collision="False"
 allow_manipulation_collision="True"
