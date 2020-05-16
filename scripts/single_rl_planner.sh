@@ -12,11 +12,11 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.15.SAC.REUSE.RRT-connect.timelimit.1.0.SPARSE"
+prefix="05.15.SAC.REUSE.RRT-connect.debug"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
-max_episode_step="200"
+max_episode_step="1000"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -25,14 +25,12 @@ debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
-success_reward='0.'
-has_terminal='True'
 log_root_dir="./logs"
-group='05.15.SAC.PLANNER.REUSE.RRT-connect.timelimit.1.0.SPARSE'
+group='05.15.SAC.PLANNER.REUSE.RRT-connect'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -54,6 +52,8 @@ ac_rl_minimum="-0.05"
 ac_rl_maximum="0.05"
 invalid_planner_rew="-0.3"
 extended_action="False"
+# success_reward='0.'
+# has_terminal='True'
 
 
 # max_grad_norm='0.5'
@@ -86,8 +86,6 @@ python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
     --group $group \
     --env_debug $env_debug \
     --log_freq $log_freq \
@@ -112,3 +110,5 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
+    # --success_reward $success_reward \
+    # --has_terminal $has_terminal \

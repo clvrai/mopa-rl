@@ -138,8 +138,8 @@ class PlannerRolloutRunner(object):
                     if config.relative_goal:
                         target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
                         tmp_target_qpos = target_qpos.copy()
-                        target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                        target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
+                        target_qpos = np.clip(target_qpos, env._jnt_minimum, env._jnt_maximum)
+                        target_qpos[np.invert(env._is_jnt_limited)] = tmp_target_qpos[np.invert(env._is_jnt_limited)]
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
@@ -153,8 +153,7 @@ class PlannerRolloutRunner(object):
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
                             if config.reuse_data:
-                                inter_subgoal_ac = OrderedDict([('default', converted_ac['default'].copy())])
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
+                                inter_subgoal_ac = OrderedDict([('default', (next_qpos[env.ref_joint_pos_indexes] - env.sim.data.qpos[env.ref_joint_pos_indexes].copy())/env._ac_scale)])
                                 if config.extended_action:
                                     inter_subgoal_ac['ac_type'] = ac['ac_type']
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
@@ -176,7 +175,7 @@ class PlannerRolloutRunner(object):
                             if done or ep_len >= max_step:
                                 break
                         if self._config.subgoal_hindsight: # refer to HAC
-                            hindsight_subgoal_ac = env.form_hindsight_action(curr_qpos)
+                            hindsight_subgoal_ac = OrderedDict([('default', env.sim.data.qpos[env.ref_joint_pos_indexes].copy() - curr_qpos[env.ref_joint_pos_indexes])])
                             if config.extended_action:
                                 hindsight_subgoal_ac['ac_type'] = ac['ac_type']
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
@@ -219,7 +218,7 @@ class PlannerRolloutRunner(object):
                     ac['default'] /= env._ac_scale
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
-                    rescaled_ac = OrderedDict([('default', ac['default'].copy())])
+                    rescaled_ac = ac.copy()
                     rescaled_ac['default'] *= config.action_range
                     ob, reward, done, info = env.step(rescaled_ac)
                     rollout.add({'done': done, 'rew': reward})
@@ -305,15 +304,11 @@ class PlannerRolloutRunner(object):
             prev_joint_qpos = curr_qpos[env.ref_joint_pos_indexes]
             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
             is_planner = False
-            target_qpos = env.sim.data.qpos.copy()
             if config.extended_action:
                 is_planner = bool(ac['ac_type'][0])
             if pi.is_planner_ac(ac) or is_planner:
-                target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
-                tmp_target_qpos = target_qpos.copy()
-                target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
-
+                target_qpos = curr_qpos.copy()
+                target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
                 traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
                 if success:
@@ -343,8 +338,7 @@ class PlannerRolloutRunner(object):
                             curr_qpos = env.sim.data.qpos.copy()
                             frame_info['curr_qpos'] = curr_qpos
                             frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
-                            if hasattr(env, 'goal'):
-                                frame_info['goal'] = env.goal
+                            frame_info['goal'] = env.goal
                             env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes])
                             self._store_frame(env, frame_info, planner=True)
                         if done or ep_len >= max_step:
@@ -372,8 +366,7 @@ class PlannerRolloutRunner(object):
                         frame_info['target_qpos'] = target_qpos
                         curr_qpos = env.sim.data.qpos.copy()
                         frame_info['curr_qpos'] = curr_qpos
-                        if hasattr(env, 'goal'):
-                            frame_info['goal'] = env.goal
+                        frame_info['goal'] = env.goal
                         frame_info['contacts'] = env.sim.data.ncon
                         env.visualize_dummy_indicator(env.sim.data.qpos[env.ref_joint_pos_indexes].copy())
                         self._store_frame(env, frame_info, planner=True)
@@ -417,7 +410,8 @@ class PlannerRolloutRunner(object):
 
         geom_colors = {}
         if planner:
-            for geom_idx in env.agent_geom_ids:
+            for k in env.body_geoms:
+                geom_idx = env.sim.model.geom_name2id(k)
                 color = env.sim.model.geom_rgba[geom_idx]
                 geom_colors[geom_idx] = color.copy()
                 color[0] = 0.0

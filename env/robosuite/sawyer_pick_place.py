@@ -228,6 +228,10 @@ class SawyerPickPlaceEnv(SawyerEnv):
                 self.sim.set_state(sim_state)
                 self.sim.forward()
 
+    @property
+    def static_geom_ids(self):
+        return []
+
     def _get_reference(self):
         super()._get_reference()
         self.obj_body_id = {}

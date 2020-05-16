@@ -16,11 +16,12 @@ from util.pytorch import optimizer_cuda, count_parameters, \
 
 class PPOAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic, non_limited_idx=None, postfix=""):
+                 actor, critic, non_limited_idx=None, ref_joint_pos_indexs=None, postfix=""):
         super().__init__(config, ob_space)
 
         self._ac_space = ac_space
         self._postfix = postfix
+        self._ref_joint_pos_indexes = ref_joint_pos_indexs
 
         # build up networks
         self._actor = actor(config, ob_space, ac_space, config.tanh_policy, activation='tanh')

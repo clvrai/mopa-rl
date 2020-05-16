@@ -23,7 +23,7 @@ class SawyerLiftEnv(SawyerEnv):
         table_friction=(1., 5e-3, 1e-4),
         use_camera_obs=False,
         use_object_obs=True,
-        reward_shaping=False,
+        reward_shaping=True,
         placement_initializer=None,
         gripper_visualization=False,
         use_indicator_object=False,
@@ -219,7 +219,11 @@ class SawyerLiftEnv(SawyerEnv):
     def manipulation_geom_ids(self):
         return [self.cube_geom_id]
 
-    def reward(self, action=None):
+    @property
+    def static_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.mujoco_arena.geom_names]
+
+    def compute_reward(self, action=None):
         """
         Reward function for the task.
 
@@ -237,6 +241,7 @@ class SawyerLiftEnv(SawyerEnv):
         Returns:
             reward (float): the reward
         """
+        info = {}
         reward = 0.
 
         # sparse completion reward
@@ -256,6 +261,7 @@ class SawyerLiftEnv(SawyerEnv):
             # grasping reward
             touch_left_finger = False
             touch_right_finger = False
+            touch_reward = 0
             for i in range(self.sim.data.ncon):
                 c = self.sim.data.contact[i]
                 if c.geom1 in self.l_finger_geom_ids and c.geom2 == self.cube_geom_id:
@@ -267,9 +273,11 @@ class SawyerLiftEnv(SawyerEnv):
                 if c.geom1 == self.cube_geom_id and c.geom2 in self.r_finger_geom_ids:
                     touch_right_finger = True
             if touch_left_finger and touch_right_finger:
-                reward += 0.25
+                touch_reward = 0.25
+                reward += touch_reward
+            info = dict(reaching_reward=reaching_reward, touch_reward=touch_reward)
 
-        return reward
+        return reward, info
 
     def _get_observation(self):
         """

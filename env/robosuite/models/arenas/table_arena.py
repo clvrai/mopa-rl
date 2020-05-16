@@ -48,3 +48,7 @@ class TableArena(Arena):
         """Returns the absolute position of table top"""
         table_height = np.array([0, 0, self.table_full_size[2]])
         return string_to_array(self.floor.get("pos")) + table_height
+
+    @property
+    def geom_names(self):
+        return ['table_collision']

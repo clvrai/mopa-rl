@@ -10,6 +10,7 @@ from mujoco_py import load_model_from_xml
 from env.robosuite.models.grippers import gripper_factory
 from env.robosuite.models.robots import Sawyer, SawyerIndicator, SawyerTargetIndicator
 from env.robosuite.utils.mjcf_utils import new_joint, array_to_string
+import time
 
 from collections import OrderedDict
 
@@ -185,6 +186,11 @@ class SawyerEnv(BaseEnv):
         ac = OrderedDict([('default', np.concatenate([joint_ac, [0.]]))])
         return ac
 
+    def form_hindsight_action(self, prev_qpos):
+        joint_ac = self.sim.data.qpos.copy()[self.ref_joint_pos_indexes] - prev_qpos[self.ref_joint_pos_indexes]
+        ac = OrderedDict([('default', np.concatenate([joint_ac, [0.]]))])
+        return ac
+
     def _get_reference(self):
         """
         Sets up necessary reference for robots, grippers, and objects.
@@ -316,16 +322,54 @@ class SawyerEnv(BaseEnv):
 
     def visualize_goal_indicator(self, qpos):
         self.sim.data.qpos[self.ref_target_indicator_joint_pos_indexes] = qpos
+        for idx in self.target_indicator_agent_geom_ids:
+            color = self.sim.model.geom_rgba[idx]
+            color[-1] = 0.3
+            self.sim.model.geom_rgba[idx] = color
         self.sim.forward()
 
     def visualize_dummy_indicator(self, qpos):
         self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
+        for idx in self.indicator_agent_geom_ids:
+            color = self.sim.model.geom_rgba[idx]
+            color[-1] = 0.3
+            self.sim.model.geom_rgba[idx] = color
         self.sim.forward()
+
+    def reset_visualized_indicator(self):
+        for idx in self.indicator_agent_geom_ids + self.target_indicator_agent_geom_ids:
+            color = self.sim.model.geom_rgba[idx]
+            color[-1] = 0.
+            self.sim.model.geom_rgba[idx] = color
 
     @property
     def agent_geom_ids(self):
         body_ids = []
         for body_name in self.mujoco_robot.bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
+        geom_ids = []
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            if body_id in body_ids:
+                geom_ids.append(geom_id)
+        return geom_ids
+
+    @property
+    def target_indicator_agent_geom_ids(self):
+        body_ids = []
+        for body_name in self.mujoco_target_robot_indicator.bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
+        geom_ids = []
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            if body_id in body_ids:
+                geom_ids.append(geom_id)
+        return geom_ids
+
+    @property
+    def indicator_agent_geom_ids(self):
+        body_ids = []
+        for body_name in self.mujoco_robot_indicator.bodies:
             body_ids.append(self.sim.model.body_name2id(body_name))
 
         geom_ids = []
@@ -409,10 +453,10 @@ class SawyerEnv(BaseEnv):
         # 2) Planner policy
         self._prev_state = np.copy(desired_state)
 
-        reward = self.reward(action)
+        reward, info = self.compute_reward(action)
         # done if number of elapsed timesteps is greater than horizon
         self._gripper_visualization()
-        return self._get_obs(), reward, self._terminal, {}
+        return self._get_obs(), reward, self._terminal, info
 
     def _after_step(self, reward, terminal, info):
         step_log = dict(info)

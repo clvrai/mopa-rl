@@ -22,11 +22,12 @@ from gym import spaces
 
 class SACAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic, non_limited_idx=None):
+                 actor, critic, non_limited_idx=None, ref_joint_pos_indexes=None):
         super().__init__(config, ob_space)
 
         self._ob_space = ob_space
         self._ac_space = ac_space
+        self._ref_joint_pos_indexes = ref_joint_pos_indexes
         self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device)]
         self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
 
@@ -94,7 +95,7 @@ class SACAgent(BaseAgent):
 
 
     def is_planner_ac(self, ac):
-        if np.any(ac['default'] < self._ac_rl_minimum) or np.any(ac['default'] > self._ac_rl_maximum):
+        if np.any(ac['default'][self._ref_joint_pos_indexes] < self._ac_rl_minimum) or np.any(ac['default'][self._ref_joint_pos_indexes] > self._ac_rl_maximum):
             return True
         return False
 

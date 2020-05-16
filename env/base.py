@@ -65,6 +65,17 @@ class BaseEnv(gym.Env):
         self._init_qpos = self.sim.data.qpos.ravel().copy()
         self._init_qvel = self.sim.data.qvel.ravel().copy()
 
+        self.jnt_indices = []
+        for i, jnt_type in enumerate(self.sim.model.jnt_type):
+            if jnt_type == 0:
+                for _ in range(7):
+                    self.jnt_indices.append(i)
+            elif jnt_type == 1:
+                for _ in range(4):
+                    self.jnt_indices.append(i)
+            else:
+                self.jnt_indices.append(i)
+
         jnt_range = self.sim.model.jnt_range
         is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
         jnt_minimum = np.full(len(is_jnt_limited), fill_value=-np.inf, dtype=np.float)
@@ -327,6 +338,11 @@ class BaseEnv(gym.Env):
 
     def form_action(self, next_qpos, skill=None):
         joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+        ac = OrderedDict([('default', joint_ac)])
+        return ac
+
+    def form_hindsight_action(self, prev_qpos, skill=None):
+        joint_ac = self.sim.data.qpos.copy()[self.ref_joint_pos_indexes] - prev_qpos[self.ref_joint_pos_indexes]
         ac = OrderedDict([('default', joint_ac)])
         return ac
 
