@@ -65,7 +65,6 @@ class PlannerRolloutRunner(object):
         self._config = config
         self._env = env
         self._env_eval = env_eval
-        self._ik_env = gym.make(config.env, **config.__dict__)
         self._meta_pi = meta_pi
         self._pi = pi
 
@@ -258,8 +257,6 @@ class PlannerRolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
-        ik_env = self._ik_env
-        ik_env.reset()
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -314,8 +311,7 @@ class PlannerRolloutRunner(object):
                 target_qpos = curr_qpos.copy()
                 target_qpos[env.ref_joint_pos_indexes] += ac['default'] * config.action_range
                 traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
-                ik_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
-                goal_xpos, goal_xquat = self._get_mp_body_pos(ik_env, postfix='goal')
+                env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
                 if success:
                     if interpolation:
                         counter['interpolation'] += 1
@@ -344,12 +340,8 @@ class PlannerRolloutRunner(object):
                             frame_info['curr_qpos'] = curr_qpos
                             frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
                             frame_info['goal'] = env.goal
-                        ik_qpos = env.sim.data.qpos.ravel().copy()
-                        ik_qpos[env.ref_joint_pos_indexes] = next_qpos[env.ref_joint_pos_indexes]
-                        ik_env.set_state(ik_qpos, ik_env.sim.data.qvel.ravel())
-                        xpos, xquat = self._get_mp_body_pos(ik_env)
-                        vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                        self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
+                            env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes])
+                            self._store_frame(env, frame_info, planner=True)
                         if done or ep_len >= max_step:
                             break
                     rollout.add({'done': done, 'rew': meta_rew})
@@ -377,10 +369,8 @@ class PlannerRolloutRunner(object):
                         frame_info['curr_qpos'] = curr_qpos
                         frame_info['goal'] = env.goal
                         frame_info['contacts'] = env.sim.data.ncon
-
-                        xpos, xquat = self._get_mp_body_pos(ik_env)
-                        vis_pos = [(xpos, xquat), (goal_xpos, goal_xquat)]
-                        self._store_frame(env, frame_info, None, vis_pos=vis_pos, planner=True)
+                        env.visualize_dummy_indicator(env.sim.data.qpos[env.ref_joint_pos_indexes].copy())
+                        self._store_frame(env, frame_info, planner=True)
             else:
                 ac['default'] /= env._ac_scale
                 counter['rl'] += 1
@@ -399,6 +389,7 @@ class PlannerRolloutRunner(object):
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                     self._store_frame(env, frame_info)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+            env.reset_visualized_indicator()
 
         # last frame
         ll_ob = ob.copy()
@@ -412,34 +403,11 @@ class PlannerRolloutRunner(object):
         # last frame
         return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
-    def _get_mp_body_pos(self, ik_env, postfix='dummy'):
-        xpos = OrderedDict()
-        xquat = OrderedDict()
-        for i in range(len(ik_env.ref_joint_pos_indexes)):
-            name = 'body'+str(i)
-            body_idx = ik_env.sim.model.body_name2id(name)
-            xpos[name+'-'+ postfix] = ik_env.sim.data.body_xpos[body_idx].copy()
-            xquat[name+'-'+postfix] = ik_env.sim.data.body_xquat[body_idx].copy()
-
-        return xpos, xquat
-
-    def _store_frame(self, env, info={}, subgoal=None, vis_pos=[], planner=False):
+    def _store_frame(self, env, info={}, planner=False):
         color = (200, 200, 200)
 
         text = "{:4} {}".format(env._episode_length,
                                 env._episode_reward)
-
-        if self._config.hl_type == 'subgoal' and subgoal is not None:
-            env._set_pos('subgoal', [subgoal[0], subgoal[1], env._get_pos('subgoal')[2]])
-            env._set_color('subgoal', [0.2, 0.9, 0.2, 1.])
-
-        for xpos, xquat in vis_pos:
-            for k in xpos.keys():
-                env._set_pos(k, xpos[k])
-                env._set_quat(k, xquat[k])
-                color = env._get_color(k)
-                color[-1] = 0.3
-                env._set_color(k, color)
 
         geom_colors = {}
         if planner:
@@ -453,13 +421,6 @@ class PlannerRolloutRunner(object):
                 env.sim.model.geom_rgba[geom_idx] = color
 
         frame = env.render('rgb_array') * 255.0
-        env._set_color('subgoal', [0.2, 0.9, 0.2, 0.])
-        for xpos, xquat in vis_pos:
-            if xpos is not None and xquat is not None:
-                for k in xpos.keys():
-                    color = env._get_color(k)
-                    color[-1] = 0.
-                    env._set_color(k, color)
 
         if planner:
             for geom_idx, color in geom_colors.items():
