@@ -11,7 +11,7 @@ rl_activation="tanh"
 num_batches="50"
 log_interval="1"
 tanh="True"
-prefix="05.15.PPO.SINGLE.PLANNNER"
+prefix="05.16.PPO.SINGLE.PLANNNER"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -28,19 +28,17 @@ reward_type='dense'
 comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
-success_reward='0.'
-has_terminal='True'
 log_root_dir="./logs"
-group='05.15.PPO.SINGLE.PLANNER'
+group='05.16.PPO.SINGLE.PLANNER.PUSHER-HARD'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="sst"
+planner_type="rrt_connect"
 planner_objective="path_length"
 range="0.1"
 threshold="0.01"
-timelimit="3."
+timelimit="1."
 allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="10."
@@ -55,6 +53,8 @@ invalid_planner_rew="-0.3"
 extended_action="False"
 sst_selection_radius="0.05"
 sst_pruning_radius="0.1"
+success_reward='150.'
+has_terminal='True'
 
 
 # max_grad_norm='0.5'
@@ -86,8 +86,6 @@ mpiexec -n $workers python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
     --group $group \
     --env_debug $env_debug \
     --log_freq $log_freq \
@@ -113,4 +111,6 @@ mpiexec -n $workers python -m rl.main \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
     --sst_selection_radius $sst_selection_radius \
-    --sst_pruning_radius $sst_pruning_radius
+    --sst_pruning_radius $sst_pruning_radius \
+    --success_reward $success_reward \
+    --has_terminal $has_terminal \
