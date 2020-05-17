@@ -23,7 +23,7 @@ then
 fi
 
 workers="1"
-prefix="05.13.BASELINE.SAC.SPARSE"
+prefix="05.13.BASELINE.SAC.No.Success"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
@@ -38,14 +38,14 @@ batch_size="256"
 clip_param="0.2"
 seed='1234'
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
 success_reward='0.'
 has_terminal='True'
 log_root_dir="./logs"
-group='05.13.SAC.BASELINE.PUSH-OBSTACLE-HARD.SPARSe'
+group='05.13.SAC.BASELINE.PUSH-OBSTACLE-HARD.No.Success'
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'
