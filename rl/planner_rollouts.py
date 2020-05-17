@@ -129,6 +129,7 @@ class PlannerRolloutRunner(object):
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 curr_qpos = env.sim.data.qpos.copy()
+                prev_qpos = env.sim.daa.qpos.copy()
                 target_qpos = curr_qpos.copy()
                 prev_ob = ob.copy()
                 is_planner = False
@@ -154,7 +155,6 @@ class PlannerRolloutRunner(object):
                             # ac = env.form_action(next_qpos)
                             if config.reuse_data:
                                 inter_subgoal_ac = env.form_action(next_qpos)
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
                                 if config.extended_action:
                                     inter_subgoal_ac['ac_type'] = ac['ac_type']
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
@@ -176,7 +176,7 @@ class PlannerRolloutRunner(object):
                             if done or ep_len >= max_step:
                                 break
                         if self._config.subgoal_hindsight: # refer to HAC
-                            hindsight_subgoal_ac = env.form_hindsight_action(curr_qpos)
+                            hindsight_subgoal_ac = env.form_hindsight_action(prev_qpos)
                             if config.extended_action:
                                 hindsight_subgoal_ac['ac_type'] = ac['ac_type']
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
