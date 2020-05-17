@@ -26,7 +26,7 @@ class SawyerEnv(BaseEnv):
         gripper_type=None,
         gripper_visualization=False,
         use_indicator_object=False,
-        control_freq=10,
+        control_freq=4,
         max_episode_steps=1000,
         ignore_done=False,
         camera_name="frontview",
@@ -100,7 +100,7 @@ class SawyerEnv(BaseEnv):
         is_limited = np.array([True] * self.dof)
         minimum = -np.ones(self.dof)
         maximum = np.ones(self.dof)
-        self._ac_scale = 0.1
+        self._ac_scale = 0.05
 
         self._minimum = minimum
         self._maximum = maximum
@@ -380,10 +380,10 @@ class SawyerEnv(BaseEnv):
 
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
-        # import pdb
-        # pdb.set_trace()
-        p_term = self._kp * (state - self.sim.data.qpos[self.ref_joint_pos_indexes])
-        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[self.ref_joint_pos_indexes])
+        kp = np.array([40, 50., 130, 220, 120, 100, 100])
+        kd = np.array([2, 2.,  0.5, 1., 0.2, 5., 8])
+        p_term = kp * (state - self.sim.data.qpos[self.ref_joint_pos_indexes])
+        d_term = kd * (target_vel * 0 - self.sim.data.qvel[self.ref_joint_pos_indexes])
         self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[self.ref_joint_pos_indexes])
         action = p_term + d_term + self._i_term
 

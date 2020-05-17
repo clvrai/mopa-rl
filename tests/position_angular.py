@@ -26,19 +26,18 @@ args._xml_path = env.xml_path
 
 N = 1
 frames = []
-position = np.array([0.1, 0.2, 0.5, 1.0, 2.0])
-action_scales = np.linspace(0, 2, 19)
+action_scales = np.linspace(-0.1, 0.1, 9)
 data = [[] for _ in range(len(env.ref_joint_pos_indexes))]
 for i, scale in enumerate(action_scales):
-    print(i)
     ob = env.reset()
     current_qpos = env.sim.data.qpos.copy()
     current_qpos[env.ref_joint_pos_indexes] = np.zeros(len(env.ref_joint_pos_indexes))
     env.set_state(current_qpos, env.sim.data.qvel.ravel())
 
     action = np.ones(env.dof) * scale
-    env.step(action)
+    env.step(action, is_planner=True)
     qpos = env.sim.data.qpos.ravel().copy()
+    env._prev_state = None
     for j, pos in enumerate(qpos[env.ref_joint_pos_indexes]):
         data[j].append(pos)
 
@@ -49,4 +48,4 @@ for k in range(len(env.ref_joint_pos_indexes)):
     plt.title("Radian vs Action: Joint: {}".format(k))
     plt.ylabel("Radian")
     plt.xlabel("Action")
-    plt.show()
+    plt.savefig("sawyer_radian_action_joint_{}.png".format(k))

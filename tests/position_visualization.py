@@ -4,7 +4,7 @@ import shutil
 from collections import OrderedDict
 import gym
 import env
-from config.pusher import add_arguments
+from config.robosuite import add_arguments
 from config import argparser
 from util.misc import make_ordered_pair, save_video
 from config.motion_planner import add_arguments as planner_add_arguments
@@ -50,7 +50,8 @@ add_arguments(parser)
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
 
-args.env = 'simple-pusher-obstacle-v0'
+args.env = 'sawyer-lift-robosuite-v0'
+args.camera_name = 'birdview'
 env = gym.make(args.env, **args.__dict__)
 mp_env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
@@ -71,32 +72,18 @@ for episode, pos in enumerate(position):
     env.set_state(current_qpos, env.sim.data.qvel.ravel())
     for i in range(1):
         step = 0
-
-        target_qpos = current_qpos.copy()
-        target_qpos[env.ref_joint_pos_indexes] = np.zeros(len(env.ref_joint_pos_indexes))
-        mp_env.set_state(target_qpos, env.sim.data.qvel.ravel().copy())
-        xpos = OrderedDict()
-        xquat = OrderedDict()
-
-        for i in range(len(mp_env.ref_joint_pos_indexes)):
-            name = 'body'+str(i)
-            body_idx = mp_env.sim.model.body_name2id(name)
-            key = name+'-goal'
-            env._set_pos(key, mp_env.sim.data.body_xpos[body_idx].copy())
-            env._set_quat(key, mp_env.sim.data.body_xquat[body_idx].copy())
-            color = env._get_color(key)
-            color[-1] = 0.3
-            env._set_color(key, color)
+        env.visualize_goal_indicator(np.zeros(len(env.ref_joint_pos_indexes)))
 
         action = np.ones(len(env.ref_joint_pos_indexes)) * -pos
+        action = np.concatenate([action, [0.]])
         env.step(action)
 
         info['joint_diff'] = pos
         frames[episode].append(render_frame(env, step, info))
 
-prefix_path = './tmp/visualization_test/'
+prefix_path = './tmp/visualization_test_sawyer/'
 if not os.path.exists(prefix_path):
     os.makedirs(prefix_path)
 for i in range(len(position)):
-    fpath = os.path.join(prefix_path, 'visualization_action_{}.mp4'.format(position[i]))
+    fpath = os.path.join(prefix_path, 'visualization_action_{}_bird.mp4'.format(position[i]))
     save_video(fpath, frames[i], fps=15)

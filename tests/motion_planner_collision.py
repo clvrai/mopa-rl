@@ -61,11 +61,11 @@ args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
-args.planner_type="sst"
+args.planner_type="rrt_connect"
 args.planner_objective="path_length"
-args.range = 0.03
-args.threshold = 0.0
-args.timelimit = 4.0
+args.range = 0.05
+args.threshold = 0.01
+args.timelimit = 3.0
 args.simple_timelimit = 0.04
 args.contact_threshold = -0.001
 
@@ -107,7 +107,7 @@ for episode in range(N):
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.35, -0.986, -0.667])
-        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-.5, high=.5, size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())

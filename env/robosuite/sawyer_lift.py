@@ -31,7 +31,7 @@ class SawyerLiftEnv(SawyerEnv):
         has_offscreen_renderer=True,
         render_collision_mesh=False,
         render_visual_mesh=True,
-        control_freq=10,
+        control_freq=4,
         horizon=1000,
         ignore_done=False,
         camera_name="frontview",
