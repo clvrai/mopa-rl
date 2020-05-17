@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.16.SAC.REUSE.FIXED-RL.No.Success"
+prefix="05.16.SAC.REUSE.FIXED-RL.v2"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.16.SAC.PLANNER.REUSE.FIXED-RL.NO.SUCCESS'
+group='05.16.SAC.PLANNER.REUSE.FIXED-RL.v2'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -52,7 +52,7 @@ ac_rl_minimum="-0.05"
 ac_rl_maximum="0.05"
 invalid_planner_rew="-0.3"
 extended_action="False"
-success_reward='0.'
+success_reward='150.'
 has_terminal='True'
 
 

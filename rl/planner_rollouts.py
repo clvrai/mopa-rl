@@ -129,7 +129,7 @@ class PlannerRolloutRunner(object):
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 curr_qpos = env.sim.data.qpos.copy()
-                prev_qpos = env.sim.daa.qpos.copy()
+                prev_qpos = env.sim.data.qpos.copy()
                 target_qpos = curr_qpos.copy()
                 prev_ob = ob.copy()
                 is_planner = False
