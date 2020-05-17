@@ -14,7 +14,7 @@ workers="1"
 tanh="True"
 prefix="05.16.SAC.REUSE.RRT-connect.timelimit.1.5"
 max_global_step="60000000"
-env="sawyer-lift-robosuite-v0"
+env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="1000"
 entropy_loss_coef="1e-3"
@@ -30,14 +30,14 @@ comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.16.SAC.PLANNER.SAWYER.REUSE.RRT-connect.timelimit.1.5'
+group='05.16.SAC.PLANNER.REUSE.RRT-connect.timelimit.1.5'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="rrt_connect"
 planner_objective="path_length"
-range="0.03"
+range="0.1"
 threshold="0.01"
 timelimit="1.5"
 allow_self_collision="False"
@@ -47,13 +47,13 @@ subgoal_hindsight="True"
 reuse_data="True"
 relative_goal="True"
 simple_planner_timelimit="0.02"
-action_range="1.0"
-ac_rl_minimum="-0.03"
-ac_rl_maximum="0.03"
-invalid_planner_rew="-0.5"
+action_range="2.0"
+ac_rl_minimum="-0.1"
+ac_rl_maximum="0.1"
+invalid_planner_rew="-0.3"
 extended_action="False"
-# success_reward='0.'
-# has_terminal='True'
+success_reward='0.'
+has_terminal='True'
 
 
 # max_grad_norm='0.5'
@@ -110,5 +110,5 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
-    # --success_reward $success_reward \
-    # --has_terminal $has_terminal \
+    --success_reward $success_reward \
+    --has_terminal $has_terminal \
