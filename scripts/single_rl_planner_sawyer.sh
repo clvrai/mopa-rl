@@ -7,16 +7,16 @@ rollout_length="1000"
 evaluate_interval="1000"
 ckpt_interval='200000'
 rl_activation="relu"
-num_batches="1"
+num_batches="2"
 log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.16.SAC.REUSE.FIXED-RL.SPARSE.NO.SUCCESS"
+prefix="05.16.SAC.REUSE.SAWYER.FIXED-RL"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
-max_episode_step="200"
+max_episode_step="1000"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -25,21 +25,21 @@ debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.16.SAC.PLANNER.REUSE.FIXED-RL.SPARSE.NO.SUCCESS'
+group='05.16.SAC.PLANNER.REUSE.SAWYER.FIXED-RL'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="rrt_connect"
 planner_objective="path_length"
-range="0.1"
-threshold="0.01"
-timelimit="1."
+range="0.03"
+threshold="0.03"
+timelimit="1.5"
 allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="10."
@@ -47,13 +47,13 @@ subgoal_hindsight="True"
 reuse_data="True"
 relative_goal="True"
 simple_planner_timelimit="0.02"
-action_range="2.0"
-ac_rl_minimum="-0.05"
-ac_rl_maximum="0.05"
-invalid_planner_rew="-0.3"
+action_range="1.0"
+ac_rl_minimum="-0.1"
+ac_rl_maximum="0.1"
+invalid_planner_rew="0."
 extended_action="False"
-success_reward='0.'
-has_terminal='True'
+# success_reward='150.'
+# has_terminal='True'
 
 
 # max_grad_norm='0.5'
@@ -110,5 +110,3 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
