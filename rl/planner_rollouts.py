@@ -157,6 +157,8 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac = env.form_action(next_qpos)
                                 if config.extended_action:
                                     inter_subgoal_ac['ac_type'] = ac['ac_type']
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.ac_rl_maximum
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
                             # ob, reward, done, info = env.step(ac, is_planner=True)
