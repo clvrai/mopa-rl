@@ -216,6 +216,7 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                 else:
+                    ll_ob = ob.copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
@@ -308,10 +309,13 @@ class PlannerRolloutRunner(object):
             if config.extended_action:
                 is_planner = bool(ac['ac_type'][0])
             if pi.is_planner_ac(ac) or is_planner:
-                target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
-                tmp_target_qpos = target_qpos.copy()
-                target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
+                if config.relative_goal:
+                    target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                    tmp_target_qpos = target_qpos.copy()
+                    target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
+                    target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
+                else:
+                    target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
                 traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
@@ -378,7 +382,7 @@ class PlannerRolloutRunner(object):
                         self._store_frame(env, frame_info, planner=True)
             else:
                 counter['rl'] += 1
-                rescaled_ac = ac.copy()
+                rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                 rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                 ob, reward, done, info = env.step(rescaled_ac)
                 ep_len += 1
