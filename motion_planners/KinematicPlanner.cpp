@@ -242,7 +242,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     ss->setStartAndGoalStates(start_ss, goal_ss, threshold);
     if (!ss->getStateValidityChecker()->isValid(goal_ss.get()) && !allow_approximate){
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
-        std::cout << "Should not be called" << std::endl;
         return failedSolutions;
     }
     // if (!ss->getStateValidityChecker()->isValid(start_ss.get())){

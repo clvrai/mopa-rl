@@ -105,6 +105,14 @@ class SACAgent(BaseAgent):
         if not success and not exact:
             traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
             interpolation = False
+        # if not success:
+        #     if self._config.allow_approximate:
+        #         traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+        #         interpolation = False
+        #     else:
+        #         if not exact:
+        #             traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+        #             interpolation = False
         return traj, success, interpolation, valid, exact
 
 

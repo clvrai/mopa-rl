@@ -191,7 +191,7 @@ class Trainer(object):
             if config.debug:
                 os.environ["WANDB_MODE"] = "dryrun"
 
-            tags = [config.env, config.hl_type, config.ll_type, config.policy, config.algo]
+            tags = [config.env, config.hl_type, config.ll_type, config.policy, config.algo, config.reward_type]
             if config.hrl:
                 tags.append('hrl')
 
@@ -554,7 +554,7 @@ class Trainer(object):
         fig = plt.figure()
         plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(size), cmap='Blues')
         plt.axis("equal")
-        wandb.log({'replay_vis': fig}, step=step)
+        wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
         plt.close(fig)
 
 
