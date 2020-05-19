@@ -115,4 +115,4 @@ python -m rl.main \
     --extended_action $extended_action \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
-    --allow_approximate $allow_approximate
+    --allow_approximate $allow_approximate \

@@ -145,15 +145,16 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
-                self._get_pos('fingertip')
             ])),
+            ('fingertip', self._get_pos('fingertip')[:-1])
             ('goal', self.sim.data.qpos.flat[-4:-2])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(12,), low=-1, high=1, dtype=np.float32)),
+            ('default', spaces.Box(shape=(9,), low=-1, high=1, dtype=np.float32)),
+            ('fingertip', spaces.Box(shape=(2), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 

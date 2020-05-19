@@ -263,7 +263,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     // std::cout << "solved " << solved << std::endl;
 
-    if (ss->haveExactSolutionPath() && !allow_approximate) {
+    if (ss->haveExactSolutionPath() || (bool(solved) && allow_approximate)) {
         // ss.getSolutionPath().print(std::cout);
         // if (is_simplified){
         //     ss->simplifySolution(simplified_duration);
