@@ -60,9 +60,9 @@ class SACAgent(BaseAgent):
         if config.planner_integration:
             self._planner = PlannerAgent(config,ac_space, non_limited_idx,
                                          config.passive_joint_idx, config.ignored_contact_geom_ids[0],
-                                         config.is_simplified, config.simplified_duration)
+                                         config.is_simplified, config.simplified_duration, allow_approximate=config.allow_approximate)
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, config.passive_joint_idx,
-                                                config.ignored_contact_geom_ids[0], goal_bias=1.0)
+                                                config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 

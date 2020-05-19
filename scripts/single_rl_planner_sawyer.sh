@@ -42,9 +42,10 @@ threshold="0.03"
 timelimit="1.5"
 allow_self_collision="False"
 allow_manipulation_collision="True"
-reward_scale="10."
+reward_scale="1."
 subgoal_hindsight="True"
-reuse_data="True"
+reuse_subgoal_data="True"
+reuse_rl_data='False'
 relative_goal="True"
 simple_planner_timelimit="0.02"
 action_range="1.0"
@@ -52,6 +53,7 @@ ac_rl_minimum="-0.1"
 ac_rl_maximum="0.1"
 invalid_planner_rew="0."
 extended_action="False"
+allow_approximate="False"
 # success_reward='150.'
 # has_terminal='True'
 
@@ -102,7 +104,8 @@ python -m rl.main \
     --allow_self_collision $allow_self_collision \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
-    --reuse_data $reuse_data \
+    --reuse_subgoal_data $reuse_subgoal_data \
+    --reuse_rl_data $reuse_rl_data \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
     --action_range $action_range \
@@ -110,3 +113,4 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
+    --allow_approximate $allow_approxiamte
