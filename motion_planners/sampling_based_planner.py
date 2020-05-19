@@ -24,7 +24,8 @@ class SamplingBasedPlanner:
                                           glue_bodies,
                                           ignored_contacts,
                                           contact_threshold,
-                                          goal_bias)
+                                          goal_bias,
+                                          config.allow_approximate)
         self.non_limited_idx = non_limited_idx
 
     def convert_nonlimited(self, state):

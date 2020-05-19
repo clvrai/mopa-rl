@@ -12,9 +12,9 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.17.SAC.REUSE.FIXED-RL.v3.Easy"
+prefix="05.18.SAC.REUSE.SUBGOAL"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="200"
 entropy_loss_coef="1e-3"
@@ -26,11 +26,11 @@ batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
 reward_type='dense'
-comment='Fix motion planner'
+comment='Reuse subgoal data'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.17.SAC.PLANNER.REUSE.FIXED-RL.v3.OBSTACLE.EASY'
+group='05.18.SAC.PLANNER.REUSE.SUBGOAL'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -44,7 +44,8 @@ allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="10."
 subgoal_hindsight="True"
-reuse_data="True"
+reuse_subgoal_data="True"
+reuse_rl_data="False"
 relative_goal="True"
 simple_planner_timelimit="0.02"
 action_range="2.0"
@@ -52,7 +53,8 @@ ac_rl_minimum="-0.05"
 ac_rl_maximum="0.05"
 invalid_planner_rew="-0.3"
 extended_action="False"
-success_reward='150.'
+allow_approximate="False"
+success_reward='0.'
 has_terminal='True'
 
 
@@ -102,7 +104,8 @@ python -m rl.main \
     --allow_self_collision $allow_self_collision \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
-    --reuse_data $reuse_data \
+    --reuse_subgoal_data $reuse_subgoal_data \
+    --reuse_rl_data $reuse_rl_data \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
     --action_range $action_range \
@@ -112,3 +115,4 @@ python -m rl.main \
     --extended_action $extended_action \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
+    --allow_approximate $allow_approximate
