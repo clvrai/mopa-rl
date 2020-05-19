@@ -14,7 +14,6 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
         super().__init__("simple_reacher_obstacle_hard.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
         self._env_config.update({
-            'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward']
         })
         self.joint_names = ["joint0", "joint1", "joint2"]
@@ -31,12 +30,6 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
             self.sim.model.get_joint_qpos_addr(x+'-dummy') for x in self.joint_names
         ]
 
-        self._subgoal_scale = kwargs['subgoal_scale']
-        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
-        self.subgoal_space = spaces.Dict([
-            ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
-        ])
 
         self._ac_scale = 0.1
 
@@ -45,17 +38,13 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
             goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
-            box = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-4:-2] = goal
-            qpos[-2:] = box
+            qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
-            qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1:
+            if self.sim.data.ncon == 0:
                 self.goal = goal
-                self.box = box
                 break
         return self._get_obs()
 
@@ -124,8 +113,7 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
     def initialize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-4:-2] = self.goal
-            qpos[-2:] = self.box
+            qpos[-2:] = self.goal
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
@@ -146,15 +134,15 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
                 np.sin(theta),
                 self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
             ])),
-            ('fingertip', self._get_pos('fingertip')[:-1])
-            ('goal', self.sim.data.qpos.flat[-4:-2])
+            ('fingertip', self._get_pos('fingertip')[:-1]),
+            ('goal', self.sim.data.qpos.flat[-2:])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
             ('default', spaces.Box(shape=(9,), low=-1, high=1, dtype=np.float32)),
-            ('fingertip', spaces.Box(shape=(2), low=-1, high=1, dtype=np.float32)),
+            ('fingertip', spaces.Box(shape=(2, ), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 
@@ -171,20 +159,14 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reach_multi = 0.3
-            move_multi = 0.9
-            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            # reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_reach = -dist_box_to_gripper * reach_multi
-            reward_move  = -self._get_distance('box', 'target') * move_multi
-            # reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
+            reward_reach = -self._get_distance('fingertip', 'target')
             reward_ctrl = self._ctrl_reward(action)
 
-            reward = reward_reach + reward_move + reward_ctrl
+            reward = reward_reach + reward_ctrl
 
-            info = dict(reward_reach=reward_reach, reward_move=reward_move, reward_ctrl=reward_ctrl)
+            info = dict(reward_reach=reward_reach, reward_ctrl=reward_ctrl)
         else:
-            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            reward = -(self._get_distance('fingertip', 'target') > self._env_config['distance_threshold']).astype(np.float32)
 
         return reward, info
 
@@ -219,7 +201,7 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
         obs = self._get_obs()
         self._prev_state = np.copy(desired_state)
 
-        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+        if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
             self._success = True
             # done = True
             if self._kwargs['has_terminal']:

@@ -16,6 +16,12 @@ register(
 )
 
 register(
+    id='simple-reacher-obstacle-hard-v0',
+    entry_point='env.reacher:SimpleReacherObstacleHardEnv',
+    kwargs={},
+)
+
+register(
     id='simple-reacher-obstacle-toy-v0',
     entry_point='env.reacher:SimpleReacherObstacleToyEnv',
     kwargs={},
