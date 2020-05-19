@@ -35,7 +35,7 @@ env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="rrt_connect"
+planner_type="sst"
 planner_objective="path_length"
 range="0.03"
 threshold="0.03"
@@ -53,7 +53,7 @@ ac_rl_minimum="-0.1"
 ac_rl_maximum="0.1"
 invalid_planner_rew="0."
 extended_action="False"
-allow_approximate="False"
+allow_approximate="True"
 # success_reward='150.'
 # has_terminal='True'
 
