@@ -279,8 +279,9 @@ class Trainer(object):
         for k, v in ep_info.items():
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
-        if step % self._config.vis_replay_interval == 0:
-            self._vis_replay_buffer(step)
+        if self._config.vis_replay:
+            if step % self._config.vis_replay_interval == 0:
+                self._vis_replay_buffer(step)
 
     def _log_test(self, step, ep_info, vids=None, obs=None):
         if self._config.is_train:
@@ -549,7 +550,7 @@ class Trainer(object):
             return # visualization does not work if ealier samples were overriden
 
         size = self._agent._buffer._current_size
-        states = np.array([ob[0]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
+        states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
         fig = plt.figure()
         plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(size), cmap='Blues')
         plt.axis("equal")

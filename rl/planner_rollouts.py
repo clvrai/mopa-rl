@@ -15,8 +15,7 @@ from util.info import Info
 
 
 class Rollout(object):
-    def __init__(self):
-        self._history = defaultdict(list)
+    def __init__(self): self._history = defaultdict(list)
 
     def add(self, data):
         for key, value in data.items():
@@ -145,10 +144,6 @@ class PlannerRolloutRunner(object):
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
 
-                    if not exact:
-                        counter['approximate'] += 1
-                    if not valid:
-                        counter['invalid'] += 1
 
                     if success:
                         if interpolation:
@@ -206,6 +201,10 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                     else:
+                        if not exact:
+                            counter['approximate'] += 1
+                        if not valid:
+                            counter['invalid'] += 1
                         counter['mp_fail'] += 1
                         ll_ob = ob.copy()
                         meta_rollout.add({

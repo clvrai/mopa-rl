@@ -14,18 +14,18 @@ then
 elif [ $algo = 2 ]
 then
     algo='sac'
-    rollout_length="1000"
+    rollout_length="10000"
     evaluate_interval="1000"
     ckpt_interval='100000'
     rl_activation="relu"
     num_batches="1"
-    log_interval="150"
+    log_interval="200"
 fi
 
 workers="1"
-prefix="05.13.BASELINE.SAC.No.Success"
+prefix="05.18.BASELINE.SAC.REACHER"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="simple-reacher-obstacle-hard-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="200"
@@ -36,19 +36,20 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1234'
+seed='1237'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
-success_reward='0.'
-has_terminal='True'
 log_root_dir="./logs"
-group='05.13.SAC.BASELINE.PUSH-OBSTACLE-HARD.No.Success'
+group='05.18.SAC.BASELINE.REACHER'
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'
+vis_replay="True"
+success_reward='0.'
+has_terminal='True'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -84,5 +85,6 @@ python -m rl.main \
     --log_freq $log_freq \
     --log_interval $log_interval \
     --reward_scale $reward_scale \
+    --vis_replay $vis_replay \
     --success_reward $success_reward \
     --has_terminal $has_terminal \

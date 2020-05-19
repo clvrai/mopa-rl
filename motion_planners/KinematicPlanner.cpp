@@ -48,7 +48,7 @@ using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool allow_approximate)
+                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -65,7 +65,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     glue_bodies = Glue_bodies;
     ignored_contacts = Ignored_contacts;
     planner_status = "none";
-    allow_approximate = allow_approximate;
+    allow_approximate = Allow_approximate;
 
     std::string homedir = std::getenv("HOME");
     mjkey_filename = homedir + "/.mujoco/mjkey.txt";
@@ -240,7 +240,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
 
     ss->setStartAndGoalStates(start_ss, goal_ss, threshold);
-    if (!ss->getStateValidityChecker()->isValid(goal_ss.get())){
+    if (!ss->getStateValidityChecker()->isValid(goal_ss.get()) && !allow_approximate){
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
         return failedSolutions;
     }
@@ -263,79 +263,86 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     // std::cout << "solved " << solved << std::endl;
 
-    if (ss->haveExactSolutionPath() || (bool(solved) && allow_approximate)) {
-        // ss.getSolutionPath().print(std::cout);
-        // if (is_simplified){
-        //     ss->simplifySolution(simplified_duration);
-        // }
-        og::PathGeometric p = ss->getSolutionPath();
-        // ss->getSolutionPath().print(std::cout);
-        // p.interpolate(min_steps);
-        std::vector<ob::State*> &states =  p.getStates();
-        int n = states.size();
-        std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));
-
-        for (unsigned int i=0; i < n; ++i)
-        {
-            auto cState(states[i]->as<ob::CompoundState>());
-            // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
-            auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
-            unsigned int n_passive = 0;
-            // for (unsigned int j=0; j < css->getSubspaceCount();  ++j){
-            //     ss->getStateValidityChecker()->isValid(cState);
-            //     if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
-            //     }
+    if (bool(solved)){
+        if (ss->haveExactSolutionPath() && !allow_approximate) {
+            // ss.getSolutionPath().print(std::cout);
+            // if (is_simplified){
+            //     ss->simplifySolution(simplified_duration);
             // }
-            unsigned int margin = 0;
-            for (unsigned int j=0; j < start_vec.size();  ++j){
-                ss->getStateValidityChecker()->isValid(cState);
-                if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
-                    unsigned int idx = j - n_passive - margin;
-                    // std::cout << "start: " << start_vec.size() << " j: " << j << " idx: " << idx << std::endl;
-                    auto subspace(css->getSubspace(idx));
-                    switch (subspace->getType()) {
-                        case ob::STATE_SPACE_REAL_VECTOR:
-                            solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(idx)->values[0];
-                            break;
-                        case ob::STATE_SPACE_SO2:
-                            solutions[i][j] = cState -> as<ob::SO2StateSpace::StateType>(idx)->value;
-                            break;
-                        default:
-                            auto cSubState(cState -> as<ob::CompoundState>(idx));
-                            margin += 6;
-                            for (unsigned int k=0; k<3; ++k){
-                                // std::cout << "index: " << j << std::endl;
-                                solutions[i][j] = cSubState -> as<ob::RealVectorStateSpace::StateType>(0)->values[k];
+            og::PathGeometric p = ss->getSolutionPath();
+            // ss->getSolutionPath().print(std::cout);
+            // p.interpolate(min_steps);
+            std::vector<ob::State*> &states =  p.getStates();
+            int n = states.size();
+            std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));
+
+            for (unsigned int i=0; i < n; ++i)
+            {
+                auto cState(states[i]->as<ob::CompoundState>());
+                // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
+                auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
+                unsigned int n_passive = 0;
+                // for (unsigned int j=0; j < css->getSubspaceCount();  ++j){
+                //     ss->getStateValidityChecker()->isValid(cState);
+                //     if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
+                //     }
+                // }
+                unsigned int margin = 0;
+                for (unsigned int j=0; j < start_vec.size();  ++j){
+                    ss->getStateValidityChecker()->isValid(cState);
+                    if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
+                        unsigned int idx = j - n_passive - margin;
+                        // std::cout << "start: " << start_vec.size() << " j: " << j << " idx: " << idx << std::endl;
+                        auto subspace(css->getSubspace(idx));
+                        switch (subspace->getType()) {
+                            case ob::STATE_SPACE_REAL_VECTOR:
+                                solutions[i][j] = cState -> as<ob::RealVectorStateSpace::StateType>(idx)->values[0];
+                                break;
+                            case ob::STATE_SPACE_SO2:
+                                solutions[i][j] = cState -> as<ob::SO2StateSpace::StateType>(idx)->value;
+                                break;
+                            default:
+                                auto cSubState(cState -> as<ob::CompoundState>(idx));
+                                margin += 6;
+                                for (unsigned int k=0; k<3; ++k){
+                                    // std::cout << "index: " << j << std::endl;
+                                    solutions[i][j] = cSubState -> as<ob::RealVectorStateSpace::StateType>(0)->values[k];
+                                    j++;
+                                }
+                                solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->x;
                                 j++;
-                            }
-                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->x;
-                            j++;
-                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->y;
-                            j++;
-                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->z;
-                            j++;
-                            solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->w;
-                            // j++;
-                            break;
+                                solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->y;
+                                j++;
+                                solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->z;
+                                j++;
+                                solutions[i][j] = cSubState -> as<ob::SO3StateSpace::StateType>(1)->w;
+                                // j++;
+                                break;
+                        }
+                    } else {
+                        // set passive joints to their start value
+                        solutions[i][j] = mj->d->qpos[j];
+                        n_passive++;
                     }
-                } else {
-                    // set passive joints to their start value
-                    solutions[i][j] = mj->d->qpos[j];
-                    n_passive++;
+
+
                 }
-
-
             }
+            // Write solution to file
+            //ss->clear();
+            return solutions;
         }
-        // Write solution to file
-        //ss->clear();
-        return solutions;
     }
 
     // return solutions;
     //return 0;
-    std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -4));
-    return failedSolutions;
+    if (allow_approximate){
+        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
+        return failedSolutions;
+    } else {
+        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -4));
+        return failedSolutions;
+    }
 }
 
 std::string KinematicPlanner::getPlannerStatus(){

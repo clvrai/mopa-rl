@@ -149,6 +149,7 @@ def argparser():
     parser.add_argument("--wandb", type=str2bool, default=False,
                         help="set it True if you want to use wandb")
     parser.add_argument("--group", type=str, default=None)
+    parser.add_argument("--vis_replay", type=str2bool, default=True)
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)

@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.16.SAC.REUSE.SAWYER.FIXED-RL"
+prefix="05.18.SAC.REUSE.SAWYER.ALLOW_APPROXIMATE"
 max_global_step="60000000"
 env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.16.SAC.PLANNER.REUSE.SAWYER.FIXED-RL'
+group='05.18.SAC.PLANNER.REUSE.SAWYER.ALLOW_APPROXIMATE'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -43,7 +43,7 @@ timelimit="1.5"
 allow_self_collision="False"
 allow_manipulation_collision="True"
 reward_scale="1."
-subgoal_hindsight="True"
+subgoal_hindsight="False"
 reuse_subgoal_data="True"
 reuse_rl_data='False'
 relative_goal="True"
@@ -113,4 +113,4 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
-    --allow_approximate $allow_approxiamte
+    --allow_approximate $allow_approximate

@@ -18,13 +18,18 @@ class PlannerAgent:
 
         self._is_simplified = is_simplified
         self._simplified_duration = simplified_duration
+        self._allow_approximate = allow_approximate
 
     def plan(self, start, goal, timelimit=None):
         config = self._config
         if timelimit is None:
             timelimit = config.timelimit
         traj, states, valid, exact = self.planner.plan(start, goal, timelimit, config.min_path_len+1, self._is_simplified, self._simplified_duration)
-        success = valid and exact
+        if self._allow_approximate:
+            success = valid
+        else:
+            success = valid and exact
+
         if success:
             return traj[1:], success, valid, exact
         else:
