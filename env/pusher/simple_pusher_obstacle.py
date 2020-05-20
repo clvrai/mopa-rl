@@ -149,7 +149,7 @@ class SimplePusherObstacleEnv(BaseEnv):
                 self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
             ])),
-            ('fingertip', self._get_pos('fingertip')[:-1])
+            ('fingertip', self._get_pos('fingertip')[:-1]),
             ('goal', self.sim.data.qpos.flat[-4:-2])
         ])
 

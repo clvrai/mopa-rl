@@ -246,13 +246,13 @@ class SACAgent(BaseAgent):
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
             info['alpha_loss'] = alpha_loss.cpu().item()
         else:
-            alpha = [torch.ones(1, device=self._config.device) for _ in self._log_alpha]
+            alpha = [torch.ones(1, device=self._config.device) * self._config.alpha for _ in self._log_alpha]
 
         # the actor loss
         entropy_loss = (alpha[0] * log_pi).mean()
         actor_loss = -torch.min(self._critics1[0](o, actions_real),
                                 self._critics2[0](o, actions_real)).mean()
-
+        info['log_pi'] = log_pi.mean().cpu().item()
         info['entropy_alpha'] = alpha[0].cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()

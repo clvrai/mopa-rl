@@ -155,10 +155,7 @@ class PlannerRolloutRunner(object):
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
                             if config.reuse_subgoal_data:
-                                if config.reuse_inverse:
-                                    inter_subgoal_ac = env.form_action(target_qpos, next_qpos)
-                                else:
-                                    inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
+                                inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac):
                                     rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
@@ -213,9 +210,9 @@ class PlannerRolloutRunner(object):
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
-                        # reward = self._config.invalid_planner_rew
-                        reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
-                        reward += self._config.invalid_planner_rew
+                        reward = self._config.invalid_planner_rew
+                        # reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        # reward += self._config.invalid_planner_rew
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, {})
                         rollout.add({'done': done, 'rew': reward})
@@ -370,9 +367,9 @@ class PlannerRolloutRunner(object):
                         counter['approximate'] += 1
                     elif not valid:
                         counter['invalid'] += 1
-                    # reward = self._config.invalid_planner_rew
-                    reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
-                    reward += self._config.invalid_planner_rew
+                    reward = self._config.invalid_planner_rew
+                    # reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
+                    # reward += self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, False, {})
                     rollout.add({'done': done, 'rew': reward})

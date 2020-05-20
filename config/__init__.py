@@ -131,6 +131,7 @@ def argparser():
     parser.add_argument("--start_steps", type=int, default=1e4)
     parser.add_argument("--temperature", type=float, default=0.3, help="Temperature for Gumbel Softmax")
     parser.add_argument("--use_automatic_entropy_tuning", type=str2bool, default=True)
+    parser.add_argument("--alpha", type=float, default=0.2)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)

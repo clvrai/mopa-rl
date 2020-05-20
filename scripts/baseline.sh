@@ -23,7 +23,7 @@ then
 fi
 
 workers="1"
-prefix="05.19.BASELINE.SAC.REACHER.SPARSE"
+prefix="05.19.BASELINE.SAC.REACHER.v2"
 max_global_step="60000000"
 env="simple-reacher-obstacle-hard-v0"
 gpu=$gpu
@@ -38,12 +38,12 @@ batch_size="256"
 clip_param="0.2"
 seed='1235'
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.19.SAC.BASELINE.REACHER.SPARSE'
+group='05.19.SAC.BASELINE.REACHER.v2'
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'
