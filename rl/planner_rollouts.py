@@ -155,7 +155,10 @@ class PlannerRolloutRunner(object):
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
                             if config.reuse_subgoal_data:
-                                inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
+                                if config.reuse_inverse:
+                                    inter_subgoal_ac = env.form_action(target_qpos, next_qpos)
+                                else:
+                                    inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac):
                                     rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})

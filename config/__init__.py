@@ -78,11 +78,13 @@ def argparser():
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_self_collision", type=str2bool, default=False)
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
+    parser.add_argument("--allow_invalid", type=str2bool, default=False)
 
     # single policy
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.)
     parser.add_argument("--ac_rl_maximum", type=float, default=1.)
     parser.add_argument("--reuse_subgoal_data", type=str2bool, default=False)
+    parser.add_argument("--reuse_inverse", type=str2bool, default=False)
     parser.add_argument("--reuse_rl_data", type=str2bool, default=False)
     parser.add_argument("--action_range", type=float, default=2.0)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
