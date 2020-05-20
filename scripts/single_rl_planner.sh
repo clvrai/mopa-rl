@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.19.SAC.REUSE.SUBGOAL.PUSHER.EASY.APPROXIMATE.SST.invalid.0.3.discount.SUCCESS"
+prefix="05.20.SAC.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.19.SAC.PLANNER.REUSE.SUBGOAL.PUSHER.EASY.APPROXIMATE.SST.invalid.0.3.discount.SUCCESS'
+group='05.20.SAC.PLANNER.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -51,13 +51,14 @@ simple_planner_timelimit="0.02"
 action_range="2.0"
 ac_rl_minimum="-0.05"
 ac_rl_maximum="0.05"
-invalid_planner_rew="-0.3"
+invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="True"
 success_reward='150.'
 has_terminal='True'
 allow_invalid="False"
 use_automatic_entropy_tuning="True"
+stochastic_eval="True"
 
 # max_grad_norm='0.5'
 
@@ -118,4 +119,5 @@ python -m rl.main \
     --has_terminal $has_terminal \
     --allow_approximate $allow_approximate \
     --allow_invalid $allow_invalid \
-    --use_automatic_entropy_tuning $use_automatic_entropy_tuning
+    --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
+    --stochastic_eval $stochastic_eval

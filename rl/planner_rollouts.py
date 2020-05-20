@@ -173,7 +173,7 @@ class PlannerRolloutRunner(object):
                             elif config.reuse_rl_data:
                                 rollout.add({'done': done, 'rew': reward})
 
-                            meta_rew += (config.discount_factor**i)*reward
+                            meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             ep_len += 1
                             step += 1
                             ep_rew += reward
@@ -286,6 +286,10 @@ class PlannerRolloutRunner(object):
         # buffer to save qpos
         saved_qpos = []
 
+        if config.stochastic_eval and not is_train:
+            is_train = True
+
+        stochastic = is_train or not config.stochastic_eval
         # run rollout
         meta_ac = None
         counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}

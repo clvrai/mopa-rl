@@ -51,6 +51,7 @@ def argparser():
     parser.add_argument("--meta_oracle", type=str2bool, default=False)
     parser.add_argument("--subgoal_hindsight", type=str2bool, default=False)
 
+
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
     parser.add_argument("--rl_activation", type=str, default="relu",
@@ -89,6 +90,7 @@ def argparser():
     parser.add_argument("--action_range", type=float, default=2.0)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
     parser.add_argument("--extended_action", type=str2bool, default=False)
+    parser.add_argument("--stochastic_eval", type=str2bool, default=False)
 
 
     # off-policy rl
