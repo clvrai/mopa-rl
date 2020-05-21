@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.20.SAC.PUSHER.APPROX.SST.invalid.0.5.inverse.discount.scale.3"
+prefix="05.20.SAC.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount.backward.alpha.0.05"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.20.SAC.PLANNER.PUSHER.APPROX.SST.invalid.0.5.inverse.discount.scale.3'
+group='05.20.SAC.PLANNER.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount.backward.alpha.0.05'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -40,11 +40,11 @@ planner_objective="path_length"
 range="0.1"
 threshold="0.01"
 timelimit="1."
-allow_self_collision="False"
 allow_manipulation_collision="True"
-reward_scale="3."
+reward_scale="1.0"
 subgoal_hindsight="False"
-reuse_subgoal_data="True"
+reuse_subgoal_data="False"
+reuse_backward_subgoal_data="True"
 reuse_rl_data="False"
 relative_goal="True"
 simple_planner_timelimit="0.02"
@@ -57,8 +57,9 @@ allow_approximate="True"
 success_reward='150.'
 has_terminal='True'
 allow_invalid="False"
-use_automatic_entropy_tuning="True"
+use_automatic_entropy_tuning="False"
 stochastic_eval="True"
+alpha='0.05'
 
 # max_grad_norm='0.5'
 
@@ -103,10 +104,10 @@ python -m rl.main \
     --threshold $threshold \
     --timelimit $timelimit \
     --allow_manipulation_collision $allow_manipulation_collision \
-    --allow_self_collision $allow_self_collision \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
     --reuse_subgoal_data $reuse_subgoal_data \
+    --reuse_backward_subgoal_data $reuse_backward_subgoal_data \
     --reuse_rl_data $reuse_rl_data \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
@@ -120,4 +121,5 @@ python -m rl.main \
     --allow_approximate $allow_approximate \
     --allow_invalid $allow_invalid \
     --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
-    --stochastic_eval $stochastic_eval
+    --stochastic_eval $stochastic_eval \
+    --alpha $alpha
