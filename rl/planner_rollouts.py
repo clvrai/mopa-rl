@@ -150,8 +150,12 @@ class PlannerRolloutRunner(object):
                             counter['interpolation'] += 1
                         else:
                             counter['mp'] += 1
+
+                        reward_list = []
+                        ob_list = []
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
+                            ob_list.append(ll_ob)
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
                             if config.reuse_subgoal_data:
@@ -174,6 +178,7 @@ class PlannerRolloutRunner(object):
                                 rollout.add({'done': done, 'rew': reward})
 
                             meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
+                            reward_list.append(meta_rew)
                             ep_len += 1
                             step += 1
                             ep_rew += reward
@@ -200,6 +205,21 @@ class PlannerRolloutRunner(object):
                             ll_ob = ob.copy()
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+
+                        if config.reuse_backward_subgoal_data:
+                            for i, (inter_rew, inter_ob) in enumerate(zip(reward_list, ob_list)):
+                                inter_subgoal_ac = env.form_action(traj[i])
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                if pi.is_planner_ac(inter_subgoal_ac):
+                                    rollout.add({'ob': inter_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                                    rollout.add({'done': done, 'rew': meta_rew-inter_rew})
+                                    if every_steps is not None and step % every_steps == 0:
+                                        # last frame
+                                        ll_ob = ob.copy()
+                                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
                     else:
                         if not exact:
                             counter['approximate'] += 1

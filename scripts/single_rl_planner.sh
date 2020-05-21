@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.20.SAC.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount"
+prefix="05.20.SAC.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount.scale.1.backward"
 max_global_step="60000000"
 env="simple-pusher-obstacle-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.20.SAC.PLANNER.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount'
+group='05.20.SAC.PLANNER.PUSHER.EASY.APPROX.SST.invalid.0.5.inverse.discount.scale.1.backward'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -42,9 +42,10 @@ threshold="0.01"
 timelimit="1."
 allow_self_collision="False"
 allow_manipulation_collision="True"
-reward_scale="1."
+reward_scale="1.0"
 subgoal_hindsight="False"
-reuse_subgoal_data="True"
+reuse_subgoal_data="False"
+reuse_backward_subgoal_data="True"
 reuse_rl_data="False"
 relative_goal="True"
 simple_planner_timelimit="0.02"
@@ -107,6 +108,7 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
     --reuse_subgoal_data $reuse_subgoal_data \
+    --reuse_backward_subgoal_data $reuse_backward_subgoal_data \
     --reuse_rl_data $reuse_rl_data \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
