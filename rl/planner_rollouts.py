@@ -161,7 +161,7 @@ class PlannerRolloutRunner(object):
                             if config.reuse_subgoal_data:
                                 inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
-                                if pi.is_planner_ac(inter_subgoal_ac):
+                                if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             elif config.reuse_rl_data:
                                 inter_subgoal_ac = env.form_action(next_qpos)
@@ -171,7 +171,7 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.ac_rl_maximum
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
-                            # ob, reward, done, info = env.step(ac, is_planner=True)
+                            # ob, reward, done, in)o = env.step(ac, is_planner=True)
                             if config.reuse_subgoal_data:
                                 rollout.add({'done': done, 'rew': meta_rew})
                             elif config.reuse_rl_data:
@@ -185,7 +185,7 @@ class PlannerRolloutRunner(object):
                             meta_len += 1
                             reward_info.add(info)
                             if every_steps is not None and step % every_steps == 0:
-                                if (config.reuse_subgoal_data and pi.is_planner_ac(inter_subgoal_ac)) or config.reuse_rl_data:
+                                if (config.reuse_subgoal_data and pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac)) or config.reuse_rl_data:
                                     # last frame
                                     ll_ob = ob.copy()
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})

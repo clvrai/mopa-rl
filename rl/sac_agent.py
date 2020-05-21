@@ -93,6 +93,9 @@ class SACAgent(BaseAgent):
     def store_episode(self, rollouts):
         self._buffer.store_episode(rollouts)
 
+    def valid_action(self, ac):
+        return np.all(ac['default'] >= -1.0) and np.all(ac['default'] <= 1.0)
+
 
     def is_planner_ac(self, ac):
         if np.any(ac['default'][:len(self._ref_joint_pos_indexes)] < self._ac_rl_minimum) or np.any(ac['default'][:len(self._ref_joint_pos_indexes)] > self._ac_rl_maximum):

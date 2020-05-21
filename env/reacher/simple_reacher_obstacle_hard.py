@@ -73,7 +73,7 @@ class SimpleReacherObstacleHardEnv(BaseEnv):
             for postfix in ['-goal', '-dummy']:
                 key = body_name + postfix
                 color = self._get_color(key)
-                color[-1] = 0.3
+                color[-1] = 0.
                 self._set_color(key, color)
 
     @property
