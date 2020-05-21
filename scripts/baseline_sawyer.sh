@@ -19,16 +19,16 @@ then
     ckpt_interval='100000'
     rl_activation="relu"
     num_batches="1"
-    log_interval="200"
+    log_interval="1000"
 fi
 
 workers="1"
-prefix="05.20.BASELINE.SAC.PUSHER"
+prefix="05.19.BASELINE.SAWYER.LIFT"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="sawyer-lift-robosuite-v0"
 gpu=$gpu
 rl_hid_size="256"
-max_episode_step="250"
+max_episode_step="1000"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -36,20 +36,20 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1234'
+seed='1235'
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.20.SAC.BASELINE.PUSHER'
+group='05.19.SAWYER.LIFT.BASELINE'
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'
-vis_replay="True"
-success_reward='150.'
-has_terminal='True'
+vis_replay="False"
+# success_reward='0.'
+# has_terminal='True'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -86,5 +86,5 @@ python -m rl.main \
     --log_interval $log_interval \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
+    # --success_reward $success_reward \
+    # --has_terminal $has_terminal \

@@ -15,8 +15,7 @@ from util.info import Info
 
 
 class Rollout(object):
-    def __init__(self):
-        self._history = defaultdict(list)
+    def __init__(self): self._history = defaultdict(list)
 
     def add(self, data):
         for key, value in data.items():
@@ -144,16 +143,23 @@ class PlannerRolloutRunner(object):
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+
+
                     if success:
                         if interpolation:
                             counter['interpolation'] += 1
                         else:
                             counter['mp'] += 1
-                        for next_qpos in traj:
+                        for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
-                            if config.reuse_data:
+                            if config.reuse_subgoal_data:
+                                inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                if pi.is_planner_ac(inter_subgoal_ac):
+                                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            elif config.reuse_rl_data:
                                 inter_subgoal_ac = env.form_action(next_qpos)
                                 if config.extended_action:
                                     inter_subgoal_ac['ac_type'] = ac['ac_type']
@@ -162,19 +168,23 @@ class PlannerRolloutRunner(object):
                                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
                             # ob, reward, done, info = env.step(ac, is_planner=True)
-                            if config.reuse_data:
+                            if config.reuse_subgoal_data:
+                                rollout.add({'done': done, 'rew': meta_rew})
+                            elif config.reuse_rl_data:
                                 rollout.add({'done': done, 'rew': reward})
-                            meta_rew += reward
+
+                            meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             ep_len += 1
                             step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
-                            if every_steps is not None and step % every_steps == 0 and config.reuse_data:
-                                # last frame
-                                ll_ob = ob.copy()
-                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                            if every_steps is not None and step % every_steps == 0:
+                                if (config.reuse_subgoal_data and pi.is_planner_ac(inter_subgoal_ac)) or config.reuse_rl_data:
+                                    # last frame
+                                    ll_ob = ob.copy()
+                                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
                         if self._config.subgoal_hindsight: # refer to HAC
@@ -191,11 +201,11 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                     else:
-                        counter['mp_fail'] += 1
                         if not exact:
                             counter['approximate'] += 1
-                        elif not valid:
+                        if not valid:
                             counter['invalid'] += 1
+                        counter['mp_fail'] += 1
                         ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -277,6 +287,10 @@ class PlannerRolloutRunner(object):
         # buffer to save qpos
         saved_qpos = []
 
+        if config.stochastic_eval and not is_train:
+            is_train = True
+
+        stochastic = is_train or not config.stochastic_eval
         # run rollout
         meta_ac = None
         counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}

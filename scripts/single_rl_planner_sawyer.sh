@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.16.SAC.REUSE.SAWYER.FIXED-RL"
+prefix="05.19.SAC.REUSE.SAWYER.ALLOW_APPROXIMATE"
 max_global_step="60000000"
 env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
@@ -30,21 +30,22 @@ comment='Fix motion planner'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.16.SAC.PLANNER.REUSE.SAWYER.FIXED-RL'
+group='05.19.SAC.PLANNER.REUSE.SAWYER.ALLOW_APPROXIMATE'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="rrt_connect"
+planner_type="sst"
 planner_objective="path_length"
 range="0.03"
 threshold="0.03"
 timelimit="1.5"
 allow_self_collision="False"
 allow_manipulation_collision="True"
-reward_scale="10."
-subgoal_hindsight="True"
-reuse_data="True"
+reward_scale="0.1"
+subgoal_hindsight="False"
+reuse_subgoal_data="True"
+reuse_rl_data='False'
 relative_goal="True"
 simple_planner_timelimit="0.02"
 action_range="1.0"
@@ -52,6 +53,8 @@ ac_rl_minimum="-0.1"
 ac_rl_maximum="0.1"
 invalid_planner_rew="0."
 extended_action="False"
+allow_approximate="True"
+vis_replay="False"
 # success_reward='150.'
 # has_terminal='True'
 
@@ -102,7 +105,8 @@ python -m rl.main \
     --allow_self_collision $allow_self_collision \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
-    --reuse_data $reuse_data \
+    --reuse_subgoal_data $reuse_subgoal_data \
+    --reuse_rl_data $reuse_rl_data \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
     --action_range $action_range \
@@ -110,3 +114,5 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
+    --allow_approximate $allow_approximate \
+    --vis_replay $vis_replay

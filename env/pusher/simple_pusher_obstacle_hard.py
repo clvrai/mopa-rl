@@ -14,7 +14,6 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         super().__init__("simple_pusher_obstacle_hard.xml", **kwargs)
         self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
         self._env_config.update({
-            'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward']
         })
         self.joint_names = ["joint0", "joint1", "joint2"]
@@ -153,15 +152,16 @@ class SimplePusherObstacleHardEnv(BaseEnv):
                 self.sim.data.qpos.flat[-2:], # box qpos
                 self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos('fingertip')
             ])),
+            ('fingertip', self._get_pos('fingertip')[:-1]),
             ('goal', self.sim.data.qpos.flat[-4:-2])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('default', spaces.Box(shape=(13,), low=-1, high=1, dtype=np.float32)),
+            ('fingertip', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
 

@@ -15,6 +15,7 @@ import env
 import gym
 from gym import spaces
 from sklearn.externals import joblib
+import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
@@ -190,7 +191,7 @@ class Trainer(object):
             if config.debug:
                 os.environ["WANDB_MODE"] = "dryrun"
 
-            tags = [config.env, config.hl_type, config.ll_type, config.policy, config.algo]
+            tags = [config.env, config.hl_type, config.ll_type, config.policy, config.algo, config.reward_type]
             if config.hrl:
                 tags.append('hrl')
 
@@ -278,6 +279,9 @@ class Trainer(object):
         for k, v in ep_info.items():
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
+        if self._config.vis_replay:
+            if step % self._config.vis_replay_interval == 0:
+                self._vis_replay_buffer(step)
 
     def _log_test(self, step, ep_info, vids=None, obs=None):
         if self._config.is_train:
@@ -540,6 +544,19 @@ class Trainer(object):
 
         video.write_videofile(path, fps, verbose=False, logger=None)
         logger.warn("[*] Video saved: {}".format(path))
+
+    def _vis_replay_buffer(self, step):
+        if step > self._agent._buffer._size:
+            return # visualization does not work if ealier samples were overriden
+
+        size = self._agent._buffer._current_size
+        states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
+        fig = plt.figure()
+        plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(size), cmap='Blues')
+        plt.axis("equal")
+        wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
+        plt.close(fig)
+
 
 
     def log_videos(self, vids, name, fps=15, step=None):

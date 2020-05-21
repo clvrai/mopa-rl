@@ -10,7 +10,7 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, allow_approximate=False):
         self.config = config
         self.planner = PyKinematicPlanner(xml_path.encode('utf-8'),
                                           config.planner_type.encode('utf-8'), num_actions,
@@ -24,7 +24,8 @@ class SamplingBasedPlanner:
                                           glue_bodies,
                                           ignored_contacts,
                                           contact_threshold,
-                                          goal_bias)
+                                          goal_bias,
+                                          allow_approximate)
         self.non_limited_idx = non_limited_idx
 
     def convert_nonlimited(self, state):

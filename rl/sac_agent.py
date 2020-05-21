@@ -60,9 +60,9 @@ class SACAgent(BaseAgent):
         if config.planner_integration:
             self._planner = PlannerAgent(config,ac_space, non_limited_idx,
                                          config.passive_joint_idx, config.ignored_contact_geom_ids[0],
-                                         config.is_simplified, config.simplified_duration)
+                                         config.is_simplified, config.simplified_duration, allow_approximate=config.allow_approximate)
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, config.passive_joint_idx,
-                                                config.ignored_contact_geom_ids[0], goal_bias=1.0)
+                                                config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 
@@ -105,6 +105,20 @@ class SACAgent(BaseAgent):
         if not success and not exact:
             traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
             interpolation = False
+
+        if not success:
+            if self._config.allow_approximate:
+                if self._config.allow_invalid:
+                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                    interpolation = False
+                else:
+                    if not exact:
+                        traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                        interpolation = False
+            else:
+                if not exact:
+                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                    interpolation = False
         return traj, success, interpolation, valid, exact
 
 
@@ -232,13 +246,13 @@ class SACAgent(BaseAgent):
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
             info['alpha_loss'] = alpha_loss.cpu().item()
         else:
-            alpha = [torch.ones(1, device=self._config.device) for _ in self._log_alpha]
+            alpha = [torch.ones(1, device=self._config.device) * self._config.alpha for _ in self._log_alpha]
 
         # the actor loss
         entropy_loss = (alpha[0] * log_pi).mean()
         actor_loss = -torch.min(self._critics1[0](o, actions_real),
                                 self._critics2[0](o, actions_real)).mean()
-
+        info['log_pi'] = log_pi.mean().cpu().item()
         info['entropy_alpha'] = alpha[0].cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()

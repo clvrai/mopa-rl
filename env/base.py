@@ -336,8 +336,10 @@ class BaseEnv(gym.Env):
             self.reset()
             self._fail = True
 
-    def form_action(self, next_qpos, skill=None):
-        joint_ac = next_qpos[self.ref_joint_pos_indexes] - self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+    def form_action(self, next_qpos, curr_qpos=None):
+        if curr_qpos is None:
+            curr_qpos = self.sim.data.qpos.copy()
+        joint_ac = next_qpos[self.ref_joint_pos_indexes] - curr_qpos[self.ref_joint_pos_indexes]
         ac = OrderedDict([('default', joint_ac)])
         return ac
 

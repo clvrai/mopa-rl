@@ -51,6 +51,7 @@ def argparser():
     parser.add_argument("--meta_oracle", type=str2bool, default=False)
     parser.add_argument("--subgoal_hindsight", type=str2bool, default=False)
 
+
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=64)
     parser.add_argument("--rl_activation", type=str, default="relu",
@@ -77,14 +78,19 @@ def argparser():
     parser.add_argument("--subgoal_scale", type=float, default=1.0)
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_self_collision", type=str2bool, default=False)
+    parser.add_argument("--allow_approximate", type=str2bool, default=False)
+    parser.add_argument("--allow_invalid", type=str2bool, default=False)
 
     # single policy
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.)
     parser.add_argument("--ac_rl_maximum", type=float, default=1.)
-    parser.add_argument("--reuse_data", type=str2bool, default=False)
+    parser.add_argument("--reuse_subgoal_data", type=str2bool, default=False)
+    parser.add_argument("--reuse_inverse", type=str2bool, default=False)
+    parser.add_argument("--reuse_rl_data", type=str2bool, default=False)
     parser.add_argument("--action_range", type=float, default=2.0)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
     parser.add_argument("--extended_action", type=str2bool, default=False)
+    parser.add_argument("--stochastic_eval", type=str2bool, default=False)
 
 
     # off-policy rl
@@ -127,6 +133,7 @@ def argparser():
     parser.add_argument("--start_steps", type=int, default=1e4)
     parser.add_argument("--temperature", type=float, default=0.3, help="Temperature for Gumbel Softmax")
     parser.add_argument("--use_automatic_entropy_tuning", type=str2bool, default=True)
+    parser.add_argument("--alpha", type=float, default=0.2)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)
@@ -140,12 +147,14 @@ def argparser():
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)
+    parser.add_argument("--vis_replay_interval", type=int, default=10000)
     parser.add_argument("--evaluate_interval", type=int, default=1000)
     parser.add_argument("--ckpt_interval", type=int, default=10000)
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,
                         help="set it True if you want to use wandb")
     parser.add_argument("--group", type=str, default=None)
+    parser.add_argument("--vis_replay", type=str2bool, default=True)
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)
