@@ -116,6 +116,16 @@ for episode in range(N):
         xpos = OrderedDict()
         xquat = OrderedDict()
 
+        failure = True
+        while failure:
+            traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
+            failure = not success
+            d = current_qpos-target_qpos
+            target_qpos += step_size * (d)/np.linalg.norm(d)
+            env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+            env.render('human')
+
+
         if not success:
             traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
             print("Normal planner is called")

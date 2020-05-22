@@ -6,6 +6,7 @@ import gym
 import env
 from config import argparser
 from rl.planner_agent import PlannerAgent
+from rl.sac_agent import SACAgent
 from util.misc import make_ordered_pair, save_video
 from config.motion_planner import add_arguments as planner_add_arguments
 import cv2
@@ -61,15 +62,13 @@ args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
-args.planner_type="rrt_connect"
+args.planner_type="sst"
 args.planner_objective="path_length"
-args.range = 0.05
-args.threshold = 0.01
-args.timelimit = 3.0
+args.range = 0.01
+args.threshold = 0.1
+args.timelimit = 1.0
 args.simple_timelimit = 0.04
 args.contact_threshold = -0.001
-
-step_size = 0.004
 
 ignored_contacts = []
 # Allow collision with manipulatable object
@@ -82,9 +81,9 @@ passive_joint_idx = list(range(len(env.sim.data.qpos)))
 [passive_joint_idx.remove(idx) for idx in env.ref_joint_pos_indexes]
 
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
-planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts) # default goal bias is 0.05
+planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, allow_approximate=True) # default goal bias is 0.05
 # planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=True, simplified_duration=0.5) # default goal bias is 0.05
-simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, 1.0)
+simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, 1.0, allow_approximate=False)
 
 
 N = 1
@@ -108,26 +107,24 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        target_qpos[env.ref_joint_pos_indexes] = np.array([0.157, 1.62, 0.87])
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] = np.array([-0.194, 1.79, 0.413])
+        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2., high=2., size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
-        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+        # traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
 
+        traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
         if not success:
-            traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
+            # traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
             print("Normal planner is called")
-
             if not success and not exact:
                 print("Approximate")
             elif not success and not valid:
                 print("Invalid state")
-            else:
-                print("Success")
         else:
-            print("Interpolation")
+            print("Success")
         # traj, success = planner.plan(current_qpos, target_qpos)
         print("==============")
         print(step)
