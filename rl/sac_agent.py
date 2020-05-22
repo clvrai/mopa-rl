@@ -29,7 +29,7 @@ class SACAgent(BaseAgent):
         self._ac_space = ac_space
         self._ref_joint_pos_indexes = ref_joint_pos_indexes
         self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device)]
-        self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_alpha)]
+        self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
 
         # build up networks
         self._build_actor(actor)
