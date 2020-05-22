@@ -12,25 +12,25 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.21.SAC.PUSHER.EASY.EXACT.ac.0.3"
+prefix="05.21.SAC.REACHER.EXACT.SPARSE.v4.invalid.0.2"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-reacher-obstacle-hard-v0"
 rl_hid_size="256"
-max_episode_step="250"
+max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-lr_actor="3e-4"
-lr_critic="3e-4"
+lr_actor="1e-4"
+lr_critic="1e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='dense'
+reward_type='sparse'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.21.SAC.PLANNER.PUSHER.EASY.EXACT.ac.0.3'
+group='05.21.SAC.PLANNER.REACHER.EXACT.SPARSE.v4.invalid.0.2'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -49,12 +49,12 @@ reuse_rl_data="False"
 relative_goal="True"
 simple_planner_timelimit="0.02"
 action_range="2.0"
-ac_rl_minimum="-0.3"
-ac_rl_maximum="0.3"
-invalid_planner_rew="-0.5"
+ac_rl_minimum="-0.05"
+ac_rl_maximum="0.05"
+invalid_planner_rew="-0.2"
 extended_action="False"
 allow_approximate="False"
-success_reward='150.'
+success_reward='0.'
 has_terminal='True'
 allow_invalid="False"
 use_automatic_entropy_tuning="True"
@@ -122,4 +122,4 @@ python -m rl.main \
     --allow_invalid $allow_invalid \
     --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
     --stochastic_eval $stochastic_eval \
-    --alpha $alpha
+    --alpha $alpha \
