@@ -144,6 +144,16 @@ class PlannerRolloutRunner(object):
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
 
+                    if config.find_collision_free and not success and not valid:
+                        failure = True
+                        j = 0
+                        while failure and j<=100:
+                            d = curr_qpos-target_qpos
+                            target_qpos += config.step_size * d/np.linalg.norm(d)
+                            traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                            failure = not success
+                            j+=1
+
 
                     if success:
                         if interpolation:
@@ -354,6 +364,15 @@ class PlannerRolloutRunner(object):
                     target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
                 traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                if config.find_collision_free and not success and not valid:
+                    failure = True
+                    j = 0
+                    while failure and j<=100:
+                        d = curr_qpos-target_qpos
+                        target_qpos += config.step_size * d/np.linalg.norm(d)
+                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                        failure = not success
+                        j+=1
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
                 if success:
                     if interpolation:

@@ -80,6 +80,8 @@ def argparser():
     parser.add_argument("--allow_self_collision", type=str2bool, default=False)
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
     parser.add_argument("--allow_invalid", type=str2bool, default=False)
+    parser.add_argument("--find_collision_free", type=str2bool, default=False)
+    parser.add_argument("--step_size", type=float, default=0.04)
 
     # single policy
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.)

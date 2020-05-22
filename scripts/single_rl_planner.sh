@@ -12,15 +12,15 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.21.SAC.REACHER.EXACT.SPARSE.v4.invalid.0.2"
+prefix="05.22.SAC.REACHER.EXACT.SPARSE.find_coll_free.3e-4"
 max_global_step="60000000"
 env="simple-reacher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-lr_actor="1e-4"
-lr_critic="1e-4"
+lr_actor="3e-4"
+lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.21.SAC.PLANNER.REACHER.EXACT.SPARSE.v4.invalid.0.2'
+group='05.22.SAC.PLANNER.REACHER.EXACT.SPARSE.find_coll_free.3e-4'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -60,6 +60,7 @@ allow_invalid="False"
 use_automatic_entropy_tuning="True"
 stochastic_eval="True"
 alpha='0.05'
+find_collision_free="True"
 
 # max_grad_norm='0.5'
 
@@ -123,3 +124,4 @@ python -m rl.main \
     --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
     --stochastic_eval $stochastic_eval \
     --alpha $alpha \
+    --find_collision_free $find_collision_free
