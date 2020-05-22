@@ -59,8 +59,8 @@ class Actor(nn.Module):
                 action = torch.tanh(z)
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
+                    log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=1, keepdim=True)
                     # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                    log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
                     log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -121,8 +121,9 @@ class Actor(nn.Module):
                 action = torch.tanh(z)
                 # action = torch.tanh(z)
                 # follow the Appendix C. Enforcing Action Bounds
+                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=1, keepdim=True)
                 # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
+                # log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
