@@ -223,7 +223,6 @@ class SimplePusherObstacleEnv(BaseEnv):
         desired_state = self._prev_state + action # except for gripper action
 
         n_inner_loop = int(self._frame_dt/self.dt)
-        reward, info = self.compute_reward(action)
         self.check_stage()
 
         target_vel = (desired_state-self._prev_state) / self._frame_dt
@@ -231,6 +230,7 @@ class SimplePusherObstacleEnv(BaseEnv):
             action = self._get_control(desired_state, self._prev_state, target_vel)
             self._do_simulation(action)
 
+        reward, info = self.compute_reward(action)
         obs = self._get_obs()
         self._prev_state = np.copy(desired_state)
 

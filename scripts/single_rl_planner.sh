@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.22.SAC.REACHER.EXACT.SPARSE.find_coll_free.3e-4"
+prefix="05.22.SAC.REACHER.EXACT.SPARSE.find_coll_free.neg"
 max_global_step="60000000"
 env="simple-reacher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.22.SAC.PLANNER.REACHER.EXACT.SPARSE.find_coll_free.3e-4'
+group='05.22.SAC.PLANNER.REACHER.EXACT.SPARSE.find_coll_free.neg'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
