@@ -23,6 +23,7 @@
 #include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/geometric/planners/sst/SST.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
@@ -105,6 +106,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     kpiece_planner = std::make_shared<og::KPIECE1>(si);
     rrt_connect_planner = std::make_shared<og::RRTConnect>(si);
     prm_star_planner = std::make_shared<og::PRMstar>(si);
+    lazy_prm_star_planner = std::make_shared<og::LazyPRMstar>(si);
     spars_planner = std::make_shared<og::SPARS>(si);
     _range = _Range;
 
@@ -142,12 +144,15 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         ss->setPlanner(prm_star_planner);
         ss->setup();
         ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
-        std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
+    } else if (algo == "lazy_prm_star"){
+        lazy_prm_star_planner->setRange(_range);
+        ss->setPlanner(lazy_prm_star_planner);
+        ss->setup();
+        // ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
     } else if (algo == "spars"){
         ss->setPlanner(spars_planner);
         ss->setup();
         ss->getPlanner()->as<og::SPARS>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
-        std::cout << "Milestone: " << ss->getPlanner()->as<og::SPARS>()->milestoneCount() << std::endl;
     }
 
     if (opt == "maximize_min_clearance") {
@@ -195,6 +200,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         ss->getPlanner()->as<og::RRTConnect>()->clear();
     } else if (algo == "prm_star"){
         ss->getPlanner()->as<og::PRMstar>()->clearQuery();
+    } else if (algo == "lazy_prm_star"){
+        ss->getPlanner()->as<og::LazyPRMstar>()->clearQuery();
     } else if (algo == "spars"){
         ss->getPlanner()->as<og::SPARS>()->clearQuery();
     }
@@ -255,9 +262,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     //     ss->clear();
     // }
 
-    if (algo == "prm_star" || algo == "spars"){
-        std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
-    }
     solved = ss->solve(timelimit);
     planner_status = solved.asString();
 
@@ -403,12 +407,14 @@ void KinematicPlanner::removeCollision(int geom_id, int contype, int conaffinity
         ss->setPlanner(prm_star_planner);
         ss->setup();
         ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
-        std::cout << "Milestone: " << ss->getPlanner()->as<og::PRMstar>()->milestoneCount() << std::endl;
+    } else if (algo == "lazy_prm_star"){
+        lazy_prm_star_planner.setRange(_range)
+        ss->setPlanner(lazy_prm_star_planner);
+        ss->setup();
     } else if (algo == "spars"){
         ss->setPlanner(spars_planner);
         ss->setup();
         ss->getPlanner()->as<og::SPARS>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
-        std::cout << "Milestone: " << ss->getPlanner()->as<og::SPARS>()->milestoneCount() << std::endl;
     }
 
     if (opt == "maximize_min_clearance") {

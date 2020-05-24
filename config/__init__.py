@@ -82,11 +82,12 @@ def argparser():
     parser.add_argument("--allow_invalid", type=str2bool, default=False)
     parser.add_argument("--find_collision_free", type=str2bool, default=False)
     parser.add_argument("--step_size", type=float, default=0.04)
+    parser.add_argument("--use_double_planner", type=str2bool, default=True)
 
     # single policy
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.)
     parser.add_argument("--ac_rl_maximum", type=float, default=1.)
-    parser.add_argument("--reuse_data_type", type=str, default="subgoal_forward", choices=["subgoal_forward", "subgoal_backward", "rl", "subgoal_random"])
+    parser.add_argument("--reuse_data_type", type=str, default="subgoal_forward", choices=["subgoal_forward", "subgoal_backward", "rl", "subgoal_random", "None"])
     parser.add_argument("--action_range", type=float, default=2.0)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
     parser.add_argument("--extended_action", type=str2bool, default=False)

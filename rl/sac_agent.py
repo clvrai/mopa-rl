@@ -57,6 +57,7 @@ class SACAgent(BaseAgent):
         self._log_creation()
 
         self._planner = None
+        self._is_planner_initialized = False
         if config.planner_integration:
             self._planner = PlannerAgent(config,ac_space, non_limited_idx,
                                          config.passive_joint_idx, config.ignored_contact_geom_ids[0],
@@ -104,12 +105,12 @@ class SACAgent(BaseAgent):
 
     def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         interpolation = True
-        traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
-        if not success and not exact:
-            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-            interpolation = False
+        if self._config.planner_type == 'lazy_prm_star' and not self._is_planner_initialized:
+            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.construct_time)
+        else:
+            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
 
-        if not success:
+        if not success and self._config.use_double_planner:
             if self._config.allow_approximate:
                 if self._config.allow_invalid:
                     traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
