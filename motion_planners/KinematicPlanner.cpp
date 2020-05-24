@@ -408,7 +408,7 @@ void KinematicPlanner::removeCollision(int geom_id, int contype, int conaffinity
         ss->setup();
         ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
     } else if (algo == "lazy_prm_star"){
-        lazy_prm_star_planner.setRange(_range)
+        lazy_prm_star_planner->setRange(_range);
         ss->setPlanner(lazy_prm_star_planner);
         ss->setup();
     } else if (algo == "spars"){
