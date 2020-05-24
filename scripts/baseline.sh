@@ -23,12 +23,12 @@ then
 fi
 
 workers="1"
-prefix="05.21.BASELINE.SAC.REACHER.sparse.v3"
+prefix="05.21.BASELINE.SAC.REACHER.sparse.v4"
 max_global_step="60000000"
 env="simple-reacher-obstacle-hard-v0"
 gpu=$gpu
 rl_hid_size="256"
-max_episode_step="250"
+max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -36,14 +36,14 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1234'
+seed='1237'
 ctrl_reward='1e-2'
 reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.21.SAC.BASELINE.sparse.v3'
+group='05.21.SAC.BASELINE.sparse.v4'
 env_debug='False'
 log_freq='1000'
 reward_scale='1.'

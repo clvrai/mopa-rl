@@ -240,23 +240,17 @@ class SACAgent(BaseAgent):
 
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
-        alpha_loss = -(self._log_alpha[0] * (log_pi + self._target_entropy[0]).detach()).mean()
-
         if self._config.use_automatic_entropy_tuning:
-            self._alpha_optim[0].zero_grad()
-            alpha_loss.backward()
-            self._alpha_optim[0].step()
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
-            info['alpha_loss'] = alpha_loss.cpu().item()
         else:
             alpha = [torch.ones(1, device=self._config.device) * self._config.alpha for _ in self._log_alpha]
+
 
         # the actor loss
         entropy_loss = (alpha[0] * log_pi).mean()
         actor_loss = -torch.min(self._critics1[0](o, actions_real),
                                 self._critics2[0](o, actions_real)).mean()
         info['log_pi'] = log_pi.mean().cpu().item()
-        info['entropy_alpha'] = alpha[0].cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
@@ -318,6 +312,17 @@ class SACAgent(BaseAgent):
             if self._config.is_mpi:
                 sync_grads(_critic2)
             self._critic2_optims[i].step()
+
+        actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
+        alpha_loss = -(self._log_alpha[0].exp() * (log_pi + self._target_entropy[0]).detach()).mean()
+
+        if self._config.use_automatic_entropy_tuning:
+            self._alpha_optim[0].zero_grad()
+            alpha_loss.backward()
+            self._alpha_optim[0].step()
+            alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
+            info['alpha_loss'] = alpha_loss.cpu().item()
+            info['entropy_alpha'] = alpha[0].cpu().item()
 
         if self._config.is_mpi:
             return mpi_average(info)

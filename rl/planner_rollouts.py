@@ -163,39 +163,40 @@ class PlannerRolloutRunner(object):
 
                         reward_list = []
                         ob_list = []
+                        done_list = []
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
-                            ob_list.append(ll_ob)
                             converted_ac = env.form_action(next_qpos)
                             # ac = env.form_action(next_qpos)
-                            if config.reuse_subgoal_data:
-                                inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
-                                if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
-                                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                            elif config.reuse_rl_data:
-                                inter_subgoal_ac = env.form_action(next_qpos)
-                                if config.extended_action:
-                                    inter_subgoal_ac['ac_type'] = ac['ac_type']
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.ac_rl_maximum
-                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
-                            # ob, reward, done, in)o = env.step(ac, is_planner=True)
-                            if config.reuse_subgoal_data:
-                                rollout.add({'done': done, 'rew': meta_rew})
-                            elif config.reuse_rl_data:
-                                rollout.add({'done': done, 'rew': reward})
-
-                            meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
+                            meta_rew += reward # the last reward is more important
+                            done_list.append(done)
                             reward_list.append(meta_rew)
+                            ob_list.append(ob.copy())
                             ep_len += 1
                             step += 1
                             ep_rew += reward
                             meta_len += 1
                             reward_info.add(info)
+
+                            if config.reuse_data_type == 'subgoal_forward':
+                                inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
+                                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': meta_rew})
+                                    rollout.add({'done': done, 'rew': meta_rew})
+                            elif config.reuse_data_type == 'rl':
+                                inter_subgoal_ac = env.form_action(next_qpos)
+                                if config.extended_action:
+                                    inter_subgoal_ac['ac_type'] = ac['ac_type']
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.ac_rl_maximum
+                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': reward})
+                                rollout.add({'done': done, 'rew': reward})
+
+                            # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             if every_steps is not None and step % every_steps == 0:
-                                if (config.reuse_subgoal_data and pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac)) or config.reuse_rl_data:
+                                if (config.reuse_data_type == 'subgoal_forward' and pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac)) or config.reuse_data_type == 'rl':
                                     # last frame
                                     ll_ob = ob.copy()
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
@@ -217,7 +218,7 @@ class PlannerRolloutRunner(object):
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
-                        if config.reuse_backward_subgoal_data:
+                        if config.reuse_data_type == 'subgoal_backward':
                             for i, (inter_rew, inter_ob) in enumerate(zip(reward_list, ob_list)):
                                 inter_subgoal_ac = env.form_action(traj[i])
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
@@ -228,6 +229,24 @@ class PlannerRolloutRunner(object):
                                         # last frame
                                         ll_ob = ob.copy()
                                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+                        if config.reuse_data_type == 'subgoal_random' and len(ob_list) > 2:
+                            pairs = []
+                            for _ in range(len(ob_list)):
+                                start = np.random.randint(low=0, high=len(ob_list)-1)
+                                goal = np.random.randint(low=start+1, high=len(ob_list))
+                                if (start, goal) in pairs:
+                                    continue
+                                pairs.append((start, goal))
+                                inter_subgoal_ac = env.form_action(traj[goal], traj[start])
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                if pi.is_planner_ac(inter_subgoal_ac):
+                                    rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                                    rollout.add({'done': done_list[goal], 'rew': np.sum(reward_list[start:goal])})
+                                    if every_steps is not None and step % every_steps == 0:
+                                        # last frame
+                                        rollout.add({'ob': ob_list[goal], 'meta_ac': meta_ac})
                                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:

@@ -109,7 +109,8 @@ class SimpleReacherObstacleEnv(BaseEnv):
 
             info = dict(reward_reach=reward_reach, reward_ctrl=reward_ctrl)
         else:
-            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            # reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            reward = (self._get_distance('box', 'target') < self._env_config['distance_threshold']).astype(np.float32)
 
         return reward, info
 

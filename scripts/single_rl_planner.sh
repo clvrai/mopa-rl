@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.22.SAC.REACHER.EXACT.SPARSE.find_coll_free.neg"
+prefix="05.22.SAC.REACHER.EXACT.SPARSE.find_coll_free.fix.sac.no_dis.v3"
 max_global_step="60000000"
 env="simple-reacher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.22.SAC.PLANNER.REACHER.EXACT.SPARSE.find_coll_free.neg'
+group='05.22.SAC.PLANNER.REACHER.EXACT.SPARSE.find_coll_free.fix.sac.no_dis.v3'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -43,9 +43,7 @@ timelimit="1."
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
-reuse_subgoal_data="True"
-reuse_backward_subgoal_data="False"
-reuse_rl_data="False"
+reuse_data_type="subgoal_forward"
 relative_goal="True"
 simple_planner_timelimit="0.02"
 action_range="2.0"
@@ -107,9 +105,7 @@ python -m rl.main \
     --allow_manipulation_collision $allow_manipulation_collision \
     --reward_scale $reward_scale \
     --subgoal_hindsight $subgoal_hindsight \
-    --reuse_subgoal_data $reuse_subgoal_data \
-    --reuse_backward_subgoal_data $reuse_backward_subgoal_data \
-    --reuse_rl_data $reuse_rl_data \
+    --reuse_data_type $reuse_data_type \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
     --action_range $action_range \

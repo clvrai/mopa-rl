@@ -60,8 +60,8 @@ class Actor(nn.Module):
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
                     # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=1, keepdim=True)
-                    # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                    log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
+                    log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                    # log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
                     log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -101,15 +101,8 @@ class Actor(nn.Module):
 
         mixed_dist = MixedDistribution(dists)
 
-        if activations is None and not self._deterministic:
-            activations_ = mixed_dist.rsample()
-        elif activations is None and self._deterministic:
-            activations_ = mixed_dist.mode()
-        else:
-            activations_ = activations
 
-
-        # activations_ = mixed_dist.rsample() if activations is None else activations
+        activations_ = mixed_dist.rsample() if activations is None else activations
         for k in activations_.keys():
             if len(activations_[k].shape) == 1:
                 activations_[k] = activations_[k].unsqueeze(0)
@@ -123,8 +116,7 @@ class Actor(nn.Module):
                 # action = torch.tanh(z)
                 # follow the Appendix C. Enforcing Action Bounds
                 # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=1, keepdim=True)
-                # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
+                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
