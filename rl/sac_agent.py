@@ -103,28 +103,47 @@ class SACAgent(BaseAgent):
             return True
         return False
 
-    def plan(self, curr_qpos, target_qpos, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
-        interpolation = True
-        if self._config.planner_type == 'lazy_prm_star' and not self._is_planner_initialized:
-            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.construct_time)
-        else:
+    def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
+        if self._config.use_double_planner:
+            interpolation = True
             traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
-
-        if not success and self._config.use_double_planner:
-            if self._config.allow_approximate:
-                if self._config.allow_invalid:
-                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-                    interpolation = False
+            if not success:
+                if self._config.allow_approximate:
+                    if self._config.allow_invalid:
+                        traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                        interpolation = False
+                    else:
+                        if not exact:
+                            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                            interpolation = False
                 else:
                     if not exact:
                         traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
                         interpolation = False
-            else:
-                if not exact:
-                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-                    interpolation = False
+        else:
+            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+            if self._config.planner_type == 'prm_star':
+                new_traj = []
+                traj.insert(0, curr_qpos)
+                for i in range(len(traj[1:])):
+                    diff = traj[i+1] - traj[i]
+                    if np.any(diff < -ac_scale) or np.any(diff > ac_scale):
+                        inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(traj[i], traj[i+1])
+                        if inner_success:
+                            new_traj.extend(inner_traj[:-1])
+
+                    else:
+                        new_traj.append(traj[i])
+                new_traj.append(traj[-1])
+                import pdb
+                pdb.set_trace()
+                traj = new_traj[1:]
+
         return traj, success, interpolation, valid, exact
 
+    def interpolate(self, curr_qpos, target_qpos):
+        traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        return traj, success, interpolation, valid, exact
 
     def state_dict(self):
         return {

@@ -142,7 +142,7 @@ class PlannerRolloutRunner(object):
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
-                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
 
                     if config.find_collision_free and not success and not valid:
                         failure = True
@@ -150,7 +150,7 @@ class PlannerRolloutRunner(object):
                         while failure and j<=100:
                             d = curr_qpos-target_qpos
                             target_qpos += config.step_size * d/np.linalg.norm(d)
-                            traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                            traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                             failure = not success
                             j+=1
 
@@ -167,8 +167,8 @@ class PlannerRolloutRunner(object):
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
+                            if config.planner_type == 'prm_star'
                             # ac = env.form_action(next_qpos)
-                            ob, reward, done, info = env.step(converted_ac, is_planner=True)
                             # meta_rew += reward # the last reward is more important
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             # meta_rew += (config.discount_factor**i)*reward # the last reward is more important

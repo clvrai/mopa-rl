@@ -148,7 +148,6 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         lazy_prm_star_planner->setRange(_range);
         ss->setPlanner(lazy_prm_star_planner);
         ss->setup();
-        // ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
     } else if (algo == "spars"){
         ss->setPlanner(spars_planner);
         ss->setup();
