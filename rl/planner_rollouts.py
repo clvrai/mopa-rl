@@ -167,7 +167,8 @@ class PlannerRolloutRunner(object):
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
-                            if config.planner_type == 'prm_star'
+                            ob, reward, done, info = env.step(converted_ac, is_planner=True)
+
                             # ac = env.form_action(next_qpos)
                             # meta_rew += reward # the last reward is more important
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
@@ -187,13 +188,6 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': meta_rew})
-                            elif config.reuse_data_type == 'rl':
-                                inter_subgoal_ac = env.form_action(next_qpos)
-                                if config.extended_action:
-                                    inter_subgoal_ac['ac_type'] = ac['ac_type']
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= env._ac_scale
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] *= config.ac_rl_maximum
-                                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': reward})
 
                             if every_steps is not None and step % every_steps == 0:
                                 if (config.reuse_data_type == 'subgoal_forward' and pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac)) or config.reuse_data_type == 'rl':
@@ -233,17 +227,19 @@ class PlannerRolloutRunner(object):
 
                         if config.reuse_data_type == 'subgoal_random' and len(ob_list) > 2:
                             pairs = []
-                            for _ in range(len(ob_list)):
+                            for _ in range(min(len(ob_list), config.max_reuse_data)):
                                 start = np.random.randint(low=0, high=len(ob_list)-1)
-                                goal = np.random.randint(low=start+1, high=len(ob_list))
+                                if start + config.min_reuse_span > len(ob_list)-1:
+                                    continue
+                                goal = np.random.randint(low=start+config.min_reuse_span, high=len(ob_list))
                                 if (start, goal) in pairs:
                                     continue
+
                                 pairs.append((start, goal))
                                 inter_subgoal_ac = env.form_action(traj[goal], traj[start])
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
-                                if pi.is_planner_ac(inter_subgoal_ac):
+                                if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                    # rollout.add({'done': done_list[goal], 'rew': (reward_list[goal]-reward_list[start])*(config.discount**(len(ob_list)-goal))})
                                     rollout.add({'done': done_list[goal], 'rew': reward_list[goal]-reward_list[start]})
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
@@ -383,14 +379,14 @@ class PlannerRolloutRunner(object):
                 else:
                     target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
-                traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                 if config.find_collision_free and not success and not valid:
                     failure = True
                     j = 0
                     while failure and j<=100:
                         d = curr_qpos-target_qpos
                         target_qpos += config.step_size * d/np.linalg.norm(d)
-                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos)
+                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                         failure = not success
                         j+=1
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())

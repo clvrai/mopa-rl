@@ -88,6 +88,8 @@ def argparser():
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.)
     parser.add_argument("--ac_rl_maximum", type=float, default=1.)
     parser.add_argument("--reuse_data_type", type=str, default="subgoal_forward", choices=["subgoal_forward", "subgoal_backward", "rl", "subgoal_random", "None"])
+    parser.add_argument("--max_reuse_data", type=int, default=10)
+    parser.add_argument("--min_reuse_span", type=int, default=10)
     parser.add_argument("--action_range", type=float, default=2.0)
     parser.add_argument("--relative_goal", type=str2bool, default=True)
     parser.add_argument("--extended_action", type=str2bool, default=False)

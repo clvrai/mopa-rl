@@ -59,11 +59,12 @@ class SACAgent(BaseAgent):
         self._planner = None
         self._is_planner_initialized = False
         if config.planner_integration:
-            self._planner = PlannerAgent(config,ac_space, non_limited_idx,
-                                         config.passive_joint_idx, config.ignored_contact_geom_ids[0],
-                                         config.is_simplified, config.simplified_duration, allow_approximate=config.allow_approximate)
-            self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, config.passive_joint_idx,
-                                                config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False)
+            self._planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.planner_type,
+                                         passive_joint_idx=config.passive_joint_idx, ignored_contacts=config.ignored_contact_geom_ids[0],
+                                         is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate)
+            self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.simple_planner_type,
+                                                passive_joint_idx=config.passive_joint_idx,
+                                                ignored_contacts=config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 
@@ -121,23 +122,21 @@ class SACAgent(BaseAgent):
                         traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
                         interpolation = False
         else:
+            interpolation = False
             traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-            if self._config.planner_type == 'prm_star':
+            if self._config.planner_type == 'prm_star' and success:
                 new_traj = []
-                traj.insert(0, curr_qpos)
-                for i in range(len(traj[1:])):
-                    diff = traj[i+1] - traj[i]
-                    if np.any(diff < -ac_scale) or np.any(diff > ac_scale):
-                        inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(traj[i], traj[i+1])
+                start = curr_qpos
+                for i in range(len(traj)):
+                    diff = traj[i] - start
+                    if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
+                        inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i])
                         if inner_success:
-                            new_traj.extend(inner_traj[:-1])
-
+                            new_traj.extend(inner_traj)
                     else:
                         new_traj.append(traj[i])
-                new_traj.append(traj[-1])
-                import pdb
-                pdb.set_trace()
-                traj = new_traj[1:]
+                    start = traj[i]
+                traj = np.array(new_traj)
 
         return traj, success, interpolation, valid, exact
 

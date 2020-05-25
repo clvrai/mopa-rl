@@ -12,25 +12,25 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.22.SAC.REACHER.EXACT.sparse.no_reuse.prm.debug"
+prefix="05.24.SAC.PUSHER.EASY.EXACT.NO-REUSE.prm.no_smooth"
 max_global_step="60000000"
-env="simple-reacher-obstacle-hard-v0"
+env="simple-pusher-obstacle-v0"
 rl_hid_size="256"
 max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Sanity Check'
-start_steps='10000'
+start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.22.SAC.PLANNER.REACHER.EXACT.sparse.no_reuse.prm'
+group='05.24.SAC.PLANNER.PUSHER.EASY.EXACT.sparse.no_reuse.prm.no_smooth'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -51,7 +51,7 @@ ac_rl_maximum="0.5"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
-success_reward='0.'
+success_reward='150.0'
 has_terminal='True'
 allow_invalid="False"
 use_automatic_entropy_tuning="True"
@@ -62,6 +62,12 @@ use_double_planner="False"
 simple_planner_type='sst'
 simple_planner_timelimit="0.01"
 construct_time='300'
+sst_selection_radius="0.1"
+sst_pruning_radius="0.1"
+is_simplified="False"
+simplified_duration="0.01"
+simple_planner_simplified="False"
+simple_planner_simplified_duration="0.001"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -125,4 +131,8 @@ python -m rl.main \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
     --simple_planner_type $simple_planner_type \
-    --construct_time $construct_time
+    --construct_time $construct_time \
+    --is_simplified $is_simplified \
+    --simplified_duration $simplified_duration \
+    --simple_planner_simplified $simple_planner_simplified \
+    --simple_planner_simplified_duration $simple_planner_simplified_duration

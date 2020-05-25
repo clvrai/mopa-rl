@@ -49,7 +49,7 @@ using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate)
+                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate, bool is_simplified, double simplified_duration)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -67,6 +67,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     ignored_contacts = Ignored_contacts;
     planner_status = "none";
     allow_approximate = Allow_approximate;
+    isSimplified = is_simplified;
+    simplifiedDuration = simplified_duration;
 
     std::string homedir = std::getenv("HOME");
     mjkey_filename = homedir + "/.mujoco/mjkey.txt";
@@ -85,8 +87,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
         // return solutions;
         //return -1;
     }
-
-    // Make data
+// Make data
     if (!mj->makeData()) {
         std::cerr << "Could not allocate mjData" << std::endl;
         // return solutions;
@@ -173,8 +174,7 @@ KinematicPlanner::~KinematicPlanner(){
 }
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, double min_steps, bool is_simplified, double simplified_duration) {
-
+                                                            double timelimit, double min_steps) {
     if (start_vec.size() != mj->m->nq) {
         std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
         << " but should be nq: " << mj->m->nq;
@@ -269,9 +269,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     if (bool(solved)){
         if (ss->haveExactSolutionPath() || allow_approximate) {
             // ss.getSolutionPath().print(std::cout);
-            // if (is_simplified){
-            //     ss->simplifySolution(simplified_duration);
-            // }
+            if (isSimplified){
+                ss->simplifySolution(simplifiedDuration);
+            }
             og::PathGeometric p = ss->getSolutionPath();
             // ss->getSolutionPath().print(std::cout);
             // p.interpolate(min_steps);

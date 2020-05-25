@@ -10,7 +10,7 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx, planner_type=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, allow_approximate=False):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx, planner_type=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, allow_approximate=False, is_simplified=False, simplified_duration=0.1):
         self.config = config
         if planner_type is None:
             planner_type = config.planner_type
@@ -27,7 +27,9 @@ class SamplingBasedPlanner:
                                           ignored_contacts,
                                           contact_threshold,
                                           goal_bias,
-                                          allow_approximate)
+                                          allow_approximate,
+                                          is_simplified,
+                                          simplified_duration)
         self.non_limited_idx = non_limited_idx
 
     def convert_nonlimited(self, state):
@@ -36,12 +38,12 @@ class SamplingBasedPlanner:
                 state[idx] = joint_convert(state[idx])
         return state
 
-    def plan(self, start, goal, timelimit=1., min_steps=10, is_simplified=False, simplified_duration=0.1):
+    def plan(self, start, goal, timelimit=1., min_steps=10):
         valid_state = True
         exact = True
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
-        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps, is_simplified, simplified_duration))
+        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps))
 
         if np.unique(states).size == 1:
             if states[0][0] == -5:
