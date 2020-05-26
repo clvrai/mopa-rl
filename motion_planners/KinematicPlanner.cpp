@@ -116,8 +116,6 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     psimp_ = std::make_shared<og::PathSimplifier>(si);
     _range = _Range;
 
-    psimp_ = std::make_shared<og::PathSimplifier>(si);
-
     si->setup();
     ss = std::make_shared<og::SimpleSetup>(si);
 
@@ -363,6 +361,23 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -4));
         return failedSolutions;
     }
+}
+
+bool KinematicPlanner::isValidState(std::vector<double> state_vec){
+    std::vector<double> state_vec_active;
+    std::vector<double> state_vec_passive;
+    for (int i=0; i<mj->m->nq; i++) {
+        if (MjOmpl::isActiveJoint(i, passive_joint_idx)) {
+            state_vec_active.push_back(state_vec[i]);
+        } else {
+            state_vec_passive.push_back(state_vec[i]);
+        }
+    }
+    ob::ScopedState<> state_ss(ss->getStateSpace());
+    for(int i=0; i < state_vec_active.size(); i++) {
+        state_ss[i] = state_vec_active[i];
+    }
+    return ss->getStateValidityChecker()->isValid(state_ss.get());
 }
 
 std::string KinematicPlanner::getPlannerStatus(){

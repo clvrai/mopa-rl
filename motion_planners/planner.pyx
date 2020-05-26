@@ -27,6 +27,7 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
         bool_ isSimplified
         double simplifiedDuration
         vector[vector[double]] plan(vector[double], vector[double], double, double)
+        bool_ isValidState(vector[double])
         void removeCollision(int, int, int)
         string getPlannerStatus()
         bool_ allow_approximate
@@ -47,3 +48,7 @@ cdef class PyKinematicPlanner:
 
     cpdef getPlannerStatus(self):
         return self.thisptr.getPlannerStatus()
+
+    cpdef isValidState(self, state_vec):
+        return self.thisptr.isValidState(state_vec)
+
