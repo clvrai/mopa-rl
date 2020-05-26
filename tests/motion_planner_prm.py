@@ -60,7 +60,7 @@ args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
-args.planner_type="prm_star"
+args.planner_type="lazy_prm_star"
 args.planner_objective="path_length"
 args.range = 0.1
 args.threshold = 0.01
@@ -117,6 +117,8 @@ for episode in range(N):
         elif not success and not valid:
             print("Invalid state")
         else:
+            import pdb
+            pdb.set_trace()
             print("Success")
 
         if success:

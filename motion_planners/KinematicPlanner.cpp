@@ -12,11 +12,13 @@
 
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/geometric/PathSimplifier.h>
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/pdst/PDST.h>
 #include <ompl/control/planners/sst/SST.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
@@ -102,6 +104,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     si->setStateValidityChecker(msvc);
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
+    rrt_sharp_planner = std::make_shared<og::RRTsharp>(si);
     sst_planner = std::make_shared<og::SST>(si);
     pdst_planner = std::make_shared<og::PDST>(si);
     est_planner = std::make_shared<og::EST>(si);
@@ -110,6 +113,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     prm_star_planner = std::make_shared<og::PRMstar>(si);
     lazy_prm_star_planner = std::make_shared<og::LazyPRMstar>(si);
     spars_planner = std::make_shared<og::SPARS>(si);
+    psimp_ = std::make_shared<og::PathSimplifier>(si);
     _range = _Range;
 
     psimp_ = std::make_shared<og::PathSimplifier>(si);
@@ -141,6 +145,9 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     } else if (algo == "rrt"){
         rrt_planner->setRange(_range);
         ss->setPlanner(rrt_planner);
+    } else if (algo == "rrt_sharp"){
+        rrt_sharp_planner->setRange(_range);
+        ss->setPlanner(rrt_sharp_planner);
     } else if (algo == "rrt_connect"){
         rrt_connect_planner->setRange(_range);
         ss->setPlanner(rrt_connect_planner);
@@ -276,7 +283,8 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
                 ss->simplifySolution(simplifiedDuration);
             }
             og::PathGeometric p = ss->getSolutionPath();
-            // psimp_->reduceVertices(p);
+            // psimp_->reduceVertices(p, 10);
+            // p.checkAndRepair(100);
             // ss->getSolutionPath().print(std::cout);
             // p.interpolate(min_steps);
             std::vector<ob::State*> &states =  p.getStates();
