@@ -12,9 +12,9 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.24.SAC.PUSHER.EASY.EXACT.NO-REUSE.prm.no_smooth"
+prefix="05.24.SAC.REACHER.SPARSE.EXACT.REUSE.prm.no_find_col"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-reacher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="200"
 entropy_loss_coef="1e-3"
@@ -25,12 +25,12 @@ debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='dense'
+reward_type='sparse'
 comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.24.SAC.PLANNER.PUSHER.EASY.EXACT.sparse.no_reuse.prm.no_smooth'
+group='05.24.SAC.PLANNER.REACHER.SPARSE.REUSE.prm.no_find_col'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -38,8 +38,8 @@ ignored_contact_geoms='None,None'
 planner_type="prm_star"
 planner_objective="path_length"
 range="0.1"
-threshold="0.01"
-timelimit="0.1"
+threshold="0.05"
+timelimit="0.3"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
@@ -51,13 +51,13 @@ ac_rl_maximum="0.5"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
-success_reward='150.0'
+success_reward='0.0'
 has_terminal='True'
 allow_invalid="False"
 use_automatic_entropy_tuning="True"
 stochastic_eval="True"
 alpha='0.05'
-find_collision_free="True"
+find_collision_free="False"
 use_double_planner="False"
 simple_planner_type='sst'
 simple_planner_timelimit="0.01"
@@ -68,6 +68,8 @@ is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.001"
+max_reuse_data='10'
+min_reuse_span='40'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -135,4 +137,6 @@ python -m rl.main \
     --is_simplified $is_simplified \
     --simplified_duration $simplified_duration \
     --simple_planner_simplified $simple_planner_simplified \
-    --simple_planner_simplified_duration $simple_planner_simplified_duration
+    --simple_planner_simplified_duration $simple_planner_simplified_duration \
+    --max_reuse_data $max_reuse_data \
+    --min_reuse_span $min_reuse_span \
