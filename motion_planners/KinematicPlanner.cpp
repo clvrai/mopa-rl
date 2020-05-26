@@ -25,6 +25,7 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/PathSimplifier.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
@@ -110,6 +111,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     lazy_prm_star_planner = std::make_shared<og::LazyPRMstar>(si);
     spars_planner = std::make_shared<og::SPARS>(si);
     _range = _Range;
+
+    psimp_ = std::make_shared<og::PathSimplifier>(si);
 
     si->setup();
     ss = std::make_shared<og::SimpleSetup>(si);
@@ -273,6 +276,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
                 ss->simplifySolution(simplifiedDuration);
             }
             og::PathGeometric p = ss->getSolutionPath();
+            // psimp_->reduceVertices(p);
             // ss->getSolutionPath().print(std::cout);
             // p.interpolate(min_steps);
             std::vector<ob::State*> &states =  p.getStates();

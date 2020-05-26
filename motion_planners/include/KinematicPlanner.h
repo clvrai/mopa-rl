@@ -26,6 +26,7 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/PathSimplifier.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
@@ -72,6 +73,7 @@ namespace MotionPlanner
             std::shared_ptr<og::SPARS> spars_planner;
             std::shared_ptr<og::SimpleSetup> ss;
             std::shared_ptr<MjOmpl::MujocoStateValidityChecker> msvc;
+            std::shared_ptr<og::PathSimplifier> psimp_;
             double constructTime;
             bool is_construct;
             std::vector<int> passive_joint_idx;
