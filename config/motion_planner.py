@@ -11,7 +11,7 @@ def add_arguments(parser):
     parser.add_argument("--simple_planner_type", type=str, default="rrt",
                         choices=["sst", "rrt", "rrt_connect", "prm_star", "kpiece", "spars", "lazy_prm_star"])
     parser.add_argument("--planner_objective", type=str, default="",
-                        choices=["maximize_min_clearance", "path_length", "state_const_integral", "constraint"])
+                        choices=["maximize_min_clearance", "path_length", "state_cost_integral", "constraint"])
     parser.add_argument("--sst_selection_radius", type=float, default=0.01)
     parser.add_argument("--sst_pruning_radius", type=float, default=0.01)
     parser.add_argument("--threshold", type=float, default=0.01)

@@ -242,6 +242,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
     msvc->addGlueTransformation(glue_bodies);
 
+    // std::cout << "Maximum Extent " << si->getMaximumExtent() << std::endl;
+    // std::cout << "Resolution " << si->getStateValidityCheckingResolution() << std::endl;
+
     // Set active start and goal states
     ob::ScopedState<> start_ss(ss->getStateSpace());
     for(int i=0; i < start_vec_active.size(); i++) {
@@ -281,7 +284,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             }
             og::PathGeometric p = ss->getSolutionPath();
             // psimp_->reduceVertices(p, 10);
-            // p.checkAndRepair(100);
+            // psimp_->shortcutPath(p, 5);
+            // psimp_->collapseCloseVertices(p, 0);
+            // p.checkAndRepair(10);
             // ss->getSolutionPath().print(std::cout);
             // p.interpolate(min_steps);
             std::vector<ob::State*> &states =  p.getStates();
