@@ -66,6 +66,7 @@ is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.001"
+vis_replay="False"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -131,4 +132,5 @@ python -m rl.main \
     --is_simplified $is_simplified \
     --simplified_duration $simplified_duration \
     --simple_planner_simplified $simple_planner_simplified \
-    --simple_planner_simplified_duration $simple_planner_simplified_duration
+    --simple_planner_simplified_duration $simple_planner_simplified_duration \
+    --vis_replay $vis_replay
