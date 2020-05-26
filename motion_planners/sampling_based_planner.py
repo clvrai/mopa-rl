@@ -38,6 +38,9 @@ class SamplingBasedPlanner:
                 state[idx] = joint_convert(state[idx])
         return state
 
+    def isValidState(self, state):
+        return self.planner.isValidState(state)
+
     def plan(self, start, goal, timelimit=1., min_steps=10):
         valid_state = True
         exact = True

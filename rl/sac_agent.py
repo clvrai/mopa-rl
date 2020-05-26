@@ -104,6 +104,9 @@ class SACAgent(BaseAgent):
             return True
         return False
 
+    def isValidState(self, state):
+        return self._planner.isValidState(state)
+
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         if self._config.use_double_planner:
             interpolation = True

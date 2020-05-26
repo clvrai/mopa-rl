@@ -42,5 +42,8 @@ class PlannerAgent:
     def get_planner_status(self):
         return self.planner.get_planner_status()
 
+    def isValidState(self, state):
+        return self.planner.isValidState(state)
+
 
 

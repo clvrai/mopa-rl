@@ -109,6 +109,12 @@ for episode in range(N):
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.848, -0.899, -1.36])
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
+        if not simple_planner.isValidState(target_qpos):
+            env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+            env.render("human")
+            print("Invalid state")
+            continue
+
         traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
