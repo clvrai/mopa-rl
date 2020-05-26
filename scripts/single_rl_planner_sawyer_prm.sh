@@ -7,16 +7,16 @@ rollout_length="1000"
 evaluate_interval="1000"
 ckpt_interval='200000'
 rl_activation="relu"
-num_batches="1"
-log_interval="150"
+num_batches="2"
+log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="05.24.SAC.PUSHER.EASY.EXACT.NO-REUSE.prm.no_smooth.v2"
+prefix="05.24.SAC.SAWYAER.LIFT.EXACT.NO-REUSE"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
-max_episode_step="200"
+max_episode_step="1000"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.24.SAC.PLANNER.PUSHER.EASY.EXACT.sparse.no_reuse.prm.no_smooth.v2'
+group='05.24.SAC.PLANNER.SAWYER.LIFT.EXACT.no_reuse.prm'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -39,7 +39,7 @@ planner_type="prm_star"
 planner_objective="path_length"
 range="0.1"
 threshold="0.05"
-timelimit="0.3"
+timelimit="0.5"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
@@ -51,8 +51,6 @@ ac_rl_maximum="0.5"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
-success_reward='150.0'
-has_terminal='True'
 allow_invalid="False"
 use_automatic_entropy_tuning="True"
 stochastic_eval="True"
@@ -121,8 +119,6 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
-    --success_reward $success_reward \
-    --has_terminal $has_terminal \
     --allow_approximate $allow_approximate \
     --allow_invalid $allow_invalid \
     --use_automatic_entropy_tuning $use_automatic_entropy_tuning \

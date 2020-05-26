@@ -130,7 +130,7 @@ class SACAgent(BaseAgent):
                 for i in range(len(traj)):
                     diff = traj[i] - start
                     if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
-                        inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i])
+                        inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
                         if inner_success:
                             new_traj.extend(inner_traj)
                     else:

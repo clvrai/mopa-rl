@@ -61,13 +61,15 @@ args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
-args.planner_type="rrt_connect"
+args.planner_type="rrt"
 args.planner_objective="path_length"
 args.range = 0.05
 args.threshold = 0.01
 args.timelimit = 3.0
 args.simple_timelimit = 0.04
 args.contact_threshold = -0.001
+# args.sst_selection_radius = 0.05
+# args.sst_pruning_radius = 0.05
 
 step_size = 0.004
 
@@ -84,7 +86,7 @@ passive_joint_idx = list(range(len(env.sim.data.qpos)))
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts) # default goal bias is 0.05
 # planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=True, simplified_duration=0.5) # default goal bias is 0.05
-simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, 1.0)
+simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, goal_bias=1.0)
 
 
 N = 1
@@ -108,10 +110,11 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        target_qpos[env.ref_joint_pos_indexes] = np.array([0.157, 1.62, 0.87])
+        target_qpos[env.ref_joint_pos_indexes] = np.array([-0.848, -0.899, -1.36])
         # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
-        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+        # traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+        traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()

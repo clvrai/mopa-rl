@@ -13,11 +13,13 @@
 
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/geometric/PathSimplifier.h>
 #include <ompl/control/planners/est/EST.h>
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/pdst/PDST.h>
 #include <ompl/control/planners/sst/SST.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
@@ -26,6 +28,7 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/PathSimplifier.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
@@ -62,6 +65,7 @@ namespace MotionPlanner
             std::shared_ptr<ob::SpaceInformation> si;
             std::shared_ptr<MjOmpl::MujocoStatePropagator> mj_state_prop;
             std::shared_ptr<og::RRTstar> rrt_planner;
+            std::shared_ptr<og::RRTsharp> rrt_sharp_planner;
             std::shared_ptr<og::SST> sst_planner;
             std::shared_ptr<og::PDST> pdst_planner;
             std::shared_ptr<og::EST> est_planner;
@@ -72,12 +76,14 @@ namespace MotionPlanner
             std::shared_ptr<og::SPARS> spars_planner;
             std::shared_ptr<og::SimpleSetup> ss;
             std::shared_ptr<MjOmpl::MujocoStateValidityChecker> msvc;
+            std::shared_ptr<og::PathSimplifier> psimp_;
             double constructTime;
             bool is_construct;
             std::vector<int> passive_joint_idx;
             std::vector<std::string> glue_bodies;
             std::vector<std::pair<int,int>> ignored_contacts;
             std::string planner_status;
+            std::shared_ptr<og::PathSimplifier> psimp_;
             bool allow_approximate;
             bool isSimplified;
             double simplifiedDuration;

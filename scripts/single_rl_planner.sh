@@ -7,12 +7,12 @@ rollout_length="1000"
 evaluate_interval="1000"
 ckpt_interval='200000'
 rl_activation="relu"
-num_batches="1"
+num_batches="4"
 log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.24.SAC.REACHER.EXACT.sparse.reuse.random"
+prefix="05.24.SAC.REACHER.EXACT.sparse.no_reuse.rrt.simplified"
 max_global_step="60000000"
 env="simple-reacher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.24.SAC.PLANNER.REACHER.EXACT.sparse.reuse.random'
+group='05.24.SAC.PLANNER.REACHER.EXACT.sparse.no_reuse.rrt.simplified'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -39,7 +39,7 @@ planner_type="rrt_connect"
 planner_objective="path_length"
 range="0.1"
 threshold="0.01"
-timelimit="0.5"
+timelimit="1.0"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
@@ -59,8 +59,10 @@ use_automatic_entropy_tuning="True"
 stochastic_eval="True"
 alpha='0.05'
 find_collision_free="True"
-max_reuse_data='2'
-min_reuse_span='30'
+max_reuse_data='30'
+min_reuse_span='20'
+is_simplified="False"
+simplified_duration="0.01"
 
 # max_grad_norm='0.5'
 
@@ -124,4 +126,6 @@ python -m rl.main \
     --alpha $alpha \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
-    --min_reuse_span $min_reuse_span
+    --min_reuse_span $min_reuse_span \
+    --is_simplified $is_simplified \
+    --simplified_duration $simplified_duration
