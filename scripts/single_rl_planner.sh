@@ -61,7 +61,7 @@ alpha='0.05'
 find_collision_free="True"
 max_reuse_data='30'
 min_reuse_span='20'
-is_simplified="False"
+is_simplified="True"
 simplified_duration="0.01"
 
 # max_grad_norm='0.5'

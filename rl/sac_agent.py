@@ -121,6 +121,19 @@ class SACAgent(BaseAgent):
                     if not exact:
                         traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
                         interpolation = False
+                        if self._config.is_simplified:
+                            new_traj = []
+                            start = curr_qpos
+                            for i in range(len(traj)):
+                                diff = traj[i] - start
+                                if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
+                                    inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
+                                    if inner_success:
+                                        new_traj.extend(inner_traj)
+                                else:
+                                    new_traj.append(traj[i])
+                                start = traj[i]
+                            traj = np.array(new_traj)
         else:
             interpolation = False
             traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
