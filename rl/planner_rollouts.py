@@ -96,6 +96,7 @@ class PlannerRolloutRunner(object):
             done = False
             ep_len = 0
             ep_rew = 0
+            ep_rew_with_penalty = 0
             ob = env.reset()
 
             # run rollout
@@ -183,6 +184,7 @@ class PlannerRolloutRunner(object):
                             ep_len += 1
                             step += 1
                             ep_rew += reward
+                            ep_rew_with_penalty += reward
                             meta_len += 1
                             reward_info.add(info)
 
@@ -262,13 +264,14 @@ class PlannerRolloutRunner(object):
                         })
                         # reward = self._config.invalid_planner_rew
                         reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        ep_rew += reward
                         reward += self._config.invalid_planner_rew
+                        ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, {})
                         rollout.add({'done': done, 'rew': reward})
                         ep_len += 1
                         step += 1
-                        ep_rew += reward
                         meta_len += 1
                         reward_info.add(info)
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
@@ -288,6 +291,7 @@ class PlannerRolloutRunner(object):
                     ep_len += 1
                     step += 1
                     ep_rew += reward
+                    ep_rew_with_penalty += reward
                     meta_len += 1
                     meta_rew += reward
                     reward_info.add(info)
@@ -299,7 +303,7 @@ class PlannerRolloutRunner(object):
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
-            ep_info.add({'len': ep_len, 'rew': ep_rew})
+            ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty})
             ep_info.add(counter)
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
@@ -330,6 +334,7 @@ class PlannerRolloutRunner(object):
         done = False
         ep_len = 0
         ep_rew = 0
+        ep_rew_with_penalty = 0
         ob = env.reset()
         self._record_frames = []
         if record: self._store_frame(env)
@@ -413,6 +418,7 @@ class PlannerRolloutRunner(object):
                         meta_rew += reward
                         ep_len += 1
                         ep_rew += reward
+                        ep_rew_with_penalty += reward
                         meta_len += 1
                         reward_info.add(info)
 
@@ -441,12 +447,13 @@ class PlannerRolloutRunner(object):
                         counter['invalid'] += 1
                     # reward = self._config.invalid_planner_rew
                     reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
+                    ep_rew += reward
                     reward += self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, False, {})
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
-                    ep_rew += reward
+                    ep_rew_with_penalty += reward
                     meta_len += 1
                     reward_info.add(info)
                     if record:
@@ -467,10 +474,11 @@ class PlannerRolloutRunner(object):
                 ob, reward, done, info = env.step(rescaled_ac)
                 ep_len += 1
                 ep_rew += reward
+                ep_rew_with_penalty += reward
                 meta_len += 1
                 meta_rew += reward
                 reward_info.add(info)
-                rollout.add({'done': done, 'rew': reward})
+                rollout.add({'done': done, 'rew': reward, 'rew_with_penalty': ep_rew_with_penalty})
                 if record:
                     frame_info = info.copy()
                     frame_info['ac'] = ac['default']

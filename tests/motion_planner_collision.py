@@ -61,11 +61,12 @@ args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
-args.planner_type="sst"
+args.planner_type="prm_star"
 args.planner_objective="path_length"
 args.range = 0.1
 args.threshold = 0.0
 args.timelimit = 3.0
+args.construct_time = 10.
 args.simple_timelimit = 0.04
 args.contact_threshold = -0.001
 args.is_simplified = True
