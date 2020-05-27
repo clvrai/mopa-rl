@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="05.24.SAC.SAWYAER.LIFT.EXACT.NO-REUSE.faster.rrt.debug.lg.thresh"
+prefix="05.27.SAC.SAWYAER.LIFT.EXACT.NO-REUSE.prm.faster"
 max_global_step="60000000"
 env="sawyer-lift-robosuite-v0"
 rl_hid_size="256"
@@ -30,12 +30,12 @@ comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.24.SAC.PLANNER.SAWYER.LIFT.EXACT.no_reuse.rrt.faster.debug.lg.thresh'
+group='05.27.SAC.PLANNER.SAWYER.LIFT.EXACT.no_reuse.prm.faster'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="rrt_connect"
+planner_type="prm_star"
 planner_objective="path_length"
 range="0.05"
 threshold="0.1"
@@ -66,6 +66,7 @@ is_simplified="True"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.001"
+construct_time='600'
 vis_replay="False"
 # max_grad_norm='0.5'
 
@@ -133,4 +134,5 @@ python -m rl.main \
     --simplified_duration $simplified_duration \
     --simple_planner_simplified $simple_planner_simplified \
     --simple_planner_simplified_duration $simple_planner_simplified_duration \
-    --vis_replay $vis_replay
+    --vis_replay $vis_replay \
+    --construct_time $construct_time
