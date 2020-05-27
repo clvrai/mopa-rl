@@ -142,17 +142,18 @@ class PlannerRolloutRunner(object):
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
-                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
 
-                    if config.find_collision_free and not success and not valid:
-                        failure = True
-                        j = 0
-                        while failure and j<=100:
+                    if config.find_collision_free and not pi.isValidState(target_qpos):
+                        trial = 0
+                        while not pi.isValidState(target_qpos) and trial < config.num_trials:
                             d = curr_qpos-target_qpos
                             target_qpos += config.step_size * d/np.linalg.norm(d)
-                            traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
-                            failure = not success
-                            j+=1
+                            trial+=1
+
+                    if pi.isValidState(target_qpos):
+                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
+                    else:
+                        success = False
 
 
                     if success:
@@ -379,16 +380,18 @@ class PlannerRolloutRunner(object):
                 else:
                     target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
-                traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
-                if config.find_collision_free and not success and not valid:
-                    failure = True
-                    j = 0
-                    while failure and j<=100:
+                if config.find_collision_free and not pi.isValidState(target_qpos):
+                    trial = 0
+                    while not pi.isValidState(target_qpos) and trial < config.num_trials:
                         d = curr_qpos-target_qpos
                         target_qpos += config.step_size * d/np.linalg.norm(d)
-                        traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
-                        failure = not success
-                        j+=1
+                        trial+=1
+
+                if pi.isValidState(target_qpos):
+                    traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
+                else:
+                    success = False
+
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
                 if success:
                     if interpolation:
