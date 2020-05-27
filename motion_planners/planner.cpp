@@ -7,22 +7,18 @@
             "include/KinematicPlanner.h"
         ],
         "extra_compile_args": [
-            "-std=c++11",
-            "-stdlib=libc++"
+            "-std=c++11"
         ],
         "extra_objects": [
-            "/usr/local/lib/libompl.dylib",
-            "/Users/yamadajun/.mujoco/mujoco200/bin/libmujoco200.dylib"
+            "/usr/local/lib/libompl.so",
+            "/home/jun/.mujoco/mujoco200/bin/libmujoco200.so"
         ],
         "include_dirs": [
             "./include/",
-            "/opt/local/include",
             "/usr/local/include/eigen3",
             "./3rd_party/include/",
-            "/opt/local/include/boost/",
-            "/Users/yamadajun/.mujoco/mujoco200/include/",
-            "/usr/local/include/ompl",
-            "/usr/local/include"
+            "/home/jun/.mujoco/mujoco200/include/",
+            "/usr/local/include/ompl"
         ],
         "language": "c++",
         "name": "planner",

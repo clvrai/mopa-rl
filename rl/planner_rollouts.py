@@ -170,6 +170,8 @@ class PlannerRolloutRunner(object):
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
+                            if i == len(traj)-1:
+                                converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             # ac = env.form_action(next_qpos)
