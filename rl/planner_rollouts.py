@@ -200,6 +200,7 @@ class PlannerRolloutRunner(object):
                                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
+                        env._reset_prev_state()
                         if self._config.subgoal_hindsight: # refer to HAC
                             hindsight_subgoal_ac = env.form_hindsight_action(prev_qpos)
                             if config.extended_action:
@@ -430,6 +431,7 @@ class PlannerRolloutRunner(object):
                             self._store_frame(env, frame_info, planner=True)
                         if done or ep_len >= max_step:
                             break
+                    env._reset_prev_state()
                     rollout.add({'done': done, 'rew': meta_rew})
                 else:
                     counter['mp_fail'] += 1
