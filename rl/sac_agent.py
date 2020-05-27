@@ -108,51 +108,34 @@ class SACAgent(BaseAgent):
         return self._planner.isValidState(state)
 
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
-        if self._config.use_double_planner:
-            interpolation = True
-            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
-            if not success:
-                if self._config.allow_approximate:
-                    if self._config.allow_invalid:
-                        traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-                        interpolation = False
-                    else:
-                        if not exact:
-                            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-                            interpolation = False
+        interpolation = True
+        traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        if not success:
+            if self._config.allow_approximate:
+                if self._config.allow_invalid:
+                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                    interpolation = False
                 else:
                     if not exact:
                         traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
                         interpolation = False
-                        if self._config.is_simplified:
-                            new_traj = []
-                            start = curr_qpos
-                            for i in range(len(traj)):
-                                diff = traj[i] - start
-                                if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
-                                    inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
-                                    if inner_success:
-                                        new_traj.extend(inner_traj)
-                                else:
-                                    new_traj.append(traj[i])
-                                start = traj[i]
-                            traj = np.array(new_traj)
-        else:
-            interpolation = False
-            traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
-            if self._config.planner_type == 'prm_star' and success:
-                new_traj = []
-                start = curr_qpos
-                for i in range(len(traj)):
-                    diff = traj[i] - start
-                    if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
-                        inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
-                        if inner_success:
-                            new_traj.extend(inner_traj)
-                    else:
-                        new_traj.append(traj[i])
-                    start = traj[i]
-                traj = np.array(new_traj)
+            else:
+                if not exact:
+                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                    interpolation = False
+                    if self._config.is_simplified or self._config.planner_type == 'prm_star':
+                        new_traj = []
+                        start = curr_qpos
+                        for i in range(len(traj)):
+                            diff = traj[i] - start
+                            if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
+                                inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
+                                if inner_success:
+                                    new_traj.extend(inner_traj)
+                            else:
+                                new_traj.append(traj[i])
+                            start = traj[i]
+                        traj = np.array(new_traj)
 
         return traj, success, interpolation, valid, exact
 

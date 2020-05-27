@@ -154,6 +154,8 @@ class PlannerRolloutRunner(object):
                         traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                     else:
                         success = False
+                        valid = False
+                        exact = True
 
 
                     if success:
@@ -391,6 +393,8 @@ class PlannerRolloutRunner(object):
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                 else:
                     success = False
+                    valid = False
+                    exact = True
 
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
                 if success:
