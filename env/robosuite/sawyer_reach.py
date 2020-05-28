@@ -8,9 +8,12 @@ from env.robosuite.models.arenas.table_arena import TableArena
 from env.robosuite.models.objects import BoxObject, CylinderObject, MujocoXMLObject
 from env.robosuite.models.robots import Sawyer, SawyerIndicator
 from env.robosuite.models.tasks import TableTopTargetTask, UniformRandomSampler
-from env.inverse_kinematics import qpos_from_site_pose, qpos_from_site_pose_sampling
 
-class SawyerPickMoveEnv(SawyerEnv):
+class TargetVisualObject(MujocoXMLObject):
+    def __init__(self):
+        super().__init__("./env/assets/xml/common/target.xml")
+
+class SawyerReachEnv(SawyerEnv):
     """
     This class corresponds to the stacking task for the Sawyer robot arm.
     """
@@ -22,17 +25,17 @@ class SawyerPickMoveEnv(SawyerEnv):
         table_friction=(1, 0.005, 0.0001),
         use_camera_obs=False,
         use_object_obs=True,
-        reward_shaping=False,
+        reward_shaping=True,
         placement_initializer=None,
         single_object_mode=0,
         object_type=None,
-        gripper_visualization=False,
+        gripper_visualization=True,
         use_indicator_object=False,
         has_renderer=False,
         has_offscreen_renderer=True,
         render_collision_mesh=False,
         render_visual_mesh=True,
-        control_freq=10,
+        control_freq=4,
         horizon=1000,
         ignore_done=False,
         camera_name="frontview",
@@ -40,6 +43,7 @@ class SawyerPickMoveEnv(SawyerEnv):
         camera_width=256,
         camera_depth=False,
         use_robot_indicator=False,
+        use_target_robot_indicator=False,
         use_target_object=True,
         **kwargs):
         """
@@ -79,7 +83,7 @@ class SawyerPickMoveEnv(SawyerEnv):
             camera_width (int): width of camera frame.
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
-        use_robot_indicator = True
+
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
@@ -118,6 +122,7 @@ class SawyerPickMoveEnv(SawyerEnv):
             camera_width=camera_width,
             camera_depth=camera_depth,
             use_robot_indicator=use_robot_indicator,
+            use_target_robot_indicator=use_target_robot_indicator,
             **kwargs
         )
 
@@ -131,9 +136,9 @@ class SawyerPickMoveEnv(SawyerEnv):
             self.sim.model.site_name2id(ob_name) for ob_name in self.object_names
         ]
 
+        self.use_target_object = use_target_object
         # id of grippers for contact checking
         self.finger_names = self.gripper.contact_geoms()
-        self.use_target_object = use_target_object
 
         # self.sim.data.contact # list, geom1, geom2
         self.collision_check_geom_names = self.sim.model._geom_name2id.keys()
@@ -157,6 +162,10 @@ class SawyerPickMoveEnv(SawyerEnv):
         if self.use_indicator_object:
             self.mujoco_arena.add_pos_indicator()
 
+        if self.use_robot_indicator:
+            self.mujoco_robot_indicator.set_base_xpos([0, 0, 0])
+        if self.use_target_robot_indicator:
+            self.mujoco_target_robot_indicator.set_base_xpos([0, 0, 0])
 
         # The sawyer robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
@@ -164,9 +173,7 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         # initialize objects of interest
         #target = TargetObject()
-        box = BoxObject(size=[0.02, 0.02, 0.02],
-                        rgba=[1, 0, 0, 1])
-        self.mujoco_objects = OrderedDict([('box', box)])
+        self.mujoco_objects = OrderedDict()
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTargetTask(
@@ -174,62 +181,12 @@ class SawyerPickMoveEnv(SawyerEnv):
             self.mujoco_robot,
             self.mujoco_objects,
             initializer=self.placement_initializer,
-            mujoco_robot_indicator=self.mujoco_robot_indicator
+            mujoco_robot_indicator=self.mujoco_robot_indicator,
+            mujoco_target_robot_indicator=self.mujoco_target_robot_indicator
         )
 
         self.model.place_objects()
         # self.add_visual_sawyer()
-
-    def _pre_action(self, action):
-        """
-        Overrides the superclass method to actuate the robot with the 
-        passed joint velocities and gripper control.
-        Args:
-            action (numpy array): The control to apply to the robot. The first
-                @self.mujoco_robot.dof dimensions should be the desired 
-                normalized joint velocities and if the robot has 
-                a gripper, the next @self.gripper.dof dimensions should be
-                actuation controls for the gripper.
-        """
-
-        # # clip actions into valid range
-        # assert len(action) == self.dof, "environment got invalid action dimension"
-        # low, high = self.action_spec
-        # action = np.clip(action, low, high)
-        #
-        # if self.has_gripper:
-        #     arm_action = action[: self.mujoco_robot.dof]
-        #     gripper_action_in = action[
-        #         self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
-        #     ]
-        #     gripper_action_actual = self.gripper.format_action(gripper_action_in)
-        #     action = np.concatenate([arm_action, gripper_action_actual])
-        #
-        # # rescale normalized action to control ranges
-        # ctrl_range = self.sim.model.actuator_ctrlrange
-        # bias = 0.5 * (ctrl_range[:, 1] + ctrl_range[:, 0])
-        # weight = 0.5 * (ctrl_range[:, 1] - ctrl_range[:, 0])
-        # applied_action = bias + weight * action
-        # self.sim.data.ctrl[:] = applied_action
-        #
-        # # gravity compensation
-        # self.sim.data.qfrc_applied[
-        #     self.ref_joint_vel_indexes
-        # ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes]
-        #
-        # self.sim.data.qfrc_applied[
-        #     self._ref_target_vel_low : self._ref_target_vel_high+1
-        # ] = self.sim.data.qfrc_bias[
-        #     self._ref_target_vel_low : self._ref_target_vel_high+1
-        # ]
-        #
-        # if self.use_indicator_object:
-        #     self.sim.data.qfrc_applied[
-        #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
-        #     ] = self.sim.data.qfrc_bias[
-        #         self._ref_indicator_vel_low : self._ref_indicator_vel_high
-        #     ]
-
 
     def _get_reference(self):
         """
@@ -252,30 +209,34 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         self.target_id = self.sim.model.body_name2id("target")
 
-    def _reset(self):
+    def _reset_internal(self):
         """
         Resets simulation internal configurations.
         """
-        super()._reset()
+        super()._reset_internal()
 
         # reset positions of objects
         self.model.place_objects()
         # self.model.place_visual()
 
         # reset joint positions
-        self.sim.forward()
-        target_qpos = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1].copy()
-        self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1] = target_qpos
-        self.sim.forward()
+        init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
 
-        # while True:
-        #     init_pos = np.random.uniform(low=-3, high=3, size=init_pos.shape[0])
-        #     self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
-        #     dist = np.linalg.norm(self.sim.data.get_site_xpos('box')-self.sim.data.get_site_xpos('grip_site'))
-        #     if dist < 0.02:
-        #         break
+        init_target_pos = np.random.uniform(low=-0.2, high=0.2, size=3)
+        self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1] = init_target_pos
+
+    def _reset(self):
+        super()._reset()
+        init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
+
+        init_target_pos = np.random.uniform(low=[0.5, -0.5, 1.0], high=[0.8, 0.5, 1.4], size=3)
+        self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1] = init_target_pos
+        self.sim.data.qvel[self._ref_target_vel_low:self._ref_target_vel_high+1] = 0.
         return self._get_obs()
-
 
     def initialize_joints(self):
         init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
@@ -299,8 +260,20 @@ class SawyerPickMoveEnv(SawyerEnv):
         Returns:
             reward (float): the reward
         """
+        info = {}
+        reward = 0
 
-        return 0, {}
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        target_pos = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1]
+        dist = np.linalg.norm(target_pos-gripper_site_pos)
+        reward_reach = -dist
+        reward += reward_reach
+        info = dict(reward_reach=reward_reach)
+        if dist < self._kwargs['distance_threshold']:
+            self._success = True
+            self._terminal = True
+
+        return reward, info
 
     def _get_obs(self):
         """
@@ -358,24 +331,9 @@ class SawyerPickMoveEnv(SawyerEnv):
 
         # color the gripper site appropriately based on distance to nearest object
         if self.gripper_visualization:
-            # find closest object
-            square_dist = lambda x: np.sum(
-                np.square(x - self.sim.data.get_site_xpos("grip_site"))
-            )
-            dists = np.array(list(map(square_dist, self.sim.data.site_xpos)))
-            dists[self.eef_site_id] = np.inf  # make sure we don't pick the same site
-            dists[self.eef_cylinder_id] = np.inf
-            ob_dists = dists[
-                self.object_site_ids
-            ]  # filter out object sites we care about
-            min_dist = np.min(ob_dists)
-
-            # set RGBA for the EEF site here
-            max_dist = 0.1
-            scaled = (1.0 - min(min_dist / max_dist, 1.)) ** 15
             rgba = np.zeros(4)
-            rgba[0] = 1 - scaled
-            rgba[1] = scaled
+            rgba[0] = 1
+            rgba[1] = 0
             rgba[3] = 0.5
 
             self.sim.model.site_rgba[self.eef_site_id] = rgba

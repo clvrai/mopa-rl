@@ -32,6 +32,7 @@ obs = env.reset()
 
 #for i in range(10000):
 timestep = 0
+env.reset_visualized_indicator()
 while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()

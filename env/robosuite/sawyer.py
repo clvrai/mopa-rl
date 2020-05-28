@@ -358,27 +358,33 @@ class SawyerEnv(BaseEnv):
 
     @property
     def target_indicator_agent_geom_ids(self):
-        body_ids = []
-        for body_name in self.mujoco_target_robot_indicator.bodies:
-            body_ids.append(self.sim.model.body_name2id(body_name))
+        if self.mujoco_target_robot_indicator is not None:
+            body_ids = []
+            for body_name in self.mujoco_target_robot_indicator.bodies:
+                body_ids.append(self.sim.model.body_name2id(body_name))
 
-        geom_ids = []
-        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
-            if body_id in body_ids:
-                geom_ids.append(geom_id)
-        return geom_ids
+            geom_ids = []
+            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+                if body_id in body_ids:
+                    geom_ids.append(geom_id)
+            return geom_ids
+        else:
+            return []
 
     @property
     def indicator_agent_geom_ids(self):
-        body_ids = []
-        for body_name in self.mujoco_robot_indicator.bodies:
-            body_ids.append(self.sim.model.body_name2id(body_name))
+        if self.mujoco_robot_indicator is not None:
+            body_ids = []
+            for body_name in self.mujoco_robot_indicator.bodies:
+                body_ids.append(self.sim.model.body_name2id(body_name))
 
-        geom_ids = []
-        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
-            if body_id in body_ids:
-                geom_ids.append(geom_id)
-        return geom_ids
+            geom_ids = []
+            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+                if body_id in body_ids:
+                    geom_ids.append(geom_id)
+            return geom_ids
+        else:
+            return []
 
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95

@@ -9,7 +9,7 @@ def add_arguments(parser):
 
     parser.add_argument("--reward_type", type=str, default="dense",
                         choices=["dense", "sparse"])
-    parser.add_argument("--distance_threshold", type=float, default=0.03)
+    parser.add_argument("--distance_threshold", type=float, default=0.06)
     parser.add_argument("--max_episode_steps", type=int, default=1000)
     parser.add_argument("--screen_width", type=int, default=500,
                         help="width of camera image")

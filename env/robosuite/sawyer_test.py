@@ -42,7 +42,7 @@ class SawyerTestEnv(SawyerEnv):
         camera_height=256,
         camera_width=256,
         camera_depth=False,
-        use_robot_indicator=True,
+        use_robot_indicator=False,
         use_target_object=True,
         **kwargs):
         """
@@ -274,7 +274,7 @@ class SawyerTestEnv(SawyerEnv):
         self.sim.data.qpos[self.ref_joint_pos_indexes] = np.array(init_pos)
 
 
-    def reward(self, action):
+    def compute_reward(self, action):
         """
         Reward function for the task.
         The dense reward has five components.
@@ -291,7 +291,7 @@ class SawyerTestEnv(SawyerEnv):
             reward (float): the reward
         """
 
-        return 0
+        return 0, {}
 
     def _get_obs(self):
         """
