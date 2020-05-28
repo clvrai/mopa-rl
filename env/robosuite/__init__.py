@@ -11,4 +11,5 @@ from env.robosuite.sawyer_nut_assembly import (SawyerNutAssemblyEnv,
 from env.robosuite.sawyer_test import SawyerTestEnv
 from env.robosuite.sawyer_lift import SawyerLiftEnv
 from env.robosuite.sawyer_reach import SawyerReachEnv
+from env.robosuite.sawyer_reach_obstacle import SawyerReachObstacleEnv
 

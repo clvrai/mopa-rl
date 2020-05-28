@@ -170,6 +170,11 @@ register(
     kwargs={}
 )
 register(
+    id='sawyer-reach-obstacle-robosuite-v0',
+    entry_point='env.robosuite:SawyerReachObstacleEnv',
+    kwargs={}
+)
+register(
     id='sawyer-pick-place-can-robosuite-v0',
     entry_point='env.robosuite:SawyerPickPlaceCanEnv',
     kwargs={}
