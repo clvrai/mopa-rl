@@ -12,6 +12,12 @@ import cv2
 import time
 import timeit
 
+# workaround for mujoco py issue #390
+mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
+if mujocopy_render_hack:
+    print("Setting an offscreen GlfwContext")
+    from mujoco_py import GlfwContext
+    GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
