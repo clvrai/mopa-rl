@@ -15,7 +15,7 @@ import timeit
 # workaround for mujoco py issue #390
 mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
 if mujocopy_render_hack:
-    print("Setting an offscreen GlfwContext")
+    print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
     from mujoco_py import GlfwContext
     GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
@@ -49,8 +49,39 @@ def render_frame(env, step, info={}):
                     font_size, (255, 255, 255), thickness, cv2.LINE_AA)
     return frame
 
+def interpolate(env, next_qpos, out_of_bounds):
+    min_action = env.action_space.spaces['default'].low[0] # assume equal for all
+    max_action = env.action_space.spaces['default'].high[0]# assume equal for all
+    assert max_action > min_action, "action space box is ill defined"
+    assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
+    action = env.form_action(next_qpos)
+    action_arr= action['default']
 
+    # Step1: get scaling factor. get scaled down action within action limits
+    scaling_factor = 1
+    for i in out_of_bounds:
+        ac = action_arr[i]
+        sf = ac/max_action if (ac > max_action) else ac/min_action # assumes max>0, min<0 !! Check signs!
+        scaling_factor = max(scaling_factor, sf)
+    
+    scaled_ac = action_arr/scaling_factor
+    action['default'] = scaled_ac
+    # import ipdb; ipdb.set_trace()
+
+    # Step2: Run scaled down action for floor(scaling factor) steps
+    reward = 0
+    for i in range(int(scaling_factor)): # scaling_factor>0 => int(scaling_factor) == int(floor(scaling_factor))
+        print("Action %s from %s to %s" % (scaled_ac, env.sim.data.qpos[env.ref_joint_pos_indexes], next_qpos[env.ref_joint_pos_indexes]))
+        _, interp_reward, _, _ = env.step(action, is_planner=True)
+        reward = reward + interp_reward
+
+    # Step3: Finally, one last step to reach nex_qpos
+    action = env.form_action(next_qpos)
+    ob, interp_reward, done, info = env.step(action, is_planner=True)
+    reward = reward + interp_reward
+    
+    return ob, reward, done, info
 
 
 parser = argparser()
@@ -99,6 +130,11 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 N = 1
 is_save_video = False
 frames = []
+# TODO: This code is repeated in interpolate(). Fix this
+min_action = env.action_space.spaces['default'].low[0] # assume equal for all
+max_action = env.action_space.spaces['default'].high[0]# assume equal for all
+assert max_action > min_action, "action space box is ill defined"
+assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
 for episode in range(N):
     print("Episode: {}".format(episode))
@@ -137,10 +173,19 @@ for episode in range(N):
         if success:
             for j, next_qpos in enumerate(traj):
                 action = env.form_action(next_qpos)
-                ob, reward, done, info = env.step(action, is_planner=True)
+                action_arr = action['default']
+                out_of_bounds = [i for i,ac in enumerate(action_arr) if (ac > max_action or ac < min_action)]
+                if len(out_of_bounds) > 0: #Some actions out of bounds
+                    while (len(out_of_bounds) > 0): # INTERPOLATE until needed! Collision check already done by planner
+                        # interpolate
+                        ob, reward, done, info = interpolate(env, next_qpos, out_of_bounds)
+                        # check for out_of_bounds
+                        action = env.form_action(next_qpos)
+                        out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
+                else:
+                    ob, reward, done, info = env.step(action, is_planner=True)
 
                 env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-
                 step += 1
                 if is_save_video:
                     frames[episode].append(render_frame(env, step))
