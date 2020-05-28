@@ -20,29 +20,29 @@
     </body>
 
     <body name="obstacle1" pos="0.15 0.25 0.4">
-        <geom name="obstacle1_geom" size="0.02 0.08 0.6" type="box" class="obstacle" />
+        <geom name="obstacle1_geom" size="0.03 1.2" type="cylinder" class="obstacle" />
     </body>
-    <body name="obstacle2" pos="-0.15 0.3 0.4">
-        <geom name="obstacle2_geom" size="0.07 0.02 0.6" type="box" class="obstacle" />
+    <body name="obstacle2" pos="-0.15 -0.15 0.4">
+        <geom name="obstacle2_geom" size="0.03 1.2" type="cylinder" class="obstacle" />
     </body>
-    <body name="obstacle3" pos="0.08 -0.20 0.4">
-        <geom name="obstacle3_geom" size="0.02 0.08 0.6" type="box" class="obstacle" />
+    <body name="obstacle3" pos="0.15 -0.20 0.4">
+        <geom name="obstacle3_geom" size="0.03 1.2" type="cylinder" class="obstacle" />
     </body>
-    <body name="obstacle4" pos="-0.4 0.15 0.4">
-        <geom name="obstacle4_geom" size="0.02 0.09 0.6" type="box" class="obstacle" />
+    <body name="obstacle4" pos="-0.25 0.25 0.4">
+        <geom name="obstacle4_geom" size="0.03 1.2" type="cylinder" class="obstacle" />
     </body>
-    <body name="obstacle5" pos="-0.4 -0.21 0.4">
-        <geom name="obstacle5_geom" size="0.04 0.03 0.6" type="box" class="obstacle" />
-    </body>
-    <body name="obstacle6" pos="0 -0.25 0.4">
-        <geom name="obstacle6_geom" size="0.07 0.03 0.6" type="box" class="obstacle" />
-    </body>
+    <!-- <body name="obstacle5" pos="&#45;0.4 &#45;0.21 0.4"> -->
+    <!--     <geom name="obstacle5_geom" size="0.05 1." type="cylinder" class="obstacle" /> -->
+    <!-- </body> -->
+    <!-- <body name="obstacle6" pos="0 &#45;0.25 0.4"> -->
+    <!--     <geom name="obstacle6_geom" size="0.05 1." type="cylinder" class="obstacle" /> -->
+    <!-- </body> -->
 
-    <body name="target" pos=".3 0.1 .4">
-        <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.4 .4" ref=".1" stiffness="0" type="slide"/>
-        <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.4 .4" ref="-.1" stiffness="0" type="slide"/>
-        <geom conaffinity="0" contype="0" name="target" pos="0 0 0" rgba="0.9 0.2 0.2 1" size=".04 .401 .04" type="cylinder"/>
-    </body>
+    <!-- <body name="target" pos=".3 0.1 .4"> -->
+    <!--     <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="&#45;.4 .4" ref=".1" stiffness="0" type="slide"/> -->
+    <!--     <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="&#45;.4 .4" ref="&#45;.1" stiffness="0" type="slide"/> -->
+    <!--     <geom conaffinity="0" contype="0" name="target" pos="0 0 0" rgba="0.9 0.2 0.2 1" size=".04 .401 .04" type="cylinder"/> -->
+    <!-- </body> -->
 
     <light diffuse=".8 .8 .8" dir="0 -.15 -1" directional="false" pos="1 1 4.0" specular="0.3 0.3 0.3" castshadow="false"/>
     <light diffuse=".8 .8 .8" dir="0 -.15 -1" directional="false" pos="-3. -3. 4.0" specular="0.3 0.3 0.3" castshadow="false"/>

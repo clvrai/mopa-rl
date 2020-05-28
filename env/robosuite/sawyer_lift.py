@@ -247,6 +247,7 @@ class SawyerLiftEnv(SawyerEnv):
         # sparse completion reward
         if self._check_success():
             reward = 1.0
+            self._success = True
 
         # use a shaping reward
         if self.reward_shaping:

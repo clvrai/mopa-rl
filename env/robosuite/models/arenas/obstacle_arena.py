@@ -31,9 +31,9 @@ class ObstacleArena(Arena):
         self.obstacle2 = self.worldbody.find("./body[@name='obstacle2']")
         self.obstacle3 = self.worldbody.find("./body[@name='obstacle3']")
         self.obstacle4 = self.worldbody.find("./body[@name='obstacle4']")
-        self.obstacle5 = self.worldbody.find("./body[@name='obstacle5']")
-        self.obstacle6 = self.worldbody.find("./body[@name='obstacle6']")
-        self.target = self.worldbody.find("./body[@name='target']")
+        # self.obstacle5 = self.worldbody.find("./body[@name='obstacle5']")
+        # self.obstacle6 = self.worldbody.find("./body[@name='obstacle6']")
+        # self.target = self.worldbody.find("./body[@name='target']")
 
         self.configure_location()
 

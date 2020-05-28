@@ -1,5 +1,5 @@
 from env.robosuite.models.world import MujocoWorldBase
-from env.robosuite.utils.mjcf_utils import new_joint, array_to_string, new_geom, new_body
+from env.robosuite.utils.mjcf_utils import new_joint, array_to_string, new_geom, new_body, new_site
 import numpy as np
 
 class Task(MujocoWorldBase):
