@@ -189,6 +189,14 @@ class SawyerReachObstacleEnv(SawyerEnv):
         self.model.place_objects()
         # self.add_visual_sawyer()
 
+    @property
+    def manipulation_geom_ids(self):
+        return []
+
+    @property
+    def static_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.mujoco_arena.geom_names]
+
     def _get_reference(self):
         """
         Sets up references to important components. A reference is typically an
