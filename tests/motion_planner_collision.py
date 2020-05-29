@@ -128,7 +128,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = False
+is_save_video = True
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
 min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
@@ -149,8 +149,8 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.848, -0.899, -1.36])
-        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
+        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         if not simple_planner.isValidState(target_qpos):
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
