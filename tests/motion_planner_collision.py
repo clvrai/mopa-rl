@@ -50,8 +50,8 @@ def render_frame(env, step, info={}):
     return frame
 
 def interpolate(env, next_qpos, out_of_bounds):
-    min_action = env.action_space.spaces['default'].low[0] # assume equal for all
-    max_action = env.action_space.spaces['default'].high[0]# assume equal for all
+    min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
+    max_action = env.action_space.spaces['default'].high[0] * env._ac_scale# assume equal for all
     assert max_action > min_action, "action space box is ill defined"
     assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
@@ -131,8 +131,8 @@ N = 1
 is_save_video = False
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
-min_action = env.action_space.spaces['default'].low[0] # assume equal for all
-max_action = env.action_space.spaces['default'].high[0]# assume equal for all
+min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
+max_action = env.action_space.spaces['default'].high[0] * env._ac_scale# assume equal for all
 assert max_action > min_action, "action space box is ill defined"
 assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
