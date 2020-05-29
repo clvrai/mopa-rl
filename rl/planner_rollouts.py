@@ -485,6 +485,7 @@ class PlannerRolloutRunner(object):
                     frame_info = info.copy()
                     frame_info['ac'] = ac['default']
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
+                    env.reset_visualized_indicator()
                     self._store_frame(env, frame_info)
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
             env.reset_visualized_indicator()
