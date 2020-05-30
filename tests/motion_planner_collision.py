@@ -11,6 +11,8 @@ from config.motion_planner import add_arguments as planner_add_arguments
 import cv2
 import time
 import timeit
+import copy
+np.set_printoptions(precision=3)
 
 # workaround for mujoco py issue #390
 mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
@@ -50,6 +52,9 @@ def render_frame(env, step, info={}):
     return frame
 
 def interpolate(env, next_qpos, out_of_bounds):
+    interpolated_traj = []
+    current_qpos = env.sim.data.qpos
+
     min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
     max_action = env.action_space.spaces['default'].high[0] * env._ac_scale# assume equal for all
     assert max_action > min_action, "action space box is ill defined"
@@ -67,21 +72,27 @@ def interpolate(env, next_qpos, out_of_bounds):
     
     scaled_ac = action_arr/scaling_factor
     action['default'] = scaled_ac
-    # import ipdb; ipdb.set_trace()
 
     # Step2: Run scaled down action for floor(scaling factor) steps
     reward = 0
+    interp_qpos = copy.deepcopy(current_qpos)
     for i in range(int(scaling_factor)): # scaling_factor>0 => int(scaling_factor) == int(floor(scaling_factor))
-        print("Action %s from %s to %s" % (scaled_ac, env.sim.data.qpos[env.ref_joint_pos_indexes], next_qpos[env.ref_joint_pos_indexes]))
-        _, interp_reward, _, _ = env.step(action, is_planner=True)
-        reward = reward + interp_reward
+        interp_qpos[env.ref_joint_pos_indexes] += scaled_ac
+        interpolated_traj.append(copy.deepcopy(interp_qpos))
+        # print("Action %s from %s to %s" % (scaled_ac, current_qpos[env.ref_joint_pos_indexes], interp_qpos[env.ref_joint_pos_indexes]))
+        # _, interp_reward, _, _ = env.step(action, is_planner=True)
+        # reward = reward + interp_reward
 
     # Step3: Finally, one last step to reach nex_qpos
-    action = env.form_action(next_qpos)
-    ob, interp_reward, done, info = env.step(action, is_planner=True)
-    reward = reward + interp_reward
+    # action = env.form_action(next_qpos)
+    # ob, interp_reward, done, info = env.step(action, is_planner=True)
+    # reward = reward + interp_reward
+    interpolated_traj.append(next_qpos)
+
+    print("Curr qpos %s,\torig. action %s,\tscaled down action %s" %(current_qpos[env.ref_joint_pos_indexes], action_arr, scaled_ac))
+    print("Set of interpolated states\n\t", [qpos[env.ref_joint_pos_indexes] for qpos in interpolated_traj])
     
-    return ob, reward, done, info
+    return interpolated_traj
 
 
 parser = argparser()
@@ -176,12 +187,19 @@ for episode in range(N):
                 action_arr = action['default']
                 out_of_bounds = [i for i,ac in enumerate(action_arr) if (ac > max_action or ac < min_action)]
                 if len(out_of_bounds) > 0: #Some actions out of bounds
+                    reward = 0
                     while (len(out_of_bounds) > 0): # INTERPOLATE until needed! Collision check already done by planner
                         # interpolate
-                        ob, reward, done, info = interpolate(env, next_qpos, out_of_bounds)
+                        interpolated_traj = interpolate(env, next_qpos, out_of_bounds)
+                        for interp_qpos in interpolated_traj:
+                            action = env.form_action(interp_qpos)
+                            ob, interp_reward, done, info = env.step(action, is_planner=True)  
+                            reward += interp_reward
+                        
                         # check for out_of_bounds
                         action = env.form_action(next_qpos)
                         out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
+                        print("\n\nStill out of bounds. Re-interpolate")
                 else:
                     ob, reward, done, info = env.step(action, is_planner=True)
 
