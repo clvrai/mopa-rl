@@ -108,16 +108,17 @@ args, unparsed = parser.parse_known_args()
 
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
-args.planner_type="prm_star"
+args.planner_type="rrt_connect"
 args.simple_planner_type="rrt_connect"
 args.planner_objective="path_length"
+# args.planner_objective="maximize_min_clearance"
 args.range = 0.1
 args.threshold = 0.01
 args.timelimit = 3.0
 args.construct_time = 10.
 args.simple_timelimit = 0.02
 args.contact_threshold = -0.001
-args.is_simplified = False
+args.is_simplified = True
 args.simplified_duration = 0.01
 
 step_size = 0.004
@@ -182,6 +183,7 @@ for episode in range(N):
         #     print("Interpolation")
         # print("==============")
 
+        env.render('human')
         reward = 0
         if success:
             for j, next_qpos in enumerate(traj):
