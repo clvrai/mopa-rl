@@ -280,14 +280,19 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     if (bool(solved)){
         if (ss->haveExactSolutionPath() || allow_approximate) {
             // ss.getSolutionPath().print(std::cout);
-            if (isSimplified){
-                ss->simplifySolution(simplifiedDuration);
-            }
+            std::cout << "is simplified? " << isSimplified << std::endl;
+            // if (isSimplified){
+            //     ss->simplifySolution(simplifiedDuration);
+            // }
             og::PathGeometric p = ss->getSolutionPath();
+            if (isSimplified){
+                psimp_->reduceVertices(p, 5);
+                p.checkAndRepair(5);
+            }
             // psimp_->reduceVertices(p, 10);
             // psimp_->shortcutPath(p, 5);
             // psimp_->collapseCloseVertices(p, 0);
-            // p.checkAndRepair(10);
+            // p.checkAndRepair(1);
             // ss->getSolutionPath().print(std::cout);
             // p.interpolate(min_steps);
             std::vector<ob::State*> &states =  p.getStates();
