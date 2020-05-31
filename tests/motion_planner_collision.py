@@ -14,11 +14,12 @@ import timeit
 import copy
 np.set_printoptions(precision=3)
 
-# workaround for mujoco py issue #390 mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
-# if mujocopy_render_hack:
-#     print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
-#     from mujoco_py import GlfwContext
-#     GlfwContext(offscreen=True)  # Create a window to init GLFW.
+# workaround for mujoco py issue #390
+mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
+if mujocopy_render_hack:
+    print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
+    from mujoco_py import GlfwContext
+    GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
@@ -161,7 +162,7 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        # target_qpos[env.ref_joint_pos_indexes] = np.array([1.67, 1.28, 1.71])
+        # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         if not simple_planner.isValidState(target_qpos):
@@ -169,9 +170,11 @@ for episode in range(N):
             if is_save_video:
                 frames[episode].append(render_frame(env, step))
             else:
-                env.render('human')
-            print("Invalid state")
+                env.render("human")
+            print("Invalid goal state")
             continue
+        else:
+            print("Valid goal state")
 
         # traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
         traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
@@ -179,12 +182,12 @@ for episode in range(N):
         xpos = OrderedDict()
         xquat = OrderedDict()
 
-        # if not success and not exact:
-        #     # traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
-        #     print("Normal planner is called")
-        # else:
-        #     print("Interpolation")
-        # print("==============")
+        if not success and not exact:
+            traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
+            print("Using normal planner path (%d points)" % len(traj))
+        else:
+            print("Using simpler planner path (%d points)" % len(traj))
+        print("==============")
 
         if is_save_video:
             frames[episode].append(render_frame(env, step))
@@ -200,14 +203,14 @@ for episode in range(N):
                 env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
                 if len(out_of_bounds) > 0: #Some actions out of bounds
                     reward = 0
-                    times = 0
-                    if not planner.isValidState(next_qpos):
-                        continue
-                    while (len(out_of_bounds) > 0 and times < 2): # INTERPOLATE until needed! Collision check already done by planner
+                    i = 0
+                    while (len(out_of_bounds) > 0 and i < 3): # INTERPOLATE! Collision check already done by planner
+                        print("\n\nAction limits violated. Interpolate try %d/3" % (i+1))
                         # interpolate
                         interpolated_traj = interpolate(env, next_qpos, out_of_bounds)
-                        times += 1
                         for interp_qpos in interpolated_traj:
+                            if not planner.isValidState(interp_qpos):
+                                print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos)
                             action = env.form_action(interp_qpos)
                             step += 1
                             ob, interp_reward, done, info = env.step(action, is_planner=True)
@@ -220,15 +223,10 @@ for episode in range(N):
                                 break
                         if done:
                             break
-                    # check for out_of_bounds
-                    action = env.form_action(next_qpos)
-                    out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
-                    # if len(out_of_bounds) > 0:
-                    #     simple_planner.plan(env.sim.data.qpos, next_qpos, args.simple_timelimit)
-                    times += 1
-                    if len(out_of_bounds) > 0:
-                        print("\n\nStill out of bounds. Re-interpolate")
-                    env._reset_prev_state()
+                        # check for out_of_bounds
+                        action = env.form_action(next_qpos)
+                        out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
+                        i = i+1
                 else:
                     ob, reward, done, info = env.step(action, is_planner=True)
                     step += 1
