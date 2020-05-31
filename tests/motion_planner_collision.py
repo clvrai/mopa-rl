@@ -210,7 +210,7 @@ for episode in range(N):
                         interpolated_traj = interpolate(env, next_qpos, out_of_bounds)
                         for interp_qpos in interpolated_traj:
                             if not planner.isValidState(interp_qpos):
-                                print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos)
+                                print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos[env.ref_joint_pos_indexes])
                             action = env.form_action(interp_qpos)
                             step += 1
                             ob, interp_reward, done, info = env.step(action, is_planner=True)
