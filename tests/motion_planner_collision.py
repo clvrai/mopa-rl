@@ -14,12 +14,11 @@ import timeit
 import copy
 np.set_printoptions(precision=3)
 
-# workaround for mujoco py issue #390
-mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
-if mujocopy_render_hack:
-    print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
-    from mujoco_py import GlfwContext
-    GlfwContext(offscreen=True)  # Create a window to init GLFW.
+# workaround for mujoco py issue #390 mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
+# if mujocopy_render_hack:
+#     print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
+#     from mujoco_py import GlfwContext
+#     GlfwContext(offscreen=True)  # Create a window to init GLFW.
 
 def render_frame(env, step, info={}):
     color = (200, 200, 200)
@@ -55,13 +54,13 @@ def interpolate(env, next_qpos, out_of_bounds):
     interpolated_traj = []
     current_qpos = env.sim.data.qpos
 
-    min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
-    max_action = env.action_space.spaces['default'].high[0] * env._ac_scale# assume equal for all
+    min_action = env.action_space.spaces['default'].low[0] * env._ac_scale /2. # assume equal for all
+    max_action = env.action_space.spaces['default'].high[0] * env._ac_scale / 2.# assume equal for all
     assert max_action > min_action, "action space box is ill defined"
     assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
     action = env.form_action(next_qpos)
-    action_arr= action['default']
+    action_arr = action['default']
 
     # Step1: get scaling factor. get scaled down action within action limits
     scaling_factor = 1
@@ -69,7 +68,7 @@ def interpolate(env, next_qpos, out_of_bounds):
         ac = action_arr[i]
         sf = ac/max_action if (ac > max_action) else ac/min_action # assumes max>0, min<0 !! Check signs!
         scaling_factor = max(scaling_factor, sf)
-    
+
     scaled_ac = action_arr/scaling_factor
     action['default'] = scaled_ac
 
@@ -110,14 +109,15 @@ args, unparsed = parser.parse_known_args()
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="prm_star"
+args.simple_planner_type="rrt_connect"
 args.planner_objective="path_length"
 args.range = 0.1
-args.threshold = 0.0
+args.threshold = 0.01
 args.timelimit = 3.0
 args.construct_time = 10.
-args.simple_timelimit = 0.04
+args.simple_timelimit = 0.02
 args.contact_threshold = -0.001
-args.is_simplified = True
+args.is_simplified = False
 args.simplified_duration = 0.01
 
 step_size = 0.004
@@ -135,15 +135,15 @@ passive_joint_idx = list(range(len(env.sim.data.qpos)))
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=args.is_simplified, simplified_duration=args.simplified_duration) # default goal bias is 0.05
 # planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=True, simplified_duration=0.5) # default goal bias is 0.05
-simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, goal_bias=1.0)
+simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, goal_bias=1.0, is_simplified=False)
 
 
 N = 1
-is_save_video = True
+is_save_video = False
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
-min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
-max_action = env.action_space.spaces['default'].high[0] * env._ac_scale# assume equal for all
+min_action = env.action_space.spaces['default'].low[0] * env._ac_scale / 2. # assume equal for all
+max_action = env.action_space.spaces['default'].high[0] * env._ac_scale / 2. # assume equal for all
 assert max_action > min_action, "action space box is ill defined"
 assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
@@ -160,8 +160,8 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
+        # target_qpos[env.ref_joint_pos_indexes] = np.array([1.67, 1.28, 1.71])
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         if not simple_planner.isValidState(target_qpos):
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
@@ -169,41 +169,48 @@ for episode in range(N):
             print("Invalid state")
             continue
 
-        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+        # traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+        traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
 
-        if not success and not exact:
-            traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
-            print("Normal planner is called")
-        else:
-            print("Interpolation")
-        print("==============")
+        # if not success and not exact:
+        #     # traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
+        #     print("Normal planner is called")
+        # else:
+        #     print("Interpolation")
+        # print("==============")
 
+        reward = 0
         if success:
             for j, next_qpos in enumerate(traj):
                 action = env.form_action(next_qpos)
                 action_arr = action['default']
                 out_of_bounds = [i for i,ac in enumerate(action_arr) if (ac > max_action or ac < min_action)]
+
+                env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
                 if len(out_of_bounds) > 0: #Some actions out of bounds
                     reward = 0
-                    while (len(out_of_bounds) > 0): # INTERPOLATE until needed! Collision check already done by planner
+                    times = 0
+                    while (len(out_of_bounds) > 0 and times < 5): # INTERPOLATE until needed! Collision check already done by planner
                         # interpolate
                         interpolated_traj = interpolate(env, next_qpos, out_of_bounds)
                         for interp_qpos in interpolated_traj:
                             action = env.form_action(interp_qpos)
-                            ob, interp_reward, done, info = env.step(action, is_planner=True)  
+                            ob, interp_reward, done, info = env.step(action, is_planner=True)
+                            env.render('human')
                             reward += interp_reward
-                        
                         # check for out_of_bounds
                         action = env.form_action(next_qpos)
                         out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
-                        print("\n\nStill out of bounds. Re-interpolate")
+                        times += 1
+                        if len(out_of_bounds) > 0:
+                            print("\n\nStill out of bounds. Re-interpolate")
+                    env._reset_prev_state()
                 else:
                     ob, reward, done, info = env.step(action, is_planner=True)
 
-                env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
                 step += 1
                 if is_save_video:
                     frames[episode].append(render_frame(env, step))
