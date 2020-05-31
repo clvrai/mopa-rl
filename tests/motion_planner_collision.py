@@ -54,8 +54,8 @@ def interpolate(env, next_qpos, out_of_bounds):
     interpolated_traj = []
     current_qpos = env.sim.data.qpos
 
-    min_action = env.action_space.spaces['default'].low[0] * env._ac_scale /2. # assume equal for all
-    max_action = env.action_space.spaces['default'].high[0] * env._ac_scale / 2.# assume equal for all
+    min_action = env.action_space.spaces['default'].low[0] * env._ac_scale # assume equal for all
+    max_action = env.action_space.spaces['default'].high[0] * env._ac_scale # assume equal for all
     assert max_action > min_action, "action space box is ill defined"
     assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
@@ -140,11 +140,11 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = False
+is_save_video = True
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
-min_action = env.action_space.spaces['default'].low[0] * env._ac_scale / 2. # assume equal for all
-max_action = env.action_space.spaces['default'].high[0] * env._ac_scale / 2. # assume equal for all
+min_action = env.action_space.spaces['default'].low[0] * env._ac_scale  # assume equal for all
+max_action = env.action_space.spaces['default'].high[0] * env._ac_scale # assume equal for all
 assert max_action > min_action, "action space box is ill defined"
 assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
 
@@ -166,7 +166,10 @@ for episode in range(N):
         # target_qpos[env.ref_joint_pos_indexes] = np.ones(len(env.ref_joint_pos_indexes)) * 0.5 # you can reproduce the invalid goal state
         if not simple_planner.isValidState(target_qpos):
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-            env.render("human")
+            if is_save_video:
+                frames[episode].append(render_frame(env, step))
+            else:
+                env.render('human')
             print("Invalid state")
             continue
 
@@ -183,7 +186,10 @@ for episode in range(N):
         #     print("Interpolation")
         # print("==============")
 
-        env.render('human')
+        if is_save_video:
+            frames[episode].append(render_frame(env, step))
+        else:
+            env.render('human')
         reward = 0
         if success:
             for j, next_qpos in enumerate(traj):
@@ -195,25 +201,38 @@ for episode in range(N):
                 if len(out_of_bounds) > 0: #Some actions out of bounds
                     reward = 0
                     times = 0
-                    while (len(out_of_bounds) > 0 and times < 5): # INTERPOLATE until needed! Collision check already done by planner
+                    if not planner.isValidState(next_qpos):
+                        continue
+                    while (len(out_of_bounds) > 0 and times < 2): # INTERPOLATE until needed! Collision check already done by planner
                         # interpolate
                         interpolated_traj = interpolate(env, next_qpos, out_of_bounds)
+                        times += 1
                         for interp_qpos in interpolated_traj:
                             action = env.form_action(interp_qpos)
+                            step += 1
                             ob, interp_reward, done, info = env.step(action, is_planner=True)
-                            env.render('human')
+                            if is_save_video:
+                                frames[episode].append(render_frame(env, step))
+                            else:
+                                env.render('human')
                             reward += interp_reward
-                        # check for out_of_bounds
-                        action = env.form_action(next_qpos)
-                        out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
-                        times += 1
-                        if len(out_of_bounds) > 0:
-                            print("\n\nStill out of bounds. Re-interpolate")
+                            if done:
+                                break
+                        if done:
+                            break
+                    # check for out_of_bounds
+                    action = env.form_action(next_qpos)
+                    out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
+                    # if len(out_of_bounds) > 0:
+                    #     simple_planner.plan(env.sim.data.qpos, next_qpos, args.simple_timelimit)
+                    times += 1
+                    if len(out_of_bounds) > 0:
+                        print("\n\nStill out of bounds. Re-interpolate")
                     env._reset_prev_state()
                 else:
                     ob, reward, done, info = env.step(action, is_planner=True)
+                    step += 1
 
-                step += 1
                 if is_save_video:
                     frames[episode].append(render_frame(env, step))
                 else:
@@ -224,7 +243,10 @@ for episode in range(N):
                 if done:
                     break
         else:
-            env.render('human')
+            if is_save_video:
+                frames[episode].append(render_frame(env, step))
+            else:
+                env.render('human')
 
 
 if is_save_video:

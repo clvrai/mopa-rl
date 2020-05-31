@@ -41,12 +41,12 @@ class SamplingBasedPlanner:
     def isValidState(self, state):
         return self.planner.isValidState(state)
 
-    def plan(self, start, goal, timelimit=1., min_steps=10):
+    def plan(self, start, goal, timelimit=1., min_steps=10, attempts=15):
         valid_state = True
         exact = True
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
-        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps))
+        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps, attempts))
 
         if np.unique(states).size == 1:
             if states[0][0] == -5:

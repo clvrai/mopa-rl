@@ -26,7 +26,7 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
         string planner_status
         bool_ isSimplified
         double simplifiedDuration
-        vector[vector[double]] plan(vector[double], vector[double], double, double)
+        vector[vector[double]] plan(vector[double], vector[double], double, double, int)
         bool_ isValidState(vector[double])
         void removeCollision(int, int, int)
         string getPlannerStatus()
@@ -40,8 +40,8 @@ cdef class PyKinematicPlanner:
     def __dealloc__(self):
         del self.thisptr
 
-    cpdef plan(self, start_vec, goal_vec, timelimit, min_steps):
-        return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps)
+    cpdef plan(self, start_vec, goal_vec, timelimit, min_steps, attempts):
+        return self.thisptr.plan(start_vec, goal_vec, timelimit, min_steps, attempts)
 
     cpdef removeCollision(self, geom_id, contype, conaffinity):
         return self.thisptr.removeCollision(geom_id, contype, conaffinity)
