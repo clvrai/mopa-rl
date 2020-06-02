@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.24.SAC.PUSHER.EXACT.no_reuse.rrt.simplified"
+prefix="05.24.SAC.PUSHER.EXACT.no_reuse.rrt.simplified.simple_interpolate"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.24.SAC.PLANNER.PUSHER.EXACT.no_reuse.rrt.simplified'
+group='05.24.SAC.PLANNER.PUSHER.EXACT.no_reuse.rrt.simplified.simple_interpolate'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -63,7 +63,8 @@ max_reuse_data='30'
 min_reuse_span='20'
 is_simplified="True"
 simplified_duration="0.01"
-
+use_interpolation="True"
+interpolate_type="simple"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -128,4 +129,6 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
     --is_simplified $is_simplified \
-    --simplified_duration $simplified_duration
+    --simplified_duration $simplified_duration \
+    --use_interpolation $use_interpolation \
+    --interpolate_type $interpolate_type
