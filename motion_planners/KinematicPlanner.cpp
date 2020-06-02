@@ -102,6 +102,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
 
     msvc = std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false, ignored_contacts, contact_threshold);
     si->setStateValidityChecker(msvc);
+    si->setStateValidityCheckingResolution(0.005);
+    // si->setStateValidityCheckingResolution(0.01);
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
     rrt_sharp_planner = std::make_shared<og::RRTsharp>(si);
@@ -280,18 +282,19 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     if (bool(solved)){
         if (ss->haveExactSolutionPath() || allow_approximate) {
             // ss.getSolutionPath().print(std::cout);
-            if (isSimplified){
-                ss->simplifySolution(simplifiedDuration);
-            }
-            og::PathGeometric p = ss->getSolutionPath();
             // if (isSimplified){
-            //     psimp_->reduceVertices(p, attempts);
-            //     p.checkAndRepair(attempts);
+            //     ss->simplifySolution(simplifiedDuration);
             // }
+            og::PathGeometric p = ss->getSolutionPath();
+            if (isSimplified){
+                psimp_->reduceVertices(p, attempts);
+                // psimp_->shortcutPath(p, attempts);
+                p.checkAndRepair(attempts);
+            }
             // psimp_->reduceVertices(p, 10);
             // psimp_->shortcutPath(p, 5);
             // psimp_->collapseCloseVertices(p, 0);
-            // p.checkAndRepair(1);
+            // p.checkAndRepair(10);
             // ss->getSolutionPath().print(std::cout);
             // p.interpolate(min_steps);
             std::vector<ob::State*> &states =  p.getStates();
