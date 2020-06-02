@@ -74,15 +74,16 @@ def interpolate(env, next_qpos, out_of_bounds, planner):
     action['default'] = scaled_ac
 
     # Step2: Run scaled down action for floor(scaling factor) steps
-    reward = 0
-    interp_qpos = copy.deepcopy(current_qpos)
+    # interp_qpos = copy.deepcopy(current_qpos)
+    interp_qpos = current_qpos.copy()
     valid = True
     for i in range(int(scaling_factor)): # scaling_factor>0 => int(scaling_factor) == int(floor(scaling_factor))
         interp_qpos[env.ref_joint_pos_indexes] += scaled_ac
         if not planner.isValidState(interp_qpos):
             valid = False
             break
-        interpolated_traj.append(copy.deepcopy(interp_qpos))
+        interpolated_traj.append(interp_qpos.copy())
+        # interpolated_traj.append(copy.deepcopy(interp_qpos))
         # print("Action %s from %s to %s" % (scaled_ac, current_qpos[env.ref_joint_pos_indexes], interp_qpos[env.ref_joint_pos_indexes]))
         # _, interp_reward, _, _ = env.step(action, is_planner=True)
         # reward = reward + interp_reward
@@ -214,7 +215,7 @@ for episode in range(N):
                     trial+=1
                 action = env.form_action(next_qpos)
                 action_arr = action['default']
-                out_of_bounds = [i for i,ac in enumerate(action_arr[:len(env.ref_joint_pos_indexes)]) if (ac > max_action or ac < min_action)]
+                out_of_bounds = np.where((action_arr[:len(env.ref_joint_pos_indexes)] > max_action) | (action_arr[:len(env.ref_joint_pos_indexes)]<min_action))[0]
 
                 env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
                 if len(out_of_bounds) > 0: #Some actions out of bounds
