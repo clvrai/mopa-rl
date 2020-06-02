@@ -41,12 +41,12 @@ class SamplingBasedPlanner:
     def isValidState(self, state):
         return self.planner.isValidState(state)
 
-    def plan(self, start, goal, timelimit=1., min_steps=10):
+    def plan(self, start, goal, timelimit=1., min_steps=10, attempts=15):
         valid_state = True
         exact = True
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
-        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps))
+        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps, attempts))
 
         if np.unique(states).size == 1:
             if states[0][0] == -5:
@@ -64,9 +64,19 @@ class SamplingBasedPlanner:
                 for idx in self.non_limited_idx:
                     if abs(state[idx]-pre_state[idx]) > 3.14:
                         if pre_state[idx] > 0 and state[idx] <= 0:
+                            # if traj[-1][idx] < 0:
                             tmp_state[idx] = traj[-1][idx] + (3.14-pre_state[idx] + state[idx] + 3.14)
+                            # else:
+                            #     tmp_state[idx] = traj[-1][idx] - (3.14-pre_state[idx] + state[idx] + 3.14)
+                            # tmp_state[idx] = traj[-1][idx] + 3.14 + state[idx]
                         elif pre_state[idx] < 0 and state[idx] > 0:
-                            tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
+                            # if traj[-1][idx] < 0:
+                            tmp_state[idx] = traj[-1][idx] - (3.14-state[idx] + pre_state[idx] + 3.14)
+                            # else:
+                            #     tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
+
+
+                            # tmp_state[idx] = traj[-1][idx] - 3.14 + state[idx]
             pre_state = state
             traj.append(tmp_state)
         return np.array(traj), states, valid_state, exact

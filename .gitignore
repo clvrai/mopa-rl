@@ -54,7 +54,7 @@ wandb/
 ## PyCharm
 .idea/
 
-##VSCode
+## VSCode
 .vscode/
 
 ## flake8

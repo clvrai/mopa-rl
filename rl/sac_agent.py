@@ -123,14 +123,18 @@ class SACAgent(BaseAgent):
                 if not exact:
                     traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
                     interpolation = False
-                    if self._config.is_simplified or self._config.planner_type == 'prm_star':
+                    if self._config.use_interpolation:
                         new_traj = []
                         start = curr_qpos
                         for i in range(len(traj)):
                             diff = traj[i] - start
                             if np.any(diff[:len(self._ref_joint_pos_indexes)] < -ac_scale) or np.any(diff[:len(self._ref_joint_pos_indexes)] > ac_scale):
-                                inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
-                                if inner_success:
+                                if self._config.interpolate_type == 'planner':
+                                    inner_traj, inner_success, inner_valid, inner_exact = self._simple_planner.plan(start, traj[i], self._config.simple_planner_timelimit)
+                                    if inner_success:
+                                        new_traj.extend(inner_traj)
+                                else:
+                                    inner_traj = self.simple_interpolate(start, traj[i], ac_scale)
                                     new_traj.extend(inner_traj)
                             else:
                                 new_traj.append(traj[i])
@@ -142,6 +146,40 @@ class SACAgent(BaseAgent):
     def interpolate(self, curr_qpos, target_qpos):
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         return traj, success, interpolation, valid, exact
+
+    def simple_interpolate(self, curr_qpos, target_qpos, ac_scale):
+        traj = []
+        min_action = self._ac_space['default'].low[0] * ac_scale * 0.8
+        max_action = self._ac_space['default'].high[0] * ac_scale * 0.8
+        assert max_action > min_action, "action space box is ill defined"
+        assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
+
+        diff = target_qpos[:len(self._ref_joint_pos_indexes)] - curr_qpos[:len(self._ref_joint_pos_indexes)]
+        out_of_bounds = np.where((diff > max_action) | (diff < min_action))[0]
+        out_diff = diff[out_of_bounds]
+
+
+        scales = np.where(out_diff > max_action, out_diff/max_action, out_diff/min_action)
+        scaling_factor = max(max(scales), 1.)
+        scaled_ac = diff[:len(self._ref_joint_pos_indexes)]
+
+        valid = True
+        interp_qpos = curr_qpos.copy()
+        for i in range(int(scaling_factor)):
+            interp_qpos[:len(self._ref_joint_pos_indexes)] += scaled_ac
+            if not self._planner.isValidState(interp_qpos):
+                valid = False
+                break
+            traj.append(interp_qpos.copy())
+        if not valid:
+            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+            if not success:
+                traj = np.array([target_qpos])
+        else:
+            traj.append(target_qpos)
+
+        return np.array(traj)
+
 
     def state_dict(self):
         return {

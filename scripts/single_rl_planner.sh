@@ -64,7 +64,8 @@ max_reuse_data='30'
 min_reuse_span='20'
 is_simplified="True"
 simplified_duration="0.01"
-
+use_interpolation="True"
+interpolate_type="simple"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -131,3 +132,5 @@ python -m rl.main \
     --is_simplified $is_simplified \
     --simplified_duration $simplified_duration \
     --simple_planner_type $simple_planner_type
+    --use_interpolation $use_interpolation \
+    --interpolate_type $interpolate_type
