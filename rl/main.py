@@ -13,10 +13,10 @@ from config import argparser
 from config.motion_planner import add_arguments as mp_add_arguments
 from rl.trainer import Trainer
 from util.logger import logger
+from datetime import datetime
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
-
 
 def run(config):
     rank = MPI.COMM_WORLD.Get_rank()
@@ -25,6 +25,8 @@ def run(config):
     config.seed = config.seed + rank
     config.num_workers = MPI.COMM_WORLD.Get_size()
     config.is_mpi = False if config.num_workers == 1 else True
+    now = datetime.now()
+    date = now.strftime("%m.%d")
 
     if torch.get_num_threads() != 1:
         fair_num_threads = max(int(torch.get_num_threads() / MPI.COMM_WORLD.Get_size()), 1)
@@ -37,7 +39,11 @@ def run(config):
         logger.warning('Running worker %d and disabling logger', config.rank)
         logger.setLevel(CRITICAL)
 
-        config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed-rank)
+
+        config.run_name = 'rl.{}.{}.{}.{}'.format(config.env, date, config.prefix, config.seed-rank)
+        if config.group is None:
+            config.group = 'rl.{}.{}.{}'.format(config.env, date, config.prefix)
+
         config.log_dir = os.path.join(config.log_root_dir, config.run_name)
         if config.is_train:
             config.record_dir = os.path.join(config.log_dir, 'video')
