@@ -12,7 +12,7 @@ log_interval="200"
 
 workers="1"
 tanh="True"
-prefix="05.28.SAC.PUSHER.EXACT.REUSE.prm.faster.success"
+prefix="05.32.SAC.PUSHER.EXACT.REUSE.prm.faster"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,7 @@ comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.28.SAC.PLANNER.PUSHER.REUSE.prm.faster.success'
+group='05.31.SAC.PLANNER.PUSHER.REUSE.prm.faster'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"

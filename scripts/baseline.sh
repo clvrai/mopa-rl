@@ -23,9 +23,9 @@ then
 fi
 
 workers="1"
-prefix="05.21.BASELINE.SAC.REACHER.sparse.v4"
+prefix="05.28.BASELINE.SAC.PUSHAER.sparse.change.rew"
 max_global_step="60000000"
-env="simple-reacher-obstacle-hard-v0"
+env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="200"
@@ -36,14 +36,14 @@ lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
-seed='1237'
+seed='1235'
 ctrl_reward='1e-2'
 reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.21.SAC.BASELINE.sparse.v4'
+group='05.28.SAC.BASELINE.PUSHER.sparse.change.rew'
 env_debug='False'
 log_freq='1000'
 reward_scale='1.'
