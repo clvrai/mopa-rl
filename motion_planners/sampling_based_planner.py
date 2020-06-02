@@ -64,9 +64,19 @@ class SamplingBasedPlanner:
                 for idx in self.non_limited_idx:
                     if abs(state[idx]-pre_state[idx]) > 3.14:
                         if pre_state[idx] > 0 and state[idx] <= 0:
+                            # if traj[-1][idx] < 0:
                             tmp_state[idx] = traj[-1][idx] + (3.14-pre_state[idx] + state[idx] + 3.14)
+                            # else:
+                            #     tmp_state[idx] = traj[-1][idx] - (3.14-pre_state[idx] + state[idx] + 3.14)
+                            # tmp_state[idx] = traj[-1][idx] + 3.14 + state[idx]
                         elif pre_state[idx] < 0 and state[idx] > 0:
-                            tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
+                            # if traj[-1][idx] < 0:
+                            tmp_state[idx] = traj[-1][idx] - (3.14-state[idx] + pre_state[idx] + 3.14)
+                            # else:
+                            #     tmp_state[idx] = traj[-1][idx] + (3.14-state[idx] + pre_state[idx] + 3.14)
+
+
+                            # tmp_state[idx] = traj[-1][idx] - 3.14 + state[idx]
             pre_state = state
             traj.append(tmp_state)
         return np.array(traj), states, valid_state, exact

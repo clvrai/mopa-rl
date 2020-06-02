@@ -143,6 +143,10 @@ class SACAgent(BaseAgent):
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         return traj, success, interpolation, valid, exact
 
+    def simple_interpolate(self, curr_qpos, target_qpos):
+        raise NotImplementedError
+
+
     def state_dict(self):
         return {
             'log_alpha': [_log_alpha.cpu().detach().numpy() for _log_alpha in self._log_alpha],
