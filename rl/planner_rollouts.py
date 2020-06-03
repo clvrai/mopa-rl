@@ -12,6 +12,10 @@ from util.logger import logger
 from util.env import joint_convert
 from util.gym import action_size
 from util.info import Info
+# import line_profiler
+# import atexit
+# profile = line_profiler.LineProfiler()
+# atexit.register(profile.print_stats)
 
 
 class Rollout(object):
@@ -68,6 +72,7 @@ class PlannerRolloutRunner(object):
         self._pi = pi
 
 
+    # @profile
     def run(self, max_step=10000, is_train=True, random_exploration=False, every_steps=None, every_episodes=None):
         """
         Collects trajectories and yield every @every_steps/@every_episodes.
@@ -152,6 +157,7 @@ class PlannerRolloutRunner(object):
                             trial+=1
 
                     if pi.isValidState(target_qpos):
+                        curr_qpos = env.clip_qpos(curr_qpos)
                         traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                     else:
                         success = False
@@ -375,8 +381,9 @@ class PlannerRolloutRunner(object):
                     ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
             curr_qpos = env.sim.data.qpos.copy()
+            prev_qpos = env.sim.data.qpos.copy()
             prev_joint_qpos = curr_qpos[env.ref_joint_pos_indexes]
-            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+            prev_ob = ob.copy()
             is_planner = False
             target_qpos = env.sim.data.qpos.copy()
             if config.extended_action:
@@ -398,6 +405,7 @@ class PlannerRolloutRunner(object):
                         trial+=1
 
                 if pi.isValidState(target_qpos):
+                    curr_qpos = env.clip_qpos(curr_qpos)
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                 else:
                     success = False
@@ -411,9 +419,11 @@ class PlannerRolloutRunner(object):
                     else:
                         counter['mp'] += 1
 
-                    for next_qpos in traj:
+                    for i, next_qpos in enumerate(traj):
                         ll_ob = ob.copy()
                         converted_ac = env.form_action(next_qpos)
+                        if i == len(traj)-1:
+                            converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                         # ac = env.form_action(next_qpos)
                         ob, reward, done, info = env.step(converted_ac, is_planner=True)
                         # ob, reward, done, info = env.step(ac, is_planner=True)
@@ -439,6 +449,7 @@ class PlannerRolloutRunner(object):
                             self._store_frame(env, frame_info, planner=True)
                         if done or ep_len >= max_step:
                             break
+                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     env._reset_prev_state()
                     rollout.add({'done': done, 'rew': meta_rew})
                 else:
@@ -447,6 +458,7 @@ class PlannerRolloutRunner(object):
                         counter['approximate'] += 1
                     elif not valid:
                         counter['invalid'] += 1
+                    ll_ob = ob.copy()
                     # reward = self._config.invalid_planner_rew
                     reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
                     ep_rew += reward
@@ -470,6 +482,7 @@ class PlannerRolloutRunner(object):
                         env.visualize_dummy_indicator(env.sim.data.qpos[env.ref_joint_pos_indexes].copy())
                         self._store_frame(env, frame_info, planner=True)
             else:
+                ll_ob = ob.copy()
                 counter['rl'] += 1
                 rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                 rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum

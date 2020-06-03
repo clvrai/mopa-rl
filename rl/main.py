@@ -25,8 +25,6 @@ def run(config):
     config.seed = config.seed + rank
     config.num_workers = MPI.COMM_WORLD.Get_size()
     config.is_mpi = False if config.num_workers == 1 else True
-    now = datetime.now()
-    date = now.strftime("%m.%d")
 
     if torch.get_num_threads() != 1:
         fair_num_threads = max(int(torch.get_num_threads() / MPI.COMM_WORLD.Get_size()), 1)
@@ -88,7 +86,11 @@ def run(config):
 
 
 def make_log_files(config):
-    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+    now = datetime.now()
+    date = now.strftime("%m.%d")
+    config.run_name = 'rl.{}.{}.{}.{}'.format(config.env, date, config.prefix, config.seed)
+    if config.group is None:
+        config.group = 'rl.{}.{}.{}'.format(config.env, date, config.prefix)
 
     config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     logger.info('Create log directory: %s', config.log_dir)
@@ -146,7 +148,7 @@ if __name__ == '__main__':
 
     if args.debug:
         args.rollout_length = 150
-        args.start_steps = 300
+        args.start_steps = 100
 
     if len(unparsed):
         logger.error('Unparsed argument is detected:\n%s', unparsed)

@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.REACH.SIMPLE.INTERPOLATION.debug"
+prefix="SAC.SAWYAER.REACH.SIMPLE.INTERPOLATION.debug.timelimit.2.0"
 max_global_step="60000000"
 env="sawyer-reach-robosuite-v0"
 rl_hid_size="256"
@@ -21,7 +21,7 @@ entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="2e-4"
 lr_critic="2e-4"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
@@ -38,7 +38,7 @@ planner_type="rrt_connect"
 planner_objective="path_length"
 range="0.05"
 threshold="0.01"
-timelimit="1.0"
+timelimit="2.0"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
@@ -56,7 +56,7 @@ stochastic_eval="True"
 alpha='0.05'
 find_collision_free="True"
 use_double_planner="False"
-simple_planner_type='sst'
+simple_planner_type='rrt_connect'
 simple_planner_timelimit="0.01"
 sst_selection_radius="0.01"
 sst_pruning_radius="0.01"
@@ -67,6 +67,7 @@ simple_planner_simplified_duration="0.01"
 vis_replay="False"
 use_interpolation="True"
 interpolate_type="simple"
+contact_threshold="-0.003"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -133,5 +134,5 @@ python -m rl.main \
     --simple_planner_simplified_duration $simple_planner_simplified_duration \
     --vis_replay $vis_replay \
     --use_interpolation $use_interpolation \
-    --interpolate_type $interpolate_type
-
+    --interpolate_type $interpolate_type \
+    --contact_threshold $contact_threshold

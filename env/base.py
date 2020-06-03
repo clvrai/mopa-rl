@@ -17,6 +17,10 @@ from gym import spaces, error
 import env.transform_utils as T
 from util.logger import logger
 np.set_printoptions(suppress=True)
+# import line_profiler
+# import atexit
+# profile = line_profiler.LineProfiler()
+# atexit.register(profile.print_stats)
 
 
 class BaseEnv(gym.Env):
@@ -212,12 +216,12 @@ class BaseEnv(gym.Env):
     def _reset_prev_state(self):
         self._prev_state = None
 
-
+    # @profile
     def step(self, action, is_planner=False):
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key in action and key != 'term' and key != 'ac_type'])
+            action = np.concatenate([action[key] for key in self.action_space.spaces.keys()])
 
         self._pre_action(action)
         ob, reward, done, info = self._step(action, is_planner)
@@ -229,6 +233,15 @@ class BaseEnv(gym.Env):
 
     def _pre_action(self, action):
         pass
+
+    def clip_qpos(self, qpos):
+        tmp_pos = qpos.copy()
+        if np.any(qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+            new_qpos = np.clip(qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+            new_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            return new_qpos
+        return qpos
+
 
     def _after_step(self, reward, terminal, info):
         if np.any(self.sim.data.qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(self.sim.data.qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):

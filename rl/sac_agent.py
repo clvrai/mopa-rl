@@ -18,11 +18,15 @@ from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 from util.gym import action_size, observation_size
 from gym import spaces
+import line_profiler
+import atexit
+profile = line_profiler.LineProfiler()
+atexit.register(profile.print_stats)
 
 
 class SACAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic, non_limited_idx=None, ref_joint_pos_indexes=None):
+                 actor, critic, non_limited_idx=None, ref_joint_pos_indexes=None, joint_space=None, is_jnt_limited=None):
         super().__init__(config, ob_space)
 
         self._ob_space = ob_space
@@ -30,6 +34,11 @@ class SACAgent(BaseAgent):
         self._ref_joint_pos_indexes = ref_joint_pos_indexes
         self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device)]
         self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
+        self._joint_space = joint_space
+        self._is_jnt_limited = is_jnt_limited
+        if joint_space is not None:
+            self._jnt_minimum = joint_space['default'].low
+            self._jnt_maximum = joint_space['default'].high
 
         # build up networks
         self._build_actor(actor)
@@ -107,6 +116,7 @@ class SACAgent(BaseAgent):
     def isValidState(self, state):
         return self._planner.isValidState(state)
 
+    # @profile
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
         interpolation = True
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
@@ -148,6 +158,12 @@ class SACAgent(BaseAgent):
         return traj, success, interpolation, valid, exact
 
     def simple_interpolate(self, curr_qpos, target_qpos, ac_scale):
+        tmp_pos = curr_qpos.copy()
+        if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+            new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            curr_qpos = new_curr_qpos
+
         traj = []
         min_action = self._ac_space['default'].low[0] * ac_scale * 0.8
         max_action = self._ac_space['default'].high[0] * ac_scale * 0.8
@@ -174,7 +190,9 @@ class SACAgent(BaseAgent):
         if not valid:
             traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
             if not success:
-                traj = np.array([target_qpos])
+                traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
+                if not success:
+                    traj = [target_qpos]
         else:
             traj.append(target_qpos)
 

@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="05.31.SAC.PUSHER.EXACT.RRT.simple.interpolation"
+prefix="SAC.PUSHER.EXACT.RRT.simple.interpolation"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -30,7 +30,6 @@ comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="./logs"
-group='05.31.SAC.PLANNER.PUSHER.EXACT.RRT.simple.interpolation'
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -96,7 +95,6 @@ python -m rl.main \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-    --group $group \
     --env_debug $env_debug \
     --log_freq $log_freq \
     --log_interval $log_interval \
@@ -131,6 +129,6 @@ python -m rl.main \
     --min_reuse_span $min_reuse_span \
     --is_simplified $is_simplified \
     --simplified_duration $simplified_duration \
-    --simple_planner_type $simple_planner_type
+    --simple_planner_type $simple_planner_type \
     --use_interpolation $use_interpolation \
     --interpolate_type $interpolate_type
