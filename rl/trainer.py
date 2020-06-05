@@ -570,8 +570,7 @@ class Trainer(object):
         size = self._agent._buffer._current_size
         states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
         fig = plt.figure()
-        # plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(size)[:1000000], cmap='Blues')
-        plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(500000), cmap='Blues')
+        plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(len(states[:, 0])), cmap='Blues')
         plt.axis("equal")
         wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
         plt.close(fig)
