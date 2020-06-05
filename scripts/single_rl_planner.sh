@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="SAC.PUSHER.EXACT.RRT.simple.interpolation"
+prefix="SAC.PUSHER.EXACT.RRT.SIMPLE.INTERPOLATION.v2"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"

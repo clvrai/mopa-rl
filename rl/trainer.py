@@ -267,26 +267,37 @@ class Trainer(object):
             logger.warn("Randomly initialize models")
             return 0, 0
 
-    def _log_train(self, step, train_info, ep_info, prefix=""):
+    def _log_train(self, step, train_info, ep_info, prefix="", env_step=None):
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
                 wandb.log({"train_rl/%s" % k: v}, step=step)
+                if env_step is not None:
+                    wandb.log({"train_rl/env_step/%s" % k: v}, step=env_step)
             elif isinstance(v, np.ndarray) or isinstance(v, list):
                 wandb.log({"train_rl/%s" % k: wandb.Histogram(v)}, step=step)
+                if env_step is not None:
+                    wandb.log({"train_rl/env_step/%s" % k: wandb.Histogram(v)}, step=env_step)
             else:
                 wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
+                if env_step is not None:
+                    wandb.log({"train_rl/env_step/%s" % k: [wandb.Image(v)]}, step=env_step)
 
         for k, v in ep_info.items():
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
+            if env_step is not None:
+                wandb.log({prefix+"train_ep/env_step/%s" % k: np.mean(v)}, step=env_step)
+                wandb.log({prefix+"train_ep_max/env_step/%s" % k: np.max(v)}, step=env_step)
         if self._config.vis_replay:
             if step % self._config.vis_replay_interval == 0:
                 self._vis_replay_buffer(step)
 
-    def _log_test(self, step, ep_info, vids=None, obs=None):
+    def _log_test(self, step, ep_info, vids=None, obs=None, env_step=None):
         if self._config.is_train:
             for k, v in ep_info.items():
                 wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
+                if env_step is not None:
+                    wandb.log({"test_ep/env_step/%s" % k: np.mean(v)}, step=env_step)
             if vids is not None:
                 self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
             if obs is not None:
@@ -361,6 +372,7 @@ class Trainer(object):
                     else:
                         self._agent.store_episode(rollout)
 
+        env_step = 0
         while step < config.max_global_step:
             # collect rollouts
             rollout, meta_rollout, info = next(runner)
@@ -380,6 +392,9 @@ class Trainer(object):
                 step_per_batch = mpi_sum(len(rollout['ac']))
             else:
                 step_per_batch = len(rollout['ac'])
+
+            if self._config.planner_integration and 'env_step' in info.keys():
+                env_step_per_batch = len(info['env_step'])
 
             # train an agent
             if step % config.log_freq == 0:
@@ -411,6 +426,7 @@ class Trainer(object):
             #     self._update_normalizer(rollout, meta_rollout)
 
             step += step_per_batch
+            env_step += env_step_per_batch
             update_iter += 1
 
             if self._is_chef:
@@ -428,7 +444,7 @@ class Trainer(object):
                     })
                     st_time = time()
                     st_step = step
-                    self._log_train(step, train_info, ep_info)
+                    self._log_train(step, train_info, ep_info, env_step=env_step)
                     ep_info = defaultdict(list)
 
                 ## Evaluate both MP and RL
@@ -442,7 +458,7 @@ class Trainer(object):
                         else:
                             obs = rollout['ob'][0]['default'][0]
 
-                    self._log_test(step, info, vids, obs)
+                    self._log_test(step, info, vids, obs, env_step=env_step)
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
@@ -553,7 +569,7 @@ class Trainer(object):
         states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
         fig = plt.figure()
         # plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(size)[:1000000], cmap='Blues')
-        plt.scatter(states[:, 0], states[:, 1], s=5, cmap='Blues')
+        plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(500000), cmap='Blues')
         plt.axis("equal")
         wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
         plt.close(fig)

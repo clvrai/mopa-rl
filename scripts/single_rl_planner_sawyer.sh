@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.REACH.SIMPLE.INTERPOLATION.debug.timelimit.2.0"
+prefix="SAC.SAWYAER.REACH.SIMPLE.INTERPOLATION.adjust.clip.fix.joint.range"
 max_global_step="60000000"
 env="sawyer-reach-robosuite-v0"
 rl_hid_size="256"
@@ -67,7 +67,7 @@ simple_planner_simplified_duration="0.01"
 vis_replay="False"
 use_interpolation="True"
 interpolate_type="simple"
-contact_threshold="-0.003"
+contact_threshold="-0.006"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers

@@ -118,6 +118,7 @@ class PlannerRolloutRunner(object):
                 })
                 meta_len = 0
                 meta_rew = 0
+                env_step = 0
 
                 ll_ob = ob.copy()
                 if random_exploration: # Random exploration for SAC
@@ -143,9 +144,6 @@ class PlannerRolloutRunner(object):
                 if pi.is_planner_ac(ac) or is_planner:
                     if config.relative_goal:
                         target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
-                        tmp_target_qpos = target_qpos.copy()
-                        target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                        target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
@@ -156,6 +154,10 @@ class PlannerRolloutRunner(object):
                             target_qpos += config.step_size * d/np.linalg.norm(d)
                             trial+=1
 
+                    tmp_target_qpos = target_qpos.copy()
+                    target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices]+0.001, env._jnt_maximum[env.jnt_indices]-0.001)
+                    target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
+
                     if pi.isValidState(target_qpos):
                         curr_qpos = env.clip_qpos(curr_qpos)
                         traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
@@ -163,7 +165,6 @@ class PlannerRolloutRunner(object):
                         success = False
                         valid = False
                         exact = True
-
 
                     if success:
                         if interpolation:
@@ -191,9 +192,10 @@ class PlannerRolloutRunner(object):
                             ob_list.append(ob.copy())
                             ep_len += 1
                             step += 1
+                            meta_len += 1
+                            env_step += 1
                             ep_rew += reward
                             ep_rew_with_penalty += reward
-                            meta_len += 1
                             reward_info.add(info)
 
                             if config.reuse_data_type == 'subgoal_forward':
@@ -207,6 +209,8 @@ class PlannerRolloutRunner(object):
                                     # last frame
                                     ll_ob = ob.copy()
                                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                    ep_info.add({'env_step': env_step})
+                                    env_step = 0
                                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
@@ -223,6 +227,8 @@ class PlannerRolloutRunner(object):
                             # last frame
                             ll_ob = ob.copy()
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            ep_info.add({'env_step': env_step})
+                            env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
@@ -237,6 +243,8 @@ class PlannerRolloutRunner(object):
                                         # last frame
                                         ll_ob = ob.copy()
                                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                                        ep_info.add({'env_step': env_step})
+                                        env_step = 0
                                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                         if config.reuse_data_type == 'subgoal_random' and len(ob_list) > 2:
@@ -258,6 +266,8 @@ class PlannerRolloutRunner(object):
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
                                         rollout.add({'ob': ob_list[goal], 'meta_ac': meta_ac})
+                                        ep_info.add({'env_step': env_step})
+                                        env_step = 0
                                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else:
@@ -281,12 +291,15 @@ class PlannerRolloutRunner(object):
                         ep_len += 1
                         step += 1
                         meta_len += 1
+                        env_step += 1
                         reward_info.add(info)
                         meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
                             rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            ep_info.add({'env_step': env_step})
+                            env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                 else:
                     ll_ob = ob.copy()
@@ -301,12 +314,15 @@ class PlannerRolloutRunner(object):
                     ep_rew += reward
                     ep_rew_with_penalty += reward
                     meta_len += 1
+                    env_step += 1
                     meta_rew += reward
                     reward_info.add(info)
                     if every_steps is not None and step % every_steps == 0:
                         # last frame
                         ll_ob = ob.copy()
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        ep_info.add({'env_step': env_step})
+                        env_step = 0
                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
@@ -324,6 +340,8 @@ class PlannerRolloutRunner(object):
                 ll_ob = ob.copy()
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                 meta_rollout.add({'meta_ob': ob})
+                ep_info.add({'env_step': env_step})
+                env_step = 0
                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
 

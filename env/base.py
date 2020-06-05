@@ -237,7 +237,7 @@ class BaseEnv(gym.Env):
     def clip_qpos(self, qpos):
         tmp_pos = qpos.copy()
         if np.any(qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
-            new_qpos = np.clip(qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+            new_qpos = np.clip(qpos.copy(), self._jnt_minimum+0.001, self._jnt_maximum-0.001)
             new_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
             return new_qpos
         return qpos

@@ -56,6 +56,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
+    // ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG); // OMPL logging
     xml_filename = XML_filename;
     algo = Algo;
     sst_selection_radius = SST_selection_radius;

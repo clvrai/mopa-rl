@@ -131,7 +131,7 @@ class SACAgent(BaseAgent):
                         interpolation = False
             else:
                 if not exact:
-                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos)
+                    traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
                     interpolation = False
                     if self._config.use_interpolation:
                         new_traj = []
@@ -160,7 +160,7 @@ class SACAgent(BaseAgent):
     def simple_interpolate(self, curr_qpos, target_qpos, ac_scale):
         tmp_pos = curr_qpos.copy()
         if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
-            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum, self._jnt_maximum)
+            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+0.001, self._jnt_maximum-0.001)
             new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
             curr_qpos = new_curr_qpos
 

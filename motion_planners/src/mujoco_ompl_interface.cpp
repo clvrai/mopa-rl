@@ -961,6 +961,7 @@ bool MujocoStateValidityChecker::isValid(const ompl::base::State *state, std::ve
             if (found == false) {
                 if (con_data.dist <= contact_threshold) {
                     //current contact not found in list of ignored contacts
+                    OMPL_DEBUG("Contact dist: %d\n", con_data.dist);
                     OMPL_DEBUG("Contact between geomIDs %d and %d unexpected. Invalid state\n", to_find.first, to_find.second);
                     isValidState = false; //so it's an invalid state
                 }
