@@ -395,7 +395,7 @@ class Trainer(object):
                 step_per_batch = len(rollout['ac'])
 
             if self._config.planner_integration and 'env_step' in info.keys():
-                env_step_per_batch = len(info['env_step'])
+                env_step_per_batch = int(info['env_step'])
 
             # train an agent
             if step % config.log_freq == 0:
