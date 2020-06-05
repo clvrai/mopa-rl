@@ -271,23 +271,17 @@ class Trainer(object):
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
                 wandb.log({"train_rl/%s" % k: v}, step=step)
-                if env_step is not None and self._config.planner_integration:
-                    wandb.log({"train_rl/env_step/%s" % k: v}, step=env_step)
             elif isinstance(v, np.ndarray) or isinstance(v, list):
                 wandb.log({"train_rl/%s" % k: wandb.Histogram(v)}, step=step)
-                if env_step is not None and self._config.planner_integration:
-                    wandb.log({"train_rl/env_step/%s" % k: wandb.Histogram(v)}, step=env_step)
             else:
                 wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
-                if env_step is not None and self._config.planner_integration:
-                    wandb.log({"train_rl/env_step/%s" % k: [wandb.Image(v)]}, step=env_step)
 
         for k, v in ep_info.items():
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
             if env_step is not None and self._config.planner_integration:
-                wandb.log({prefix+"train_ep/env_step/%s" % k: np.mean(v)}, step=env_step)
-                wandb.log({prefix+"train_ep_max/env_step/%s" % k: np.max(v)}, step=env_step)
+                wandb.log({prefix+"train_ep_step/%s" % k: np.mean(v)}, step=env_step)
+                wandb.log({prefix+"train_ep_step_max/%s" % k: np.max(v)}, step=env_step)
         if self._config.vis_replay:
             if step % self._config.vis_replay_interval == 0:
                 self._vis_replay_buffer(step)
@@ -297,7 +291,7 @@ class Trainer(object):
             for k, v in ep_info.items():
                 wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
                 if env_step is not None and self._config.planner_integration:
-                    wandb.log({"test_ep/env_step/%s" % k: np.mean(v)}, step=env_step)
+                    wandb.log({"test_ep_step/%s" % k: np.mean(v)}, step=env_step)
             if vids is not None:
                 self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
             if obs is not None:
