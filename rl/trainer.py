@@ -204,7 +204,6 @@ class Trainer(object):
                 notes=config.notes,
                 tags=tags,
                 group=config.group,
-                allow_val_change=True
             )
 
     def _save_ckpt(self, ckpt_num, update_iter):
@@ -269,6 +268,8 @@ class Trainer(object):
             return 0, 0
 
     def _log_train(self, step, train_info, ep_info, prefix="", env_step=None):
+        if env_step is None:
+            env_step = step
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
                 wandb.log({"train_rl/%s" % k: v}, step=step)
@@ -278,21 +279,18 @@ class Trainer(object):
                 wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
 
         for k, v in ep_info.items():
-            wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
-            wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
-            if env_step is not None and self._config.planner_integration:
-                wandb.log({prefix+"train_ep_step/%s" % k: np.mean(v)}, step=env_step)
-                wandb.log({prefix+"train_ep_step_max/%s" % k: np.max(v)}, step=env_step)
+            wandb.log({prefix+"train_ep/%s" % k: np.mean(v), "global_step": env_step}, step=step)
+            wandb.log({prefix+"train_ep_max/%s" % k: np.max(v), "global_step": env_step}, step=step)
         if self._config.vis_replay:
             if step % self._config.vis_replay_interval == 0:
                 self._vis_replay_buffer(step)
 
     def _log_test(self, step, ep_info, vids=None, obs=None, env_step=None):
+        if env_step is None:
+            env_step = step
         if self._config.is_train:
             for k, v in ep_info.items():
-                wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
-                if env_step is not None and self._config.planner_integration:
-                    wandb.log({"test_ep_step/%s" % k: np.mean(v)}, step=env_step)
+                wandb.log({"test_ep/%s" % k: np.mean(v), 'global_step': env_step}, step=step)
             if vids is not None:
                 self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
             if obs is not None:
