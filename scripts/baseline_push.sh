@@ -24,9 +24,9 @@ then
 fi
 
 workers="1"
-prefix="BASELINE.SAC.REACHER.OBSTACLE.SPARSE"
+prefix="BASELINE.SAC.PUSH.2OBS"
 max_global_step="60000000"
-env="simple-reacher-obstacle-hard-v0"
+env="simple-pusher-obstacle-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="200"
@@ -38,7 +38,7 @@ debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='sparse'
+reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
@@ -47,7 +47,7 @@ env_debug='False'
 log_freq='1000'
 reward_scale='1.'
 vis_replay="True"
-success_reward='0.'
+success_reward='150.'
 has_terminal='True'
 # max_grad_norm='0.5'
 

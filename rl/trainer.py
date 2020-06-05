@@ -271,21 +271,21 @@ class Trainer(object):
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
                 wandb.log({"train_rl/%s" % k: v}, step=step)
-                if env_step is not None:
+                if env_step is not None and self._config.planner_integration:
                     wandb.log({"train_rl/env_step/%s" % k: v}, step=env_step)
             elif isinstance(v, np.ndarray) or isinstance(v, list):
                 wandb.log({"train_rl/%s" % k: wandb.Histogram(v)}, step=step)
-                if env_step is not None:
+                if env_step is not None and self._config.planner_integration:
                     wandb.log({"train_rl/env_step/%s" % k: wandb.Histogram(v)}, step=env_step)
             else:
                 wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
-                if env_step is not None:
+                if env_step is not None and self._config.planner_integration:
                     wandb.log({"train_rl/env_step/%s" % k: [wandb.Image(v)]}, step=env_step)
 
         for k, v in ep_info.items():
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v)}, step=step)
             wandb.log({prefix+"train_ep_max/%s" % k: np.max(v)}, step=step)
-            if env_step is not None:
+            if env_step is not None and self._config.planner_integration:
                 wandb.log({prefix+"train_ep/env_step/%s" % k: np.mean(v)}, step=env_step)
                 wandb.log({prefix+"train_ep_max/env_step/%s" % k: np.max(v)}, step=env_step)
         if self._config.vis_replay:
@@ -296,7 +296,7 @@ class Trainer(object):
         if self._config.is_train:
             for k, v in ep_info.items():
                 wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
-                if env_step is not None:
+                if env_step is not None and self._config.planner_integration:
                     wandb.log({"test_ep/env_step/%s" % k: np.mean(v)}, step=env_step)
             if vids is not None:
                 self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
@@ -375,6 +375,7 @@ class Trainer(object):
         env_step = 0
         while step < config.max_global_step:
             # collect rollouts
+            env_step_per_batch = None
             rollout, meta_rollout, info = next(runner)
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
@@ -424,9 +425,10 @@ class Trainer(object):
 
             # if step < config.max_ob_norm_step and self._config.policy != 'cnn':
             #     self._update_normalizer(rollout, meta_rollout)
-
             step += step_per_batch
-            env_step += env_step_per_batch
+
+            if env_step_per_batch is not None:
+                env_step += env_step_per_batch
             update_iter += 1
 
             if self._is_chef:
