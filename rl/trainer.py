@@ -203,7 +203,8 @@ class Trainer(object):
                 entity="clvr",
                 notes=config.notes,
                 tags=tags,
-                group=config.group
+                group=config.group,
+                allow_val_change=True
             )
 
     def _save_ckpt(self, ckpt_num, update_iter):
