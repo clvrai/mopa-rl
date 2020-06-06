@@ -422,6 +422,8 @@ class Trainer(object):
 
             if env_step_per_batch is not None:
                 env_step += env_step_per_batch
+            if not self._config.planner_integration:
+                env_step = None
             update_iter += 1
 
             if self._is_chef:

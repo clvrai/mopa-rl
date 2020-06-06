@@ -144,6 +144,10 @@ class PlannerRolloutRunner(object):
                 if pi.is_planner_ac(ac) or is_planner:
                     if config.relative_goal:
                         target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                        tmp_target_qpos = target_qpos.copy()
+                        target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
+                        # target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices]+0.001, env._jnt_maximum[env.jnt_indices]-0.001)
+                        target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
@@ -154,9 +158,6 @@ class PlannerRolloutRunner(object):
                             target_qpos += config.step_size * d/np.linalg.norm(d)
                             trial+=1
 
-                    tmp_target_qpos = target_qpos.copy()
-                    target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices]+0.001, env._jnt_maximum[env.jnt_indices]-0.001)
-                    target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
 
                     if pi.isValidState(target_qpos):
                         curr_qpos = env.clip_qpos(curr_qpos)

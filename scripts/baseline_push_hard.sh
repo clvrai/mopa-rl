@@ -24,7 +24,7 @@ then
 fi
 
 workers="1"
-prefix="BASELINE.SAC.PUSH.4OBS"
+prefix="BASELINE.SAC.PUSH.4OBS.v2"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
