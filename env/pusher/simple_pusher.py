@@ -58,47 +58,82 @@ class SimplePusherEnv(BaseEnv):
         return self._get_obs()
 
     @property
-    def manpulation_geom(self):
+    def manipulation_geom(self):
         return ['box']
+
+    @property
+    def manipulation_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
+
+    def visualize_goal_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
+        for body_name in self.body_names:
+            key = body_name + '-goal'
+            color = self._get_color(key)
+            color[-1] = 0.3
+            self._set_color(key, color)
+
+    def visualize_dummy_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_dummy_joint_pos_indexes] = qpos
+        for body_name in self.body_names:
+            key = body_name + '-dummy'
+            color = self._get_color(key)
+            color[-1] = 0.3
+            self._set_color(key, color)
+
+    def reset_visualized_indicator(self):
+        for body_name in self.body_names:
+            for postfix in ['-goal', '-dummy']:
+                key = body_name + postfix
+                color = self._get_color(key)
+                color[-1] = 0.
+                self._set_color(key, color)
+
+    @property
+    def body_names(self):
+        return ['body0', 'body1', 'body2', 'fingertip']
 
     @property
     def body_geoms(self):
         return ['root', 'link0', 'link1', 'link2', 'fingertip0', 'fingertip1', 'fingertip2']
 
     @property
+    def static_geoms(self):
+        return []
+
+    @property
     def agent_geoms(self):
         return self.body_geoms
 
-    def initialize_joints(self):
-        while True:
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
-            qpos[-4:-2] = self.goal
-            qpos[-2:] = self.box
-            self.set_state(qpos, self.sim.data.qvel.ravel())
-            if self.sim.data.ncon == 0:
-                break
+    @property
+    def agent_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.agent_geoms]
+
+    @property
+    def static_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
+        theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
                 self.sim.data.qpos.flat[-2:], # box qpos
-                self.sim.data.qvel.flat[:self.sim.model.nu],
+                self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
                 self.sim.data.qvel.flat[-2:], # box vel
-                self._get_pos('fingertip')
             ])),
-            ('goal', self.sim.data.qpos.flat[self.sim.model.nu:-2])
+            ('fingertip', self._get_pos('fingertip')[:-1]),
+            ('goal', self.sim.data.qpos.flat[-4:-2])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(16,), low=-1, high=1, dtype=np.float32)),
+            ('default', spaces.Box(shape=(13,), low=-1, high=1, dtype=np.float32)),
+            ('fingertip', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32)),
             ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
-
     @property
     def get_joint_positions(self):
         """
@@ -122,23 +157,28 @@ class SimplePusherEnv(BaseEnv):
         info = {}
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
+        reach_multi = 0.3
+        move_multi = 0.9
         if reward_type == 'dense':
-            reach_multi = 0.35
-            move_multi = 0.9
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
+            # reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
             reward_reach = -dist_box_to_gripper * reach_multi
-            reward_move = -self._get_distance('box', 'target') * move_multi
-            # reward_reach = (1-np.tanh(5.0*dist_box_to_gripper)) * reach_multi
-            # reward_move = (1-np.tanh(5.0*self._get_distance('box', 'target'))) * move_multi
+            reward_move  = -self._get_distance('box', 'target') * move_multi
+            # reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
             reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_move + reward_ctrl
 
             info = dict(reward_reach=reward_reach, reward_move=reward_move, reward_ctrl=reward_ctrl)
         else:
-            reward = -(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
+            reward_reach = -reach_multi*(dist_box_to_gripper > self._env_config['distance_threshold']).astype(np.float32)
+            reward_move = -move_multi*(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
+            reward = reward_reach + reward_move
+            info = dict(reward_reach=reward_reach, reward_move=reward_move)
 
         return reward, info
+
 
     def _step(self, action, is_planner=False):
         """
@@ -149,6 +189,7 @@ class SimplePusherEnv(BaseEnv):
 
         info = {}
         done = False
+
         if not is_planner or self._prev_state is None:
             self._prev_state = self.get_joint_positions
 
@@ -157,14 +198,15 @@ class SimplePusherEnv(BaseEnv):
         else:
             desired_state = self._prev_state + action
 
-        n_inner_loop = int(self._frame_dt/self.dt)
-        reward, info = self.compute_reward(action)
-        self.check_stage()
+        desired_state = self._prev_state + action # except for gripper action
 
+        n_inner_loop = int(self._frame_dt/self.dt)
+
+        reward, info = self.compute_reward(action)
         target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            action = self._get_control(desired_state, self._prev_state, target_vel)
-            self._do_simulation(action)
+            ac = self._get_control(desired_state, self._prev_state, target_vel)
+            self._do_simulation(ac)
 
         obs = self._get_obs()
         self._prev_state = np.copy(desired_state)
@@ -172,7 +214,7 @@ class SimplePusherEnv(BaseEnv):
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             self._success = True
             # done = True
-            if self._env_config['has_terminal']:
+            if self._kwargs['has_terminal']:
                 done = True
                 self._success = True
             else:

@@ -160,7 +160,6 @@ class PlannerRolloutRunner(object):
 
 
                     if pi.isValidState(target_qpos):
-                        curr_qpos = env.clip_qpos(curr_qpos)
                         traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                     else:
                         success = False
@@ -424,7 +423,6 @@ class PlannerRolloutRunner(object):
                         trial+=1
 
                 if pi.isValidState(target_qpos):
-                    curr_qpos = env.clip_qpos(curr_qpos)
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                 else:
                     success = False

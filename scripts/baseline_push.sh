@@ -1,32 +1,19 @@
 #!/bin/bash -x
-algo=$1
-gpu=$2
-seed=$3
+gpu=$1
+seed=$2
 
-if [ $algo = 1 ]
-then
-    algo='ppo'
-    rollout_length='1024'
-    evaluate_interval="10"
-    ckpt_interval='50'
-    rl_activation="tanh"
-    num_batches="50"
-    log_interval="1"
-elif [ $algo = 2 ]
-then
-    algo='sac'
-    rollout_length="10000"
-    evaluate_interval="1000"
-    ckpt_interval='100000'
-    rl_activation="relu"
-    num_batches="1"
-    log_interval="200"
-fi
+algo='sac'
+rollout_length="10000"
+evaluate_interval="1000"
+ckpt_interval='100000'
+rl_activation="relu"
+num_batches="1"
+log_interval="200"
 
 workers="1"
-prefix="BASELINE.SAC.PUSH.2OBS"
+prefix="BASELINE.SAC.PUSH.0OBS.scale.10"
 max_global_step="60000000"
-env="simple-pusher-obstacle-v0"
+env="simple-pusher-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="200"
@@ -45,7 +32,7 @@ actor_num_hid_layers='2'
 log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
-reward_scale='1.'
+reward_scale='10.'
 vis_replay="True"
 success_reward='150.'
 has_terminal='True'
