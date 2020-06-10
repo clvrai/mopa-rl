@@ -7,12 +7,12 @@ rollout_length="1000"
 evaluate_interval="1000"
 ckpt_interval='200000'
 rl_activation="relu"
-num_batches="1"
+num_batches="4"
 log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.REACH.SIMPLE.INTERPOLATION.adjust.clip.fix.joint.range"
+prefix="SAC.SAWYAER.REACH"
 max_global_step="60000000"
 env="sawyer-reach-robosuite-v0"
 rl_hid_size="256"
@@ -36,9 +36,10 @@ planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="rrt_connect"
 planner_objective="path_length"
-range="0.05"
+range="0.2"
+simple_planner_range="0.05"
 threshold="0.01"
-timelimit="2.0"
+timelimit="1.0"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
@@ -57,17 +58,18 @@ alpha='0.05'
 find_collision_free="True"
 use_double_planner="False"
 simple_planner_type='rrt_connect'
-simple_planner_timelimit="0.01"
+simple_planner_timelimit="0.04"
 sst_selection_radius="0.01"
 sst_pruning_radius="0.01"
-is_simplified="True"
+is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.01"
 vis_replay="False"
 use_interpolation="True"
 interpolate_type="simple"
-contact_threshold="-0.006"
+contact_threshold="-0.01"
+joint_margin="0.01"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -135,4 +137,5 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --use_interpolation $use_interpolation \
     --interpolate_type $interpolate_type \
-    --contact_threshold $contact_threshold
+    --contact_threshold $contact_threshold \
+    --joint_margin $joint_margin

@@ -88,9 +88,9 @@ def run(config):
 def make_log_files(config):
     now = datetime.now()
     date = now.strftime("%m.%d")
-    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+    config.run_name = 'rl.{}.{}.{}.{}'.format(config.env, date, config.prefix, config.seed)
     if config.group is None:
-        config.group = 'rl.{}.{}'.format(config.env, config.prefix)
+        config.group = 'rl.{}.{}.{}'.format(config.env, date, config.prefix)
 
     config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     logger.info('Create log directory: %s', config.log_dir)

@@ -10,17 +10,19 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx, planner_type=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, allow_approximate=False, is_simplified=False, simplified_duration=0.1):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx, planner_type=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, allow_approximate=False, is_simplified=False, simplified_duration=0.1, range_=None):
         self.config = config
         if planner_type is None:
             planner_type = config.planner_type
+        if range_ is None:
+            range_ = config.range
         self.planner = PyKinematicPlanner(xml_path.encode('utf-8'),
                                           planner_type.encode('utf-8'), num_actions,
                                           config.sst_selection_radius,
                                           config.sst_selection_radius,
                                           config.planner_objective.encode('utf-8'),
                                           config.threshold,
-                                          config.range,
+                                          range_,
                                           config.construct_time,
                                           passive_joint_idx,
                                           glue_bodies,

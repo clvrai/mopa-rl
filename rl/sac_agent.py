@@ -70,10 +70,10 @@ class SACAgent(BaseAgent):
         if config.planner_integration:
             self._planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.planner_type,
                                          passive_joint_idx=config.passive_joint_idx, ignored_contacts=config.ignored_contact_geom_ids[0],
-                                         is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate)
+                                         is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate, range_=config.range)
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.simple_planner_type,
                                                 passive_joint_idx=config.passive_joint_idx,
-                                                ignored_contacts=config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration)
+                                                ignored_contacts=config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration, range_=config.simple_planner_range)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 
@@ -118,6 +118,12 @@ class SACAgent(BaseAgent):
 
     # @profile
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
+        tmp_pos = curr_qpos.copy()
+        if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+self._config.joint_margin, self._jnt_maximum-self._config.joint_margin)
+            new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            curr_qpos = new_curr_qpos
+
         interpolation = True
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         if not success:
@@ -133,7 +139,7 @@ class SACAgent(BaseAgent):
                 if not exact:
                     traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
                     interpolation = False
-                    if self._config.use_interpolation:
+                    if self._config.use_interpolation and success:
                         new_traj = []
                         start = curr_qpos
                         for i in range(len(traj)):
@@ -158,11 +164,11 @@ class SACAgent(BaseAgent):
         return traj, success, interpolation, valid, exact
 
     def simple_interpolate(self, curr_qpos, target_qpos, ac_scale):
-        # tmp_pos = curr_qpos.copy()
-        # if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
-        #     new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+0.001, self._jnt_maximum-0.001)
-        #     new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
-        #     curr_qpos = new_curr_qpos
+        tmp_pos = curr_qpos.copy()
+        if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+self._config.joint_margin, self._jnt_maximum-self._config.joint_margin)
+            new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            curr_qpos = new_curr_qpos
 
         traj = []
         min_action = self._ac_space['default'].low[0] * ac_scale * 0.8
