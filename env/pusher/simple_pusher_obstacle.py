@@ -12,7 +12,7 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_pusher_obstacle.xml", **kwargs)
-        elf.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
+        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward']
@@ -231,6 +231,8 @@ class SimplePusherObstacleEnv(BaseEnv):
 
         reward, info = self.compute_reward(action)
         target_vel = (desired_state-self._prev_state) / self._frame_dt
+        import pdb
+        pdb.set_trace()
         for t in range(n_inner_loop):
             ac = self._get_control(desired_state, self._prev_state, target_vel)
             self._do_simulation(ac)
