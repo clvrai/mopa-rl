@@ -275,3 +275,8 @@ register(
     entry_point='env.robosuite:SawyerLiftEnv',
     kwargs={}
 )
+register(
+    id="sawyer-reach-v0",
+    entry_point="env.sawyer:SawyerReachEnv",
+    kwargs={}
+)

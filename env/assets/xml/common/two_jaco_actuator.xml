@@ -1,0 +1,22 @@
+<mujoco name="two_jaco_actuator">
+    <actuator>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_1'     name='Ajaco_r_joint_1' gear="15"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_2'     name='Ajaco_r_joint_2' gear="15"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_3'     name='Ajaco_r_joint_3' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_4'     name='Ajaco_r_joint_4' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_5'     name='Ajaco_r_joint_5' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_6'     name='Ajaco_r_joint_6' gear="2"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_finger_1'     name='Ajaco_r_joint_finger_1' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_finger_2'     name='Ajaco_r_joint_finger_2' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_r_joint_finger_3'     name='Ajaco_r_joint_finger_3' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_1'     name='Ajaco_l_joint_1' gear="15"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_2'     name='Ajaco_l_joint_2' gear="15"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_3'     name='Ajaco_l_joint_3' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_4'     name='Ajaco_l_joint_4' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_5'     name='Ajaco_l_joint_5' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_6'     name='Ajaco_l_joint_6' gear="2"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_finger_1'     name='Ajaco_l_joint_finger_1' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_finger_2'     name='Ajaco_l_joint_finger_2' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_l_joint_finger_3'     name='Ajaco_l_joint_finger_3' gear='10'/>
+    </actuator>
+</mujoco>

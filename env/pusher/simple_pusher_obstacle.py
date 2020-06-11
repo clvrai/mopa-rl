@@ -12,7 +12,7 @@ class SimplePusherObstacleEnv(BaseEnv):
 
     def __init__(self, **kwargs):
         super().__init__("simple_pusher_obstacle.xml", **kwargs)
-        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
+        elf.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
         self._env_config.update({
             'subgoal_reward': kwargs['subgoal_reward'],
             'success_reward': kwargs['success_reward']

@@ -7,7 +7,6 @@ import numpy as np
 from gym.spaces import Box
 import mujoco_py
 
-import metaworld.envs.mujoco.utils.rotation as mjrot
 
 ENV_ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 

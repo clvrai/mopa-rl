@@ -26,7 +26,7 @@ args._xml_path = env.xml_path
 
 N = 1
 frames = []
-action_scales = np.linspace(-0.1, 0.1, 9)
+action_scales = np.linspace(-env._ac_scale, env._ac_scale, 9)
 data = [[] for _ in range(len(env.ref_joint_pos_indexes))]
 for i, scale in enumerate(action_scales):
     ob = env.reset()

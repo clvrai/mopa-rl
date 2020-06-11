@@ -1,0 +1,19 @@
+<mujoco name="two_jaco_arena">
+    <!-- <geom name="ground" class="ground" pos="0 0 0" size="5 5 1"/> -->
+    <camera name="cam0" pos="1.5 0 1.45" quat="0.56 0.43 0.43 0.56" />
+    <light pos="0 0 5" dir="0 0 -1" castshadow="false" diffuse="1 1 1" />
+
+    <body name="jaco_r" childclass="vizNcollR" pos="-0.16 -0.16 1.2">
+        <include file="./common/jaco_r.xml" />
+    </body>
+    <body name="jaco_l" childclass="vizNcollL" pos="-0.16 0.24 1.2">
+        <include file="./common/jaco_l.xml" />
+    </body>
+
+    <body name="table" pos="0.16 0 0.4">
+        <inertial pos="0 0 0" mass="1024" diaginertia="109.227 109.227 109.227" />
+        <geom name="table_collision" size="0.8 0.8 0.4" type="box" rgba="0 0 0 0" />
+        <geom name="table_visual" size="0.8 0.8 0.4" type="box" contype="0" conaffinity="0" group="1" material="table_viz" />
+        <site name="table_top" pos="0 0 0.4" size="0.001" rgba="0 0 0 0" />
+    </body>
+</mujoco>

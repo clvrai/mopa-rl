@@ -1,0 +1,55 @@
+<mujoco name="two_jaco_macros">
+    <include file="./common/skybox.xml"/>
+    <include file="./common/materials.xml"/>
+
+    <compiler angle="radian" meshdir="../meshes/" />
+    <option timestep="0.002" gravity="0 0 -9.8" impratio="20" cone="elliptic" />
+    <size njmax="5000" nconmax="5000" />
+
+    <asset>
+        <texture file="../textures/light-wood.png" type="2d" name="tex-light-wood"/>
+        <texture file="../textures/dark-wood.png" type="2d" name="tex-dark-wood"/>
+        <texture builtin="checker" type="2d" rgb1="0.95 0.95 0.95" rgb2="0.85 0.85 0.85" name="table-grid" width="300" height="300" />
+        <material name="light-wood" reflectance="0.5" specular="0.5" shininess="0.1" texrepeat="15 15" texture="tex-light-wood" texuniform="true"/>
+        <material name="dark-wood" reflectance="0.5" specular="0.5" shininess="0.1" texrepeat="5 5" texture="tex-dark-wood" texuniform="true"/>
+
+        <mesh file="jaco_link_base.stl"/>
+        <mesh file="jaco_link_1.stl"/>
+        <mesh file="jaco_link_2.stl"/>
+        <mesh file="jaco_link_3.stl"/>
+        <mesh file="jaco_link_4.stl"/>
+        <mesh file="jaco_link_5.stl"/>
+        <mesh file="jaco_link_hand.stl"/>
+        <mesh file="jaco_link_finger_1.stl"/>
+        <mesh file="jaco_link_finger_2.stl"/>
+        <mesh file="jaco_link_finger_3.stl"/>
+
+        <material name="MatViz" specular="0.5" shininess=".1" reflectance="0.5" rgba=".07 .07 .1 1"/>
+        <material name="MatVizL" specular="0.5" shininess=".1" reflectance="0.5" rgba="0.8 0.8 0.8 1"/>
+        <material name="MatVizR" specular="0.5" shininess=".1" reflectance="0.5" rgba="0.2 0.2 0.2 1"/>
+        <material name="table_viz" specular="0.2" shininess=".1" reflectance="0.5" texture="table-grid" texuniform="false" texrepeat="8 8" />
+    </asset>
+
+    <default>
+        <geom margin="0.001"/>
+        <joint limited="true" damping="0.5" armature=".01"/>
+        <default class ="vizNcoll">
+            <geom material="MatViz" type="mesh" group="0" contype="1" conaffinity="0"/>
+            <joint pos="0 0 0" type="hinge"/>
+        </default>
+        <default class ="vizNcollL">
+            <geom material="MatVizL" type="mesh" group="0" contype="1" conaffinity="0"/>
+            <joint pos="0 0 0" type="hinge"/>
+        </default>
+        <default class ="vizNcollR">
+            <geom material="MatVizR" type="mesh" group="0" contype="1" conaffinity="0"/>
+            <joint pos="0 0 0" type="hinge"/>
+        </default>
+        <default class="viz">
+            <geom type="mesh" contype="0" conaffinity="0" group="1" margin="0.001" />
+        </default>
+        <default class ="ground">
+            <geom material="grid" type="plane" contype="1" conaffinity="1"/>
+        </default>
+    </default>
+</mujoco>

@@ -121,7 +121,7 @@ args.planner_type="rrt_connect"
 args.simple_planner_type="sst"
 args.planner_objective="path_length"
 # args.planner_objective="maximize_min_clearance"
-args.range = 0.1
+args.range = 0.01
 args.threshold = 0.01
 args.timelimit = 1.0
 args.construct_time = 10.
@@ -148,8 +148,8 @@ planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_id
 simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, goal_bias=1.0, is_simplified=False)
 
 
-N = 10
-is_save_video = True
+N = 1
+is_save_video = False
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
 min_action = env.action_space.spaces['default'].low[0] * env._ac_scale * 0.8  # assume equal for all
