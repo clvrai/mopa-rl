@@ -125,7 +125,10 @@ class SACAgent(BaseAgent):
             curr_qpos = new_curr_qpos
 
         interpolation = True
-        traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        if self._config.interpolate_type == 'planner':
+            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        else:
+            traj, success, valid, exact = self.simple_interpolate(curr_qpos, target_qpos, ac_scale)
         if not success:
             if self._config.allow_approximate:
                 if self._config.allow_invalid:
@@ -150,7 +153,7 @@ class SACAgent(BaseAgent):
                                     if inner_success:
                                         new_traj.extend(inner_traj)
                                 else:
-                                    inner_traj = self.simple_interpolate(start, traj[i], ac_scale)
+                                    inner_traj, _, _, _ = self.simple_interpolate(start, traj[i], ac_scale, use_planner=True)
                                     new_traj.extend(inner_traj)
                             else:
                                 new_traj.append(traj[i])
@@ -163,7 +166,10 @@ class SACAgent(BaseAgent):
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         return traj, success, interpolation, valid, exact
 
-    def simple_interpolate(self, curr_qpos, target_qpos, ac_scale):
+    def simple_interpolate(self, curr_qpos, target_qpos, ac_scale, use_planner=False):
+        success = True
+        exact = True
+
         tmp_pos = curr_qpos.copy()
         if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
             new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+self._config.joint_margin, self._jnt_maximum-self._config.joint_margin)
@@ -182,7 +188,10 @@ class SACAgent(BaseAgent):
 
 
         scales = np.where(out_diff > max_action, out_diff/max_action, out_diff/min_action)
-        scaling_factor = max(max(scales), 1.)
+        if len(scales) == 0:
+            scaling_factor = 1.
+        else:
+            scaling_factor = max(max(scales), 1.)
         scaled_ac = diff[:len(self._ref_joint_pos_indexes)]
 
         valid = True
@@ -193,16 +202,20 @@ class SACAgent(BaseAgent):
                 valid = False
                 break
             traj.append(interp_qpos.copy())
-        if not valid:
+
+        if not valid and use_planner:
             traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
             if not success:
                 traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
                 if not success:
                     traj = [target_qpos]
         else:
+            if not valid:
+                success = False
+                exact = False
             traj.append(target_qpos)
 
-        return np.array(traj)
+        return np.array(traj), success, valid, exact
 
 
     def state_dict(self):

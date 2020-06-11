@@ -51,6 +51,24 @@ class SawyerEnv(BaseEnv):
         self._i_term = None
 
     @property
+    def action_spec(self):
+        """
+        Action lower/upper limits per dimension.
+        """
+        low = np.ones(self.dof) * -1.
+        high = np.ones(self.dof) * 1.
+        return low, high
+
+    @property
+    def observation_space(self):
+        observation = self._get_obs()
+        observation_space = OrderedDict()
+        for k, v in observation.items():
+            observation_space[k] = spaces.Box(low=-1., high=1, shape=v.shape)
+        observation_space = spaces.Dict(observation_space)
+        return observation_space
+
+    @property
     def robot_joints(self):
         return ["right_j{}".format(x) for x in range(7)]
 

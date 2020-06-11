@@ -16,21 +16,35 @@ class SawyerReachEnv(SawyerEnv):
     def _get_reference(self):
         super()._get_reference()
 
-        ind_qpos = (self.sim.model.get_joint_qpos_addr("target_x"), self.sim.model.get_joint_qpos_addr('target_z'))
-        self._ref_target_pos_low, self._ref_target_pos_high = ind_qpos
-
-        ind_qvel = (self.sim.model.get_joint_qvel_addr("target_x"), self.sim.model.get_joint_qvel_addr('target_z'))
-        self._ref_target_vel_low, self._ref_target_vel_high = ind_qvel
+        self.ref_target_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x) for x in ['target_x', 'target_y', 'target_z']
+        ]
+        self.ref_target_vel_indexes = [
+            self.sim.model.get_joint_qvel_addr(x) for x in ['target_x', 'target_y', 'target_z']
+        ]
 
         self.target_id = self.sim.model.body_name2id("target")
 
+
+    def _reset(self):
+        init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+        init_target_qpos = np.array([0.6, 0.0, 1.2])
+        init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
+        self.goal = init_target_qpos
+        self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+        self.sim.forward()
+
+        return self._get_obs()
 
     def compute_reward(self, action):
         info = {}
         reward = 0
 
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        target_pos = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1]
+        target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
         dist = np.linalg.norm(target_pos-gripper_site_pos)
         reward_reach = -dist
         reward += reward_reach
@@ -44,8 +58,12 @@ class SawyerReachEnv(SawyerEnv):
 
     def _get_obs(self):
         di = super()._get_obs()
-        di['target'] = self.sim.data.qpos[self._ref_target_pos_low:self._ref_target_pos_high+1]
+        di['target'] = self.sim.data.qpos[self.ref_target_pos_indexes]
         return di
+
+    @property
+    def static_geom_ids(self):
+        return []
 
     def _step(self, action, is_planner=False):
         """
@@ -71,6 +89,12 @@ class SawyerReachEnv(SawyerEnv):
         n_inner_loop = int(self._frame_dt/self.dt)
         for _ in range(n_inner_loop):
             self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
+            self.sim.data.qfrc_applied[
+                self.ref_target_vel_indexes
+            ] = self.sim.data.qfrc_bias[
+                self.ref_target_vel_indexes
+            ]
+
             if self.use_robot_indicator:
                 self.sim.data.qfrc_applied[
                     self.ref_indicator_joint_pos_indexes

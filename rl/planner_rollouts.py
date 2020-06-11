@@ -539,14 +539,14 @@ class PlannerRolloutRunner(object):
                                 env._episode_reward)
 
         geom_colors = {}
-        if planner:
-            for geom_idx in env.agent_geom_ids:
-                color = env.sim.model.geom_rgba[geom_idx]
-                geom_colors[geom_idx] = color.copy()
-                color[0] = 0.0
-                color[1] = 0.6
-                color[2] = 0.4
-                env.sim.model.geom_rgba[geom_idx] = color
+        # if planner:
+        #     for geom_idx in env.agent_geom_ids:
+        #         color = env.sim.model.geom_rgba[geom_idx]
+        #         geom_colors[geom_idx] = color.copy()
+        #         color[0] = 0.0
+        #         color[1] = 0.6
+        #         color[2] = 0.4
+        #         env.sim.model.geom_rgba[geom_idx] = color
 
         frame = env.render('rgb_array') * 255.0
 
