@@ -231,8 +231,6 @@ class SimplePusherObstacleEnv(BaseEnv):
 
         reward, info = self.compute_reward(action)
         target_vel = (desired_state-self._prev_state) / self._frame_dt
-        import pdb
-        pdb.set_trace()
         for t in range(n_inner_loop):
             ac = self._get_control(desired_state, self._prev_state, target_vel)
             self._do_simulation(ac)

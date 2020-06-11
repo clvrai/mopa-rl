@@ -14,6 +14,8 @@
     <worldbody>
         <light mode='targetbodycom' target='torso' directional='false' diffuse='.8 .8 .8' specular='0.3 0.3 0.3' pos='0 0 4.0' dir='0 0 -1'/>
         <include file="./common/sawyer_chain.xml"/> <!--gripper is attached & configured here -->
+        <include file="./common/sawyer_indicator_chain.xml"/>
+        <include file="./common/sawyer_target_chain.xml"/>
     </worldbody>
 
     <!-- Choose actuator options -->

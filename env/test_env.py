@@ -38,7 +38,7 @@ env.reset_visualized_indicator()
 while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()
-    # action = np.ones(env.dof)
+    action = np.ones(env.dof)
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
     # env.set_robot_indicator_joint_positions(qpos)
     obs, reward, done, _ = env.step(action)

@@ -43,6 +43,8 @@ class SawyerEnv(BaseEnv):
         jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
+        self.use_robot_indicator = kwargs["use_robot_indicator"]
+        self.use_target_robot_indicator = kwargs["use_target_robot_indicator"]
         self._is_jnt_limited = is_jnt_limited
 
         self._prev_state = None
@@ -55,6 +57,22 @@ class SawyerEnv(BaseEnv):
     @property
     def robot_bodies(self):
         return ["right_l{}".format(x) for x in range(7)]
+
+    @property
+    def robot_indicator_joints(self):
+        return ["right_j{}_indicator".format(x) for x in range(7)]
+
+    @property
+    def robot_indicator_bodies(self):
+        return ["right_l{}_indicator".format(x) for x in range(7)]
+
+    @property
+    def target_robot_indicator_joints(self):
+        return ["right_j{}_target".format(x) for x in range(7)]
+
+    @property
+    def target_robot_indicator_bodies(self):
+        return ["right_l{}_target".format(x) for x in range(7)]
 
     @property
     def init_qpos(self):
@@ -87,24 +105,21 @@ class SawyerEnv(BaseEnv):
     def _get_reference(self):
         super()._get_reference()
 
-        # indices for joints in qpos, qvel
-        # if self.use_robot_indicator:
-        #     self.robot_indicator_joints = list(self.mujoco_robot_indicator.joints)
-        #     self.ref_indicator_joint_pos_indexes = [
-        #         self.sim.model.get_joint_qpos_addr(x) for x in self.robot_indicator_joints
-        #     ]
-        #     self.ref_indicator_joint_vel_indexes = [
-        #         self.sim.model.get_joint_qvel_addr(x) for x in self.robot_indicator_joints
-        #     ]
-        #
-        # if self.use_target_robot_indicator:
-        #     self.target_robot_indicator_joints = list(self.mujoco_target_robot_indicator.joints)
-        #     self.ref_target_indicator_joint_pos_indexes = [
-        #         self.sim.model.get_joint_qpos_addr(x) for x in self.target_robot_indicator_joints
-        #     ]
-        #     self.ref_target_indicator_joint_vel_indexes = [
-        #         self.sim.model.get_joint_qvel_addr(x) for x in self.target_robot_indicator_joints
-        #     ]
+        if self.use_robot_indicator:
+            self.ref_indicator_joint_pos_indexes = [
+                self.sim.model.get_joint_qpos_addr(x) for x in self.robot_indicator_joints
+            ]
+            self.ref_indicator_joint_vel_indexes = [
+                self.sim.model.get_joint_qvel_addr(x) for x in self.robot_indicator_joints
+            ]
+
+        if self.use_target_robot_indicator:
+            self.ref_target_indicator_joint_pos_indexes = [
+                self.sim.model.get_joint_qpos_addr(x) for x in self.target_robot_indicator_joints
+            ]
+            self.ref_target_indicator_joint_vel_indexes = [
+                self.sim.model.get_joint_qvel_addr(x) for x in self.target_robot_indicator_joints
+            ]
 
         self.ref_joint_pos_indexes = [
             self.sim.model.get_joint_qpos_addr(x) for x in self.robot_joints
@@ -113,14 +128,6 @@ class SawyerEnv(BaseEnv):
             self.sim.model.get_joint_qvel_addr(x) for x in self.robot_joints
         ]
 
-        # if self.use_indicator_object:
-        #     ind_qpos = self.sim.model.get_joint_qpos_addr("pos_indicator")
-        #     self._ref_indicator_pos_low, self._ref_indicator_pos_high = ind_qpos
-        #
-        #     ind_qvel = self.sim.model.get_joint_qvel_addr("pos_indicator")
-        #     self._ref_indicator_vel_low, self._ref_indicator_vel_high = ind_qvel
-        #
-        #     self.indicator_id = self.sim.model.body_name2id("pos_indicator")
 
         # indices for grippers in qpos, qvel
         self.ref_gripper_joint_pos_indexes = [
@@ -170,11 +177,10 @@ class SawyerEnv(BaseEnv):
         self.sim.forward()
 
     def reset_visualized_indicator(self):
-        # for idx in self.indicator_agent_geom_ids + self.target_indicator_agent_geom_ids:
-        #     color = self.sim.model.geom_rgba[idx]
-        #     color[-1] = 0.
-        #     self.sim.model.geom_rgba[idx] = color
-        pass
+        for idx in self.indicator_agent_geom_ids + self.target_indicator_agent_geom_ids:
+            color = self.sim.model.geom_rgba[idx]
+            color[-1] = 0.
+            self.sim.model.geom_rgba[idx] = color
 
     @property
     def agent_geom_ids(self):
@@ -187,6 +193,36 @@ class SawyerEnv(BaseEnv):
             if body_id in body_ids:
                 geom_ids.append(geom_id)
         return geom_ids
+
+    @property
+    def target_indicator_agent_geom_ids(self):
+        if self.use_target_robot_indicator:
+            body_ids = []
+            for body_name in self.target_robot_indicator_bodies:
+                body_ids.append(self.sim.model.body_name2id(body_name))
+
+            geom_ids = []
+            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+                if body_id in body_ids:
+                    geom_ids.append(geom_id)
+            return geom_ids
+        else:
+            return []
+
+    @property
+    def indicator_agent_geom_ids(self):
+        if self.use_robot_indicator:
+            body_ids = []
+            for body_name in self.robot_indicator_bodies:
+                body_ids.append(self.sim.model.body_name2id(body_name))
+
+            geom_ids = []
+            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+                if body_id in body_ids:
+                    geom_ids.append(geom_id)
+            return geom_ids
+        else:
+            return []
 
     def form_action(self, next_qpos, curr_qpos=None):
         if curr_qpos is None:
@@ -256,8 +292,23 @@ class SawyerEnv(BaseEnv):
         arm_action = desired_state
         gripper_action = self._gripper_format_action(np.array([action[-1]]))
         converted_action = np.concatenate([arm_action, gripper_action])
-        self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
-        for _ in range(300):
+
+        n_inner_loop = int(self._frame_dt/self.dt)
+        for _ in range(n_inner_loop):
+            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
+            if self.use_robot_indicator:
+                self.sim.data.qfrc_applied[
+                    self.ref_indicator_joint_pos_indexes
+                ] = self.sim.data.qfrc_bias[
+                    self.ref_indicator_joint_pos_indexes
+                ].copy()
+
+            if self.use_target_robot_indicator:
+                self.sim.data.qfrc_applied[
+                    self.ref_target_indicator_joint_pos_indexes
+                ] = self.sim.data.qfrc_bias[
+                    self.ref_target_indicator_joint_pos_indexes
+                ].copy()
             self._do_simulation(converted_action)
 
         self._prev_state = np.copy(desired_state)

@@ -67,15 +67,23 @@ class SawyerReachEnv(SawyerEnv):
         arm_action = desired_state
         gripper_action = self._gripper_format_action(np.array([action[-1]]))
         converted_action = np.concatenate([arm_action, gripper_action])
-        self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
-        self.sim.data.qfrc_applied[
-            self._ref_target_vel_low : self._ref_target_vel_high+1
-        ] = self.sim.data.qfrc_bias[
-            self._ref_target_vel_low : self._ref_target_vel_high+1
-        ]
 
         n_inner_loop = int(self._frame_dt/self.dt)
         for _ in range(n_inner_loop):
+            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
+            if self.use_robot_indicator:
+                self.sim.data.qfrc_applied[
+                    self.ref_indicator_joint_pos_indexes
+                ] = self.sim.data.qfrc_bias[
+                    self.ref_indicator_joint_pos_indexes
+                ].copy()
+
+            if self.use_target_robot_indicator:
+                self.sim.data.qfrc_applied[
+                    self.ref_target_indicator_joint_pos_indexes
+                ] = self.sim.data.qfrc_bias[
+                    self.ref_target_indicator_joint_pos_indexes
+                ].copy()
             self._do_simulation(converted_action)
 
         self._prev_state = np.copy(desired_state)

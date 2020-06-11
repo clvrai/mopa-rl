@@ -16,7 +16,7 @@ def add_arguments(parser):
     parser.add_argument("--screen_height", type=int, default=500,
                         help="height of camera image")
     parser.add_argument("--camera_depth", type=str2bool, default=False)
-    parser.add_argument("--camera_name", type=str, default="topview")
+    parser.add_argument("--camera_name", type=str, default="frontview")
 
     # observations
     parser.add_argument("--robot_ob", type=str2bool, default=True,
@@ -33,7 +33,9 @@ def add_arguments(parser):
     parser.add_argument("--kp", type=float, default=40.)  # 150.)
     parser.add_argument("--kd", type=float, default=8.0)  # 20.)
     parser.add_argument("--ki", type=float, default=0.)  # 0.1)
-    parser.add_argument("--frame_dt", type=float, default=0.5)  # 0.1)
+    parser.add_argument("--frame_dt", type=float, default=0.4)  # 0.1)
+    parser.add_argument("--use_robot_indicator", type=str2bool, default=True)
+    parser.add_argument("--use_target_robot_indicator", type=str2bool, default=True)
 
 def get_default_config():
     """

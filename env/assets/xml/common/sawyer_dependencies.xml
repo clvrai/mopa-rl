@@ -41,9 +41,36 @@
                 <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.5 0.1 0.1 1"/>
             </default>
 
+            <default class='sawyer_col_indicator'>
+                <geom rgba=".4 .5 .6 0.2" group="0" contype="0" conaffinity="0"/>
+            </default>
+            <default class='sawyer_viz_indicator'>
+                <geom type="mesh" contype="0" conaffinity="0" group="0" rgba="0.5 0.1 0.1 0.2"/>
+            </default>
+
+            <default class='sawyer_col_target'>
+                <geom rgba=".6 .5 .1 0.2" group="0" contype="0" conaffinity="0"/>
+            </default>
+            <default class='sawyer_viz_target'>
+                <geom type="mesh" contype="0" conaffinity="0" group="0" rgba="0.5 0.1 0.1 0.2"/>
+            </default>
+
+
             <default class='sawyer_gripper'>
                 <joint damping="100" armature='5'/>
                 <geom friction="1 0.5 0.001" rgba=".7 .6 .55 1" contype="2" conaffinity="2" condim="6" group="1"/>
+                <position kp="500" forcerange="-70 70"/>
+            </default>
+
+            <default class='sawyer_gripper_indicator'>
+                <joint damping="100" armature='5'/>
+                <geom friction="1 0.5 0.001" rgba=".7 .6 .55 2" contype="0" conaffinity="0" condim="6" group="0"/>
+                <position kp="500" forcerange="-70 70"/>
+            </default>
+
+            <default class='sawyer_gripper_target'>
+                <joint damping="100" armature='5'/>
+                <geom friction="1 0.5 0.001" rgba="0.6 0.5 0.1 0.2" contype="0" conaffinity="0" condim="6" group="0"/>
                 <position kp="500" forcerange="-70 70"/>
             </default>
         </default>
