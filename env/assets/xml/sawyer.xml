@@ -1,0 +1,3 @@
+<mujoco model="sawyer">
+    <include file="./common/sawyer.xml" />
+</mujoco>
