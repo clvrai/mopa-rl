@@ -33,13 +33,19 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
         if self._kwargs['task_level'] == 'easy':
             init_target_qpos = np.array([0.6, 0.0, 1.2])
             init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
+            self.sim.data.qpos[self.ref_target_pos_indexes] = init_target_qpos
+            self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+            self.sim.forward()
+            self.goal = init_target_qpos
         else:
-            init_target_qpos = np.random.uniform(low=[0.5, -0.3, 0.9], high=[0.8, 0.3, 1.3])
-
-        self.goal = init_target_qpos
-        self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
-        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        self.sim.forward()
+            while True:
+                init_target_qpos = np.random.uniform(low=[0.5, -0.3, 0.9], high=[0.8, 0.3, 1.3])
+                self.sim.data.qpos[self.ref_target_pos_indexes] = init_target_qpos
+                self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+                self.sim.forward()
+                if self.sim.data.ncon == 0:
+                    self.goal = init_target_qpos
+                    break
 
         return self._get_obs()
 
