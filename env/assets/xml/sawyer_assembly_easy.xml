@@ -1,0 +1,33 @@
+<mujoco model="sawyer_lift">
+    <asset>
+    <texture file="../robosuite/textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true" />
+    </asset>
+    <include file="./common/sawyer.xml" />
+    <default>
+    </default>
+    <worldbody>
+        <body name="table" pos="0.56 0.0 0.41">
+          <geom friction="1 0.005 0.0001" name="table_collision" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
+          <!-- <geom conaffinity="0" contype="0" group="1" name="table_visual" pos="0 0 0" size="0.4 0.4 0.41" type="box" /> -->
+          <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
+          <site name="table_top" pos="0.0 0.0 0.41" rgba="0 0 0 0" size="0.001 0.001 0.001" />
+        </body>
+        <body name="peg1" pos="0.73 0.1 0.85">
+          <geom friction="1 0.005 0.0001" pos="0 0 0" size="0.016 0.016 0.1" type="box" />
+          <geom conaffinity="0" contype="0" group="1" pos="0 0 0" rgba="0.3 0.3 1 1" size="0.016 0.016 0.1" type="box" />
+        </body>
+        <!-- <body name="peg2" pos="0.73 &#45;0.09999999999999999 0.85"> -->
+        <!--   <geom friction="1 0.005 0.0001" pos="0 0 0" size="0.02 0.1" type="cylinder" /> -->
+        <!--   <geom conaffinity="0" contype="0" group="1" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.1" type="cylinder" /> -->
+        <!-- </body> -->
+        <body name="SquareNut0" pos="0.4699213999325916 0.18710180697349538 0.8910003370966324" quat="0.732868912082851 0 0 0.680369868308774">
+            <geom condim="4" density="100" friction="0.95 0.3 0.2" group="1" name="SquareNut0-0" pos="-0.03325 0 0" rgba="0 0 1 1" size="0.0105 0.04375 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-1" pos="0.0 0.03325 0" rgba="0 0 1 1" size="0.03125 0.0105 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-2" pos="0.0 -0.03325 0" rgba="0 0 1 1" size="0.03125 0.0105 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-3" pos="0.03325 0 0" rgba="0 0 1 1" size="0.0105 0.04375 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-4" pos="0.054 0 0" rgba="0 0 1 1" size="0.02525 0.015875 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <site name="SquareNut0" pos="0 0 0" rgba="1 0 0 0" size="0.002 0.002 0.002" type="sphere" /><joint damping="0.0005" name="SquareNut0" type="free" />
+        </body>
+    </worldbody>
+</mujoco>
