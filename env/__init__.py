@@ -280,3 +280,9 @@ register(
     entry_point="env.sawyer:SawyerReachEnv",
     kwargs={}
 )
+
+register(
+    id="sawyer-reach-obstacle-v0",
+    entry_point="env.sawyer:SawyerReachObstacleEnv",
+    kwargs={}
+)

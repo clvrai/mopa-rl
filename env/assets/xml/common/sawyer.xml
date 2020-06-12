@@ -12,7 +12,9 @@
     <include file="./common/sawyer_dependencies.xml"/>
     <include file="./common/basic_scene.xml"/>
     <worldbody>
-        <light mode='targetbodycom' target='torso' directional='false' diffuse='.8 .8 .8' specular='0.3 0.3 0.3' pos='0 0 4.0' dir='0 0 -1'/>
+        <!-- <light mode='targetbodycom' target='torso' directional='false' diffuse='.8 .8 .8' specular='0.3 0.3 0.3' pos='0 0 4.0' dir='0 0 &#45;1'/> -->
+        <!-- <light castshadow="false" diffuse=".8 .8 .8" dir="0 &#45;.15 &#45;1" directional="false" pos="1.56 1.0 4.0" specular="0.3 0.3 0.3" /> -->
+        <!-- <light castshadow="false" diffuse=".8 .8 .8" dir="0 &#45;.15 &#45;1" directional="false" pos="&#45;2.44 &#45;3.0 4.0" specular="0.3 0.3 0.3" /> -->
         <include file="./common/sawyer_chain.xml"/> <!--gripper is attached & configured here -->
         <include file="./common/sawyer_indicator_chain.xml"/>
         <include file="./common/sawyer_target_chain.xml"/>

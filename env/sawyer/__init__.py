@@ -1,1 +1,2 @@
 from env.sawyer.sawyer_reach import SawyerReachEnv
+from env.sawyer.sawyer_reach_obstacle import SawyerReachObstacleEnv
