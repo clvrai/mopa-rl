@@ -179,20 +179,22 @@ class SawyerEnv(BaseEnv):
         # self.eef_cylinder_id = self.sim.model.site_name2id("grip_site_cylinder")
 
     def visualize_goal_indicator(self, qpos):
-        self.sim.data.qpos[self.ref_target_indicator_joint_pos_indexes] = qpos
-        for idx in self.target_indicator_agent_geom_ids:
-            color = self.sim.model.geom_rgba[idx]
-            color[-1] = 0.3
-            self.sim.model.geom_rgba[idx] = color
-        self.sim.forward()
+        if self.use_target_robot_indicator:
+            self.sim.data.qpos[self.ref_target_indicator_joint_pos_indexes] = qpos
+            for idx in self.target_indicator_agent_geom_ids:
+                color = self.sim.model.geom_rgba[idx]
+                color[-1] = 0.3
+                self.sim.model.geom_rgba[idx] = color
+            self.sim.forward()
 
     def visualize_dummy_indicator(self, qpos):
-        self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
-        for idx in self.indicator_agent_geom_ids:
-            color = self.sim.model.geom_rgba[idx]
-            color[-1] = 0.3
-            self.sim.model.geom_rgba[idx] = color
-        self.sim.forward()
+        if self.use_robot_indicator:
+            self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
+            for idx in self.indicator_agent_geom_ids:
+                color = self.sim.model.geom_rgba[idx]
+                color[-1] = 0.3
+                self.sim.model.geom_rgba[idx] = color
+            self.sim.forward()
 
     def reset_visualized_indicator(self):
         for idx in self.indicator_agent_geom_ids + self.target_indicator_agent_geom_ids:

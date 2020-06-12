@@ -286,3 +286,9 @@ register(
     entry_point="env.sawyer:SawyerReachObstacleEnv",
     kwargs={}
 )
+
+register(
+    id="sawyer-reach-float-obstacle-v0",
+    entry_point="env.sawyer:SawyerReachFloatObstacleEnv",
+    kwargs={}
+)

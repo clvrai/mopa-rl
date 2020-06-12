@@ -11,9 +11,9 @@ num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAWYER.REACH.target.lg.random.scale.10"
+prefix="BASELINE.scale.10"
 max_global_step="60000000"
-env="sawyer-reach-v0"
+env="sawyer-reach-float-obstacle-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="1000"

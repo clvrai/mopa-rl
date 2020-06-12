@@ -1,2 +1,3 @@
 from env.sawyer.sawyer_reach import SawyerReachEnv
 from env.sawyer.sawyer_reach_obstacle import SawyerReachObstacleEnv
+from env.sawyer.sawyer_reach_float_obstacle import SawyerReachFloatObstacleEnv
