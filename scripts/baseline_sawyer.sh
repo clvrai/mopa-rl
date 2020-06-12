@@ -11,7 +11,7 @@ num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAWYER.REACH.REW.SCALE.10"
+prefix="BASELINE.SAWYER.REACH.target.lg.random.scale.10"
 max_global_step="60000000"
 env="sawyer-reach-v0"
 gpu=$gpu
@@ -29,11 +29,13 @@ reward_type='dense'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 reward_scale='10.'
 vis_replay="False"
+task_level='hard'
 # success_reward='0.'
 # has_terminal='True'
 # max_grad_norm='0.5'
@@ -71,5 +73,6 @@ python -m rl.main \
     --log_interval $log_interval \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
+    --task_level $task_level
     # --success_reward $success_reward \
     # --has_terminal $has_terminal \
