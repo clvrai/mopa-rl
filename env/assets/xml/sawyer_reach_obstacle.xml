@@ -12,16 +12,16 @@
           <site name="table_top" pos="0.0 0.0 0.41" rgba="0 0 0 0" size="0.001 0.001 0.001" />
         </body>
 
-        <body name="obstacle1" pos="0.7100000000000001 0.25 0.4">
+        <body name="obstacle1" pos="0.81 0.3 0.4">
             <geom class="obstacle" name="obstacle1_geom" size="0.03 1.2" type="cylinder" />
         </body>
-        <body name="obstacle2" pos="0.41000000000000003 -0.15 0.4">
+        <body name="obstacle2" pos="0.35 -0.2 0.4">
             <geom class="obstacle" name="obstacle2_geom" size="0.03 1.2" type="cylinder" />
         </body>
-        <body name="obstacle3" pos="0.7100000000000001 -0.2 0.4">
+        <body name="obstacle3" pos="0.71 -0.3 0.4">
             <geom class="obstacle" name="obstacle3_geom" size="0.03 1.2" type="cylinder" />
         </body>
-        <body name="obstacle4" pos="0.31000000000000005 0.25 0.4">
+        <body name="obstacle4" pos="0.31 0.35 0.4">
             <geom class="obstacle" name="obstacle4_geom" size="0.03 1.2" type="cylinder" />
         </body>
         <body name="target" pos="0.6 0.0 1.2">
