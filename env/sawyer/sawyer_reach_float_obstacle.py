@@ -27,7 +27,7 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
 
     @property
     def init_qpos(self):
-        return [0.457, -0.063, 0.0679, 0.12, -0.0666, -0.0258, 0.00214]
+        return np.array([0.457, -0.063, 0.0679, 0.12, -0.0666, -0.0258, 0.00214])
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
@@ -76,7 +76,7 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
 
     @property
     def static_geoms(self):
-        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
+        return ['obstacle1_geom', 'obstacle2_geom']
 
     @property
     def static_geom_ids(self):
