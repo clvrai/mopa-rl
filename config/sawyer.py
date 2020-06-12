@@ -36,6 +36,7 @@ def add_arguments(parser):
     parser.add_argument("--frame_dt", type=float, default=0.4)  # 0.1)
     parser.add_argument("--use_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--use_target_robot_indicator", type=str2bool, default=True)
+    parser.add_argument("--task_level", type=str, default='easy')
 
 def get_default_config():
     """

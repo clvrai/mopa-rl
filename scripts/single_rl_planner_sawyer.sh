@@ -70,6 +70,7 @@ use_interpolation="True"
 interpolate_type="simple"
 contact_threshold="-0.01"
 joint_margin="0.01"
+task_level='easy'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -138,4 +139,5 @@ python -m rl.main \
     --use_interpolation $use_interpolation \
     --interpolate_type $interpolate_type \
     --contact_threshold $contact_threshold \
-    --joint_margin $joint_margin
+    --joint_margin $joint_margin \
+    --task_level $task_level
