@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.REACH"
+prefix="SAC.SAWYAER.REACH.target.lg.random"
 max_global_step="60000000"
 env="sawyer-reach-v0"
 rl_hid_size="256"
@@ -29,7 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -70,7 +71,7 @@ use_interpolation="True"
 interpolate_type="simple"
 contact_threshold="-0.01"
 joint_margin="0.01"
-task_level='easy'
+task_level='hard'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
