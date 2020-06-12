@@ -76,7 +76,7 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
 
     @property
     def static_geoms(self):
-        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
+        return ['obstacle1_geom', 'obstacle2_geom']
 
     @property
     def static_geom_ids(self):
