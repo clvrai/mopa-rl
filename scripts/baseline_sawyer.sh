@@ -11,7 +11,7 @@ num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAWYER.REACH"
+prefix="BASELINE.SAWYER.REACH.REW.SCALE.10"
 max_global_step="60000000"
 env="sawyer-reach-v0"
 gpu=$gpu
@@ -32,7 +32,7 @@ actor_num_hid_layers='2'
 log_root_dir="/data/jun/projects/hrl-planner/logs"
 env_debug='False'
 log_freq='1000'
-reward_scale='1.'
+reward_scale='10.'
 vis_replay="False"
 # success_reward='0.'
 # has_terminal='True'
