@@ -8,10 +8,10 @@
     <worldbody>
 
         <body name="obstacle1" pos="0.81 -0.05 0.7">
-            <geom class="obstacle" name="obstacle1_geom" size="0.15 0.15 0.14" type="box" />
+            <geom class="obstacle" name="obstacle1_geom" size="0.01 0.05 0.14" type="box" />
         </body>
         <body name="obstacle2" pos="0.55 0.0 1.3">
-            <geom class="obstacle" name="obstacle2_geom" size="0.1 0.1 0.2" type="box" />
+            <geom class="obstacle" name="obstacle2_geom" size="0.01 0.05 0.25" type="box" />
         </body>
 
         <!-- <body name="obstacle3" pos="0.61 &#45;0.3 0.8"> -->
