@@ -30,8 +30,12 @@ class SawyerReachObstacleEnv(SawyerEnv):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        init_target_qpos = np.array([0.6, 0.0, 1.2])
-        init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
+        if self._kwargs['task_level'] == 'easy':
+            init_target_qpos = np.array([0.6, 0.0, 1.2])
+            init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
+        else:
+            init_target_qpos = np.random.uniform(low=[0.5, -0.3, 0.9], high=[0.8, 0.3, 1.3])
+
         self.goal = init_target_qpos
         self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
@@ -62,8 +66,13 @@ class SawyerReachObstacleEnv(SawyerEnv):
         return di
 
     @property
+    def static_geoms(self):
+        return ['table_collision', 'obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
+
+    @property
     def static_geom_ids(self):
-        return []
+        #  table_collision, obstacle1~4
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
 
     def _step(self, action, is_planner=False):
         """
