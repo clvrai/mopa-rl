@@ -43,7 +43,7 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
                 self.sim.data.qpos[self.ref_target_pos_indexes] = init_target_qpos
                 self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
                 self.sim.forward()
-                if self.sim.data.ncon == 0:
+                if not self.on_collision('target'):
                     self.goal = init_target_qpos
                     break
 
