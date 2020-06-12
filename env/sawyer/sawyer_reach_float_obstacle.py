@@ -25,13 +25,16 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
 
         self.target_id = self.sim.model.body_name2id("target")
 
+    @property
+    def init_qpos(self):
+        return [0.457, -0.063, 0.0679, 0.12, -0.0666, -0.0258, 0.00214]
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         if self._kwargs['task_level'] == 'easy':
-            init_target_qpos = np.array([0.6, 0.0, 1.2])
+            init_target_qpos = np.array([0.6, -0.6, 1.2])
             init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
             self.sim.data.qpos[self.ref_target_pos_indexes] = init_target_qpos
             self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
@@ -39,7 +42,7 @@ class SawyerReachFloatObstacleEnv(SawyerEnv):
             self.goal = init_target_qpos
         else:
             while True:
-                init_target_qpos = np.random.uniform(low=[0.5, -0.3, 0.9], high=[0.8, 0.3, 1.3])
+                init_target_qpos = np.random.uniform(low=[0.5, -0.6, 0.9], high=[0.8, 0.0, 1.3])
                 self.sim.data.qpos[self.ref_target_pos_indexes] = init_target_qpos
                 self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
                 self.sim.forward()
