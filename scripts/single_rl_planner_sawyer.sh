@@ -12,9 +12,9 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.level.hard.scale.3"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.level.easy.scale.5.last_rew"
 max_global_step="60000000"
-env="sawyer-reach-float-obstacle-v0"
+env="sawyer-reach-v0"
 rl_hid_size="256"
 max_episode_step="1000"
 entropy_loss_coef="1e-3"
@@ -42,7 +42,7 @@ simple_planner_range="0.1"
 threshold="0.01"
 timelimit="0.5"
 allow_manipulation_collision="True"
-reward_scale="3.0"
+reward_scale="5.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
@@ -71,7 +71,8 @@ use_interpolation="True"
 interpolate_type="simple"
 contact_threshold="-0.01"
 joint_margin="0.01"
-task_level='hard'
+task_level='easy'
+use_cum_rew="False"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -141,4 +142,5 @@ python -m rl.main \
     --interpolate_type $interpolate_type \
     --contact_threshold $contact_threshold \
     --joint_margin $joint_margin \
-    --task_level $task_level
+    --task_level $task_level \
+    --use_cum_rew $use_cum_rew

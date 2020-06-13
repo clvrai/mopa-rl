@@ -222,7 +222,11 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                        rollout.add({'done': done, 'rew': meta_rew})
+                        if self._config.use_cum_rew:
+                            rollout.add({'done': done, 'rew': meta_rew})
+                        else:
+                            rollout.add({'done': done, 'rew': reward * i})
+
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()

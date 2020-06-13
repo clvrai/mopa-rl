@@ -34,6 +34,7 @@ def argparser():
     parser.add_argument("--termination", type=str2bool, default=False)
     parser.add_argument("--alternation", type=str2bool, default=False)
     parser.add_argument("--planner_integration", type=str2bool, default=False)
+    parser.add_argument("--use_cum_rew", type=str2bool, default=True)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
