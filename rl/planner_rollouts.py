@@ -141,6 +141,7 @@ class PlannerRolloutRunner(object):
                 is_planner = False
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
+
                 if pi.is_planner_ac(ac) or is_planner:
                     if config.relative_goal:
                         target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
