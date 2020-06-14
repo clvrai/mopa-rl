@@ -48,6 +48,8 @@ class SawyerReachEnv(SawyerEnv):
         reward = 0
 
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+        gripper_site_pos = (right_gripper + left_gripper) / 2.
         target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
         dist = np.linalg.norm(target_pos-gripper_site_pos)
         reward_reach = -dist
