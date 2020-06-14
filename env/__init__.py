@@ -292,3 +292,8 @@ register(
     entry_point="env.sawyer:SawyerReachFloatObstacleEnv",
     kwargs={}
 )
+register(
+    id="sawyer-assembly-easy-v0",
+    entry_point="env.sawyer:SawyerAssemblyEasyEnv",
+    kwargs={}
+)
