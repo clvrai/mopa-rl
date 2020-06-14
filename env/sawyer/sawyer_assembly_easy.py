@@ -29,7 +29,6 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
         # self.goal = init_target_qpos
         # self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
         # self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        self.peg_pos = self._get_pos("peg1")
         self.sim.forward()
 
         return self._get_obs()
@@ -37,22 +36,32 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
     def compute_reward(self, action):
         info = {}
         reward = 0
+        peg_pos = self._get_pos("peg1")
 
         nut_pos = self._get_pos("SquareNut0")
-        dist = np.linalg.norm(self.peg_pos[:2] - nut_pos[:2])
+        dist = np.linalg.norm(peg_pos[:2] - nut_pos[:2])
+        reward_reach = -dist
 
-        # gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        # target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
-        # dist = np.linalg.norm(target_pos-gripper_site_pos)
-        # reward_reach = -dist
-        # reward += reward_reach
-        # info = dict(reward_reach=reward_reach)
-        # if dist < self._kwargs['distance_threshold']:
-        #     # reward += 1.0
-        #     self._success = True
-        #     self._terminal = True
+
+        info = dict(reward_reach=reward_reach)
+        if self.on_peg(peg_pos):
+            reward += 1.0
+            self._success = True
+            self._terminal = True
 
         return reward, info
+
+    def on_peg(self, peg_pos):
+        res = False
+        nut_pos = self._get_pos("SquareNut0")
+
+        if (
+            abs(nut_pos[0] - peg_pos[0]) < 0.03
+            and abs(nut_pos[1] - peg_pos[1]) < 0.03
+            and nut_pos[2] < self.sim.data.get_site_xpos("table_top") + 0.05
+        ):
+            res = True
+        return res
 
     def _get_obs(self):
         di = super()._get_obs()
