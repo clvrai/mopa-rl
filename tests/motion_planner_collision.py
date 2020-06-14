@@ -178,8 +178,8 @@ for episode in range(N):
         target_qpos = current_qpos.copy()
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-2.942, 1.976, -0.989])
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
-        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        # target_qpos[1] = -1.23
+        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] = np.array([-0.614, 0.164, 0.608, -0.02007, -0.0265, 0.00894, 0.00122])
         if not simple_planner.isValidState(target_qpos):
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:
