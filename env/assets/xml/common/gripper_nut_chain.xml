@@ -16,12 +16,11 @@
             <joint name="rc_close" type="slide" pos="0 0 0" axis="0 -1 0" range="0 .015" user="008" limited="true"/>
         </body>
         <body name="SquareNut0" pos="0.1 0 0" quat="0 0 0 1">
-            <geom condim="4" density="100" friction="0.95 0.3 0.2" group="1" name="SquareNut0-0" pos="-0.03325 0 0" rgba="0 0 1 1" size="0.0105 0.04375 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
-            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-1" pos="0.0 0.03325 0" rgba="0 0 1 1" size="0.03125 0.0105 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
-            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-2" pos="0.0 -0.03325 0" rgba="0 0 1 1" size="0.03125 0.0105 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
-            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-3" pos="0.03325 0 0" rgba="0 0 1 1" size="0.0105 0.04375 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
-            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" name="SquareNut0-4" pos="0.054 0 0" rgba="0 0 1 1" size="0.02525 0.015875 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
-            <site name="SquareNut0" pos="0 0 0" rgba="1 0 0 0" size="0.002 0.002 0.002" type="sphere" />
+            <geom contype="0" conaffinity="1" group="1" condim="4" density="100" friction="0.95 0.3 0.2"  name="SquareNut0-0" pos="-0.03325 0 0" rgba="0 0 1 1" size="0.0105 0.04375 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom contype="0" conaffinity="1" group="1" condim="4" density="100" friction="0.95 0.3 0.1"  name="SquareNut0-1" pos="0.0 0.03325 0" rgba="0 0 1 1" size="0.03125 0.0105 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom contype="0" conaffinity="1" group="1" condim="4" density="100" friction="0.95 0.3 0.1"  name="SquareNut0-2" pos="0.0 -0.03325 0" rgba="0 0 1 1" size="0.03125 0.0105 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom contype="0" conaffinity="1" group="1" condim="4" density="100" friction="0.95 0.3 0.1"  name="SquareNut0-3" pos="0.03325 0 0" rgba="0 0 1 1" size="0.0105 0.04375 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
+            <geom contype="0" conaffinity="1" group="1" condim="4" density="100" friction="0.95 0.3 0.1"  name="SquareNut0-4" pos="0.054 0 0" rgba="0 0 1 1" size="0.02525 0.015875 0.01" solimp="0.998 0.998 0.001" solref="0.02 1" type="box" />
         </body>
 
         <body name="leftclaw" pos=".01 .02 0">

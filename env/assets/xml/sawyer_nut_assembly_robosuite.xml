@@ -44,7 +44,7 @@
   <geom condim="3" material="floorplane" name="floor" pos="0.5 -0.15 0.0" size="3 3 .125" type="plane" />
     <body name="table" pos="0.58 0.0 0.8">
       <geom friction="1 0.005 0.0001" name="table_collision" pos="0 0 0" size="0.35 0.4 0.02" type="box" />
-      <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="0 0 0" size="0.35 0.4 0.02" type="box" />
+      <geom conaffinity="1" contype="1" group="2" material="light-wood" pos="0 0 0" size="0.35 0.4 0.02" type="box" />
     </body>
     <body name="peg1" pos="0.73 0.1 0.85">
       <geom friction="1 0.005 0.0001" pos="0 0 0" size="0.016 0.016 0.1" type="box" />
