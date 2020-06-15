@@ -39,7 +39,7 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
         peg_pos = self._get_pos("peg1")
 
         nut_pos = self._get_pos("SquareNut0")
-        dist = np.linalg.norm(peg_pos[:2] - nut_pos[:2])
+        dist = np.linalg.norm(peg_pos - nut_pos)
         reward_reach = -dist
         reward += reward_reach
 
