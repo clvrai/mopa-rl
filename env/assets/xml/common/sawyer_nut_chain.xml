@@ -48,7 +48,8 @@
                     <inertial pos="0.0053207 -2.6549e-05 0.1021" quat="0.999993 7.08405e-05 -0.00359857 -0.000626247" mass="1.5795" diaginertia="0.0118334 0.00827089 0.00496574" />
                     <!-- <joint name="head_pan" pos="0 0 0" axis="0 0 1" range="-5.0952 0.9064"/> -->
                     <geom name='head_g0' class="sawyer_viz" mesh="head" />
-                    <geom name='head_g1' size="0.18" pos="0 0 0.08" class="sawyer_col" contype="0" conaffinity="0"/>
+                    <!-- <geom name='head_g1' size="0.18" pos="0 0 0.08" class="sawyer_col" contype="0" conaffinity="0"/> -->
+                    <geom name='head_g1' size="0.18" pos="0 0 0.08" class="sawyer_col"/>
                     <body name="screen" pos="0.03 0 0.105" quat="0.5 0.5 0.5 0.5">
                         <geom size="0.12 0.07 0.001" type="box" group="1"/>
                     </body>
