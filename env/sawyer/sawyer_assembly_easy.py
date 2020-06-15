@@ -58,7 +58,7 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
         if (
             abs(nut_pos[0] - peg_pos[0]) < 0.03
             and abs(nut_pos[1] - peg_pos[1]) < 0.03
-            and nut_pos[2] < self.sim.data.get_site_xpos("table_top") + 0.05
+            and nut_pos[2] < self.sim.data.get_site_xpos("table_top")[2] + 0.05
         ):
             res = True
         return res
