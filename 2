@@ -12,9 +12,9 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.level.easy.v1"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.level.easy"
 max_global_step="60000000"
-env="sawyer-assembly-easy-v0"
+env="sawyer-reach-float-obstacle-v0"
 rl_hid_size="256"
 max_episode_step="250"
 entropy_loss_coef="1e-3"
@@ -71,7 +71,7 @@ use_interpolation="True"
 interpolate_type="simple"
 contact_threshold="-0.015"
 joint_margin="0.01"
-task_level='easy'
+task_level='hard'
 use_cum_rew="True"
 # max_grad_norm='0.5'
 
