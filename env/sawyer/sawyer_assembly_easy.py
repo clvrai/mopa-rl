@@ -67,7 +67,6 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
         di = super()._get_obs()
         di['nut_pos'] = self._get_pos("SquareNut0")
         di['nut_quat'] = self._get_quat("SquareNut0")
-        di['target'] = self.sim.data.qpos[self.ref_target_pos_indexes]
         return di
 
     @property
