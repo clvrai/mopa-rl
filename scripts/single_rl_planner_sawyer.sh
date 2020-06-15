@@ -12,9 +12,9 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.level.easy.range.2.0"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.head_g0.ignore"
 max_global_step="60000000"
-env="sawyer-reach-float-obstacle-v0"
+env="sawyer-reach-v0"
 rl_hid_size="256"
 max_episode_step="250"
 entropy_loss_coef="1e-3"
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -42,11 +42,11 @@ simple_planner_range="0.1"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="5.0"
+reward_scale="1.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
-action_range="2.0"
+action_range="1.0"
 ac_rl_minimum="-0.05"
 ac_rl_maximum="0.05"
 invalid_planner_rew="-0.5"
@@ -69,7 +69,7 @@ simple_planner_simplified_duration="0.01"
 vis_replay="False"
 use_interpolation="True"
 interpolate_type="simple"
-contact_threshold="-0.015"
+# contact_threshold="-0.015"
 joint_margin="0.01"
 task_level='hard'
 use_cum_rew="True"
@@ -140,7 +140,7 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --use_interpolation $use_interpolation \
     --interpolate_type $interpolate_type \
-    --contact_threshold $contact_threshold \
     --joint_margin $joint_margin \
     --task_level $task_level \
-    --use_cum_rew $use_cum_rew
+    --use_cum_rew $use_cum_rew \
+    # --contact_threshold $contact_threshold \
