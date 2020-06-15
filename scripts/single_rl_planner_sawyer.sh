@@ -12,9 +12,9 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.head_g0.ignore"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.range.0.5"
 max_global_step="60000000"
-env="sawyer-reach-v0"
+env="sawyer-assembly-easy-v0"
 rl_hid_size="256"
 max_episode_step="250"
 entropy_loss_coef="1e-3"
@@ -46,9 +46,9 @@ reward_scale="1.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
-action_range="1.0"
-ac_rl_minimum="-0.05"
-ac_rl_maximum="0.05"
+action_range="0.5"
+ac_rl_minimum="-0.2"
+ac_rl_maximum="0.2"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -69,9 +69,9 @@ simple_planner_simplified_duration="0.01"
 vis_replay="False"
 use_interpolation="True"
 interpolate_type="simple"
-# contact_threshold="-0.015"
+contact_threshold="-0.005"
 joint_margin="0.01"
-task_level='hard'
+task_level='easy'
 use_cum_rew="True"
 # max_grad_norm='0.5'
 
@@ -143,4 +143,4 @@ python -m rl.main \
     --joint_margin $joint_margin \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
-    # --contact_threshold $contact_threshold \
+    --contact_threshold $contact_threshold \
