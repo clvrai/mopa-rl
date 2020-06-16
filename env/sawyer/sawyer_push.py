@@ -6,29 +6,38 @@ from gym import spaces
 from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 
-class SawyerAssemblyEasyEnv(SawyerEnv):
+class SawyerPushEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        super().__init__("sawyer_assembly_easy.xml", **kwargs)
+        super().__init__("sawyer_lift.xml", **kwargs)
         self._get_reference()
-
-
 
     def _get_reference(self):
         super()._get_reference()
+
+        self.ref_target_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x) for x in ['target_x', 'target_y']
+        ]
+        self.ref_target_vel_indexes = [
+            self.sim.model.get_joint_qvel_addr(x) for x in ['target_x', 'target_y']
+        ]
+
+        self.target_id = self.sim.model.body_name2id("target")
+        self.cube_body_id = self.sim.model.body_name2id("cube")
+        self.cube_geom_id = self.sim.model.geom_name2id("cube")
+
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        # if self._kwargs['task_level'] == 'easy':
-        #     init_target_qpos = np.array([0.6, 0.0, 1.2])
-        #     init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
-        # else:
-        #     init_target_qpos = np.random.uniform(low=[0.5, -0.3, 0.9], high=[0.8, 0.3, 1.3])
-        #
-        # self.goal = init_target_qpos
-        # self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
-        # self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+        if self._kwargs['task_level'] == 'easy':
+            init_target_qpos = np.array([0.2, 0.1])
+            init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
+        else:
+            init_target_qpos = np.random.uniform(low=-3, high=3, size=2)
+        self.goal = init_target_qpos
+        self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         self.sim.forward()
 
         return self._get_obs()
@@ -36,43 +45,43 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
     def compute_reward(self, action):
         info = {}
         reward = 0
-        peg_pos = self._get_pos("peg1")
 
-        nut_pos = self._get_pos("SquareNut0")
-        dist = np.linalg.norm(peg_pos - nut_pos)
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
+        dist = np.linalg.norm(target_pos-gripper_site_pos)
         reward_reach = -dist
         reward += reward_reach
-
-
         info = dict(reward_reach=reward_reach)
-        if self.on_peg(peg_pos):
-            reward += 1.0
+        if dist < self._kwargs['distance_threshold']:
+            # reward += 1.0
             self._success = True
             self._terminal = True
 
         return reward, info
 
-    def on_peg(self, peg_pos):
-        res = False
-        nut_pos = self._get_pos("SquareNut0")
-
-        if (
-            abs(nut_pos[0] - peg_pos[0]) < 0.03
-            and abs(nut_pos[1] - peg_pos[1]) < 0.03
-            and nut_pos[2] < self.sim.data.get_site_xpos("table_top")[2] + 0.05
-        ):
-            res = True
-        return res
-
     def _get_obs(self):
         di = super()._get_obs()
-        di['nut_pos'] = self._get_pos("SquareNut0")
-        di['nut_quat'] = self._get_quat("SquareNut0")
+        target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
+        di['target_pos'] = target_pos
+        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+        cube_quat = convert_quat(
+            np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
+        )
+        di["cube_pos"] = cube_pos
+        di["cube_quat"] = cube_quat
+        gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
+        di["gripper_to_cube"] = gripper_site_pos - cube_pos
+        di["cube_to_target"] = cube_pos - target_pos
+
         return di
 
     @property
     def static_geom_ids(self):
-        return ['table_collision']
+        return ["table_collision"]
+
+    @property
+    def manipulation_geom(self):
+        return ['cube']
 
     def _step(self, action, is_planner=False):
         """
@@ -91,6 +100,9 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
         else:
             rescaled_ac = action[:self.robot_dof] * self._ac_scale
         desired_state = self._prev_state + rescaled_ac
+        arm_action = desired_state
+        gripper_action = self._gripper_format_action(np.array([action[-1]]))
+        converted_action = np.concatenate([arm_action, gripper_action])
 
         n_inner_loop = int(self._frame_dt/self.dt)
         for _ in range(n_inner_loop):
@@ -109,7 +121,7 @@ class SawyerAssemblyEasyEnv(SawyerEnv):
                 ] = self.sim.data.qfrc_bias[
                     self.ref_target_indicator_joint_pos_indexes
                 ].copy()
-            self._do_simulation(desired_state)
+            self._do_simulation(converted_action)
 
         self._prev_state = np.copy(desired_state)
         reward, info = self.compute_reward(action)
