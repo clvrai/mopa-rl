@@ -82,12 +82,20 @@ class SawyerPushEnv(SawyerEnv):
         return di
 
     @property
+    def static_geoms(self):
+        return ['table_collision']
+
+    @property
     def static_geom_ids(self):
-        return ["table_collision"]
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
 
     @property
     def manipulation_geom(self):
         return ['cube']
+
+    @property
+    def manipulation_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
 
     def _step(self, action, is_planner=False):
         """

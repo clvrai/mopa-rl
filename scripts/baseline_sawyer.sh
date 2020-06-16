@@ -11,9 +11,9 @@ num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v3"
+prefix="BASELINE"
 max_global_step="60000000"
-env="sawyer-assembly-easy-v0"
+env="sawyer-push-v0"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="250"
@@ -33,8 +33,9 @@ actor_num_hid_layers='2'
 log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
-reward_scale='10.'
-vis_replay="False"
+reward_scale='4.'
+vis_replay="True"
+plot_type='3d'
 task_level='easy'
 # success_reward='0.'
 # has_terminal='True'
@@ -73,6 +74,7 @@ python -m rl.main \
     --log_interval $log_interval \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
-    --task_level $task_level
+    --task_level $task_level \
+    --plot_type $plot_type
     # --success_reward $success_reward \
-    # --has_terminal $has_terminal \
+    # --has_terminal $has_terminal \ 

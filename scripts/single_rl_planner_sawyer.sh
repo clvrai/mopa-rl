@@ -12,11 +12,11 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.discounted.modified.smdp"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.thresh.0.3"
 max_global_step="60000000"
-env="sawyer-reach-v0"
+env="sawyer-push-v0"
 rl_hid_size="256"
-max_episode_step="200"
+max_episode_step="250"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -42,13 +42,13 @@ simple_planner_range="0.1"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="5.0"
+reward_scale="3.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.1"
-ac_rl_maximum="0.1"
+ac_rl_minimum="-0.3"
+ac_rl_maximum="0.3"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -69,9 +69,11 @@ vis_replay_interval="10000"
 use_interpolation="True"
 interpolate_type="simple"
 joint_margin="0.01"
-task_level='hard'
+task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
+use_smdp_update="True"
+actor_bias="-10"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -143,4 +145,6 @@ python -m rl.main \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \
-    --vis_replay_interval $vis_replay_interval
+    --vis_replay_interval $vis_replay_interval \
+    --use_smdp_update $use_smdp_update \
+    # --actor_bias $actor_bias

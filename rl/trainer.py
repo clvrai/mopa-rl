@@ -156,7 +156,7 @@ class Trainer(object):
 
         else:
             self._agent = get_agent_by_name(config.algo)(
-                config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited
+                config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
             )
 
         self._runner = None
