@@ -12,7 +12,7 @@ log_interval="150"
 
 workers="1"
 tanh="True"
-prefix="SAC.PUSHER.4OBS.RRT.SIMPLE.INTERPOLATION.lg.range.num_batch.4"
+prefix="SAC.PUSHER.4OBS.reuse.random.smdp"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
@@ -34,17 +34,18 @@ env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="rrt"
+planner_type="rrt_connect"
 planner_objective="path_length"
-range="0.3"
+range="0.2"
+simple_planner_range="0.1"
 threshold="0.01"
 timelimit="1.0"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 subgoal_hindsight="False"
-reuse_data_type="None"
+reuse_data_type="subgoal_random"
 relative_goal="True"
-simple_planner_type="sst"
+simple_planner_type="rrt_connect"
 simple_planner_timelimit="0.02"
 action_range="2.0"
 ac_rl_minimum="-0.5"
@@ -65,6 +66,7 @@ is_simplified="False"
 simplified_duration="0.02"
 use_interpolation="True"
 interpolate_type="simple"
+use_smdp_update="True"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -131,4 +133,6 @@ python -m rl.main \
     --simplified_duration $simplified_duration \
     --simple_planner_type $simple_planner_type \
     --use_interpolation $use_interpolation \
-    --interpolate_type $interpolate_type
+    --interpolate_type $interpolate_type \
+    --use_smdp_update $use_smdp_update \
+    --simple_planner_range $simple_planner_range
