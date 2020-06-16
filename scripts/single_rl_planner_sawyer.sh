@@ -12,13 +12,13 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.range.1.0.debug"
 max_global_step="60000000"
-env="sawyer-reach-v0"
+env="sawyer-assembly-easy-v0"
 rl_hid_size="256"
 max_episode_step="250"
 entropy_loss_coef="1e-3"
-buffer_size="1000000"
+buffer_size="100"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -72,6 +72,7 @@ interpolate_type="simple"
 joint_margin="0.01"
 task_level='easy'
 use_cum_rew="True"
+plot_type='3d'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -142,3 +143,4 @@ python -m rl.main \
     --joint_margin $joint_margin \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
+    --plot_type $plot_type
