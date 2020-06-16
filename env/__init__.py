@@ -297,3 +297,8 @@ register(
     entry_point="env.sawyer:SawyerAssemblyEasyEnv",
     kwargs={}
 )
+register(
+    id="sawyer-push-v0",
+    entry_point="env.sawyer:SawyerPushEnv",
+    kwargs={}
+)

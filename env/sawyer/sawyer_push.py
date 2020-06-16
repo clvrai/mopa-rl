@@ -5,10 +5,11 @@ import numpy as np
 from gym import spaces
 from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
+from env.robosuite.utils.transform_utils import *
 
 class SawyerPushEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        super().__init__("sawyer_lift.xml", **kwargs)
+        super().__init__("sawyer_push.xml", **kwargs)
         self._get_reference()
 
     def _get_reference(self):
@@ -46,14 +47,19 @@ class SawyerPushEnv(SawyerEnv):
         info = {}
         reward = 0
 
+        reach_multi = 0.3
+        push_multi = 0.9
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
         target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
-        dist = np.linalg.norm(target_pos-gripper_site_pos)
-        reward_reach = -dist
-        reward += reward_reach
-        info = dict(reward_reach=reward_reach)
-        if dist < self._kwargs['distance_threshold']:
-            # reward += 1.0
+        gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+        cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos)
+        reward_reach = -gripper_site_pos*reach_multi
+        reward_push = -cube_to_target*push_multi
+        reward += reward_reach + reward_push
+        info = dict(reward_reach=reward_reach, reward_push=reward_push)
+        if cube_to_target < self._kwargs['distance_threshold']:
+            reward += 1.0
             self._success = True
             self._terminal = True
 
@@ -71,7 +77,7 @@ class SawyerPushEnv(SawyerEnv):
         di["cube_quat"] = cube_quat
         gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
         di["gripper_to_cube"] = gripper_site_pos - cube_pos
-        di["cube_to_target"] = cube_pos - target_pos
+        di["cube_to_target"] = cube_pos[:2] - target_pos
 
         return di
 
