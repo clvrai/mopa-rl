@@ -36,6 +36,7 @@ class Rollout(object):
         batch['ac_before_activation'] = self._history['ac_before_activation']
         batch['done'] = self._history['done']
         batch['rew'] = self._history['rew']
+        batch['intra_steps'] = self._history['intra_steps']
         self._history = defaultdict(list)
         return batch
 
@@ -59,6 +60,7 @@ class MetaRollout(object):
         batch['log_prob'] = self._history['meta_log_prob']
         batch['done'] = self._history['meta_done']
         batch['rew'] = self._history['meta_rew']
+        # batch['intra_steps'] = self._history['intra_steps']
         self._history = defaultdict(list)
         return batch
 
@@ -189,7 +191,7 @@ class PlannerRolloutRunner(object):
                             # ac = env.form_action(next_qpos)
                             # meta_rew += reward # the last reward is more important
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
-                            # meta_rew += (config.discount_factor**i)*reward # the last reward is more important
+                            # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
                             meta_rew += reward
                             done_list.append(done)
                             reward_list.append(meta_rew)
@@ -229,7 +231,8 @@ class PlannerRolloutRunner(object):
                         if self._config.use_cum_rew:
                             rollout.add({'done': done, 'rew': meta_rew})
                         else:
-                            rollout.add({'done': done, 'rew': reward * i})
+                            # rollout.add({'done': done, 'rew': reward * i})
+                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor**i), 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
@@ -295,7 +298,10 @@ class PlannerRolloutRunner(object):
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, {})
-                        rollout.add({'done': done, 'rew': reward})
+                        if not config.use_cum_rew:
+                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
+                        else:
+                            rollout.add({'done': done, 'rew': reward})
                         ep_len += 1
                         step += 1
                         meta_len += 1
@@ -316,7 +322,10 @@ class PlannerRolloutRunner(object):
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                     rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                     ob, reward, done, info = env.step(rescaled_ac)
-                    rollout.add({'done': done, 'rew': reward})
+                    if not config.use_cum_rew:
+                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
+                    else:
+                        rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     step += 1
                     ep_rew += reward
