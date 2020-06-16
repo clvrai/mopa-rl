@@ -12,13 +12,13 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.range.1.0.debug"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.range.1.0.threshold.0.5"
 max_global_step="60000000"
 env="sawyer-assembly-easy-v0"
 rl_hid_size="256"
 max_episode_step="200"
 entropy_loss_coef="1e-3"
-buffer_size="100"
+buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
 debug="False"
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -47,8 +47,8 @@ subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.1"
-ac_rl_maximum="0.1"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -64,7 +64,8 @@ is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.01"
-vis_replay="False"
+vis_replay="True"
+vis_replay_interval="10000"
 use_interpolation="True"
 interpolate_type="simple"
 joint_margin="0.01"
@@ -141,4 +142,5 @@ python -m rl.main \
     --joint_margin $joint_margin \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
-    --plot_type $plot_type
+    --plot_type $plot_type \
+    --vis_replay_interval $vis_replay_interval

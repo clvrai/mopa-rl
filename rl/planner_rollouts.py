@@ -101,7 +101,7 @@ class PlannerRolloutRunner(object):
             ep_len = 0
             ep_rew = 0
             mp_path_len = 0
-            interpoolation_path_len = 0
+            interpolation_path_len = 0
             ep_rew_with_penalty = 0
             ob = env.reset()
 
@@ -171,7 +171,7 @@ class PlannerRolloutRunner(object):
                     if success:
                         if interpolation:
                             counter['interpolation'] += 1
-                            interpoolation_path_len += len(traj)
+                            interpolation_path_len += len(traj)
                         else:
                             counter['mp'] += 1
                             mp_path_len += len(traj)
@@ -335,8 +335,11 @@ class PlannerRolloutRunner(object):
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
-            ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty,
-                         "mp_path_len": mp_path_len/counter['mp'], 'interpolation_path_len': interpolation_path_len/counter['interpolation']})
+            ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty})
+            if counter['mp'] > 0:
+                ep_info.add({"mp_path_len": mp_path_len/counter['mp']})
+            if counter['interpolation'] > 0:
+                ep_info.add({'interpolation_path_len': interpolation_path_len/counter['interpolation']})
             ep_info.add(counter)
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
@@ -466,6 +469,7 @@ class PlannerRolloutRunner(object):
                             frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
                             frame_info['states'] = 'Valid states'
+                            frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                             curr_qpos = env.sim.data.qpos.copy()
                             frame_info['curr_qpos'] = curr_qpos
                             frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
@@ -500,6 +504,7 @@ class PlannerRolloutRunner(object):
                         frame_info = info.copy()
                         frame_info['states'] = 'Invalid states'
                         frame_info['target_qpos'] = target_qpos
+                        frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                         curr_qpos = env.sim.data.qpos.copy()
                         frame_info['curr_qpos'] = curr_qpos
                         if hasattr(env, 'goal'):
