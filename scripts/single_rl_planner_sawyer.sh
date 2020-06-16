@@ -12,11 +12,11 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.range.0.5"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.discounted.modified.smdp"
 max_global_step="60000000"
-env="sawyer-assembly-easy-v0"
+env="sawyer-reach-v0"
 rl_hid_size="256"
-max_episode_step="250"
+max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -29,26 +29,26 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
 planner_type="rrt_connect"
 planner_objective="path_length"
-range="0.3"
+range="0.2"
 simple_planner_range="0.1"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="1.0"
+reward_scale="5.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
-action_range="0.5"
-ac_rl_minimum="-0.2"
-ac_rl_maximum="0.2"
+action_range="1.0"
+ac_rl_minimum="-0.1"
+ac_rl_maximum="0.1"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -59,20 +59,19 @@ alpha='0.05'
 find_collision_free="True"
 use_double_planner="False"
 simple_planner_type='rrt_connect'
-simple_planner_timelimit="0.04"
-sst_selection_radius="0.01"
-sst_pruning_radius="0.01"
+simple_planner_timelimit="0.02"
 is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.01"
-vis_replay="False"
+vis_replay="True"
+vis_replay_interval="10000"
 use_interpolation="True"
 interpolate_type="simple"
-contact_threshold="-0.005"
 joint_margin="0.01"
-task_level='easy'
+task_level='hard'
 use_cum_rew="True"
+plot_type='3d'
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -143,4 +142,5 @@ python -m rl.main \
     --joint_margin $joint_margin \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
-    --contact_threshold $contact_threshold \
+    --plot_type $plot_type \
+    --vis_replay_interval $vis_replay_interval

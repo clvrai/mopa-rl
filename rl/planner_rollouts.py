@@ -36,6 +36,7 @@ class Rollout(object):
         batch['ac_before_activation'] = self._history['ac_before_activation']
         batch['done'] = self._history['done']
         batch['rew'] = self._history['rew']
+        batch['intra_steps'] = self._history['intra_steps']
         self._history = defaultdict(list)
         return batch
 
@@ -59,6 +60,7 @@ class MetaRollout(object):
         batch['log_prob'] = self._history['meta_log_prob']
         batch['done'] = self._history['meta_done']
         batch['rew'] = self._history['meta_rew']
+        # batch['intra_steps'] = self._history['intra_steps']
         self._history = defaultdict(list)
         return batch
 
@@ -96,11 +98,12 @@ class PlannerRolloutRunner(object):
 
         step = 0
         episode = 0
-
         while True:
             done = False
             ep_len = 0
             ep_rew = 0
+            mp_path_len = 0
+            interpolation_path_len = 0
             ep_rew_with_penalty = 0
             ob = env.reset()
 
@@ -170,8 +173,10 @@ class PlannerRolloutRunner(object):
                     if success:
                         if interpolation:
                             counter['interpolation'] += 1
+                            interpolation_path_len += len(traj)
                         else:
                             counter['mp'] += 1
+                            mp_path_len += len(traj)
 
                         reward_list = []
                         ob_list = []
@@ -184,10 +189,10 @@ class PlannerRolloutRunner(object):
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             # ac = env.form_action(next_qpos)
-                            # meta_rew += reward # the last reward is more important
+                            meta_rew += (config.discount_factor** i) * reward # the last reward is more important
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
-                            # meta_rew += (config.discount_factor**i)*reward # the last reward is more important
-                            meta_rew += reward
+                            # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
+                            # meta_rew += reward
                             done_list.append(done)
                             reward_list.append(meta_rew)
                             ob_list.append(ob.copy())
@@ -224,9 +229,10 @@ class PlannerRolloutRunner(object):
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         if self._config.use_cum_rew:
-                            rollout.add({'done': done, 'rew': meta_rew})
+                            rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
-                            rollout.add({'done': done, 'rew': reward * i})
+                            # rollout.add({'done': done, 'rew': reward * i})
+                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor**i), 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
@@ -292,7 +298,10 @@ class PlannerRolloutRunner(object):
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, {})
-                        rollout.add({'done': done, 'rew': reward})
+                        if config.use_cum_rew:
+                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 1})
+                        else:
+                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
                         ep_len += 1
                         step += 1
                         meta_len += 1
@@ -313,7 +322,10 @@ class PlannerRolloutRunner(object):
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                     rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                     ob, reward, done, info = env.step(rescaled_ac)
-                    rollout.add({'done': done, 'rew': reward})
+                    if not config.use_cum_rew:
+                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 1})
+                    else:
+                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
                     ep_len += 1
                     step += 1
                     ep_rew += reward
@@ -333,6 +345,10 @@ class PlannerRolloutRunner(object):
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
             ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty})
+            if counter['mp'] > 0:
+                ep_info.add({"mp_path_len": mp_path_len/counter['mp']})
+            if counter['interpolation'] > 0:
+                ep_info.add({'interpolation_path_len': interpolation_path_len/counter['interpolation']})
             ep_info.add(counter)
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
@@ -462,6 +478,7 @@ class PlannerRolloutRunner(object):
                             frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
                             frame_info['states'] = 'Valid states'
+                            frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                             curr_qpos = env.sim.data.qpos.copy()
                             frame_info['curr_qpos'] = curr_qpos
                             frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
@@ -496,6 +513,7 @@ class PlannerRolloutRunner(object):
                         frame_info = info.copy()
                         frame_info['states'] = 'Invalid states'
                         frame_info['target_qpos'] = target_qpos
+                        frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                         curr_qpos = env.sim.data.qpos.copy()
                         frame_info['curr_qpos'] = curr_qpos
                         if hasattr(env, 'goal'):

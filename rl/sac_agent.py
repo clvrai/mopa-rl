@@ -52,7 +52,7 @@ class SACAgent(BaseAgent):
         self._critic2_optims = [optim.Adam(_critic.parameters(), lr=config.lr_actor) for _critic in self._critics2]
 
         sampler = RandomSampler()
-        buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
+        buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew', 'intra_steps']
         if config.hrl:
             self._buffer = LowLevelReplayBuffer(buffer_keys,
                                                 config.buffer_size,
@@ -324,6 +324,11 @@ class SACAgent(BaseAgent):
         o = _to_tensor(o)
         o_next = _to_tensor(o_next)
         ac = _to_tensor(transitions['ac'])
+        if 'intra_steps' in transitions.keys():
+            intra_steps = _to_tensor(transitions['intra_steps'])
+        else:
+            intra_steps = torch.ones(len(o))
+
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
         else:
@@ -356,7 +361,7 @@ class SACAgent(BaseAgent):
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
             target_q_value = rew * self._config.reward_scale + \
-                (1 - done) * self._config.discount_factor * q_next_value
+                (1 - done) * (self._config.discount_factor ** intra_steps) * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
             # clip_return = 1 / (1 - self._config.discount_factor)
