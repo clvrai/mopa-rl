@@ -15,6 +15,7 @@ import env
 import gym
 from gym import spaces
 from sklearn.externals import joblib
+from mpl_toolkits.mplot3d import Axes3D 
 import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
@@ -565,10 +566,17 @@ class Trainer(object):
         size = self._agent._buffer._current_size
         states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
         fig = plt.figure()
-        plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(len(states[:, 0])), cmap='Blues')
-        plt.axis("equal")
-        wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
-        plt.close(fig)
+        if self._config.plot_type == '2d':
+            plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(len(states[:, 0])), cmap='Blues')
+            plt.axis("equal")
+            wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
+            plt.close(fig)
+        else:
+            ax = fig.add_subplot(111, projection="3d")
+            ax.scatter(states[:, 0], states[:, 1], states[:, 2], s=5, c=np.arange(len(states[:, 0])), cmap="Blues")
+            plt.axis("equal")
+            wandb.log({'replay_vis': wandb.Image(ax)}, step=step)
+            plt.close(ax)
 
 
 
