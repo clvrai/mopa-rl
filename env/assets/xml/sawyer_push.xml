@@ -1,0 +1,22 @@
+<mujoco model="sawyer_lift">
+    <include file="./common/sawyer.xml" />
+    <default>
+    </default>
+    <worldbody>
+        <body name="table" pos="0.66 0.0 0.41">
+          <geom friction="1 0.005 0.0001" name="table_collision" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
+          <geom conaffinity="0" contype="0" group="1" name="table_visual" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
+          <site name="table_top" pos="0.0 0.0 0.41" rgba="0 0 0 0" size="0.001 0.001 0.001" />
+        </body>
+        <body name="cube" pos="0.5317717157210129 -0.023869616735809365 0.8209145002117841" quat="0.8775825618903728 0 0 0.479425538604203">
+            <geom density="200" friction="2.0 0.005 0.0001" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.02152190957140607 0.021497620834825603 0.020914500211784082" type="box" />
+            <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
+            <joint name="cube" type="free" />
+        </body>
+        <body name="target" pos="0.56 0.0 0.82">
+            <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
+            <geom conaffinity="0" contype="0" group="0" name="target" pos="0 0 0" rgba="0.2 0.8 0.2 1" size=".030 .001 .001" type="cylinder"/>
+        </body>
+    </worldbody>
+</mujoco>
