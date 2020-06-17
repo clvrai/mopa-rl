@@ -365,8 +365,13 @@ class SACAgent(BaseAgent):
             q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
-            target_q_value = rew * self._config.reward_scale + \
-                (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
+            if self._config.use_smdp_update:
+                #https://papers.nips.cc/paper/889-reinforcement-learning-methods-for-continuous-time-markov-decision-problems.pdf
+                target_q_value = ((1-self._config.discount_factor**intra_steps)/(-np.log(self._config.discount_factor))) *rew * self._config.reward_scale + \
+                    (1 - done) * (self._config.discount_factor ** (intra_steps)) * q_next_value
+            else:
+                target_q_value = rew * self._config.reward_scale + \
+                    (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
             # clip_return = 1 / (1 - self._config.discount_factor)

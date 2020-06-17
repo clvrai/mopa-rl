@@ -12,11 +12,11 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.small.bias"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.new_smdp_update"
 max_global_step="60000000"
-env="sawyer-push-v0"
+env="sawyer-reach-v0"
 rl_hid_size="256"
-max_episode_step="250"
+max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -42,7 +42,7 @@ simple_planner_range="0.1"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="3.0"
+reward_scale="5.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
@@ -69,7 +69,7 @@ vis_replay_interval="10000"
 use_interpolation="True"
 interpolate_type="simple"
 joint_margin="0.01"
-task_level='easy'
+task_level='hard'
 use_cum_rew="True"
 plot_type='3d'
 use_smdp_update="True"
@@ -147,4 +147,4 @@ python -m rl.main \
     --plot_type $plot_type \
     --vis_replay_interval $vis_replay_interval \
     --use_smdp_update $use_smdp_update \
-    --actor_bias $actor_bias
+    # --actor_bias $actor_bias
