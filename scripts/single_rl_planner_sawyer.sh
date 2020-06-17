@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.small.bias"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.hindsight.debug"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -21,7 +21,7 @@ entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -43,7 +43,7 @@ threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
 reward_scale="3.0"
-subgoal_hindsight="False"
+subgoal_hindsight="True"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
@@ -147,4 +147,4 @@ python -m rl.main \
     --plot_type $plot_type \
     --vis_replay_interval $vis_replay_interval \
     --use_smdp_update $use_smdp_update \
-    --actor_bias $actor_bias
+    # --actor_bias $actor_bias

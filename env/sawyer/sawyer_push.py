@@ -25,6 +25,7 @@ class SawyerPushEnv(SawyerEnv):
         self.target_id = self.sim.model.body_name2id("target")
         self.cube_body_id = self.sim.model.body_name2id("cube")
         self.cube_geom_id = self.sim.model.geom_name2id("cube")
+        self.cube_site_id = self.sim.model.site_name2id("cube")
 
 
     def _reset(self):
@@ -50,7 +51,7 @@ class SawyerPushEnv(SawyerEnv):
         reach_multi = 0.3
         push_multi = 0.9
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+        cube_pos = np.array(self.sim.data.site_xpos[self.cube_site_id])
         target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
         gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
         cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos)
@@ -69,9 +70,9 @@ class SawyerPushEnv(SawyerEnv):
         di = super()._get_obs()
         target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
         di['target_pos'] = target_pos
-        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+        cube_pos = np.array(self.sim.data.body_xpos[self.cube_site_id])
         cube_quat = convert_quat(
-            np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
+            np.array(self.sim.data.body_xquat[self.cube_site_id]), to="xyzw"
         )
         di["cube_pos"] = cube_pos
         di["cube_quat"] = cube_quat
