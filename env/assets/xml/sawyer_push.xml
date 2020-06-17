@@ -1,5 +1,5 @@
 <mujoco model="sawyer_lift">
-    <include file="./common/sawyer_no_gripper.xml" />
+    <include file="./common/sawyer.xml" />
     <default>
     </default>
     <worldbody>
