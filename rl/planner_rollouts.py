@@ -208,7 +208,7 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
-                                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': meta_rew})
+                                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': meta_rew, 'intra_steps': i})
 
                             if every_steps is not None and step % every_steps == 0:
                                 if (config.reuse_data_type == 'subgoal_forward' and pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac)) or config.reuse_data_type == 'rl':
@@ -221,6 +221,7 @@ class PlannerRolloutRunner(object):
                             if done or ep_len >= max_step:
                                 break
                         env._reset_prev_state()
+
                         if self._config.subgoal_hindsight: # refer to HAC
                             hindsight_subgoal_ac = env.form_hindsight_action(prev_qpos)
                             if config.extended_action:
@@ -228,6 +229,7 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+
                         if self._config.use_cum_rew:
                             rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
@@ -249,7 +251,7 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac):
                                     rollout.add({'ob': inter_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                    rollout.add({'done': done, 'rew': meta_rew-inter_rew})
+                                    rollout.add({'done': done, 'rew': meta_rew-inter_rew, 'intra_steps': len(reward_list)-i-1})
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
                                         ll_ob = ob.copy()
@@ -273,7 +275,7 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                    rollout.add({'done': done_list[goal], 'rew': reward_list[goal]-reward_list[start]})
+                                    rollout.add({'done': done_list[goal], 'rew': reward_list[goal]-reward_list[start], 'intra_steps': goal-start})
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
                                         rollout.add({'ob': ob_list[goal], 'meta_ac': meta_ac})
