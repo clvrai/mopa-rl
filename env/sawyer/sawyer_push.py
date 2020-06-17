@@ -54,7 +54,7 @@ class SawyerPushEnv(SawyerEnv):
         target_pos = self.sim.data.qpos[self.ref_target_pos_indexes]
         gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
         cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos)
-        reward_reach = -gripper_site_pos*reach_multi
+        reward_reach = -gripper_to_cube*reach_multi
         reward_push = -cube_to_target*push_multi
         reward += reward_reach + reward_push
         info = dict(reward_reach=reward_reach, reward_push=reward_push)

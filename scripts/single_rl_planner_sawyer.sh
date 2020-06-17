@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.thresh.0.3"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.small.bias"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -47,8 +47,8 @@ subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.3"
-ac_rl_maximum="0.3"
+ac_rl_minimum="-0.1"
+ac_rl_maximum="0.1"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -147,4 +147,4 @@ python -m rl.main \
     --plot_type $plot_type \
     --vis_replay_interval $vis_replay_interval \
     --use_smdp_update $use_smdp_update \
-    # --actor_bias $actor_bias
+    --actor_bias $actor_bias

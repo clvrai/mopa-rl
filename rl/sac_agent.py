@@ -53,7 +53,9 @@ class SACAgent(BaseAgent):
         self._critic2_optims = [optim.Adam(_critic.parameters(), lr=config.lr_actor) for _critic in self._critics2]
 
         sampler = RandomSampler()
-        buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew', 'intra_steps']
+        buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
+        if config.planner_integration:
+            buffer_keys.append("intra_steps")
         if config.hrl:
             self._buffer = LowLevelReplayBuffer(buffer_keys,
                                                 config.buffer_size,
@@ -325,10 +327,11 @@ class SACAgent(BaseAgent):
         o = _to_tensor(o)
         o_next = _to_tensor(o_next)
         ac = _to_tensor(transitions['ac'])
+
         if 'intra_steps' in transitions.keys() and self._config.use_smdp_update:
             intra_steps = _to_tensor(transitions['intra_steps'])
         else:
-            intra_steps = torch.ones(len(o))
+            intra_steps = _to_tensor(torch.ones(len(o)))
 
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
@@ -336,6 +339,7 @@ class SACAgent(BaseAgent):
             meta_ac = None
         done = _to_tensor(transitions['done']).reshape(bs, 1)
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
+
 
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
