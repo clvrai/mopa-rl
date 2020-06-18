@@ -101,7 +101,7 @@ class SawyerEnv(BaseEnv):
         return ["rc_close", "lc_close"]
 
     @property
-    def gripepr_bodies(self):
+    def gripper_bodies(self):
         return ["clawGripper", "rightclaw", 'leftclaw']
 
     @property
@@ -209,7 +209,7 @@ class SawyerEnv(BaseEnv):
     @property
     def agent_geom_ids(self):
         body_ids = []
-        for body_name in self.robot_bodies + self.gripepr_bodies:
+        for body_name in self.robot_bodies + self.gripper_bodies:
             body_ids.append(self.sim.model.body_name2id(body_name))
 
         geom_ids = []
