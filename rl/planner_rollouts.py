@@ -155,8 +155,10 @@ class PlannerRolloutRunner(object):
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
+                    invalid_target_qpos = False
                     if config.find_collision_free and not pi.isValidState(target_qpos):
                         trial = 0
+                        invalid_target_qpos = True
                         while not pi.isValidState(target_qpos) and trial < config.num_trials:
                             d = curr_qpos-target_qpos
                             target_qpos += config.step_size * d/np.linalg.norm(d)
@@ -169,6 +171,13 @@ class PlannerRolloutRunner(object):
                         success = False
                         valid = False
                         exact = True
+
+                    # if not exact:
+                    #     import pdb
+                    #     pdb.set_trace()
+                    # if not valid:
+                    #     import pdb
+                    #     pdb.set_trace()
 
                     if success:
                         if interpolation:
@@ -189,10 +198,10 @@ class PlannerRolloutRunner(object):
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             # ac = env.form_action(next_qpos)
-                            # meta_rew += (config.discount_factor** i) * reward # the last reward is more important
+                            meta_rew += (config.discount_factor** i) * reward # the last reward is more important
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
-                            meta_rew += reward
+                            # meta_rew += reward
                             done_list.append(done)
                             reward_list.append(meta_rew)
                             ob_list.append(ob.copy())
@@ -223,10 +232,14 @@ class PlannerRolloutRunner(object):
                         env._reset_prev_state()
 
                         if self._config.subgoal_hindsight: # refer to HAC
-                            hindsight_subgoal_ac = env.form_hindsight_action(prev_qpos)
-                            if config.extended_action:
-                                hindsight_subgoal_ac['ac_type'] = ac['ac_type']
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            if invalid_target_qpos:
+                                hindsight_subgoal_ac = env.form_hindsight_action(target_qpos)
+                                hindsight_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                if config.extended_action:
+                                    hindsight_subgoal_ac['ac_type'] = ac['ac_type']
+                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                            else:
+                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
