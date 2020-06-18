@@ -8,7 +8,7 @@
           <geom conaffinity="0" contype="0" group="1" name="table_visual" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
           <site name="table_top" pos="0.0 0.0 0.41" rgba="0 0 0 0" size="0.001 0.001 0.001" />
         </body>
-        <body name="cube" pos="0.5317717157210129 -0.023869616735809365 0.8209145002117841" quat="0.8775825618903728 0 0 0.479425538604203">
+        <body name="cube" pos="0.5317717157210129 -0.023869616735809365 0.86" quat="0.8775825618903728 0 0 0.479425538604203">
             <geom density="200" friction="2.0 0.005 0.0001" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.04 0.04 0.04" type="box" />
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
             <joint name="cube" type="free" />
