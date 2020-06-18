@@ -117,19 +117,19 @@ elif 'sawyer' in args.env:
 
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
-
+args.camera_name='agentview'
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="rrt_connect"
 args.simple_planner_type="sst"
 args.planner_objective="path_length"
 # args.planner_objective="maximize_min_clearance"
-args.range = 0.3
+args.range = 0.1
 args.threshold = 0.0
 args.timelimit = 1.0
 args.construct_time = 10.
 args.simple_timelimit = 0.02
-args.contact_threshold = -0.015
+args.contact_threshold = -0.0015
 args.is_simplified = True
 args.simplified_duration = 0.01
 
@@ -152,7 +152,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = True
+is_save_video = False
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
 min_action = env.action_space.spaces['default'].low[0] * env._ac_scale * 0.8  # assume equal for all
@@ -179,7 +179,11 @@ for episode in range(N):
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-2.942, 1.976, -0.989])
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
         # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        target_qpos[env.ref_joint_pos_indexes] = np.array([-0.614, 0.164, 0.608, -0.02007, -0.0265, 0.00894, 0.00122])
+        target_qpos = np.array([0.051, -0.416, -0.426, 1.83, -0.0605,  0.0231,  0.00209,  0.005,
+            0.   ,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,  0.   ,
+            0.   ,  0.005,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,
+            0.   ,  0.   ,  0.005,  0.532, -0.024,  0.86 ,  0.878, -0.   ,
+            0.   ,  0.479,  0.184,  0.072])
         if not simple_planner.isValidState(target_qpos):
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:
@@ -187,6 +191,7 @@ for episode in range(N):
             else:
                 env.render("human")
             print("Invalid goal state")
+            step += 1
             continue
         else:
             print("Valid goal state")
@@ -211,7 +216,7 @@ for episode in range(N):
         reward = 0
         if success:
             for j, next_qpos in enumerate(traj):
-                trial = 0
+                # trial = 0
                 while not planner.isValidState(next_qpos) and trial < 20:
                     d = env.sim.data.qpos.copy()-next_qpos
                     next_qpos += 0.05 * d/np.linalg.norm(d)
