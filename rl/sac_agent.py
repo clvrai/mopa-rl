@@ -331,7 +331,7 @@ class SACAgent(BaseAgent):
         if 'intra_steps' in transitions.keys() and self._config.use_smdp_update:
             intra_steps = _to_tensor(transitions['intra_steps'])
         else:
-            intra_steps = _to_tensor(torch.ones(len(o)))
+            intra_steps = _to_tensor(torch.zeros(len(o)))
 
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])

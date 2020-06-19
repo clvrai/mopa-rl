@@ -171,14 +171,14 @@ class PlannerRolloutRunner(object):
                         success = False
                         valid = False
                         exact = True
-
+                    #
                     # if not exact:
                     #     import pdb
                     #     pdb.set_trace()
                     # if not valid:
                     #     import pdb
                     #     pdb.set_trace()
-
+                    #
                     if success:
                         if interpolation:
                             counter['interpolation'] += 1
@@ -313,10 +313,11 @@ class PlannerRolloutRunner(object):
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, {})
+                        meta_rew += reward
                         if config.use_cum_rew:
-                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 1})
+                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         else:
-                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
+                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 0})
                         ep_len += 1
                         step += 1
                         meta_len += 1
@@ -338,9 +339,9 @@ class PlannerRolloutRunner(object):
                     rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                     ob, reward, done, info = env.step(rescaled_ac)
                     if not config.use_cum_rew:
-                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 1})
+                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     else:
-                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
+                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 0})
                     ep_len += 1
                     step += 1
                     ep_rew += reward

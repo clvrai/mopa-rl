@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.bigger.box.fix_xml.sacle.1.thresh.0.5.sm_margin"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.scale.1.thresh.0.5.no_smdp"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -72,7 +72,7 @@ joint_margin="0.001"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
-use_smdp_update="True"
+use_smdp_update="False"
 actor_bias="-10"
 # max_grad_norm='0.5'
 
