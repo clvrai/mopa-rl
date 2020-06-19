@@ -48,8 +48,8 @@ class SawyerPushEnv(SawyerEnv):
         info = {}
         reward = 0
 
-        reach_multi = 0.3
-        push_multi = 0.9
+        reach_multi = 1.0
+        push_multi = 1.0
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
         cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
         target_pos = self.sim.data.body_xpos[self.target_id]

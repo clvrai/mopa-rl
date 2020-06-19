@@ -147,7 +147,9 @@ class PlannerRolloutRunner(object):
 
                 if pi.is_planner_ac(ac) or is_planner:
                     if config.relative_goal:
-                        target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                        displacement = pi.convert2planner_displacemeent(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                        # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                        target_qpos[env.ref_joint_pos_indexes] += displacement
                         tmp_target_qpos = target_qpos.copy()
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                         # target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices]+0.001, env._jnt_maximum[env.jnt_indices]-0.001)
@@ -171,7 +173,7 @@ class PlannerRolloutRunner(object):
                         success = False
                         valid = False
                         exact = True
-
+                    #
                     # if not exact:
                     #     import pdb
                     #     pdb.set_trace()
@@ -302,6 +304,9 @@ class PlannerRolloutRunner(object):
                         if not valid:
                             counter['invalid'] += 1
                         counter['mp_fail'] += 1
+                        if counter['invalid'] >= 200:
+                            import pdb
+                            pdb.set_trace()
                         ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
@@ -313,10 +318,11 @@ class PlannerRolloutRunner(object):
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, {})
+                        meta_rew += reward
                         if config.use_cum_rew:
-                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 1})
+                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         else:
-                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
+                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 0})
                         ep_len += 1
                         step += 1
                         meta_len += 1
@@ -338,9 +344,9 @@ class PlannerRolloutRunner(object):
                     rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                     ob, reward, done, info = env.step(rescaled_ac)
                     if not config.use_cum_rew:
-                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 1})
+                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     else:
-                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 1})
+                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 0})
                     ep_len += 1
                     step += 1
                     ep_rew += reward
@@ -444,7 +450,9 @@ class PlannerRolloutRunner(object):
                 is_planner = bool(ac['ac_type'][0])
             if pi.is_planner_ac(ac) or is_planner:
                 if config.relative_goal:
-                    target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                    displacement = pi.convert2planner_displacemeent(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                    target_qpos[env.ref_joint_pos_indexes] += displacement
+                    # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
                     tmp_target_qpos = target_qpos.copy()
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]

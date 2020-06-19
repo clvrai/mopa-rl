@@ -94,11 +94,15 @@ class SawyerEnv(BaseEnv):
 
     @property
     def init_qpos(self):
-        return np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+        return np.array([-0.061, -0.77, 0.0554, 2.07, -0.0605, 0.0231, 0.00209])
 
     @property
     def gripper_joints(self):
         return ["rc_close", "lc_close"]
+
+    @property
+    def gripper_bodies(self):
+        return ["clawGripper", "rightclaw", 'leftclaw']
 
     @property
     def gripper_init_qpos(self):
@@ -205,7 +209,7 @@ class SawyerEnv(BaseEnv):
     @property
     def agent_geom_ids(self):
         body_ids = []
-        for body_name in self.robot_bodies:
+        for body_name in self.robot_bodies + self.gripper_bodies:
             body_ids.append(self.sim.model.body_name2id(body_name))
 
         geom_ids = []
