@@ -119,6 +119,17 @@ class SACAgent(BaseAgent):
     def isValidState(self, state):
         return self._planner.isValidState(state)
 
+    def convert2planner_displacement(self, ac, ac_scale):
+        ac_space_type = self._config.ac_space_type
+        action_range = self._config.action_range
+        ac_rl_maximum = self._config.ac_rl_maximum
+        if ac_space_type == 'normal':
+            return ac * action_range
+        elif ac_space_type == 'pairwise':
+            return np.where(np.abs(ac) < ac_rl_maximum, ac/ac_rl_maximum, ac_scale+(ac-ac_rl_maximum)*((action_range-ac_scale)/(action_range-ac_rl_maximum)))
+        else:
+            raise NotImplementedError
+
     # @profile
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
 
@@ -331,7 +342,7 @@ class SACAgent(BaseAgent):
         if 'intra_steps' in transitions.keys() and self._config.use_smdp_update:
             intra_steps = _to_tensor(transitions['intra_steps'])
         else:
-            intra_steps = _to_tensor(torch.ones(len(o)))
+            intra_steps = _to_tensor(torch.zeros(len(o)))
 
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
