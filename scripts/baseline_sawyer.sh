@@ -11,7 +11,7 @@ num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v2"
+prefix="BASELINE.v3"
 max_global_step="60000000"
 env="sawyer-push-v0"
 gpu=$gpu

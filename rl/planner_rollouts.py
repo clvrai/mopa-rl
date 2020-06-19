@@ -147,7 +147,9 @@ class PlannerRolloutRunner(object):
 
                 if pi.is_planner_ac(ac) or is_planner:
                     if config.relative_goal:
-                        target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                        displacement = pi.convert2planner_displacemeent(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                        # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                        target_qpos[env.ref_joint_pos_indexes] += displacement
                         tmp_target_qpos = target_qpos.copy()
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                         # target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices]+0.001, env._jnt_maximum[env.jnt_indices]-0.001)
@@ -448,7 +450,9 @@ class PlannerRolloutRunner(object):
                 is_planner = bool(ac['ac_type'][0])
             if pi.is_planner_ac(ac) or is_planner:
                 if config.relative_goal:
-                    target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
+                    displacement = pi.convert2planner_displacemeent(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                    target_qpos[env.ref_joint_pos_indexes] += displacement
+                    # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
                     tmp_target_qpos = target_qpos.copy()
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
