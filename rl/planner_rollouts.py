@@ -200,7 +200,10 @@ class PlannerRolloutRunner(object):
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             # ac = env.form_action(next_qpos)
-                            meta_rew += (config.discount_factor** i) * reward # the last reward is more important
+                            if self._config.use_discount_meta:
+                                meta_rew += (config.discount_factor** i) * reward # the last reward is more important
+                            else:
+                                meta_rew += reward
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
                             # meta_rew += reward
@@ -249,7 +252,7 @@ class PlannerRolloutRunner(object):
                             rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
                             # rollout.add({'done': done, 'rew': reward * i})
-                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor**i), 'intra_steps': i})
+                            rollout.add({'done': done, 'rew': reward, 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
@@ -322,7 +325,7 @@ class PlannerRolloutRunner(object):
                         if config.use_cum_rew:
                             rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         else:
-                            rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 0})
+                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         ep_len += 1
                         step += 1
                         meta_len += 1
@@ -346,7 +349,7 @@ class PlannerRolloutRunner(object):
                     if not config.use_cum_rew:
                         rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     else:
-                        rollout.add({'done': done, 'rew': reward * (1-config.discount_factor), 'intra_steps': 0})
+                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     ep_len += 1
                     step += 1
                     ep_rew += reward

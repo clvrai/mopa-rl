@@ -35,6 +35,7 @@ def argparser():
     parser.add_argument("--alternation", type=str2bool, default=False)
     parser.add_argument("--planner_integration", type=str2bool, default=False)
     parser.add_argument("--use_cum_rew", type=str2bool, default=True)
+    parser.add_argument("--use_discount_meta", type=str2bool, default=False)
     parser.add_argument("--ac_space_type", type=str, default="normal", choices=["normal", "pairwise"])
 
     # hrl
