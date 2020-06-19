@@ -55,7 +55,7 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
                  double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate, bool is_simplified, double simplified_duration)
 {
     // std::string xml_filename = XML_filename;
-    // ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
+    ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG); // OMPL logging
     xml_filename = XML_filename;
     algo = Algo;
@@ -395,29 +395,29 @@ bool KinematicPlanner::isValidState(std::vector<double> state_vec){
     }
 
     // split start_vec/goal_vec in active and passive dimensions
-    std::vector<double> start_vec_active;
-    std::vector<double> start_vec_passive;
+    std::vector<double> state_vec_active;
+    std::vector<double> state_vec_passive;
     for (int i=0; i<mj->m->nq; i++) {
         if (MjOmpl::isActiveJoint(i, passive_joint_idx)) {
-            start_vec_active.push_back(start_vec[i]);
+            state_vec_active.push_back(state_vec[i]);
         } else {
-            start_vec_passive.push_back(start_vec[i]);
+            state_vec_passive.push_back(state_vec[i]);
         }
     }
 
     ss->clearStartStates();
     auto initState = ss->getSpaceInformation()->allocState();
-    MjOmpl::readOmplStateKinematic(start_vec_active,
+    MjOmpl::readOmplStateKinematic(state_vec_active,
                                    ss->getSpaceInformation().get(),
                                    initState->as<ob::CompoundState>());
     MjOmpl::copyOmplActiveStateToMujoco(initState->as<ob::CompoundState>(),
             ss->getSpaceInformation().get(), mj->m, mj->d, passive_joint_idx);
-    MjOmpl::copyPassiveStateToMujoco(start_vec_passive, mj->m, mj->d, passive_joint_idx);
+    MjOmpl::copyPassiveStateToMujoco(state_vec_passive, mj->m, mj->d, passive_joint_idx);
     msvc->addGlueTransformation(glue_bodies);
     // Set active start and goal states
-    ob::ScopedState<> start_ss(ss->getStateSpace());
-    for(int i=0; i < start_vec_active.size(); i++) {
-        start_ss[i] = start_vec_active[i];
+    ob::ScopedState<> state_ss(ss->getStateSpace());
+    for(int i=0; i < state_vec_active.size(); i++) {
+        state_ss[i] = state_vec_active[i];
     }
     return ss->getStateValidityChecker()->isValid(state_ss.get());
 }

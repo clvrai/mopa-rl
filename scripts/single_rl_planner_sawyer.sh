@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.scale.1.thresh.0.5.no_smdp"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.scale.1.hindsight.no_smdp.debug.v2"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -27,7 +27,7 @@ clip_param="0.2"
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Sanity Check'
-start_steps='10000'
+start_steps='5000'
 actor_num_hid_layers='2'
 log_root_dir="/data/jun/projects/hrl-planner/logs"
 # log_root_dir="./logs"
@@ -43,7 +43,7 @@ threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
 reward_scale="1.0"
-subgoal_hindsight="False"
+subgoal_hindsight="True"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
@@ -74,6 +74,7 @@ use_cum_rew="True"
 plot_type='3d'
 use_smdp_update="False"
 actor_bias="-10"
+contact_threshold="-0.002"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -147,4 +148,5 @@ python -m rl.main \
     --plot_type $plot_type \
     --vis_replay_interval $vis_replay_interval \
     --use_smdp_update $use_smdp_update \
+    --contact_threshold $contact_threshold
     # --actor_bias $actor_bias
