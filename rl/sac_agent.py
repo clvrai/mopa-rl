@@ -120,9 +120,9 @@ class SACAgent(BaseAgent):
         return self._planner.isValidState(state)
 
     def convert2planner_displacement(self, ac, ac_scale):
-        ac_space_type = self._config['ac_space_type']
-        action_range = self._config['action_range']
-        ac_rl_maximum = self._config['ac_rl_maximum']
+        ac_space_type = self._config.ac_space_type
+        action_range = self._config.action_range
+        ac_rl_maximum = self._config.ac_rl_maximum
         if ac_space_type == 'normal':
             return ac * action_range
         elif ac_space_type == 'pairwise':

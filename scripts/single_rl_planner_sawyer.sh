@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.scale.1.threshold.0.5.smdp.v3"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.scale.1.threshold.0.8.pairwise"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='5000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -47,8 +47,8 @@ subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.8"
+ac_rl_maximum="0.8"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -75,6 +75,7 @@ plot_type='3d'
 use_smdp_update="True"
 actor_bias="-10"
 contact_threshold="-0.002"
+ac_space_type="pairwise"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -148,5 +149,6 @@ python -m rl.main \
     --plot_type $plot_type \
     --vis_replay_interval $vis_replay_interval \
     --use_smdp_update $use_smdp_update \
-    --contact_threshold $contact_threshold
+    --contact_threshold $contact_threshold \
+    --ac_space_type $ac_space_type
     # --actor_bias $actor_bias
