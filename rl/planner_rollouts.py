@@ -307,9 +307,9 @@ class PlannerRolloutRunner(object):
                         if not valid:
                             counter['invalid'] += 1
                         counter['mp_fail'] += 1
-                        if counter['invalid'] >= 200:
-                            import pdb
-                            pdb.set_trace()
+                        # if counter['invalid'] >= 200:
+                        #     import pdb
+                        #     pdb.set_trace()
                         ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
