@@ -15,6 +15,7 @@ import env
 import gym
 from gym import spaces
 from sklearn.externals import joblib
+from mpl_toolkits.mplot3d import Axes3D 
 import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
@@ -155,7 +156,7 @@ class Trainer(object):
 
         else:
             self._agent = get_agent_by_name(config.algo)(
-                config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited
+                config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
             )
 
         self._runner = None
@@ -428,7 +429,8 @@ class Trainer(object):
 
             if self._is_chef:
                 pbar.update(step_per_batch)
-                if update_iter % config.log_interval == 0 or len(info) != 0:
+
+                if update_iter % config.log_interval == 0 or (('env_step' in info.keys() and len(info) > 1) or ('env_step' not in info.keys() and len(info) != 0)):
                     for k, v in info.items():
                         if isinstance(v, list):
                             ep_info[k].extend(v)
@@ -563,14 +565,39 @@ class Trainer(object):
             return # visualization does not work if ealier samples were overriden
 
         size = self._agent._buffer._current_size
-        states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
         fig = plt.figure()
-        plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(len(states[:, 0])), cmap='Blues')
-        plt.axis("equal")
-        wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
-        plt.close(fig)
+        if self._config.plot_type == '2d':
+            states = np.array([ob[1]['fingertip'] for ob in self._agent._buffer.state_dict()['ob']])
+            plt.scatter(states[:, 0], states[:, 1], s=5, c=np.arange(len(states[:, 0])), cmap='Blues')
+            plt.axis("equal")
+            wandb.log({'replay_vis': wandb.Image(fig)}, step=step)
+            plt.close(fig)
+        else:
+            states = np.array([ob[1]['eef_pos'] for ob in self._agent._buffer.state_dict()['ob']])
+            ax = fig.add_subplot(111, projection="3d")
+            ax.scatter(states[:, 0], states[:, 1], states[:, 2], s=5, c=np.arange(len(states[:, 0])), cmap="Blues")
+            def set_axes_equal(ax):
+                x_limits = ax.get_xlim3d()
+                y_limits = ax.get_ylim3d()
+                z_limits = ax.get_zlim3d()
 
+                x_range = abs(x_limits[1] - x_limits[0])
+                x_middle = np.mean(x_limits)
+                y_range = abs(y_limits[1] - y_limits[0])
+                y_middle = np.mean(y_limits)
+                z_range = abs(z_limits[1] - z_limits[0])
+                z_middle = np.mean(z_limits)
 
+                # The plot bounding box is a sphere in the sense of the infinity
+                # norm, hence I call half the max range the plot radius.
+                plot_radius = 0.5*max([x_range, y_range, z_range])
+
+                ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+                ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+                ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+            set_axes_equal(ax)
+            wandb.log({'replay_vis': wandb.Image(ax)}, step=step)
+            plt.close(fig)
 
     def log_videos(self, vids, name, fps=15, step=None):
         """Logs videos to WandB in mp4 format.

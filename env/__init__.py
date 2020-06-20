@@ -275,3 +275,30 @@ register(
     entry_point='env.robosuite:SawyerLiftEnv',
     kwargs={}
 )
+register(
+    id="sawyer-reach-v0",
+    entry_point="env.sawyer:SawyerReachEnv",
+    kwargs={}
+)
+
+register(
+    id="sawyer-reach-obstacle-v0",
+    entry_point="env.sawyer:SawyerReachObstacleEnv",
+    kwargs={}
+)
+
+register(
+    id="sawyer-reach-float-obstacle-v0",
+    entry_point="env.sawyer:SawyerReachFloatObstacleEnv",
+    kwargs={}
+)
+register(
+    id="sawyer-assembly-easy-v0",
+    entry_point="env.sawyer:SawyerAssemblyEasyEnv",
+    kwargs={}
+)
+register(
+    id="sawyer-push-v0",
+    entry_point="env.sawyer:SawyerPushEnv",
+    kwargs={}
+)

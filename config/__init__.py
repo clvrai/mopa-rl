@@ -34,6 +34,9 @@ def argparser():
     parser.add_argument("--termination", type=str2bool, default=False)
     parser.add_argument("--alternation", type=str2bool, default=False)
     parser.add_argument("--planner_integration", type=str2bool, default=False)
+    parser.add_argument("--use_cum_rew", type=str2bool, default=True)
+    parser.add_argument("--use_discount_meta", type=str2bool, default=False)
+    parser.add_argument("--ac_space_type", type=str, default="normal", choices=["normal", "pairwise"])
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -141,6 +144,8 @@ def argparser():
     parser.add_argument("--temperature", type=float, default=0.3, help="Temperature for Gumbel Softmax")
     parser.add_argument("--use_automatic_entropy_tuning", type=str2bool, default=True)
     parser.add_argument("--alpha", type=float, default=0.2)
+    parser.add_argument("--use_smdp_update", type=str2bool, default=False)
+    parser.add_argument("--actor_bias", type=float, default=None)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)
@@ -162,6 +167,7 @@ def argparser():
                         help="set it True if you want to use wandb")
     parser.add_argument("--group", type=str, default=None)
     parser.add_argument("--vis_replay", type=str2bool, default=True)
+    parser.add_argument("--plot_type", type=str, default="2d")
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)

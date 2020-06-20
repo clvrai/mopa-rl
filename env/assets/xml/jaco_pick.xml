@@ -1,0 +1,88 @@
+<!-- ======================================================
+    This file is part of MuJoCo.
+    Copyright 2009-2016 Roboti LLC.
+
+    Model         :: Jaco Arm from Kinova Robotics
+        Source        : www.github.com/Kinovarobotics
+        Downloaded    : July 25, 2015
+
+    Mujoco        :: Advanced physics simulation engine
+        Source        : www.roboti.us
+        Version        : 1.31
+        Released     : 23Apr16
+
+    Author        :: Vikash Kumar
+        Contacts     : kumar@roboti.us
+        Last edits     : 30Apr16, 30Nov15, 26Sept'15, 26July'15
+====================================================== -->
+<mujoco model="jaco(v1.31)">
+    <include file="./common/skybox.xml"/>
+    <include file="./common/visual.xml"/>
+    <include file="./common/materials.xml"/>
+    <include file="./common/camera.xml"/>
+
+    <compiler angle="radian" meshdir="../meshes/" />
+    <option timestep="0.01" gravity="0 0 -9.8" iterations="10" integrator="Euler" />
+
+    <asset>
+        <mesh file="jaco_link_base.stl"/>
+        <mesh file="jaco_link_1.stl"/>
+        <mesh file="jaco_link_2.stl"/>
+        <mesh file="jaco_link_3.stl"/>
+        <mesh file="jaco_link_4.stl"/>
+        <mesh file="jaco_link_5.stl"/>
+        <mesh file="jaco_link_hand.stl"/>
+        <mesh file="jaco_link_finger_1.stl"/>
+        <mesh file="jaco_link_finger_2.stl"/>
+        <mesh file="jaco_link_finger_3.stl"/>
+
+        <material name="MatViz" specular="1" shininess=".1" reflectance="0.5" rgba=".07 .07 .1 1"/>
+    </asset>
+
+    <default>
+        <geom margin="0.001"/>
+        <joint limited="true" damping="0.5" armature=".01"/>
+        <!--geom class for visual and collision geometry-->
+        <default class ="vizNcoll">
+            <geom material="MatViz" type="mesh" group="0" contype="1" conaffinity="0"/>
+            <joint pos="0 0 0" type="hinge"/>
+        </default>
+        <default class ="ground">
+            <geom material="grid" type="plane" contype="1" conaffinity="1"/>
+        </default>
+    </default>
+
+    <worldbody>
+        <light directional="true" cutoff="60" exponent="1" diffuse="1 1 1" specular=".1 .1 .1" pos="1 -1 1.5" dir="-1 1 -1.3"/>
+        <geom name="ground" class="ground" pos="0 0 0" size="5 5 1"/>
+
+        <!-- jaco -->
+        <body name="jaco_link_base" childclass="vizNcoll" pos="0 0 0.25">
+            <include file="./common/jaco.xml" />
+        </body>
+        <!-- box -->
+        <body name="box" pos="0.3 0.3 .03" euler="0 0 0">
+            <geom name="box" mass="0.1" contype="1" conaffinity="1" rgba="0.8 0.2 0.2 1" size=".03 .03 .03" type="box"/>
+            <joint name="box" type="free" armature="0" damping="0" limited="false"/>
+        </body>
+
+        <!-- box_t for following hand position
+        <body name="box_t" pos="0 0 0" euler="0 0 0">
+            <geom name="box_t" pos="0 0 0" contype="1" conaffinity="1" rgba="0.1 0.3 0.7 1" size=".06 .06 .06" type="box"/>
+        </body>
+        -->
+    </worldbody>
+
+    <actuator>
+        <!--  ================= Torque actuators (Weren't present in the URDF. Added seperately)================= /-->
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_1'     name='Ajaco_joint_1' gear="5"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_2'     name='Ajaco_joint_2' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_3'     name='Ajaco_joint_3' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_4'     name='Ajaco_joint_4' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_5'     name='Ajaco_joint_5' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_6'     name='Ajaco_joint_6' gear="10"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_finger_1'     name='Ajaco_joint_finger_1' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_finger_2'     name='Ajaco_joint_finger_2' gear='10'/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_finger_3'     name='Ajaco_joint_finger_3' gear='10'/>
+    </actuator>
+</mujoco>

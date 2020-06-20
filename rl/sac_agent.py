@@ -26,11 +26,12 @@ atexit.register(profile.print_stats)
 
 class SACAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
-                 actor, critic, non_limited_idx=None, ref_joint_pos_indexes=None, joint_space=None, is_jnt_limited=None):
+                 actor, critic, non_limited_idx=None, ref_joint_pos_indexes=None, joint_space=None, is_jnt_limited=None, jnt_indices=None):
         super().__init__(config, ob_space)
 
         self._ob_space = ob_space
         self._ac_space = ac_space
+        self._jnt_indices = jnt_indices
         self._ref_joint_pos_indexes = ref_joint_pos_indexes
         self._log_alpha = [torch.zeros(1, requires_grad=True, device=config.device)]
         self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
@@ -53,6 +54,8 @@ class SACAgent(BaseAgent):
 
         sampler = RandomSampler()
         buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
+        if config.planner_integration:
+            buffer_keys.append("intra_steps")
         if config.hrl:
             self._buffer = LowLevelReplayBuffer(buffer_keys,
                                                 config.buffer_size,
@@ -88,7 +91,7 @@ class SACAgent(BaseAgent):
 
     def _build_actor(self, actor):
         self._actors = [actor(self._config, self._ob_space, self._ac_space,
-                               self._config.tanh_policy)] # num_body_parts, num_skills
+                               self._config.tanh_policy, bias=self._config.actor_bias)] # num_body_parts, num_skills
 
     def _build_critic(self, critic):
         config = self._config
@@ -116,16 +119,26 @@ class SACAgent(BaseAgent):
     def isValidState(self, state):
         return self._planner.isValidState(state)
 
+    def convert2planner_displacement(self, ac, ac_scale):
+        ac_space_type = self._config.ac_space_type
+        action_range = self._config.action_range
+        ac_rl_maximum = self._config.ac_rl_maximum
+        if ac_space_type == 'normal':
+            return ac * action_range
+        elif ac_space_type == 'pairwise':
+            return np.where(np.abs(ac) < ac_rl_maximum, ac/ac_rl_maximum, np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((action_range-ac_scale)/(action_range-ac_rl_maximum))))
+        else:
+            raise NotImplementedError
+
     # @profile
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
-        tmp_pos = curr_qpos.copy()
-        if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
-            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+self._config.joint_margin, self._jnt_maximum-self._config.joint_margin)
-            new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
-            curr_qpos = new_curr_qpos
 
+        curr_qpos = self.clip_qpos(curr_qpos)
         interpolation = True
-        traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        if self._config.interpolate_type == 'planner':
+            traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
+        else:
+            traj, success, valid, exact = self.simple_interpolate(curr_qpos, target_qpos, ac_scale)
         if not success:
             if self._config.allow_approximate:
                 if self._config.allow_invalid:
@@ -150,7 +163,7 @@ class SACAgent(BaseAgent):
                                     if inner_success:
                                         new_traj.extend(inner_traj)
                                 else:
-                                    inner_traj = self.simple_interpolate(start, traj[i], ac_scale)
+                                    inner_traj, _, _, _ = self.simple_interpolate(start, traj[i], ac_scale, use_planner=True)
                                     new_traj.extend(inner_traj)
                             else:
                                 new_traj.append(traj[i])
@@ -163,12 +176,19 @@ class SACAgent(BaseAgent):
         traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
         return traj, success, interpolation, valid, exact
 
-    def simple_interpolate(self, curr_qpos, target_qpos, ac_scale):
+    def clip_qpos(self, curr_qpos):
         tmp_pos = curr_qpos.copy()
-        if np.any(curr_qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(curr_qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
-            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum+self._config.joint_margin, self._jnt_maximum-self._config.joint_margin)
-            new_curr_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+        if np.any(curr_qpos[self._is_jnt_limited[self._jnt_indices]] < self._jnt_minimum[self._jnt_indices][self._is_jnt_limited[self._jnt_indices]]) or \
+                np.any(curr_qpos[self._is_jnt_limited[self._jnt_indices]] > self._jnt_maximum[self._jnt_indices][self._is_jnt_limited[self._jnt_indices]]):
+            new_curr_qpos = np.clip(curr_qpos.copy(), self._jnt_minimum[self._jnt_indices]+self._config.joint_margin, self._jnt_maximum[self._jnt_indices]-self._config.joint_margin)
+            new_curr_qpos[np.invert(self._is_jnt_limited[self._jnt_indices])] = tmp_pos[np.invert(self._is_jnt_limited[self._jnt_indices])]
             curr_qpos = new_curr_qpos
+        return curr_qpos
+
+    def simple_interpolate(self, curr_qpos, target_qpos, ac_scale, use_planner=False):
+        success = True
+        exact = True
+        curr_qpos = self.clip_qpos(curr_qpos)
 
         traj = []
         min_action = self._ac_space['default'].low[0] * ac_scale * 0.8
@@ -182,7 +202,10 @@ class SACAgent(BaseAgent):
 
 
         scales = np.where(out_diff > max_action, out_diff/max_action, out_diff/min_action)
-        scaling_factor = max(max(scales), 1.)
+        if len(scales) == 0:
+            scaling_factor = 1.
+        else:
+            scaling_factor = max(max(scales), 1.)
         scaled_ac = diff[:len(self._ref_joint_pos_indexes)]
 
         valid = True
@@ -193,16 +216,20 @@ class SACAgent(BaseAgent):
                 valid = False
                 break
             traj.append(interp_qpos.copy())
-        if not valid:
+
+        if not valid and use_planner:
             traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
             if not success:
                 traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
                 if not success:
                     traj = [target_qpos]
         else:
+            if not valid:
+                success = False
+                exact = False
             traj.append(target_qpos)
 
-        return np.array(traj)
+        return np.array(traj), success, valid, exact
 
 
     def state_dict(self):
@@ -311,12 +338,17 @@ class SACAgent(BaseAgent):
         o = _to_tensor(o)
         o_next = _to_tensor(o_next)
         ac = _to_tensor(transitions['ac'])
+
+        if 'intra_steps' in transitions.keys() and self._config.use_smdp_update:
+            intra_steps = _to_tensor(transitions['intra_steps'])
+
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
         else:
             meta_ac = None
         done = _to_tensor(transitions['done']).reshape(bs, 1)
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
+
 
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
@@ -342,8 +374,17 @@ class SACAgent(BaseAgent):
             q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
-            target_q_value = rew * self._config.reward_scale + \
-                (1 - done) * self._config.discount_factor * q_next_value
+            # if self._config.use_smdp_update:
+            #     #https://papers.nips.cc/paper/889-reinforcement-learning-methods-for-continuous-time-markov-decision-problems.pdf
+            #     target_q_value = ((1-self._config.discount_factor**intra_steps)/(-np.log(self._config.discount_factor))) *rew * self._config.reward_scale + \
+            #         (1 - done) * (self._config.discount_factor ** (intra_steps)) * q_next_value
+            # else:
+            if self._config.use_smdp_update:
+                target_q_value = rew * self._config.reward_scale + \
+                    (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
+            else:
+                target_q_value = rew * self._config.reward_scale + \
+                    (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
             # clip_return = 1 / (1 - self._config.discount_factor)

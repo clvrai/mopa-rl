@@ -12,24 +12,25 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.REACH"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.scale.5.pairwise.thresh.0.5.discount.smdp"
 max_global_step="60000000"
-env="sawyer-reach-robosuite-v0"
+env="sawyer-push-v0"
 rl_hid_size="256"
-max_episode_step="1000"
+max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-lr_actor="2e-4"
-lr_critic="2e-4"
+lr_actor="3e-4"
+lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Sanity Check'
-start_steps='10000'
+start_steps='5000'
 actor_num_hid_layers='2'
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -37,17 +38,17 @@ ignored_contact_geoms='None,None'
 planner_type="rrt_connect"
 planner_objective="path_length"
 range="0.2"
-simple_planner_range="0.05"
-threshold="0.01"
+simple_planner_range="0.1"
+threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="1.0"
+reward_scale="5.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.2"
-ac_rl_maximum="0.2"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.5"
 extended_action="False"
 allow_approximate="False"
@@ -58,18 +59,24 @@ alpha='0.05'
 find_collision_free="True"
 use_double_planner="False"
 simple_planner_type='rrt_connect'
-simple_planner_timelimit="0.04"
-sst_selection_radius="0.01"
-sst_pruning_radius="0.01"
+simple_planner_timelimit="0.02"
 is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
 simple_planner_simplified_duration="0.01"
-vis_replay="False"
+vis_replay="True"
+vis_replay_interval="10000"
 use_interpolation="True"
 interpolate_type="simple"
-contact_threshold="-0.01"
-joint_margin="0.01"
+joint_margin="0.001"
+task_level='easy'
+use_cum_rew="True"
+plot_type='3d'
+actor_bias="-10"
+contact_threshold="-0.002"
+ac_space_type="pairwise"
+use_smdp_update="True"
+use_discount_meta="True"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -137,5 +144,13 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --use_interpolation $use_interpolation \
     --interpolate_type $interpolate_type \
+    --joint_margin $joint_margin \
+    --task_level $task_level \
+    --use_cum_rew $use_cum_rew \
+    --plot_type $plot_type \
+    --vis_replay_interval $vis_replay_interval \
+    --use_smdp_update $use_smdp_update \
     --contact_threshold $contact_threshold \
-    --joint_margin $joint_margin
+    --ac_space_type $ac_space_type \
+    --use_discount_meta $use_discount_meta
+    # --actor_bias $actor_bias

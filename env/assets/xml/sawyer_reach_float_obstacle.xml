@@ -1,0 +1,30 @@
+<mujoco model="sawyer_reach_obstacle">
+    <include file="./common/sawyer.xml" />
+    <default>
+        <default class="obstacle">
+            <geom conaffinity="1" contype="0" pos="0 0 0" rgba="0.55 0.25 0.07 1" />
+        </default>
+    </default>
+    <worldbody>
+
+        <body name="obstacle1" pos="0.81 -0.05 0.8">
+            <geom class="obstacle" name="obstacle1_geom" size="0.01 0.05 0.14" type="box" />
+        </body>
+        <body name="obstacle2" pos="0.55 0.0 1.5">
+            <geom class="obstacle" name="obstacle2_geom" size="0.01 0.05 0.25" type="box" />
+        </body>
+
+        <!-- <body name="obstacle3" pos="0.61 &#45;0.3 0.8"> -->
+        <!--     <geom class="obstacle" name="obstacle3_geom" size="0.15 0.1 0.14" type="box" /> -->
+        <!-- </body> -->
+        <!-- <body name="obstacle4" pos="0.45 &#45;0.25 1.5"> -->
+        <!--     <geom class="obstacle" name="obstacle4_geom" size="0.2 0.1 0.1" type="box" /> -->
+        <!-- </body> -->
+        <body name="target" pos="0.6 0.0 1.2">
+            <joint axis="1 0 0" limited="true" name="target_x" pos="0 0 0" range="-1 1" ref="0.6" type="slide" />
+            <joint axis="0 1 0" limited="true" name="target_y" pos="0 0 0" range="-1 1" ref="0" type="slide" />
+            <joint axis="0 0 1" limited="true" name="target_z" pos="0 0 0" range="-1 1.5" ref="1.2" type="slide" />
+            <geom conaffinity="0" contype="0" group="1" name="target_geom" pos="0 0 0" rgba="0 1 0 0.5" size="0.02" type="sphere" />
+        </body>
+    </worldbody>
+</mujoco>

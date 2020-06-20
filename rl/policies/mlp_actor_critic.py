@@ -10,10 +10,11 @@ from util.gym import observation_size, action_size
 
 
 class MlpActor(Actor):
-    def __init__(self, config, ob_space, ac_space, tanh_policy, deterministic=False, activation='relu', rl_hid_size=None):
+    def __init__(self, config, ob_space, ac_space, tanh_policy, deterministic=False, activation='relu', rl_hid_size=None, bias=None):
         super().__init__(config, ob_space, ac_space, tanh_policy)
 
         self._ac_space = ac_space
+        self._bias = bias
         self._deterministic = deterministic
         if rl_hid_size == None:
             rl_hid_size = config.rl_hid_size
@@ -32,7 +33,7 @@ class MlpActor(Actor):
                     if config.algo == 'ppo':
                         self.fc_log_stds.update({k: AddBias(torch.zeros(action_size(space)))})
                     else:
-                        self.fc_log_stds.update({k: MLP(config, rl_hid_size, action_size(space), activation=activation)})
+                        self.fc_log_stds.update({k: MLP(config, rl_hid_size, action_size(space), activation=activation, bias=self._bias)})
             elif isinstance(space, spaces.Discrete):
                 self.fc_means.update({k: MLP(config, rl_hid_size, space.n, activation=activation)})
             else:

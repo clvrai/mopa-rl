@@ -1,0 +1,13 @@
+<mujoco model="sawyer_reach">
+    <include file="./common/sawyer.xml" />
+    <default>
+    </default>
+    <worldbody>
+        <body name="target" pos="0.6 0.0 1.2">
+            <joint axis="1 0 0" limited="true" name="target_x" pos="0 0 0" range="-1 1" ref="0.6" type="slide" />
+            <joint axis="0 1 0" limited="true" name="target_y" pos="0 0 0" range="-1 1" ref="0" type="slide" />
+            <joint axis="0 0 1" limited="true" name="target_z" pos="0 0 0" range="-1 1.5" ref="1.2" type="slide" />
+            <geom conaffinity="0" contype="0" group="1" name="target_geom" pos="0 0 0" rgba="0 1 0 0.5" size="0.02" type="sphere" />
+        </body>
+    </worldbody>
+</mujoco>

@@ -70,4 +70,4 @@ eigen-3.3.7/
 motion_planners/*.so
 primitives/*/*pt
 
-env/assets/xml/sawyer*
+# env/assets/xml/sawyer*

@@ -244,10 +244,10 @@ class BaseEnv(gym.Env):
 
 
     def _after_step(self, reward, terminal, info):
-        if np.any(self.sim.data.qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(self.sim.data.qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+        if np.any(self.sim.data.qpos[self._is_jnt_limited[self.jnt_indices]] < self._jnt_minimum[self.jnt_indices][self._is_jnt_limited[self.jnt_indices]]) or np.any(self.sim.data.qpos[self._is_jnt_limited[self.jnt_indices]] > self._jnt_maximum[self.jnt_indices][self._is_jnt_limited[self.jnt_indices]]):
             tmp_pos = self.sim.data.qpos.copy()
-            new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum, self._jnt_maximum)
-            new_pos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum[self.jnt_indices], self._jnt_maximum[self.jnt_indices])
+            new_pos[np.invert(self._is_jnt_limited[self.jnt_indices])] = tmp_pos[np.invert(self._is_jnt_limited[self.jnt_indices])]
             self.set_state(new_pos, self.sim.data.qvel.ravel())
 
         step_log = dict(info)

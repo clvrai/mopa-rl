@@ -19,6 +19,8 @@ elif 'robosuite' in args.env:
     from config.robosuite import add_arguments
 elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
+elif 'jaco' in args.env:
+    from config.jaco import add_arguments
 
 else:
     raise ValueError('args.env (%s) is not supported' % args.env)
@@ -36,10 +38,15 @@ env.reset_visualized_indicator()
 while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()
+    action = np.zeros(env.dof)
+    action[1] = -1.5
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
     # env.set_robot_indicator_joint_positions(qpos)
-    print(action)
     obs, reward, done, _ = env.step(action)
+    import pdb
+    pdb.set_trace()
+    print(env.sim.data.qpos)
+    # print(env.sim.data.qpos[env.ref_joint_pos_indexes])
     env.render(mode='human')
     if done:
         print('done')
