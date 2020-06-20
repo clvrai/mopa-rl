@@ -126,7 +126,7 @@ class SACAgent(BaseAgent):
         if ac_space_type == 'normal':
             return ac * action_range
         elif ac_space_type == 'pairwise':
-            return np.where(np.abs(ac) < ac_rl_maximum, ac/ac_rl_maximum, ac_scale+(ac-ac_rl_maximum)*((action_range-ac_scale)/(action_range-ac_rl_maximum)))
+            return np.where(np.abs(ac) < ac_rl_maximum, ac/ac_rl_maximum, np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((action_range-ac_scale)/(action_range-ac_rl_maximum))))
         else:
             raise NotImplementedError
 
@@ -341,8 +341,6 @@ class SACAgent(BaseAgent):
 
         if 'intra_steps' in transitions.keys() and self._config.use_smdp_update:
             intra_steps = _to_tensor(transitions['intra_steps'])
-        else:
-            intra_steps = _to_tensor(torch.zeros(len(o)))
 
         if self._config.hrl:
             meta_ac = _to_tensor(transitions['meta_ac'])
@@ -381,8 +379,12 @@ class SACAgent(BaseAgent):
             #     target_q_value = ((1-self._config.discount_factor**intra_steps)/(-np.log(self._config.discount_factor))) *rew * self._config.reward_scale + \
             #         (1 - done) * (self._config.discount_factor ** (intra_steps)) * q_next_value
             # else:
-            target_q_value = rew * self._config.reward_scale + \
-                (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
+            if self._config.use_smdp_update:
+                target_q_value = rew * self._config.reward_scale + \
+                    (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
+            else:
+                target_q_value = rew * self._config.reward_scale + \
+                    (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
             # clip_return = 1 / (1 - self._config.discount_factor)
