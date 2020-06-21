@@ -117,19 +117,19 @@ elif 'sawyer' in args.env:
 
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
-args.camera_name='agentview'
+# args.camera_name='agentview'
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="rrt_connect"
-args.simple_planner_type="sst"
+args.simple_planner_type="rrt_connect"
 args.planner_objective="path_length"
 # args.planner_objective="maximize_min_clearance"
-args.range = 0.1
-args.threshold = 0.0
-args.timelimit = 1.0
+args.range = 0.2
+args.threshold = 0.05
+args.timelimit = 2.0
 args.construct_time = 10.
-args.simple_timelimit = 0.02
-args.contact_threshold = -0.0015
+args.simple_timelimit = 0.05
+args.contact_threshold = -0.002
 args.is_simplified = True
 args.simplified_duration = 0.01
 
@@ -152,7 +152,7 @@ simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_j
 
 
 N = 1
-is_save_video = False
+is_save_video = True
 frames = []
 # TODO: This code is repeated in interpolate(). Fix this
 min_action = env.action_space.spaces['default'].low[0] * env._ac_scale * 0.8  # assume equal for all
@@ -164,9 +164,7 @@ for episode in range(N):
     print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
-    curr_qpos = env.sim.data.qpos.copy()
     # curr_qpos[:3] = np.array([-4., 0.3, -0.658])
-    env.set_state(curr_qpos, env.sim.data.qvel.ravel())
     step = 0
     if is_save_video:
         frames.append([render_frame(env, step)])
@@ -178,12 +176,13 @@ for episode in range(N):
         target_qpos = current_qpos.copy()
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-2.942, 1.976, -0.989])
         # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        target_qpos = np.array([0.051, -0.416, -0.426, 1.83, -0.0605,  0.0231,  0.00209,  0.005,
-            0.   ,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,  0.   ,
-            0.   ,  0.005,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,
-            0.   ,  0.   ,  0.005,  0.532, -0.024,  0.86 ,  0.878, -0.   ,
-            0.   ,  0.479,  0.184,  0.072])
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+        target_qpos[0] = -0.7
+        # target_qpos = np.array([0.051, -0.416, -0.426, 1.83, -0.0605,  0.0231,  0.00209,  0.005,
+        #     0.   ,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,  0.   ,
+        #     0.   ,  0.005,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,
+        #     0.   ,  0.   ,  0.005,  0.532, -0.024,  0.86 ,  0.878, -0.   ,
+        #     0.   ,  0.479,  0.184,  0.072])
         if not simple_planner.isValidState(target_qpos):
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:
@@ -204,6 +203,7 @@ for episode in range(N):
 
         if not success and not exact:
             traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
+            print(step)
             print("Using normal planner path (%d points)" % len(traj))
         else:
             print("Using simpler planner path (%d points)" % len(traj))
@@ -279,6 +279,9 @@ for episode in range(N):
                 if done:
                     break
         else:
+            step += 1
+            if step > args.max_episode_steps:
+                break
             if is_save_video:
                 frames[episode].append(render_frame(env, step))
             else:

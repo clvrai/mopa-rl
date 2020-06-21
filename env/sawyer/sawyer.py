@@ -49,6 +49,7 @@ class SawyerEnv(BaseEnv):
 
         self._prev_state = None
         self._i_term = None
+        self.reset_visualized_indicator()
 
     @property
     def action_spec(self):
@@ -103,6 +104,15 @@ class SawyerEnv(BaseEnv):
     @property
     def gripper_bodies(self):
         return ["clawGripper", "rightclaw", 'leftclaw']
+
+    @property
+    def gripper_target_bodies(self):
+        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target']
+
+    @property
+    def gripper_indicator_bodies(self):
+        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator']
+
 
     @property
     def gripper_init_qpos(self):
@@ -222,7 +232,7 @@ class SawyerEnv(BaseEnv):
     def target_indicator_agent_geom_ids(self):
         if self.use_target_robot_indicator:
             body_ids = []
-            for body_name in self.target_robot_indicator_bodies:
+            for body_name in self.target_robot_indicator_bodies + self.gripper_target_bodies:
                 body_ids.append(self.sim.model.body_name2id(body_name))
 
             geom_ids = []
@@ -237,7 +247,7 @@ class SawyerEnv(BaseEnv):
     def indicator_agent_geom_ids(self):
         if self.use_robot_indicator:
             body_ids = []
-            for body_name in self.robot_indicator_bodies:
+            for body_name in self.robot_indicator_bodies + self.gripper_indicator_bodies:
                 body_ids.append(self.sim.model.body_name2id(body_name))
 
             geom_ids = []

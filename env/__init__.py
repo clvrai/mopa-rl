@@ -302,3 +302,8 @@ register(
     entry_point="env.sawyer:SawyerPushEnv",
     kwargs={}
 )
+register(
+    id="sawyer-push-obstacle-v0",
+    entry_point="env.sawyer:SawyerPushObstacleEnv",
+    kwargs={}
+)
