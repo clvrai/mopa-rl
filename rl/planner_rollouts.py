@@ -192,6 +192,7 @@ class PlannerRolloutRunner(object):
                         reward_list = []
                         ob_list = []
                         done_list = []
+                        cum_discount = 0
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
@@ -207,6 +208,7 @@ class PlannerRolloutRunner(object):
                             # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
                             # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
                             # meta_rew += reward
+                            cum_discount += config.discount_factor**i
                             done_list.append(done)
                             reward_list.append(meta_rew)
                             ob_list.append(ob.copy())
@@ -252,7 +254,7 @@ class PlannerRolloutRunner(object):
                             rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
                             # rollout.add({'done': done, 'rew': reward * i})
-                            rollout.add({'done': done, 'rew': reward, 'intra_steps': i})
+                            rollout.add({'done': done, 'rew': reward * cum_discount, 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
