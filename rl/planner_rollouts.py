@@ -317,12 +317,12 @@ class PlannerRolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         # reward = self._config.invalid_planner_rew
-                        reward, _  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
                         ep_rew += reward
                         reward += self._config.invalid_planner_rew
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                        done, info, _ = env._after_step(reward, False, {})
+                        done, info, _ = env._after_step(reward, False, info)
                         meta_rew += reward
                         if config.use_cum_rew:
                             rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
@@ -527,11 +527,11 @@ class PlannerRolloutRunner(object):
                         counter['invalid'] += 1
                     ll_ob = ob.copy()
                     # reward = self._config.invalid_planner_rew
-                    reward, _ = env.compute_reward(np.zeros(env.sim.model.nu))
+                    reward, info = env.compute_reward(np.zeros(env.sim.model.nu))
                     ep_rew += reward
                     reward += self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
-                    done, info, _ = env._after_step(reward, False, {})
+                    done, info, _ = env._after_step(reward, False, info)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     ep_rew_with_penalty += reward
