@@ -300,6 +300,8 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac = env.form_action(traj[goal], traj[start])
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
+                                    if config.extended_action:
+                                        inter_subgoal_ac['ac_type'] = ac['ac_type']
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                     if config.use_cum_rew:
                                         rollout.add({'done': done_list[goal], 'rew': meta_rew_list[goal]-meta_rew_list[start], 'intra_steps': goal-start})
@@ -337,10 +339,7 @@ class PlannerRolloutRunner(object):
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, info)
                         meta_rew += reward
-                        if config.use_cum_rew:
-                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
-                        else:
-                            rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
+                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         ep_len += 1
                         step += 1
                         meta_len += 1
@@ -359,12 +358,10 @@ class PlannerRolloutRunner(object):
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                    rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                    if not config.extended_action:
+                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                     ob, reward, done, info = env.step(rescaled_ac)
-                    if not config.use_cum_rew:
-                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
-                    else:
-                        rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
+                    rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     ep_len += 1
                     step += 1
                     ep_rew += reward
@@ -566,7 +563,8 @@ class PlannerRolloutRunner(object):
                 ll_ob = ob.copy()
                 counter['rl'] += 1
                 rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                if not config.extended_action:
+                    rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                 ob, reward, done, info = env.step(rescaled_ac)
                 ep_len += 1
                 ep_rew += reward

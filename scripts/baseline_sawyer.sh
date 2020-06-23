@@ -7,11 +7,11 @@ rollout_length="10000"
 evaluate_interval="1000"
 ckpt_interval='100000'
 rl_activation="relu"
-num_batches="4"
+num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE"
+prefix="BASELINE.num_batch.1"
 max_global_step="60000000"
 env="sawyer-reach-v0"
 gpu=$gpu
