@@ -286,12 +286,6 @@ class SawyerEnv(BaseEnv):
             [self.sim.data.qvel[x] for x in self.ref_joint_vel_indexes]
         )
 
-        robot_states = [
-            np.sin(di["joint_pos"]),
-            np.cos(di["joint_pos"]),
-            di["joint_vel"],
-        ]
-
         di["gripper_qpos"] = np.array(
             [self.sim.data.qpos[x] for x in self.ref_gripper_joint_pos_indexes]
         )
@@ -305,9 +299,9 @@ class SawyerEnv(BaseEnv):
         )
 
         # add in gripper information
-        robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
+        # robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
 
-        di["robot-state"] = np.concatenate(robot_states)
+        # di["robot-state"] = np.concatenate(robot_states)
         return di
 
     def _gripper_format_action(self, gripper_ac):

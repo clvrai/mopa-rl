@@ -338,9 +338,8 @@ class BaseEnv(gym.Env):
 
     def _do_simulation(self, a=None):
         try:
-            if a is not None:
-                self.data.ctrl[:] = a[:]
-            self.sim.forward()
+            self.data.ctrl[:] = a[:]
+            # self.sim.forward()
             self.sim.step()
         except Exception as e:
             logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')

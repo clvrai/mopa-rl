@@ -5,6 +5,10 @@ import numpy as np
 from gym import spaces
 from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
+import line_profiler
+import atexit
+profile = line_profiler.LineProfiler()
+atexit.register(profile.print_stats)
 
 class SawyerReachEnv(SawyerEnv):
     def __init__(self, **kwargs):
@@ -71,6 +75,7 @@ class SawyerReachEnv(SawyerEnv):
     def static_geom_ids(self):
         return []
 
+    # @profile
     def _step(self, action, is_planner=False):
         """
         (Optional) does gripper visualization after actions.

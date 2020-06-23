@@ -30,7 +30,10 @@ from util.mpi import mpi_sum
 from util.gym import observation_size, action_size
 from util.misc import make_ordered_pair
 
-
+import line_profiler
+import atexit
+profile = line_profiler.LineProfiler()
+atexit.register(profile.print_stats)
 
 def get_agent_by_name(algo):
     if algo == "sac":
@@ -297,6 +300,7 @@ class Trainer(object):
             if obs is not None:
                 self.log_obs(obs, 'test_ep/obs', step=step)
 
+    # @profile
     def train(self):
         config = self._config
         num_batches = config.num_batches

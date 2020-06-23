@@ -12,10 +12,10 @@ from util.logger import logger
 from util.env import joint_convert
 from util.gym import action_size
 from util.info import Info
-# import line_profiler
-# import atexit
-# profile = line_profiler.LineProfiler()
-# atexit.register(profile.print_stats)
+import line_profiler
+import atexit
+profile = line_profiler.LineProfiler()
+atexit.register(profile.print_stats)
 
 
 class Rollout(object):

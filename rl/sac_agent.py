@@ -18,10 +18,11 @@ from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 from util.gym import action_size, observation_size
 from gym import spaces
-import line_profiler
-import atexit
-profile = line_profiler.LineProfiler()
-atexit.register(profile.print_stats)
+
+# import line_profiler
+# import atexit
+# profile = line_profiler.LineProfiler()
+# atexit.register(profile.print_stats)
 
 
 class SACAgent(BaseAgent):
@@ -301,6 +302,7 @@ class SACAgent(BaseAgent):
             for _critic in self._critics2:
                 sync_networks(_critic)
 
+    # @profile
     def train(self):
         for i in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
@@ -432,7 +434,7 @@ class SACAgent(BaseAgent):
                 sync_grads(_critic2)
             self._critic2_optims[i].step()
 
-        actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
+        # actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
         alpha_loss = -(self._log_alpha[0].exp() * (log_pi + self._target_entropy[0]).detach()).mean()
 
         if self._config.use_automatic_entropy_tuning:
