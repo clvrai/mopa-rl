@@ -28,7 +28,7 @@ class SawyerEnv(BaseEnv):
         is_limited = np.array([True] * self.dof)
         minimum = -np.ones(self.dof)
         maximum = np.ones(self.dof)
-        self._ac_scale = 0.1
+        self._ac_scale = 0.05
 
         self._minimum = minimum
         self._maximum = maximum

@@ -145,7 +145,7 @@ class PlannerRolloutRunner(object):
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
 
-                if pi.is_planner_ac(ac) or is_planner:
+                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner:
                     if config.relative_goal:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
@@ -189,10 +189,12 @@ class PlannerRolloutRunner(object):
                             counter['mp'] += 1
                             mp_path_len += len(traj)
 
-                        reward_list = []
+                        rew_list = []
+                        meta_rew_list = []
                         ob_list = []
                         done_list = []
                         cum_discount = 0
+                        cum_discount_list = []
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
@@ -209,8 +211,10 @@ class PlannerRolloutRunner(object):
                             # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
                             # meta_rew += reward
                             cum_discount += config.discount_factor**i
+                            cum_discount_list.append(cum_discount)
                             done_list.append(done)
-                            reward_list.append(meta_rew)
+                            meta_rew_list.append(meta_rew)
+                            rew_list.append(reward)
                             ob_list.append(ob.copy())
                             ep_len += 1
                             step += 1
@@ -253,8 +257,10 @@ class PlannerRolloutRunner(object):
                         if self._config.use_cum_rew:
                             rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
-                            # rollout.add({'done': done, 'rew': reward * i})
-                            rollout.add({'done': done, 'rew': reward * cum_discount, 'intra_steps': i})
+                            if self._config.use_discount_meta:
+                                rollout.add({'done': done, 'rew': reward * cum_discount, 'intra_steps': i})
+                            else:
+                                rollout.add({'done': done, 'rew': reward * i, 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
@@ -295,7 +301,14 @@ class PlannerRolloutRunner(object):
                                 inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                    rollout.add({'done': done_list[goal], 'rew': reward_list[goal]-reward_list[start], 'intra_steps': goal-start})
+                                    if config.use_cum_rew:
+                                        rollout.add({'done': done_list[goal], 'rew': meta_rew_list[goal]-meta_rew_list[start], 'intra_steps': goal-start})
+                                    else:
+                                        if config.use_discount_meta:
+                                            rollout.add({'done': done_list[goal], 'rew': rew_list[goal]*cum_discount_list[goal-start], 'intra_steps': goal-start})
+                                        else:
+                                            rollout.add({'done': done_list[goal], 'rew': rew_list[goal]*(goal-start), 'intra_steps': goal-start})
+
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
                                         rollout.add({'ob': ob_list[goal], 'meta_ac': meta_ac})
@@ -453,7 +466,7 @@ class PlannerRolloutRunner(object):
             target_qpos = env.sim.data.qpos.copy()
             if config.extended_action:
                 is_planner = bool(ac['ac_type'][0])
-            if pi.is_planner_ac(ac) or is_planner:
+            if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner:
                 if config.relative_goal:
                     displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                     target_qpos[env.ref_joint_pos_indexes] += displacement
