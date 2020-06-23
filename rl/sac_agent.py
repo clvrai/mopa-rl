@@ -110,7 +110,6 @@ class SACAgent(BaseAgent):
     def valid_action(self, ac):
         return np.all(ac['default'] >= -1.0) and np.all(ac['default'] <= 1.0)
 
-
     def is_planner_ac(self, ac):
         if np.any(ac['default'][:len(self._ref_joint_pos_indexes)] < self._ac_rl_minimum) or np.any(ac['default'][:len(self._ref_joint_pos_indexes)] > self._ac_rl_maximum):
             return True
@@ -130,7 +129,6 @@ class SACAgent(BaseAgent):
         else:
             raise NotImplementedError
 
-    # @profile
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
 
         curr_qpos = self.clip_qpos(curr_qpos)
