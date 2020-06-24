@@ -7,12 +7,12 @@ rollout_length="1000"
 evaluate_interval="1000"
 ckpt_interval='200000'
 rl_activation="relu"
-num_batches="1"
+num_batches="4"
 log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.use_smdp.last_reward.piecewise.step_size.0.01"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.use_smdp.piecewise.0.8.discount.scale.5.thresh.0.5"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -40,15 +40,15 @@ planner_objective="path_length"
 range="0.1"
 simple_planner_range="0.05"
 threshold="0.0"
-timelimit="1.5"
+timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="10.0"
+reward_scale="5.0"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.8"
+ac_rl_maximum="0.8"
 invalid_planner_rew="-0.3"
 extended_action="False"
 allow_approximate="False"
@@ -69,16 +69,15 @@ use_interpolation="True"
 interpolate_type="simple"
 joint_margin="0.001"
 task_level='easy'
-use_cum_rew="False"
+use_cum_rew="True"
 plot_type='3d'
-actor_bias="-10"
 contact_threshold="-0.002"
 ac_space_type="piecewise"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
 step_size="0.01"
-success_reward="1.0"
+success_reward="100.0"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -157,4 +156,3 @@ python -m rl.main \
     --temperature $temperature \
     --step_size $step_size \
     --success_reward $success_reward
-    # --actor_bias $actor_bias 

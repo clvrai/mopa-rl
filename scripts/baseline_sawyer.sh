@@ -7,11 +7,11 @@ rollout_length="10000"
 evaluate_interval="1000"
 ckpt_interval='100000'
 rl_activation="relu"
-num_batches="1"
+num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.num_batch.1"
+prefix="BASELINE"
 max_global_step="60000000"
 env="sawyer-push-v0"
 gpu=$gpu
@@ -33,11 +33,11 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 # log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
-reward_scale='10.'
+reward_scale='5.'
 vis_replay="True"
 plot_type='3d'
 task_level='easy'
-# success_reward='0.'
+success_reward='100.'
 # has_terminal='True'
 # max_grad_norm='0.5'
 
@@ -75,6 +75,6 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
     --task_level $task_level \
-    --plot_type $plot_type
-    # --success_reward $success_reward \
+    --plot_type $plot_type \
+    --success_reward $success_reward
     # --has_terminal $has_terminal \ 
