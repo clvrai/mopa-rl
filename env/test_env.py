@@ -44,9 +44,6 @@ while True:
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
     # env.set_robot_indicator_joint_positions(qpos)
     obs, reward, done, _ = env.step(action)
-    print(env.sim.data.qpos)
-    import pdb
-    pdb.set_trace()
     env.render(mode='human')
     if done:
         print('done')
