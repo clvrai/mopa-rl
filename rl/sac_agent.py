@@ -125,7 +125,7 @@ class SACAgent(BaseAgent):
         ac_rl_maximum = self._config.ac_rl_maximum
         if ac_space_type == 'normal':
             return ac * action_range
-        elif ac_space_type == 'pairwise':
+        elif ac_space_type == 'piecewise':
             return np.where(np.abs(ac) < ac_rl_maximum, ac/ac_rl_maximum, np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((action_range-ac_scale)/(action_range-ac_rl_maximum))))
         else:
             raise NotImplementedError

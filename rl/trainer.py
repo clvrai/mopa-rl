@@ -274,13 +274,14 @@ class Trainer(object):
     def _log_train(self, step, train_info, ep_info, prefix="", env_step=None):
         if env_step is None:
             env_step = step
-        for k, v in train_info.items():
-            if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
-                wandb.log({"train_rl/%s" % k: v}, step=step)
-            elif isinstance(v, np.ndarray) or isinstance(v, list):
-                wandb.log({"train_rl/%s" % k: wandb.Histogram(v)}, step=step)
-            else:
-                wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
+        if (step // self._config.num_workers) % self._config.log_interval == 0:
+            for k, v in train_info.items():
+                if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
+                    wandb.log({"train_rl/%s" % k: v}, step=step)
+                elif isinstance(v, np.ndarray) or isinstance(v, list):
+                    wandb.log({"train_rl/%s" % k: wandb.Histogram(v)}, step=step)
+                else:
+                    wandb.log({"train_rl/%s" % k: [wandb.Image(v)]}, step=step)
 
         for k, v in ep_info.items():
             wandb.log({prefix+"train_ep/%s" % k: np.mean(v), "global_step": env_step}, step=step)

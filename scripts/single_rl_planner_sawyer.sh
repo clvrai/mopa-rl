@@ -12,11 +12,11 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.extend_action.use_smdp.scale.10"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.use_smdp.last_reward.piecewise.scale.10"
 max_global_step="60000000"
-env="sawyer-push-obstacle-v0"
+env="sawyer-push-v0"
 rl_hid_size="256"
-max_episode_step="400"
+max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 lr_actor="3e-4"
@@ -27,7 +27,7 @@ clip_param="0.2"
 ctrl_reward='1e-2'
 reward_type='dense'
 comment='Sanity Check'
-start_steps='5000'
+start_steps='10000'
 actor_num_hid_layers='2'
 log_root_dir="/data/jun/projects/hrl-planner/logs"
 # log_root_dir="./logs"
@@ -50,12 +50,11 @@ action_range="1.0"
 ac_rl_minimum="-0.5"
 ac_rl_maximum="0.5"
 invalid_planner_rew="-0.3"
-extended_action="True"
+extended_action="False"
 allow_approximate="False"
 allow_invalid="False"
 use_automatic_entropy_tuning="True"
 stochastic_eval="True"
-alpha='0.05'
 find_collision_free="True"
 use_double_planner="False"
 simple_planner_type='rrt_connect'
@@ -74,9 +73,10 @@ use_cum_rew="False"
 plot_type='3d'
 actor_bias="-10"
 contact_threshold="-0.002"
-ac_space_type="normal"
+ac_space_type="piecewise"
 use_smdp_update="True"
 use_discount_meta="True"
+temperature="1.0"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -133,7 +133,6 @@ python -m rl.main \
     --allow_invalid $allow_invalid \
     --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
     --stochastic_eval $stochastic_eval \
-    --alpha $alpha \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
     --simple_planner_type $simple_planner_type \
@@ -152,5 +151,6 @@ python -m rl.main \
     --use_smdp_update $use_smdp_update \
     --contact_threshold $contact_threshold \
     --ac_space_type $ac_space_type \
-    --use_discount_meta $use_discount_meta
-    # --actor_bias $actor_bias
+    --use_discount_meta $use_discount_meta \
+    --temperature $temperature
+    # --actor_bias $actor_bias 

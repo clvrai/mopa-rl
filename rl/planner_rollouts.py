@@ -259,6 +259,7 @@ class PlannerRolloutRunner(object):
                         else:
                             if self._config.use_discount_meta:
                                 rollout.add({'done': done, 'rew': reward * cum_discount, 'intra_steps': i})
+                                # rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                             else:
                                 rollout.add({'done': done, 'rew': reward * i, 'intra_steps': i})
 
