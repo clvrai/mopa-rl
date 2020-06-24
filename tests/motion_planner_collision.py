@@ -114,25 +114,26 @@ elif 'robosuite' in args.env:
 elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
     add_arguments(parser)
+elif 'reacher' in args.env:
+    from config.reacher import add_arguments
+    add_arguments(parser)
 
 planner_add_arguments(parser)
 args, unparsed = parser.parse_known_args()
-# args.camera_name='agentview'
 env = gym.make(args.env, **args.__dict__)
 args._xml_path = env.xml_path
 args.planner_type="rrt_connect"
 args.simple_planner_type="rrt_connect"
 args.planner_objective="path_length"
 # args.planner_objective="maximize_min_clearance"
-args.range = 0.1
+args.range = env._ac_scale
 args.threshold = 0.0
 args.timelimit = 2.0
 args.construct_time = 10.
 args.simple_timelimit = 0.05
 args.contact_threshold = -0.002
-args.is_simplified = True
+args.is_simplified = False
 args.simplified_duration = 0.01
-
 step_size = 0.01
 
 ignored_contacts = []
@@ -147,7 +148,6 @@ passive_joint_idx = list(range(len(env.sim.data.qpos)))
 
 non_limited_idx = np.where(env._is_jnt_limited==0)[0]
 planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=args.is_simplified, simplified_duration=args.simplified_duration) # default goal bias is 0.05
-# planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=True, simplified_duration=0.5) # default goal bias is 0.05
 simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, goal_bias=1.0, is_simplified=False)
 
 
@@ -164,7 +164,6 @@ for episode in range(N):
     print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
-    # curr_qpos[:3] = np.array([-4., 0.3, -0.658])
     step = 0
     if is_save_video:
         frames.append([render_frame(env, step)])
@@ -174,23 +173,9 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        # target_qpos[env.ref_joint_pos_indexes] = np.array([-2.942, 1.976, -0.989])
-        # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.748, -0.899, -1.00])
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        # target_qpos[0] = -0.7
-        # target_qpos = np.array([0.051, -0.416, -0.426, 1.83, -0.0605,  0.0231,  0.00209,  0.005,
-        #     0.   ,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,  0.   ,
-        #     0.   ,  0.005,  0.   , -0.   , -0.   , -0.   ,  0.   , -0.   ,
-        #     0.   ,  0.   ,  0.005,  0.532, -0.024,  0.86 ,  0.878, -0.   ,
-        #     0.   ,  0.479,  0.184,  0.072])
-        trial = 0
-        while not planner.isValidState(target_qpos) and trial < 20:
-            d = env.sim.data.qpos.copy()-target_qpos
-            target_qpos += 0.001 * d/np.linalg.norm(d)
-            env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-            trial+=1
-            frames[episode].append(render_frame(env, step))
-        if not simple_planner.isValidState(target_qpos):
+
+        if not simple_planner.isValidState(target_qpos): # check whether a target is valid or not
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:
                 frames[episode].append(render_frame(env, step))
@@ -202,15 +187,13 @@ for episode in range(N):
         else:
             print("Valid goal state")
 
-        # traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
-        traj, success, valid, exact = planner.plan(current_qpos, target_qpos, attempts=50)
+        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()
 
         if not success and not exact:
             traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
-            print(step)
             print("Using normal planner path (%d points)" % len(traj))
         else:
             print("Using simpler planner path (%d points)" % len(traj))
@@ -220,14 +203,18 @@ for episode in range(N):
             frames[episode].append(render_frame(env, step))
         else:
             env.render('human')
+
         reward = 0
         if success:
             for j, next_qpos in enumerate(traj):
+
+                # move a next_qpos if it is invalid state
                 trial = 0
                 while not planner.isValidState(next_qpos) and trial < 100:
                     d = env.sim.data.qpos.copy()-next_qpos
                     next_qpos += 0.05 * d/np.linalg.norm(d)
                     trial+=1
+
                 action = env.form_action(next_qpos)
                 action_arr = action['default']
                 out_of_bounds = np.where((action_arr[:len(env.ref_joint_pos_indexes)] > max_action) | (action_arr[:len(env.ref_joint_pos_indexes)]<min_action))[0]
@@ -235,38 +222,26 @@ for episode in range(N):
                 env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
                 if len(out_of_bounds) > 0: #Some actions out of bounds
                     reward = 0
-                    times = 0
-                    while (len(out_of_bounds) > 0 and times < 1): # INTERPOLATE until needed! Collision check already done by planner
-                        # interpolate
-                        interpolated_traj = interpolate(env, next_qpos, out_of_bounds, simple_planner)
-                        times += 1
-                        for interp_qpos in interpolated_traj:
-                            if not planner.isValidState(interp_qpos):
-                                print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos[env.ref_joint_pos_indexes])
-                            action = env.form_action(interp_qpos)
-                            step += 1
-                            ob, interp_reward, done, info = env.step(action, is_planner=True)
-                            if is_save_video:
-                                info['ac'] = action['default']
-                                info['next_qpos'] = next_qpos
-                                info['target_qpos'] = target_qpos
-                                info['curr_qpos'] = env.sim.data.qpos.copy()
-                                frames[episode].append(render_frame(env, step, info))
-                            else:
-                                env.render('human')
-                            reward += interp_reward
-                            if done:
-                                break
+                    # interpolate
+                    interpolated_traj = interpolate(env, next_qpos, out_of_bounds, simple_planner)
+                    for interp_qpos in interpolated_traj:
+                        if not planner.isValidState(interp_qpos):
+                            print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos[env.ref_joint_pos_indexes])
+                        action = env.form_action(interp_qpos)
+                        step += 1
+                        ob, interp_reward, done, info = env.step(action, is_planner=True)
+                        if is_save_video:
+                            info['ac'] = action['default']
+                            info['next_qpos'] = next_qpos
+                            info['target_qpos'] = target_qpos
+                            info['curr_qpos'] = env.sim.data.qpos.copy()
+                            frames[episode].append(render_frame(env, step, info))
+                        else:
+                            env.render('human')
+                        reward += interp_reward
                         if done:
                             break
-                    # check for out_of_bounds
                     action = env.form_action(next_qpos)
-                    # out_of_bounds = [i for i,ac in enumerate(action['default']) if (ac > max_action or ac < min_action)]
-                    # if len(out_of_bounds) > 0:
-                    #     simple_planner.plan(env.sim.data.qpos, next_qpos, args.simple_timelimit)
-                    times += 1
-                    # if len(out_of_bounds) > 0:
-                    #     print("\n\nStill out of bounds. Re-interpolate")
                     env._reset_prev_state()
                 else:
                     ob, reward, done, info = env.step(action, is_planner=True)

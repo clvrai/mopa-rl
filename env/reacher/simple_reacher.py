@@ -8,13 +8,12 @@ from env.base import BaseEnv
 
 
 class SimpleReacherEnv(BaseEnv):
-    """ Reacher with Obstacles environment. """
+    """ Reacher environment. """
 
     def __init__(self, **kwargs):
         super().__init__("simple_reacher.xml", **kwargs)
         self._env_config.update({
-            'success_reward': kwargs['success_reward'],
-            'has_terminal': kwargs['has_terminal']
+            'success_reward': kwargs['success_reward']
         })
         self.joint_names = ["joint0", "joint1", "joint2"]
         self.ref_joint_pos_indexes = [
@@ -23,72 +22,136 @@ class SimpleReacherEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.joint_names
         ]
-        self._primitive_skills = kwargs['primitive_skills']
-        if len(self._primitive_skills) != 1:
-            self._primitive_skills = ['reach']
-        self._num_primitives = len(self._primitive_skills)
+        self.ref_indicator_joint_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x+'-goal') for x in self.joint_names
+        ]
+        self.ref_dummy_joint_pos_indexes = [
+            self.sim.model.get_joint_qpos_addr(x+'-dummy') for x in self.joint_names
+        ]
 
-        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -1.
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * 1
-        self.subgoal_space = spaces.Dict([
-            ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
-        ])
+        self._ac_scale = 0.1
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         while True:
-            goal = np.random.uniform(low=-0.2, high=.2, size=2)
+            goal = np.random.uniform(low=-0.2, high=0.2, size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
-            qpos[self.sim.model.nu:] = goal
+            qpos[-2:] = goal
             qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
-            qvel[self.sim.model.nu:] = 0
+            qvel[-2:] = 0
             self.set_state(qpos, qvel)
             if self.sim.data.ncon == 0 and np.linalg.norm(goal) > 0.2:
                 self.goal = goal
                 break
         return self._get_obs()
 
-    def initalize_joints(self):
+    @property
+    def manipulation_geom(self):
+        return []
+
+    def visualize_goal_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
+        for body_name in self.body_names:
+            key = body_name + '-goal'
+            color = self._get_color(key)
+            color[-1] = 0.3
+            self._set_color(key, color)
+
+    def visualize_dummy_indicator(self, qpos):
+        self.sim.data.qpos[self.ref_dummy_joint_pos_indexes] = qpos
+        for body_name in self.body_names:
+            key = body_name + '-dummy'
+            color = self._get_color(key)
+            color[-1] = 0.3
+            self._set_color(key, color)
+
+    def reset_visualized_indicator(self):
+        for body_name in self.body_names:
+            for postfix in ['-goal', '-dummy']:
+                key = body_name + postfix
+                color = self._get_color(key)
+                color[-1] = 0.
+                self._set_color(key, color)
+
+
+    @property
+    def body_names(self):
+        return ['body0', 'body1', 'body2', 'fingertip']
+
+
+    @property
+    def manipulation_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
+
+    @property
+    def body_geoms(self):
+        return ['root', 'link0', 'link1', 'link2', 'fingertip']
+
+    @property
+    def static_geoms(self):
+        return []
+
+    @property
+    def static_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
+
+    @property
+    def agent_geoms(self):
+        return self.body_geoms
+
+    @property
+    def agent_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.agent_geoms]
+
+    @property
+    def static_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
+
+
+    def initialize_joints(self):
         while True:
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
-            qpos[self.sim.model.nu:] = self.goal
+            qpos[-2:] = self.goal
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
 
     def _get_obs(self):
-        theta = self.sim.data.qpos.flat[:self.sim.model.nu]
+        theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
         return OrderedDict([
             ('default', np.concatenate([
                 np.cos(theta),
                 np.sin(theta),
-                self.sim.data.qpos.flat[self.sim.model.nu:],
-                self.sim.data.qvel.flat[:self.sim.model.nu]
-            ]))
+                self.sim.data.qvel.flat[self.ref_joint_vel_indexes],
+            ])),
+            ('fingertip', self._get_pos('fingertip')[:-1]),
+            ('goal', self.sim.data.qpos.flat[-2:])
         ])
 
     @property
     def observation_space(self):
         return spaces.Dict([
-            ('default', spaces.Box(shape=(11,), low=-1, high=1, dtype=np.float32))
+            ('default', spaces.Box(shape=(9,), low=-1, high=1, dtype=np.float32)),
+            ('fingertip', spaces.Box(shape=(2, ), low=-1, high=1, dtype=np.float32)),
+            ('goal', spaces.Box(shape=(2,), low=-1, high=1, dtype=np.float32))
         ])
-
 
     @property
     def get_joint_positions(self):
         """
         The joint position except for goal states
         """
-        return self.sim.data.qpos.ravel()[:self.sim.model.nu]
+        return self.sim.data.qpos.ravel()[self.ref_joint_pos_indexes]
+
 
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']
         reward_ctrl = self._ctrl_reward(action)
         if reward_type == 'dense':
-            reach_multi = 1.
-            reward_reach = (1-np.tanh(10.*self._get_distance('fingertip', 'target'))) * reach_multi
+            reward_reach = -self._get_distance('fingertip', 'target')
+            reward_ctrl = self._ctrl_reward(action)
 
             reward = reward_reach + reward_ctrl
 
@@ -98,8 +161,7 @@ class SimpleReacherEnv(BaseEnv):
 
         return reward, info
 
-
-    def _step(self, action, is_planner):
+    def _step(self, action, is_planner=False):
         """
         Args:
             action (numpy array): The array should have the corresponding elements.
@@ -109,20 +171,31 @@ class SimpleReacherEnv(BaseEnv):
         info = {}
         done = False
 
-        desired_state = self.get_joint_positions + action
-        reward, info = self.compute_reward(action)
+        if not is_planner or self._prev_state is None:
+            self._prev_state = self.get_joint_positions
+
+        if not is_planner:
+            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        else:
+            desired_state = self._prev_state + action
+
+        desired_state = self._prev_state + action # except for gripper action
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
-        prev_state = self.sim.data.qpos[:self.sim.model.nu].copy()
-        target_vel = (desired_state-prev_state) / self._frame_dt
+        reward, info = self.compute_reward(action)
+        target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            action = self._get_control(desired_state, prev_state, target_vel)
+            action = self._get_control(desired_state, self._prev_state, target_vel)
             self._do_simulation(action)
 
         obs = self._get_obs()
+        self._prev_state = np.copy(desired_state)
+
         if self._get_distance('fingertip', 'target') < self._env_config['distance_threshold']:
-            if self._env_config['has_terminal']:
+            self._success = True
+            # done = True
+            if self._kwargs['has_terminal']:
                 done = True
                 self._success = True
             else:
@@ -131,6 +204,23 @@ class SimpleReacherEnv(BaseEnv):
             reward += self._env_config['success_reward']
         return obs, reward, done, info
 
-    def get_next_primitive(self, prev_primitive):
-        return self._primitive_skills[0]
 
+    def compute_subgoal_reward(self, name, info):
+        reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
+        info['reward_subgoal_dist'] = reward_subgoal_dist
+        return reward_subgoal_dist, info
+
+    def isValidState(self, ignored_contacts=[]):
+        if len(ignored_contacts) == 0:
+            return self.sim.data.ncon == 0
+        else:
+            for i in range(self.sim.data.ncon):
+                c = self.sim.data.contact[i]
+                geom1 = self.sim.model.geom_id2name(c.geom1)
+                geom2 = self.sim.model.geom_id2name(c.geom2)
+                for pair in ignored_contacts:
+                    if geom1 not in pair and geom2 not in pair:
+                        return False
+            return True
+
+        super().__init__("simple_reacher.xml", **kwargs)
