@@ -61,7 +61,7 @@ class SawyerPushObstacleEnv(SawyerEnv):
         reward += reward_reach + reward_push
         info = dict(reward_reach=reward_reach, reward_push=reward_push)
         if cube_to_target < self._kwargs['distance_threshold']:
-            reward += 1.0
+            reward += self._kwargs['success_reward']
             self._success = True
             self._terminal = True
 

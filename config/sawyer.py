@@ -37,6 +37,7 @@ def add_arguments(parser):
     parser.add_argument("--use_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--use_target_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--task_level", type=str, default='easy', choices=['easy', 'hard'])
+    parser.add_argument("--success_reward", type=float, default=1.)
 
 def get_default_config():
     """

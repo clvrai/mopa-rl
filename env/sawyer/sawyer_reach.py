@@ -60,7 +60,7 @@ class SawyerReachEnv(SawyerEnv):
         reward += reward_reach
         info = dict(reward_reach=reward_reach)
         if dist < self._kwargs['distance_threshold']:
-            reward += 1.0
+            reward += self._kwargs['success_reward']
             self._success = True
             self._terminal = True
 

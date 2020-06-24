@@ -12,7 +12,7 @@ log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.SAWYAER.PLANNER.AUGMENTED.use_smdp.last_reward.piecewise.scale.10"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.use_smdp.last_reward.piecewise.step_size.0.01"
 max_global_step="60000000"
 env="sawyer-push-v0"
 rl_hid_size="256"
@@ -29,8 +29,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -77,6 +77,8 @@ ac_space_type="piecewise"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
+step_size="0.01"
+success_reward="1.0"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -152,5 +154,7 @@ python -m rl.main \
     --contact_threshold $contact_threshold \
     --ac_space_type $ac_space_type \
     --use_discount_meta $use_discount_meta \
-    --temperature $temperature
+    --temperature $temperature \
+    --step_size $step_size \
+    --success_reward $success_reward
     # --actor_bias $actor_bias 
