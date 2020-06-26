@@ -34,7 +34,7 @@ class SACAgent(BaseAgent):
         self._ac_space = ac_space
         self._jnt_indices = jnt_indices
         self._ref_joint_pos_indexes = ref_joint_pos_indexes
-        self._log_alpha = [torch.ones(1, requires_grad=True, device=config.device) * config.alpha]
+        self._log_alpha = [torch.tensor(np.log(config.alpha), requires_grad=True, device=config.device)]
         self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
         self._joint_space = joint_space
         self._is_jnt_limited = is_jnt_limited
