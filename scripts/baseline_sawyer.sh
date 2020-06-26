@@ -11,7 +11,7 @@ num_batches="4"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE"
+prefix="BASELINE.alpha0.2"
 max_global_step="60000000"
 env="sawyer-push-v0"
 gpu=$gpu
@@ -33,7 +33,7 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 # log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
-reward_scale='5.'
+alpha="0.2"
 vis_replay="True"
 plot_type='3d'
 task_level='easy'
@@ -72,7 +72,7 @@ python -m rl.main \
     --env_debug $env_debug \
     --log_freq $log_freq \
     --log_interval $log_interval \
-    --reward_scale $reward_scale \
+    --alpha $alpha \
     --vis_replay $vis_replay \
     --task_level $task_level \
     --plot_type $plot_type \
