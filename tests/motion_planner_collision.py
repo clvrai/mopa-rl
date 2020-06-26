@@ -164,6 +164,11 @@ for episode in range(N):
     print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
+    curr_qpos = env.sim.data.qpos.copy()
+    curr_qpos[1] = -0.983
+    env.set_state(curr_qpos, env.sim.data.qvel)
+    import pdb
+    pdb.set_trace()
     step = 0
     if is_save_video:
         frames.append([render_frame(env, step)])

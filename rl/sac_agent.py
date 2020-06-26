@@ -309,17 +309,6 @@ class SACAgent(BaseAgent):
             train_info = self._update_network(transitions, i)
             self._soft_update_target_network(self._critic1_targets[0], self._critics1[0], self._config.polyak)
             self._soft_update_target_network(self._critic2_targets[0], self._critics2[0], self._config.polyak)
-
-        train_info.update({
-            'actor_grad_norm': np.mean([compute_gradient_norm(_actor) for _actor in self._actors]),
-            'actor_weight_norm': np.mean([compute_weight_norm(_actor) for _actor in self._actors]),
-            'critic1_grad_norm': np.mean([compute_gradient_norm(_critic1) for _critic1 in self._critics1]),
-            'critic2_grad_norm': np.mean([compute_gradient_norm(_critic2) for _critic2 in self._critics2]),
-            'critic1_weight_norm': np.mean([compute_weight_norm(_critic1) for _critic1 in self._critics1]),
-            'critic2_weight_norm': np.mean([compute_weight_norm(_critic2) for _critic2 in self._critics2]),
-        })
-        # print(train_info)
-
         return train_info
 
     def act_log(self, ob, meta_ac=None):
@@ -349,10 +338,17 @@ class SACAgent(BaseAgent):
         done = _to_tensor(transitions['done']).reshape(bs, 1)
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
 
-
         # update alpha
         actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
+        alpha_loss = -(self._log_alpha[0].exp() * (log_pi + self._target_entropy[0]).detach()).mean()
+
         if self._config.use_automatic_entropy_tuning:
+            self._alpha_optim[0].zero_grad()
+            alpha_loss.backward()
+            self._alpha_optim[0].step()
+            alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
+            info['alpha_loss'] = alpha_loss.cpu().item()
+            info['entropy_alpha'] = alpha[0].cpu().item()
             alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
         else:
             alpha = [torch.ones(1, device=self._config.device) * self._config.alpha for _ in self._log_alpha]
@@ -374,11 +370,6 @@ class SACAgent(BaseAgent):
             q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
-            # if self._config.use_smdp_update:
-            #     #https://papers.nips.cc/paper/889-reinforcement-learning-methods-for-continuous-time-markov-decision-problems.pdf
-            #     target_q_value = ((1-self._config.discount_factor**intra_steps)/(-np.log(self._config.discount_factor))) *rew * self._config.reward_scale + \
-            #         (1 - done) * (self._config.discount_factor ** (intra_steps)) * q_next_value
-            # else:
             if self._config.use_smdp_update:
                 target_q_value = rew * self._config.reward_scale + \
                     (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
@@ -433,17 +424,6 @@ class SACAgent(BaseAgent):
             if self._config.is_mpi:
                 sync_grads(_critic2)
             self._critic2_optims[i].step()
-
-        # actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
-        alpha_loss = -(self._log_alpha[0].exp() * (log_pi + self._target_entropy[0]).detach()).mean()
-
-        if self._config.use_automatic_entropy_tuning:
-            self._alpha_optim[0].zero_grad()
-            alpha_loss.backward()
-            self._alpha_optim[0].step()
-            alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
-            info['alpha_loss'] = alpha_loss.cpu().item()
-            info['entropy_alpha'] = alpha[0].cpu().item()
 
         if self._config.is_mpi:
             return mpi_average(info)

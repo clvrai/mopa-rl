@@ -231,12 +231,12 @@ def obs2tensor(obs, device):
 def to_tensor(x, device):
     if isinstance(x, dict):
         return OrderedDict([
-            (k, torch.tensor(v, dtype=torch.float32).to(device))
+            (k, torch.as_tensor(v, dtype=torch.float32).to(device))
             for k, v in x.items()])
     if isinstance(x, list):
-        return [torch.tensor(v, dtype=torch.float32).to(device)
+        return [torch.as_tensor(v, dtype=torch.float32).to(device)
                 for v in x]
-    return torch.tensor(x, dtype=torch.float32).to(device)
+    return torch.as_tensor(x, dtype=torch.float32).to(device)
 
 
 def list2dict(rollout):
