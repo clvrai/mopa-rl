@@ -264,40 +264,20 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
         return failedSolutions;
     }
-    // if (!ss->getStateValidityChecker()->isValid(start_ss.get())){
-    //     std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
-    //     return failedSolutions;
-    // }
-
     // Call the planner
     ob::PlannerStatus solved;
-    // if(is_clear){
-    //     ss->clear();
-    // }
 
     solved = ss->solve(timelimit);
     planner_status = solved.asString();
 
-    // std::cout << "solved " << solved << std::endl;
-
     if (bool(solved)){
         if (ss->haveExactSolutionPath() || allow_approximate) {
-            // ss.getSolutionPath().print(std::cout);
-            // if (isSimplified){
-            //     ss->simplifySolution(simplifiedDuration);
-            // }
             og::PathGeometric p = ss->getSolutionPath();
             if (isSimplified){
                 psimp_->reduceVertices(p, attempts);
                 // psimp_->shortcutPath(p, attempts);
                 p.checkAndRepair(attempts);
             }
-            // psimp_->reduceVertices(p, 10);
-            // psimp_->shortcutPath(p, 5);
-            // psimp_->collapseCloseVertices(p, 0);
-            // p.checkAndRepair(10);
-            // ss->getSolutionPath().print(std::cout);
-            // p.interpolate(min_steps);
             std::vector<ob::State*> &states =  p.getStates();
             int n = states.size();
             std::vector<std::vector<double>> solutions(n, std::vector<double>(start_vec.size(), -1));
@@ -305,20 +285,13 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             for (unsigned int i=0; i < n; ++i)
             {
                 auto cState(states[i]->as<ob::CompoundState>());
-                // solutions[i][0] = cState -> as<ob::SO2StateSpace::StateType>(0)->value;
                 auto css(si->getStateSpace()->as<ob::CompoundStateSpace>());
                 unsigned int n_passive = 0;
-                // for (unsigned int j=0; j < css->getSubspaceCount();  ++j){
-                //     ss->getStateValidityChecker()->isValid(cState);
-                //     if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
-                //     }
-                // }
                 unsigned int margin = 0;
                 for (unsigned int j=0; j < start_vec.size();  ++j){
                     ss->getStateValidityChecker()->isValid(cState);
                     if (MjOmpl::isActiveJoint(j, passive_joint_idx)) {
                         unsigned int idx = j - n_passive - margin;
-                        // std::cout << "start: " << start_vec.size() << " j: " << j << " idx: " << idx << std::endl;
                         auto subspace(css->getSubspace(idx));
                         switch (subspace->getType()) {
                             case ob::STATE_SPACE_REAL_VECTOR:
@@ -331,7 +304,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
                                 auto cSubState(cState -> as<ob::CompoundState>(idx));
                                 margin += 6;
                                 for (unsigned int k=0; k<3; ++k){
-                                    // std::cout << "index: " << j << std::endl;
                                     solutions[i][j] = cSubState -> as<ob::RealVectorStateSpace::StateType>(0)->values[k];
                                     j++;
                                 }
@@ -354,14 +326,10 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
                 }
             }
-            // Write solution to file
-            //ss->clear();
             return solutions;
         }
     }
 
-    // return solutions;
-    //return 0;
     if (allow_approximate){
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
         return failedSolutions;
