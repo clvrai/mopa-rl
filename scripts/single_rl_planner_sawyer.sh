@@ -42,7 +42,7 @@ simple_planner_range="0.05"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-reward_scale="5.0"
+alpha="0.2"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
@@ -120,7 +120,7 @@ python -m rl.main \
     --threshold $threshold \
     --timelimit $timelimit \
     --allow_manipulation_collision $allow_manipulation_collision \
-    --reward_scale $reward_scale \
+    --alpha $alpha \
     --subgoal_hindsight $subgoal_hindsight \
     --reuse_data_type $reuse_data_type \
     --relative_goal $relative_goal \
@@ -156,3 +156,4 @@ python -m rl.main \
     --temperature $temperature \
     --step_size $step_size \
     --success_reward $success_reward
+
