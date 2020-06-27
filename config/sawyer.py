@@ -33,7 +33,7 @@ def add_arguments(parser):
     parser.add_argument("--kp", type=float, default=40.)  # 150.)
     parser.add_argument("--kd", type=float, default=8.0)  # 20.)
     parser.add_argument("--ki", type=float, default=0.)  # 0.1)
-    parser.add_argument("--frame_dt", type=float, default=0.1)  # 0.1)
+    parser.add_argument("--frame_dt", type=float, default=0.15)  # 0.1)
     parser.add_argument("--use_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--use_target_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--task_level", type=str, default='easy', choices=['easy', 'hard'])

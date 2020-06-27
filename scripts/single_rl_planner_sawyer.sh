@@ -9,18 +9,11 @@ ckpt_interval='200000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-
-workers="1"
-tanh="True"
 prefix="SAC.SAWYAER.PLANNER.AUGMENTED.thresh.0.5.alpha0.2"
 max_global_step="60000000"
 env="sawyer-push-v0"
-rl_hid_size="256"
 max_episode_step="200"
-entropy_loss_coef="1e-3"
 buffer_size="1000000"
-lr_actor="3e-4"
-lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
@@ -29,8 +22,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -51,11 +44,8 @@ ac_rl_minimum="-0.5"
 ac_rl_maximum="0.5"
 invalid_planner_rew="-0.3"
 extended_action="False"
-allow_approximate="False"
-allow_invalid="False"
-use_automatic_entropy_tuning="True"
 stochastic_eval="True"
-find_collision_free="True"
+find_collision_free="False"
 use_double_planner="False"
 simple_planner_type='rrt_connect'
 simple_planner_timelimit="0.02"
@@ -76,11 +66,10 @@ ac_space_type="normal"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
-step_size="0.02"
+step_size="0.01"
 success_reward="100.0"
 # max_grad_norm='0.5'
 
-#mpiexec -n $workers
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
@@ -88,14 +77,10 @@ python -m rl.main \
     --max_global_step $max_global_step \
     --env $env \
     --gpu $gpu \
-    --rl_hid_size $rl_hid_size \
     --max_episode_step $max_episode_step \
     --evaluate_interval $evaluate_interval \
-    --entropy_loss_coef $entropy_loss_coef \
     --buffer_size $buffer_size \
     --num_batches $num_batches \
-    --lr_actor $lr_actor \
-    --lr_critic $lr_critic \
     --debug $debug \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
@@ -111,7 +96,6 @@ python -m rl.main \
     --env_debug $env_debug \
     --log_freq $log_freq \
     --log_interval $log_interval \
-    --tanh $tanh \
     --planner_integration $planner_integration \
     --ignored_contact_geoms $ignored_contact_geoms \
     --planner_type $planner_type \
@@ -130,9 +114,6 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
-    --allow_approximate $allow_approximate \
-    --allow_invalid $allow_invalid \
-    --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
