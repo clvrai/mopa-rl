@@ -11,16 +11,13 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.alpha0.5.num_batch.1"
+prefix="BASELINE.alpha0.2.num_batch.1"
 max_global_step="60000000"
 env="sawyer-push-v0"
 gpu=$gpu
-rl_hid_size="256"
 max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-lr_actor="3e-4"
-lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
@@ -33,7 +30,7 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 # log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
-alpha="0.5"
+alpha="0.2"
 vis_replay="True"
 plot_type='3d'
 task_level='easy'
@@ -49,14 +46,11 @@ python -m rl.main \
     --max_global_step $max_global_step \
     --env $env \
     --gpu $gpu \
-    --rl_hid_size $rl_hid_size \
     --max_episode_step $max_episode_step \
     --evaluate_interval $evaluate_interval \
     --entropy_loss_coef $entropy_loss_coef \
     --buffer_size $buffer_size \
     --num_batches $num_batches \
-    --lr_actor $lr_actor \
-    --lr_critic $lr_critic \
     --debug $debug \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
