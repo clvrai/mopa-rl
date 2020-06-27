@@ -186,6 +186,7 @@ KinematicPlanner::~KinematicPlanner(){
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
                                                             double timelimit, double min_steps, int attempts) {
+    ss->clear();
     if (start_vec.size() != mj->m->nq) {
         std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
         << " but should be nq: " << mj->m->nq;
@@ -326,7 +327,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
                 }
             }
-            si->freeStates(states);
             return solutions;
         }
     }
