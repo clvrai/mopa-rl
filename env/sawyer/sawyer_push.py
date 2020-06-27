@@ -50,7 +50,10 @@ class SawyerPushEnv(SawyerEnv):
 
         reach_multi = 1.0
         push_multi = 1.0
-        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        # gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+        gripper_site_pos = (right_gripper + left_gripper) / 2.
+
         cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
         target_pos = self.sim.data.body_xpos[self.target_id]
         gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
