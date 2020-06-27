@@ -326,6 +326,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 
                 }
             }
+            si->freeStates(states);
             return solutions;
         }
     }
