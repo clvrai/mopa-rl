@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.thresh0.5.alpha0.5.no_find_col.only_invalid_rew.1.0"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.6.alpha0.2.discunt.1"
 gpu=$1
 seed=$2
 algo='sac'
@@ -22,8 +22,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+#log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -35,14 +35,14 @@ simple_planner_range="0.05"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-alpha="0.5"
+alpha="0.2"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
-invalid_planner_rew="-1.0"
+ac_rl_minimum="-0.6"
+ac_rl_maximum="0.6"
+invalid_planner_rew="-0.3"
 extended_action="False"
 stochastic_eval="True"
 find_collision_free="True"
@@ -68,7 +68,8 @@ use_discount_meta="True"
 temperature="1.0"
 step_size="0.02"
 success_reward="100.0"
-add_curr_rew="False"
+add_curr_rew="True"
+discount_factor='1.0'
 # max_grad_norm='0.5'
 
 python -m rl.main \
@@ -138,5 +139,5 @@ python -m rl.main \
     --temperature $temperature \
     --step_size $step_size \
     --success_reward $success_reward \
-    --add_curr_rew $add_curr_rew
-
+    --add_curr_rew $add_curr_rew \
+    --discount_factor $discount_factor
