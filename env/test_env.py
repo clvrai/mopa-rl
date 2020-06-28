@@ -39,6 +39,7 @@ while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()
     # action = np.ones(env.dof)
+    # action = np.zeros(env.dof)
     # action[0] = -0.5
     # action[1] = -0.5
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]

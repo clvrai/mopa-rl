@@ -13,10 +13,10 @@
       </body>
 
         <body name="obstacle" pos="0.40 0.3 0.8">
-            <geom class="obstacle" name="obstacle0_geom" fromto="0.1 0.60 0.0 0.1 0.60 0.4" /> <!--right-->
-            <geom class="obstacle" name="obstacle1_geom" fromto="0.1 -0.15 0.0 0.1 -0.15 0.4" /> <!--center-->
+            <geom class="obstacle" name="obstacle0_geom" fromto="0.1 0.60 -0.2 0.1 0.60 0.4" /> <!--right-->
+            <geom class="obstacle" name="obstacle1_geom" fromto="0.1 -0.15 -0.2 0.1 -0.15 0.4" /> <!--center-->
             <geom class="obstacle" name="obstacle2_geom" fromto="0.1 -0.15 0.4 0.1 0.60 0.4" /> <!--up -->
-            <geom class="obstacle" name="obstacle3_geom" fromto="0.1 -0.15 0.0 0.1 0.60 0.0" /> <!--bottom -->
+            <geom class="obstacle" name="obstacle3_geom" fromto="0.1 -0.15 -0.2 0.1 0.60 -0.2" /> <!--bottom -->
             <!-- <geom class="obstacle" name="obstacle4_geom" fromto="0.1 0.55 &#45;0.9 0.1 0.55 0.4" /> <!&#45;&#45;most right &#45;&#45;> -->
             <!-- <geom class="obstacle" name="obstacle5_geom" fromto="0.1 &#45;0.25 &#45;0.9 0.1 &#45;0.25 &#45;0.55" /> <!&#45;&#45;left &#45;&#45;> -->
             <!-- <geom class="obstacle" name="obstacle6_geom" fromto="0.1 &#45;0.25 &#45;0.55 0.1 0.15 &#45;0.55" /> <!&#45;&#45;left &#45;&#45;> -->
