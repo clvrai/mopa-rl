@@ -1,8 +1,7 @@
 #!/bin/bash -x
-
-prefix="SAC.PLANNER.AUGMENTED.normal0.5.alpha0.2.discunt.1.no_col"
 gpu=$1
 seed=$2
+
 algo='sac'
 rollout_length="1000"
 evaluate_interval="1000"
@@ -10,10 +9,18 @@ ckpt_interval='200000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
+
+workers="1"
+tanh="True"
+prefix="SAC.SAWYAER.PLANNER.AUGMENTED.thresh.0.5.alpha0.5.allow_approx.rrt"
 max_global_step="60000000"
 env="sawyer-push-v0"
+rl_hid_size="256"
 max_episode_step="200"
+entropy_loss_coef="1e-3"
 buffer_size="1000000"
+lr_actor="3e-4"
+lr_critic="3e-4"
 debug="False"
 batch_size="256"
 clip_param="0.2"
@@ -28,14 +35,14 @@ env_debug='False'
 log_freq='1000'
 planner_integration="True"
 ignored_contact_geoms='None,None'
-planner_type="rrt_connect"
+planner_type="rrt"
 planner_objective="path_length"
-range="0.1"
+range="0.15"
 simple_planner_range="0.05"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-alpha="0.2"
+alpha="0.5"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
@@ -44,6 +51,9 @@ ac_rl_minimum="-0.5"
 ac_rl_maximum="0.5"
 invalid_planner_rew="-0.3"
 extended_action="False"
+allow_approximate="True"
+allow_invalid="True"
+use_automatic_entropy_tuning="True"
 stochastic_eval="True"
 find_collision_free="False"
 use_double_planner="False"
@@ -62,16 +72,15 @@ task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
 contact_threshold="-0.002"
-ac_space_type="piecewise"
+ac_space_type="normal"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
 step_size="0.02"
 success_reward="100.0"
-add_curr_rew="True"
-discount_factor='1.0'
 # max_grad_norm='0.5'
 
+#mpiexec -n $workers
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
@@ -79,10 +88,14 @@ python -m rl.main \
     --max_global_step $max_global_step \
     --env $env \
     --gpu $gpu \
+    --rl_hid_size $rl_hid_size \
     --max_episode_step $max_episode_step \
     --evaluate_interval $evaluate_interval \
+    --entropy_loss_coef $entropy_loss_coef \
     --buffer_size $buffer_size \
     --num_batches $num_batches \
+    --lr_actor $lr_actor \
+    --lr_critic $lr_critic \
     --debug $debug \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
@@ -98,6 +111,7 @@ python -m rl.main \
     --env_debug $env_debug \
     --log_freq $log_freq \
     --log_interval $log_interval \
+    --tanh $tanh \
     --planner_integration $planner_integration \
     --ignored_contact_geoms $ignored_contact_geoms \
     --planner_type $planner_type \
@@ -116,6 +130,9 @@ python -m rl.main \
     --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
     --extended_action $extended_action \
+    --allow_approximate $allow_approximate \
+    --allow_invalid $allow_invalid \
+    --use_automatic_entropy_tuning $use_automatic_entropy_tuning \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
@@ -138,6 +155,5 @@ python -m rl.main \
     --use_discount_meta $use_discount_meta \
     --temperature $temperature \
     --step_size $step_size \
-    --success_reward $success_reward \
-    --add_curr_rew $add_curr_rew \
-    --discount_factor $discount_factor
+    --success_reward $success_reward
+
