@@ -333,9 +333,15 @@ class PlannerRolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         # reward = self._config.invalid_planner_rew
-                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
-                        ep_rew += reward
-                        reward += self._config.invalid_planner_rew
+                        reward = 0
+                        if config.add_curr_rew:
+                            reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
+                            ep_rew += reward
+                            reward += self._config.invalid_planner_rew
+                        else:
+                            reward += self._config.invalid_planner_rew
+                            ep_rew += reward
+                            info = {}
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, False, info)
@@ -537,10 +543,15 @@ class PlannerRolloutRunner(object):
                     elif not valid:
                         counter['invalid'] += 1
                     ll_ob = ob.copy()
-                    # reward = self._config.invalid_planner_rew
-                    reward, info = env.compute_reward(np.zeros(env.sim.model.nu))
-                    ep_rew += reward
-                    reward += self._config.invalid_planner_rew
+                    reward = 0.
+                    if config.add_curr_rew:
+                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        ep_rew += reward
+                        reward += self._config.invalid_planner_rew
+                    else:
+                        reward += self._config.invalid_planner_rew
+                        ep_rew += reward
+                        info = {}
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, False, info)
                     rollout.add({'done': done, 'rew': reward})
