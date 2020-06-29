@@ -312,3 +312,8 @@ register(
     entry_point="env.sawyer:SawyerPushObstacleEasyEnv",
     kwargs={}
 )
+register(
+    id="sawyer-peg-insertion-v0",
+    entry_point="env.sawyer:SawyerPegInsertionEnv",
+    kwargs={}
+)

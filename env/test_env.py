@@ -13,8 +13,6 @@ elif 'pusher' in args.env:
     from config.pusher import add_arguments
 elif 'mover' in args.env:
     from config.mover import add_arguments
-elif 'peg-insertion' in args.env:
-    from config.peg_insertion import add_arguments
 elif 'robosuite' in args.env:
     from config.robosuite import add_arguments
 elif 'sawyer' in args.env:
@@ -45,6 +43,9 @@ while True:
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
     # env.set_robot_indicator_joint_positions(qpos)
     obs, reward, done, _ = env.step(action)
+    if env.sim.data.ncon>2:
+        import pdb
+        pdb.set_trace()
     env.render(mode='human')
     if done:
         print('done')
