@@ -21,7 +21,6 @@ class SawyerPegInsertionEnv(SawyerEnv):
         goal = self.sim.model.body_pos[self.sim.model.body_name2id("box")]
         goal[:2] += np.random.randn(2) * 0.02
         self.sim.model.body_pos[self.sim.model.body_name2id('box')] = goal
-        self.goal = goal
         self.sim.forward()
 
         return self._get_obs()
@@ -45,7 +44,6 @@ class SawyerPegInsertionEnv(SawyerEnv):
 
     def _get_obs(self):
         di = super()._get_obs()
-        di['goal'] = self.goal
         di['hole']  = self.sim.data.get_site_xpos("hole")
         di['pegHead'] = self.sim.data.get_site_xpos("pegHead")
         di['pegEnd'] = self.sim.data.get_site_xpos("pegEnd")
