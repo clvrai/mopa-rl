@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.normal0.5.alpha0.5.discunt.0.995"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.alpha0.5.debug"
 gpu=$1
 seed=$2
 algo='sac'
@@ -11,10 +11,10 @@ rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 max_global_step="60000000"
-env="sawyer-push-v0"
-max_episode_step="400"
+env="sawyer-peg-insertion-v0"
+max_episode_step="200"
 buffer_size="1000000"
-debug="False"
+debug="True"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
@@ -40,8 +40,8 @@ subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.7"
+ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
 extended_action="False"
 stochastic_eval="True"
@@ -69,7 +69,7 @@ temperature="1.0"
 step_size="0.02"
 success_reward="100.0"
 add_curr_rew="True"
-discount_factor='0.995'
+discount_factor='1.0'
 # max_grad_norm='0.5'
 
 python -m rl.main \

@@ -17,7 +17,7 @@
           <geom rgba="0.3 0.3 1 1" type="box" contype="0" group="1" size="0.1 0.1 0.05" name="box_top" conaffinity="1" pos="0 0 0.16" mass="1000"/>
           <geom rgba="0.3 0.3 1 1" type="box" contype="0" group="1" size="0.1 0.035 0.03" name="box_left" conaffinity="1" pos="0 0.065 0.08" mass="1000"/>
           <geom rgba="0.3 0.3 1 1" type="box" contype="0" group="1" size="0.1 0.035 0.03" name="box_right" conaffinity="1" pos="0 -0.065 0.08" mass="1000"/>
-          <site name="hole" pos="-0.07 0 0.08" size="0.005" rgba="0 0.8 0 1"/>
+          <site name="hole" pos="-0.04 0 0.08" size="0.005" rgba="0 0.8 0 1"/>
         </body>
     </worldbody>
 </mujoco>

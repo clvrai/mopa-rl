@@ -11,14 +11,14 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v1"
+prefix="BASELINE.v4.debug"
 max_global_step="60000000"
 env="sawyer-peg-insertion-v0"
 gpu=$gpu
 max_episode_step="200"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-debug="False"
+debug="True"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'

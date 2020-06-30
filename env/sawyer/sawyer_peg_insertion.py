@@ -8,6 +8,7 @@ from env.sawyer.sawyer import SawyerEnv
 
 class SawyerPegInsertionEnv(SawyerEnv):
     def __init__(self, **kwargs):
+        kwargs['camera_name'] = 'topview'
         super().__init__("sawyer_peg_insertion.xml", **kwargs)
         self._get_reference()
 
@@ -52,7 +53,7 @@ class SawyerPegInsertionEnv(SawyerEnv):
 
     @property
     def static_geom_ids(self):
-        return ['table_collision']
+        return ['table_collision', 'box']
 
     def _step(self, action, is_planner=False):
         """
