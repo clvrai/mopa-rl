@@ -46,20 +46,32 @@ class SawyerPushObstacleEnv(SawyerEnv):
         return self._get_obs()
 
     def compute_reward(self, action):
+        reward_type = self._kwargs['reward_type']
         info = {}
         reward = 0
 
-        reach_multi = 0.6
-        push_multi = 1.0
-        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-        target_pos = self.sim.data.body_xpos[self.target_id]
-        gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
-        cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
-        reward_reach = -gripper_to_cube*reach_multi
-        reward_push = -cube_to_target*push_multi
-        reward += reward_reach + reward_push
-        info = dict(reward_reach=reward_reach, reward_push=reward_push)
+        if reward_type == 'dense':
+            reach_multi = 0.6
+            push_multi = 1.0
+            right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+            gripper_site_pos = (right_gripper + left_gripper) / 2.
+            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+            target_pos = self.sim.data.body_xpos[self.target_id]
+            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+            cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
+            reward_reach = -gripper_to_cube*reach_multi
+            reward_push = -cube_to_target*push_multi
+            reward += reward_reach + reward_push
+            info = dict(reward_reach=reward_reach, reward_push=reward_push)
+        else:
+            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+            cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
+            reward_reach = -(gripper_to_cube > 0.15)
+            reward_push = -(cube_to_target > self._kwargs['distance_threshold'])
+            reward += reward_reach
+            reward += reward_push
+            info = dict(reward_reach=reward_reach, reward_push=reward_push)
+
         if cube_to_target < self._kwargs['distance_threshold']:
             reward += self._kwargs['success_reward']
             self._success = True
