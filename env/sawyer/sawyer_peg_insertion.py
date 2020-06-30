@@ -11,6 +11,7 @@ class SawyerPegInsertionEnv(SawyerEnv):
         kwargs['camera_name'] = 'topview'
         super().__init__("sawyer_peg_insertion.xml", **kwargs)
         self._get_reference()
+        self._init_goal = self.sim.model.body_pos[self.sim.model.body_name2id("box")].copy()
 
     def _get_reference(self):
         super()._get_reference()
@@ -19,7 +20,7 @@ class SawyerPegInsertionEnv(SawyerEnv):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        goal = self.sim.model.body_pos[self.sim.model.body_name2id("box")]
+        goal = self._init_goal.copy()
         goal[:2] += np.random.randn(2) * 0.02
         self.sim.model.body_pos[self.sim.model.body_name2id('box')] = goal
         self.sim.forward()

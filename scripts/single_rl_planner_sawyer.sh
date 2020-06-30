@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.alpha0.5.debug"
+prefix="SAC.PLANNER.AUGMENTED.normal0.5.alpha0.5.v1"
 gpu=$1
 seed=$2
 algo='sac'
@@ -14,7 +14,7 @@ max_global_step="60000000"
 env="sawyer-peg-insertion-v0"
 max_episode_step="200"
 buffer_size="1000000"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
@@ -40,8 +40,8 @@ subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
 action_range="1.0"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.3"
 extended_action="False"
 stochastic_eval="True"
@@ -62,7 +62,7 @@ task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
 contact_threshold="-0.002"
-ac_space_type="piecewise"
+ac_space_type="normal"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
