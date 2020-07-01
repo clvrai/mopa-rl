@@ -16,6 +16,10 @@ class SawyerPegInsertionObstacleEnv(SawyerEnv):
     def _get_reference(self):
         super()._get_reference()
 
+    @property
+    def init_qpos(self):
+        return np.array([0.061, -0.0377, 1.07, 1.03, 0.804, 0.714, 0.754])
+
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos

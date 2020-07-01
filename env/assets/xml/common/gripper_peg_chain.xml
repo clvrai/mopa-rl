@@ -15,13 +15,14 @@
             <geom name="rightclaw_it" type="box" pos="0 0.0 0" size="0.05 0.005 0.005"/>
             <joint name="rc_close" type="slide" pos="0 0 0" axis="0 -1 0" range="0 .015" user="008" limited="true"/>
         </body>
-        <body name="peg" pos="0.05 0.0 -0.07" quat="-1 0 1 0">
+        <body name="peg" pos="0.05 0.0 -0.08" quat="-1 0 1 0">
           <inertial pos="0 0 0" mass="0.1" diaginertia="1 1 1"/>
           <!-- <inertial pos="0 0 0" mass="0.1" diaginertia="100000 100000 100000"/> -->
           <!-- <geom name="peg" fromto="&#45;0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" solref="0.02 1" conaffinity="1" contype="1" group="1"/> -->
-          <geom name="peg" fromto="-0.15 0 0 0.15 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" group="1" />
-          <site name="pegHead" pos="-0.1 0 0" size="0.005" rgba="0.8 0 0 1"/>
-          <site name="pegEnd" pos="0.1 0 0" size="0.005" rgba="0.8 0 0 1"/>
+          <geom name="peg" fromto="-0.20 0 0 0.20 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" group="1" />
+          <geom name="peg_visual" fromto="-0.20 0 0 -0.15 0 0" rgba="1 0.3 0.3 1" size="0.02 0.08" type="cylinder" group="1" />
+          <site name="pegHead" pos="-0.2 0 0" size="0.001" rgba="0.8 0 0 1"/>
+          <site name="pegEnd" pos="0.2 0 0" size="0.001" rgba="0.8 0 0 1"/>
         </body>
         <body name="leftclaw" pos=".01 .02 0">
             <geom name="leftclaw_it0" type="box" pos="0 -.04 0" size="0.05 0.005 0.005"/>
