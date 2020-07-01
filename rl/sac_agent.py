@@ -77,7 +77,7 @@ class SACAgent(BaseAgent):
                                          is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate, range_=config.range)
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.simple_planner_type,
                                                 passive_joint_idx=config.passive_joint_idx,
-                                                ignored_contacts=config.ignored_contact_geom_ids[0], goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration, range_=config.simple_planner_range)
+                                                ignored_contacts=config.ignored_contact_geom_ids, goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration, range_=config.simple_planner_range)
             self._ac_rl_minimum = config.ac_rl_minimum
             self._ac_rl_maximum = config.ac_rl_maximum
 
