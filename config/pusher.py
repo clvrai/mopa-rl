@@ -36,8 +36,9 @@ def add_arguments(parser):
     parser.add_argument("--ki", type=float, default=0.1)
     parser.add_argument("--frame_dt", type=float, default=1.)
     parser.add_argument("--reward_coef", type=float, default=10.)
+    parser.add_argument("--ctrl_reward_coef", type=float, default=1)
     parser.add_argument("--pos_reward_coef", type=float, default=400.)
-    ss_reward", type=float, default=1.)
+    parser.add_argument("--success_reward", type=float, default=1.)
     parser.add_argument("--has_terminal", type=str2bool, default=True)
     parser.add_argument("--camera_name", type=str, default='cam0')
 

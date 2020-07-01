@@ -29,6 +29,7 @@ env = gym.make(args.env, **args.__dict__)
 if 'robosuite' in args.env:
     env.use_camera_obs = False
 obs = env.reset()
+obs = env.reset()
 
 #for i in range(10000):
 timestep = 0
