@@ -69,7 +69,7 @@ class SawyerPegInsertionEnv(SawyerEnv):
             self._i_term = np.zeros_like(self.mujoco_robot.dof)
 
         if is_planner:
-            rescaled_ac = action[:self.robot_dof]
+            rescaled_ac = np.clip(action[:self.robot_dof], -self._ac_scale, self._ac_scale)
         else:
             rescaled_ac = action[:self.robot_dof] * self._ac_scale
         desired_state = self._prev_state + rescaled_ac

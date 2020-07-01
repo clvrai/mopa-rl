@@ -73,7 +73,7 @@ class SACAgent(BaseAgent):
         self._is_planner_initialized = False
         if config.planner_integration:
             self._planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.planner_type,
-                                         passive_joint_idx=config.passive_joint_idx, ignored_contacts=config.ignored_contact_geom_ids[0],
+                                         passive_joint_idx=config.passive_joint_idx, ignored_contacts=config.ignored_contact_geom_ids,
                                          is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate, range_=config.range)
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.simple_planner_type,
                                                 passive_joint_idx=config.passive_joint_idx,
@@ -220,6 +220,8 @@ class SACAgent(BaseAgent):
             traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
             if not success:
                 traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
+                import pdb
+                pdb.set_trace()
                 if not success:
                     traj = [target_qpos]
         else:

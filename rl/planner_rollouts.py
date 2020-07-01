@@ -240,7 +240,6 @@ class PlannerRolloutRunner(object):
                                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
-                        env._reset_prev_state()
 
                         if self._config.subgoal_hindsight: # refer to HAC
                             if invalid_target_qpos:
@@ -385,6 +384,7 @@ class PlannerRolloutRunner(object):
                         env_step = 0
                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
+                env._reset_prev_state()
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
             ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty})
@@ -534,7 +534,6 @@ class PlannerRolloutRunner(object):
                         if done or ep_len >= max_step:
                             break
                     rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                    env._reset_prev_state()
                     rollout.add({'done': done, 'rew': meta_rew})
                 else:
                     counter['mp_fail'] += 1
@@ -591,6 +590,7 @@ class PlannerRolloutRunner(object):
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                     env.reset_visualized_indicator()
                     self._store_frame(env, frame_info)
+            env._reset_prev_state()
             meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
             env.reset_visualized_indicator()
 

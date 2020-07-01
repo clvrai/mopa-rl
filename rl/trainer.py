@@ -88,24 +88,9 @@ class Trainer(object):
                 for geom_id in geom_ids:
                     allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
 
-        if config.ignored_contact_geoms is not None:
-            ids = []
-            for i, geom in enumerate(config.ignored_contact_geoms):
-                ids.append([])
-                geom = geom.split("/")
-                geom_pairs = []
-                for g in geom:
-                    pair = g.split(",")
-                    pair_id = []
-                    for p in pair:
-                        if p != 'None':
-                            pair_id.append(self._env.sim.model.geom_name2id(p))
-                    # geom_pairs.append(pair_id)
-                    if len(pair_id) != 0:
-                        ids[i].append(make_ordered_pair(pair_id[0], pair_id[1]))
-                    if len(allowed_collsion_pairs) != 0:
-                        ids[i].extend(allowed_collsion_pairs)
-            config.ignored_contact_geom_ids = ids
+        ignored_contact_geom_ids = []
+        ignored_contact_geom_ids.extend(allowed_collsion_pairs)
+        config.ignored_contact_geom_ids = ignored_contact_geom_ids
 
         passive_joint_idx = list(range(len(self._env.sim.data.qpos)))
         [passive_joint_idx.remove(idx) for idx in self._env.ref_joint_pos_indexes]
