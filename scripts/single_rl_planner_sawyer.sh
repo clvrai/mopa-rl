@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.alpha0.2.debug"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7"
 gpu=$1
 seed=$2
 algo='sac'
@@ -11,10 +11,10 @@ rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 max_global_step="60000000"
-env="sawyer-peg-insertion-v0"
-max_episode_step="200"
+env="sawyer-peg-insertion-obstacle-v0"
+max_episode_step="300"
 buffer_size="1000000"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
@@ -22,8 +22,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
