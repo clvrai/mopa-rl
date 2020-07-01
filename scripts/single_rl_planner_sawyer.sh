@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7"
+prefix="SAC.PLANNER.AUGMENTED.extended_action"
 gpu=$1
 seed=$2
 algo='sac'
@@ -22,8 +22,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 env_debug='False'
 log_freq='1000'
 planner_integration="True"
@@ -43,7 +43,7 @@ action_range="1.0"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
-extended_action="False"
+extended_action="True"
 stochastic_eval="True"
 find_collision_free="True"
 use_double_planner="False"
@@ -62,7 +62,7 @@ task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
 contact_threshold="-0.002"
-ac_space_type="piecewise"
+ac_space_type="normal"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
