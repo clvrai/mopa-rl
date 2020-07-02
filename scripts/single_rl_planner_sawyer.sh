@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.normal.0.5"
+prefix="SAC.PLANNER.AUGMENTED.piecewise.0.7.range.0.5"
 gpu=$1
 seed=$2
 algo='sac'
@@ -39,9 +39,9 @@ alpha="0.2"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
-action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+action_range="0.5"
+ac_rl_minimum="-0.7"
+ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
 extended_action="False"
 stochastic_eval="True"
@@ -62,7 +62,7 @@ task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
 contact_threshold="-0.002"
-ac_space_type="normal"
+ac_space_type="piecewise"
 use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
