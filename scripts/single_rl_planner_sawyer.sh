@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.v6"
 gpu=$1
 seed=$2
 algo='sac'
@@ -16,18 +16,14 @@ max_episode_step="300"
 buffer_size="1000000"
 debug="False"
 batch_size="256"
-clip_param="0.2"
-ctrl_reward='1e-2'
 reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
-env_debug='False'
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
-ignored_contact_geoms='None,None'
 planner_type="rrt_connect"
 planner_objective="path_length"
 range="0.1"
@@ -37,8 +33,7 @@ timelimit="1.0"
 allow_manipulation_collision="True"
 alpha="0.2"
 reuse_data_type="None"
-relative_goal="True"
-action_range="1.0"
+action_range="0.5"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
@@ -66,7 +61,7 @@ use_smdp_update="True"
 use_discount_meta="True"
 temperature="1.0"
 step_size="0.02"
-success_reward="100.0"
+success_reward="150.0"
 add_curr_rew="True"
 discount_factor='1.0'
 max_reuse_data='15'
@@ -87,20 +82,16 @@ python -m rl.main \
     --debug $debug \
     --rollout_length $rollout_length \
     --batch_size $batch_size \
-    --clip_param $clip_param \
     --rl_activation $rl_activation \
     --algo $algo \
     --seed $seed \
-    --ctrl_reward $ctrl_reward \
     --reward_type $reward_type \
     --comment $comment \
     --start_steps $start_steps \
     --actor_num_hid_layers $actor_num_hid_layers \
-    --env_debug $env_debug \
     --log_freq $log_freq \
     --log_interval $log_interval \
     --planner_integration $planner_integration \
-    --ignored_contact_geoms $ignored_contact_geoms \
     --planner_type $planner_type \
     --planner_objective $planner_objective \
     --range $range \
@@ -109,7 +100,6 @@ python -m rl.main \
     --allow_manipulation_collision $allow_manipulation_collision \
     --alpha $alpha \
     --reuse_data_type $reuse_data_type \
-    --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
     --action_range $action_range \
     --ac_rl_maximum $ac_rl_maximum \

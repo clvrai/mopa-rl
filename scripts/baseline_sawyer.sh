@@ -11,7 +11,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v4"
+prefix="BASELINE.v6"
 max_global_step="60000000"
 env="sawyer-peg-insertion-obstacle-v0"
 gpu=$gpu
@@ -34,7 +34,7 @@ alpha="0.2"
 vis_replay="True"
 plot_type='3d'
 task_level='easy'
-success_reward='100.'
+success_reward='150.'
 # has_terminal='True'
 # max_grad_norm='0.5'
 
