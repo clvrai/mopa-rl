@@ -262,9 +262,12 @@ class SawyerEnv(BaseEnv):
         if curr_qpos is None:
             curr_qpos = self.sim.data.qpos.copy()
         joint_ac = next_qpos[self.ref_joint_pos_indexes] - curr_qpos[self.ref_joint_pos_indexes]
-        gripper = next_qpos[self.ref_gripper_joint_pos_indexes] - curr_qpos[self.ref_gripper_joint_pos_indexes]
-        gripper_ac = gripper[0]
-        ac = OrderedDict([('default', np.concatenate([joint_ac, [gripper_ac]]))])
+        if self.dof == 8:
+            gripper = next_qpos[self.ref_gripper_joint_pos_indexes] - curr_qpos[self.ref_gripper_joint_pos_indexes]
+            gripper_ac = gripper[0]
+            ac = OrderedDict([('default', np.concatenate([joint_ac, [gripper_ac]]))])
+        else:
+            ac = OrderedDict([('default', joint_ac)])
         return ac
 
     def form_hindsight_action(self, prev_qpos, skill=None):

@@ -17,6 +17,10 @@ class SawyerPegInsertionObstacleEnv(SawyerEnv):
         super()._get_reference()
 
     @property
+    def dof(self):
+        return 7
+
+    @property
     def init_qpos(self):
         return np.array([0.061, -0.0377, 1.07, 1.03, 0.804, 0.714, 0.754])
 

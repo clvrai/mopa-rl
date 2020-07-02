@@ -126,7 +126,18 @@ class SACAgent(BaseAgent):
         if ac_space_type == 'normal':
             return ac * action_range
         elif ac_space_type == 'piecewise':
-            return np.where(np.abs(ac) < ac_rl_maximum, ac/ac_rl_maximum, np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((action_range-ac_scale)/(action_range-ac_rl_maximum))))
+            return np.where(np.abs(ac) < ac_rl_maximum, ac/(ac_rl_maximum/ac_scale), np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((1.0-ac_scale)/(1.0-ac_rl_maximum))*action_range))
+        else:
+            raise NotImplementedError
+
+    def invert_displacement(self, displacement, ac_scale):
+        ac_space_type = self._config.ac_space_type
+        action_range = self._config.action_range
+        ac_rl_maximum = self._config.ac_rl_maximum
+        if ac_space_type == 'normal':
+            return displacement / action_range
+        elif ac_space_type == 'piecewise':
+            return np.where(np.abs(displacement)<ac_scale, displacement*(ac_rl_maximum/ac_scale), np.sign(displacement) * ((np.abs(displacement) - ac_scale)/action_range/((1.0-ac_scale)/(1.0-ac_rl_maximum))+ac_rl_maximum))
         else:
             raise NotImplementedError
 

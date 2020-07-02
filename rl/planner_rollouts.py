@@ -224,9 +224,9 @@ class PlannerRolloutRunner(object):
                             ep_rew_with_penalty += reward
                             reward_info.add(info)
 
-                            if config.reuse_data_type == 'subgoal_forward':
+                            if config.reuse_data_type == 'forward':
                                 inter_subgoal_ac = env.form_action(next_qpos, prev_qpos)
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation, 'done': done, 'rew': meta_rew, 'intra_steps': i})
 
@@ -240,25 +240,13 @@ class PlannerRolloutRunner(object):
                                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
                             if done or ep_len >= max_step:
                                 break
-
-                        if self._config.subgoal_hindsight: # refer to HAC
-                            if invalid_target_qpos:
-                                hindsight_subgoal_ac = env.form_hindsight_action(target_qpos)
-                                hindsight_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
-                                if config.extended_action:
-                                    hindsight_subgoal_ac['ac_type'] = ac['ac_type']
-                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                            else:
-                                rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                        else:
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
                         if self._config.use_cum_rew:
                             rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
                             if self._config.use_discount_meta:
                                 rollout.add({'done': done, 'rew': reward * cum_discount, 'intra_steps': i})
-                                # rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                             else:
                                 rollout.add({'done': done, 'rew': reward * i, 'intra_steps': i})
 
@@ -271,10 +259,10 @@ class PlannerRolloutRunner(object):
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
-                        if config.reuse_data_type == 'subgoal_backward':
+                        if config.reuse_data_type == 'backward':
                             for i, (inter_rew, inter_ob) in enumerate(zip(reward_list, ob_list)):
                                 inter_subgoal_ac = env.form_action(traj[i])
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                                 if pi.is_planner_ac(inter_subgoal_ac):
                                     rollout.add({'ob': inter_ob, 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                     rollout.add({'done': done, 'rew': meta_rew-inter_rew, 'intra_steps': len(reward_list)-i-1})
@@ -286,7 +274,7 @@ class PlannerRolloutRunner(object):
                                         env_step = 0
                                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                        if config.reuse_data_type == 'subgoal_random' and len(ob_list) > 2:
+                        if config.reuse_data_type == 'random' and len(ob_list) > 2:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
                                 start = np.random.randint(low=0, high=len(ob_list)-1)
@@ -298,7 +286,7 @@ class PlannerRolloutRunner(object):
 
                                 pairs.append((start, goal))
                                 inter_subgoal_ac = env.form_action(traj[goal], traj[start])
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] /= config.action_range
+                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     if config.extended_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
@@ -324,14 +312,10 @@ class PlannerRolloutRunner(object):
                         if not valid:
                             counter['invalid'] += 1
                         counter['mp_fail'] += 1
-                        # if counter['invalid'] >= 200:
-                        #     import pdb
-                        #     pdb.set_trace()
                         ll_ob = ob.copy()
                         meta_rollout.add({
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
-                        # reward = self._config.invalid_planner_rew
                         reward = 0
                         if config.add_curr_rew:
                             reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))

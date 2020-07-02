@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.range.0.5.v4"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7"
 gpu=$1
 seed=$2
 algo='sac'
@@ -36,10 +36,9 @@ threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
 alpha="0.2"
-subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
-action_range="0.5"
+action_range="1.0"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
@@ -70,6 +69,8 @@ step_size="0.02"
 success_reward="100.0"
 add_curr_rew="True"
 discount_factor='1.0'
+max_reuse_data='15'
+min_reuse_span='20'
 # max_grad_norm='0.5'
 
 python -m rl.main \
@@ -107,7 +108,6 @@ python -m rl.main \
     --timelimit $timelimit \
     --allow_manipulation_collision $allow_manipulation_collision \
     --alpha $alpha \
-    --subgoal_hindsight $subgoal_hindsight \
     --reuse_data_type $reuse_data_type \
     --relative_goal $relative_goal \
     --simple_planner_timelimit $simple_planner_timelimit \
@@ -140,4 +140,6 @@ python -m rl.main \
     --step_size $step_size \
     --success_reward $success_reward \
     --add_curr_rew $add_curr_rew \
-    --discount_factor $discount_factor
+    --discount_factor $discount_factor  \
+    --max_reuse_data $max_reuse_data \
+    --min_reuse_span $min_reuse_span \

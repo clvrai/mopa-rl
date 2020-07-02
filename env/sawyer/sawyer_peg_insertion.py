@@ -43,6 +43,9 @@ class SawyerPegInsertionEnv(SawyerEnv):
 
         return reward, info
 
+    @property
+    def dof(self):
+        return 7
 
     def _get_obs(self):
         di = super()._get_obs()
