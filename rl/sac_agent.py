@@ -233,6 +233,8 @@ class SACAgent(BaseAgent):
                 traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
                 if not success:
                     traj = [target_qpos]
+                    success = False
+                    exact = False
         else:
             if not valid:
                 success = False
