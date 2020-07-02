@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.v3"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.range.0.5.v4"
 gpu=$1
 seed=$2
 algo='sac'
@@ -39,7 +39,7 @@ alpha="0.2"
 subgoal_hindsight="False"
 reuse_data_type="None"
 relative_goal="True"
-action_range="1.0"
+action_range="0.5"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"

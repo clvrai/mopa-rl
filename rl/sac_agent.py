@@ -220,8 +220,6 @@ class SACAgent(BaseAgent):
             traj, success, valid, exact = self._simple_planner.plan(curr_qpos, target_qpos, self._config.simple_planner_timelimit)
             if not success:
                 traj, success, valid, exact = self._planner.plan(curr_qpos, target_qpos, self._config.timelimit)
-                import pdb
-                pdb.set_trace()
                 if not success:
                     traj = [target_qpos]
         else:
