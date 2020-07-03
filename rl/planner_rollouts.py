@@ -148,19 +148,15 @@ class PlannerRolloutRunner(object):
                 if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner:
                     if config.relative_goal:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
-                        # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
                         target_qpos[env.ref_joint_pos_indexes] += displacement
                         tmp_target_qpos = target_qpos.copy()
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                        # target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices]+0.001, env._jnt_maximum[env.jnt_indices]-0.001)
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                     else:
                         target_qpos[env.ref_joint_pos_indexes] = ac['default']
 
-                    invalid_target_qpos = False
                     if config.find_collision_free and not pi.isValidState(target_qpos):
                         trial = 0
-                        invalid_target_qpos = True
                         while not pi.isValidState(target_qpos) and trial < config.num_trials:
                             d = curr_qpos-target_qpos
                             target_qpos += config.step_size * d/np.linalg.norm(d)
@@ -173,13 +169,6 @@ class PlannerRolloutRunner(object):
                         success = False
                         valid = False
                         exact = True
-                    #
-                    # if not exact:
-                    #     import pdb
-                    #     pdb.set_trace()
-                    # if not valid:
-                    #     import pdb
-                    #     pdb.set_trace()
 
                     if success:
                         if interpolation:
@@ -202,14 +191,10 @@ class PlannerRolloutRunner(object):
                                 converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
-                            # ac = env.form_action(next_qpos)
                             if self._config.use_discount_meta:
                                 meta_rew += (config.discount_factor** i) * reward # the last reward is more important
                             else:
                                 meta_rew += reward
-                            # meta_rew += (config.discount_factor**(len(traj)-i-1))*reward # the last reward is more important
-                            # meta_rew += (1-config.discount_factor**i)*reward # the last reward is more important
-                            # meta_rew += reward
                             cum_discount += config.discount_factor**i
                             cum_discount_list.append(cum_discount)
                             done_list.append(done)
@@ -458,7 +443,6 @@ class PlannerRolloutRunner(object):
                 if config.relative_goal:
                     displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                     target_qpos[env.ref_joint_pos_indexes] += displacement
-                    # target_qpos[env.ref_joint_pos_indexes] += (ac['default'][:len(env.ref_joint_pos_indexes)] * config.action_range)
                     tmp_target_qpos = target_qpos.copy()
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
@@ -491,9 +475,7 @@ class PlannerRolloutRunner(object):
                         converted_ac = env.form_action(next_qpos)
                         if i == len(traj)-1:
                             converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
-                        # ac = env.form_action(next_qpos)
                         ob, reward, done, info = env.step(converted_ac, is_planner=True)
-                        # ob, reward, done, info = env.step(ac, is_planner=True)
                         meta_rew += reward
                         ep_len += 1
                         ep_rew += reward
