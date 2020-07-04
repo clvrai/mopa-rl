@@ -2,12 +2,35 @@
     <include file="./common/sawyer.xml" />
     <default>
     </default>
+      <asset>
+    <texture file="../textures/light-wood.png" type="2d" name="tex-light-wood"/>
+    <texture file="../textures/dark-wood.png" type="2d" name="tex-dark-wood"/>
+    <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true"/>
+    <material name="dark-wood" reflectance="0.5" texrepeat="5 5" texture="tex-dark-wood" texuniform="true"/>
+  </asset>
     <worldbody>
-        <body name="table" pos="0.66 0.0 0.41">
-          <geom friction="1 0.005 0.0001" name="table_collision" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
-          <geom conaffinity="0" contype="0" group="1" name="table_visual" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
-          <site name="table_top" pos="0.0 0.0 0.41" rgba="0 0 0 0" size="0.001 0.001 0.001" />
-        </body>
+    <body name="table" pos="0.8 0.0 0.8">
+      <geom pos="0 0 0" size="0.4 0.4 0.02" type="box" friction="1 0.005 0.0001"/>
+      <geom pos="0 0 0" material="light-wood" size="0.4 0.4 0.02" type="box" conaffinity="0" contype="0" group="1"/>
+        <geom pos="0 0.4 0.05" size="0.4 0.01 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/>
+        <geom pos="0 0.4 0.05" size="0.4 0.01 0.05" type="box" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="0 -0.4 0.05" size="0.4 0.01 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/>
+        <geom pos="0 -0.4 0.05" size="0.4 0.01 0.05" type="box" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="0.4 0 0.05" size="0.01 0.4 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/>
+        <geom pos="0.4 0 0.05" size="0.01 0.4 0.05" type="box" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="-0.4 0 0.05" size="0.01 0.4 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/>
+        <geom pos="-0.4 0 0.05" size="0.01 0.4 0.05" type="box" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="0.38 0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
+        <geom pos="0.38 0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="-0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
+        <geom pos="-0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="-0.38 0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
+        <geom pos="-0.38 0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
+        <geom pos="0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
+        <geom pos="0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
+    </body>
+
+
         <body name="cube" pos="0.5317717157210129 -0.023869616735809365 0.86" quat="0.8775825618903728 0 0 0.479425538604203">
                 <!-- <geom density="400" friction="4.0 0.005 0.0001" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.04 0.04 0.04" type="box" /> -->
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
