@@ -5,71 +5,85 @@ import numpy as np
 from gym import spaces
 from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
+from env.robosuite.utils.transform_utils import *
 
-class SawyerPegInsertionObstacleV1Env(SawyerEnv):
+class SawyerPickPlaceEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        kwargs['camera_name'] = 'topview'
-        super().__init__("sawyer_peg_insertion_obstacle_v1.xml", **kwargs)
+        super().__init__("sawyer_pick_place.xml", **kwargs)
         self._get_reference()
-        self._init_goal = self.sim.model.body_pos[self.sim.model.body_name2id("box")].copy()
 
     def _get_reference(self):
         super()._get_reference()
 
-    @property
-    def dof(self):
-        return 7
+        self.cube_body_id = self.sim.model.body_name2id("cube")
+        self.cube_geom_id = self.sim.model.geom_name2id("cube")
+        self.cube_site_id = self.sim.model.site_name2id("cube")
 
-    @property
-    def init_qpos(self):
-        return np.array([-0.0915, -0.568, -0.0304, 2.19, -0.0615, 0.0275, 0.00358])
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        goal = self._init_goal.copy()
-        goal[:2] += np.random.randn(2) * 0.02
-        self.sim.model.body_pos[self.sim.model.body_name2id('box')] = goal
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         self.sim.forward()
 
         return self._get_obs()
 
     def compute_reward(self, action):
+        reward_type = self._kwargs['reward_type']
         info = {}
         reward = 0
-        reward_type = self._kwargs['reward_type']
-        pegHeadPos = self.sim.data.get_site_xpos("pegHead")
-        hole = self.sim.data.get_site_xpos("hole")
-        dist = np.linalg.norm(pegHeadPos-hole)
+
         if reward_type == 'dense':
-            reward_reach = -dist
+            reach_multi = 0.6
+            right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+            gripper_site_pos = (right_gripper + left_gripper) / 2.
+            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+            reward_reach = -gripper_to_cube*reach_multi
             reward += reward_reach
             info = dict(reward_reach=reward_reach)
         else:
-            reward_reach = -(dist > 0.05).astype(no.float32)
-            if dist < 0.15:
-                reward_raech += (1-np.tanh(10*dist))
+            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+            reward_reach = -(gripper_to_cube > 0.15)
             reward += reward_reach
-        if dist < 0.05:
-            reward += self._kwargs['success_reward']
-            self._success = True
-            self._terminal = True
+            info = dict(reward_reach=reward_reach)
+
+        # if cube_to_target < self._kwargs['distance_threshold']:
+        #     reward += self._kwargs['success_reward']
+        #     self._success = True
+        #     self._terminal = True
 
         return reward, info
 
-
     def _get_obs(self):
         di = super()._get_obs()
-        di['hole']  = self.sim.data.get_site_xpos("hole")
-        di['pegHead'] = self.sim.data.get_site_xpos("pegHead")
-        di['pegEnd'] = self.sim.data.get_site_xpos("pegEnd")
-        di['peg_quat'] = self._get_quat("peg")
+        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+        cube_quat = convert_quat(
+            np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
+        )
+        di["cube_pos"] = cube_pos
+        di["cube_quat"] = cube_quat
+        gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
+        di["gripper_to_cube"] = gripper_site_pos - cube_pos
+
         return di
 
     @property
+    def static_geoms(self):
+        return ['table_collision']
+
+    @property
     def static_geom_ids(self):
-        return ['table_collision', 'box', 'obstacle0', 'obstacle1', 'obstacle2']
+        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
+
+    @property
+    def manipulation_geom(self):
+        return ['cube']
+
+    @property
+    def manipulation_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
 
     def _step(self, action, is_planner=False):
         """
@@ -88,6 +102,9 @@ class SawyerPegInsertionObstacleV1Env(SawyerEnv):
         else:
             rescaled_ac = action[:self.robot_dof] * self._ac_scale
         desired_state = self._prev_state + rescaled_ac
+        arm_action = desired_state
+        gripper_action = self._gripper_format_action(np.array([action[-1]]))
+        converted_action = np.concatenate([arm_action, gripper_action])
 
         n_inner_loop = int(self._frame_dt/self.dt)
         for _ in range(n_inner_loop):
@@ -106,7 +123,7 @@ class SawyerPegInsertionObstacleV1Env(SawyerEnv):
                 ] = self.sim.data.qfrc_bias[
                     self.ref_target_indicator_joint_pos_indexes
                 ].copy()
-            self._do_simulation(desired_state)
+            self._do_simulation(converted_action)
 
         self._prev_state = np.copy(desired_state)
         reward, info = self.compute_reward(action)

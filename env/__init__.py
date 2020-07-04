@@ -327,3 +327,8 @@ register(
     entry_point="env.sawyer:SawyerPegInsertionObstacleV1Env",
     kwargs={}
 )
+register(
+    id="sawyer-pick-place-v0",
+    entry_point="env.sawyer:SawyerPickPlaceEnv",
+    kwargs={}
+)
