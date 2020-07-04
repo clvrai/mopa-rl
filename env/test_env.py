@@ -4,6 +4,8 @@ from config import argparser
 import numpy as np
 import time
 
+# mujocopy_render_hack() # rendering fix for gautam
+is_save_video = False
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 
@@ -30,6 +32,7 @@ if 'robosuite' in args.env:
     env.use_camera_obs = False
 obs = env.reset()
 obs = env.reset()
+# env.render('human') # uncomment if you don't use mujocopy hack
 
 #for i in range(10000):
 timestep = 0
