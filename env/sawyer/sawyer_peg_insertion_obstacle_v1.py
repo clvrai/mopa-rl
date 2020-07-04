@@ -38,12 +38,19 @@ class SawyerPegInsertionObstacleV1Env(SawyerEnv):
     def compute_reward(self, action):
         info = {}
         reward = 0
+        reward_type = self._kwargs['reward_type']
         pegHeadPos = self.sim.data.get_site_xpos("pegHead")
         hole = self.sim.data.get_site_xpos("hole")
         dist = np.linalg.norm(pegHeadPos-hole)
-        reward_reach = -dist
-        reward += reward_reach
-        info = dict(reward_reach=reward_reach)
+        if reward_type == 'dense':
+            reward_reach = -dist
+            reward += reward_reach
+            info = dict(reward_reach=reward_reach)
+        else:
+            reward_reach = -(dist > 0.05).astype(no.float32)
+            if dist < 0.15:
+                reward_raech += (1-np.tanh(10*dist))
+            reward += reward_reach
         if dist < 0.05:
             reward += self._kwargs['success_reward']
             self._success = True
