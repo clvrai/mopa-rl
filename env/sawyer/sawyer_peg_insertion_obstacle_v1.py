@@ -47,7 +47,7 @@ class SawyerPegInsertionObstacleV1Env(SawyerEnv):
             reward += reward_reach
             info = dict(reward_reach=reward_reach)
         else:
-            reward_reach = -(dist > 0.05).astype(no.float32)
+            reward_reach = -(dist > 0.05).astype(np.float32)
             if dist < 0.15:
                 reward_raech += (1-np.tanh(10*dist))
             reward += reward_reach
