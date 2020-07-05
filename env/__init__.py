@@ -332,3 +332,13 @@ register(
     entry_point="env.sawyer:SawyerPickPlaceEnv",
     kwargs={}
 )
+register(
+    id="sawyer-push-obstacle-v1",
+    entry_point="env.sawyer:SawyerPushObstacleV1Env",
+    kwargs={}
+)
+register(
+    id="sawyer-pick-place-obstacle-v0",
+    entry_point="env.sawyer:SawyerPickPlaceObstacleEnv",
+    kwargs={}
+)

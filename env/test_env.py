@@ -45,6 +45,9 @@ while True:
     # env.set_robot_indicator_joint_positions(qpos)
     obs, reward, done, _ = env.step(action)
     env.render(mode='human')
+    if env.sim.data.ncon > 0:
+        for i in range(env.sim.data.ncon):
+            print(env.sim.data.contact[i].dist)
     if done:
         print('done')
         break
