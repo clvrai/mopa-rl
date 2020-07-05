@@ -1,6 +1,6 @@
-#!/bin/bash -x
+#<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.v10"
 gpu=$1
 seed=$2
 algo='sac'
@@ -29,11 +29,11 @@ planner_objective="path_length"
 range="0.1"
 simple_planner_range="0.05"
 threshold="0.0"
-timelimit="1.0"
+timelimit="1.5"
 allow_manipulation_collision="True"
 alpha="0.2"
 reuse_data_type="None"
-action_range="1.0"
+action_range="0.5"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
@@ -42,7 +42,7 @@ stochastic_eval="True"
 find_collision_free="True"
 use_double_planner="False"
 simple_planner_type='rrt_connect'
-simple_planner_timelimit="0.02"
+simple_planner_timelimit="0.04"
 is_simplified="False"
 simplified_duration="0.01"
 simple_planner_simplified="False"
