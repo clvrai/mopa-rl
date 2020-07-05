@@ -1,4 +1,4 @@
-<mujoco model="sawyer_lift">
+<mujoco model="sawyer_pick_place">
     <include file="./common/sawyer.xml" />
     <default>
     </default>
