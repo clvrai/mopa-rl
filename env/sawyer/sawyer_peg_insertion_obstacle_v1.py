@@ -22,7 +22,7 @@ class SawyerPegInsertionObstacleV1Env(SawyerEnv):
 
     @property
     def init_qpos(self):
-        return np.array([-0.0915, -0.745, -0.0304, 2.47, -0.0615, 0.0275, 0.00358])
+        return np.array([0.214, -0.669, 0, 2.19, -0.179, 0.0595, 0.942])
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02

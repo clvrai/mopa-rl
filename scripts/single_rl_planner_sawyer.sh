@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.v10"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.random.v11"
 gpu=$1
 seed=$2
 algo='sac'
@@ -20,8 +20,8 @@ reward_type='dense'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 planner_type="rrt_connect"
@@ -32,7 +32,7 @@ threshold="0.0"
 timelimit="1.5"
 allow_manipulation_collision="True"
 alpha="0.2"
-reuse_data_type="None"
+reuse_data_type="random"
 action_range="0.5"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
