@@ -58,31 +58,6 @@ def interpolate(env, next_qpos, out_of_bounds, planner):
 
     return interpolated_traj
 
-def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
-    ik_env = gym.make(args.env, **args.__dict__)
-    ik_env.reset()
-
-    qpos = env.sim.data.qpos.ravel().copy()
-    qvel = env.sim.data.qvel.ravel().copy()
-    success = False
-    ik_env.set_state(qpos, qvel)
-
-        # Obtain goal joint positions. Do IK to get joint positions for goal_site.
-    # target quat set to picking from above [0, 0, 1, 0]
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., 0.1])),
-                target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
-
-    print("IK for %s successful? %s. Err_norm %.5f" % (goal_site, result.success, result.err_norm))
-    # Equate qpos components not affected by planner
-    goal = qpos.copy()
-    goal[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
-    ik_env.set_state(goal, qvel)
-    # print(goal[env.ref_joint_pos_indexes])
-    ik_env.render('human')
-    input("See if IK solution is fine. Press any key to continue; Ctrl-C to quit")
-
-    return goal
-
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 if 'pusher' in args.env:
@@ -144,9 +119,6 @@ for episode in range(N):
         goal_joint_pos = get_goal_position(env, goal_site='cube')
         target_qpos = current_qpos.copy()
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        print("Goal %s" % target_qpos)
-        print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat(goal_site)))
         if not simple_planner.isValidState(target_qpos): # check whether a target is valid or not
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:

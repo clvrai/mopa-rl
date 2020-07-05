@@ -192,7 +192,8 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 err_norm += np.linalg.norm(err_rot) * rot_weight
 
             if err_norm < tol:
-                print('IK success')
+                print('IK success. Contacts %s' % env.sim.data.ncon)
+                print('joint_pos_indices %s' % env.sim.data.qpos[env.ref_joint_pos_indexes])
                 success =True
                 break
             else:
