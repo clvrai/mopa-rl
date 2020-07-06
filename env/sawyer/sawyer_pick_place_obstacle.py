@@ -7,7 +7,7 @@ from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 from env.robosuite.utils.transform_utils import *
 
-class SawyerPickPlaceObstacleEnv(SawyerEnv):
+class SawyerPickPlaceEnv(SawyerEnv):
     def __init__(self, **kwargs):
         super().__init__("sawyer_pick_place.xml", **kwargs)
         self._get_reference()
