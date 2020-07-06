@@ -328,6 +328,11 @@ register(
     kwargs={}
 )
 register(
+    id="sawyer-peg-insertion-obstacle-v2",
+    entry_point="env.sawyer:SawyerPegInsertionObstacleV2Env",
+    kwargs={}
+)
+register(
     id="sawyer-pick-place-v0",
     entry_point="env.sawyer:SawyerPickPlaceEnv",
     kwargs={}
