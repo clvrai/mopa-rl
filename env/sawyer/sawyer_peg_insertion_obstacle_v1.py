@@ -43,7 +43,7 @@ class SawyerPegInsertionObstacleV1Env(SawyerEnv):
         hole = self.sim.data.get_site_xpos("hole")
         dist = np.linalg.norm(pegHeadPos-hole)
         if reward_type == 'dense':
-            reward_reach = -dist
+            reward_reach = np.tanh(-10*dist)
             reward += reward_reach
             info = dict(reward_reach=reward_reach)
         else:
