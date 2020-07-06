@@ -11,7 +11,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v12"
+prefix="BASELINE.v17"
 max_global_step="60000000"
 env="sawyer-peg-insertion-obstacle-v1"
 gpu=$gpu
