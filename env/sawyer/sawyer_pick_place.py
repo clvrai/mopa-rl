@@ -12,9 +12,9 @@ class SawyerPickPlaceEnv(SawyerEnv):
         super().__init__("sawyer_pick_place.xml", **kwargs)
         self._get_reference()
 
-    @property
-    def init_qpos(self):
-        return np.array([-0.0305, -0.59325, 0.03043, 2.16124, 1.87488, 0, 0])
+    # @property
+    # def init_qpos(self):
+    #     return np.array([-0.0305, -0.59325, 0.03043, 2.16124, 1.87488, 0, 0])
 
     def _get_reference(self):
         super()._get_reference()
