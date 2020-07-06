@@ -93,7 +93,7 @@
                                         <geom class="sawyer_viz" mesh="l6"/>
                                         <geom size="0.055 0.025" pos="0 0.015 -0.01" type="cylinder" class="sawyer_col" />
                                         <body name="right_ee_attchment" pos="0 0 0.0245" quat="0.707107 0 0 0.707107" childclass="sawyer_gripper">
-                                            <site name="grip_site" pos="0 0 0" size="0.01" type="sphere"/>
+                                            <!-- <site name="grip_site" pos="0 0 0" size="0.01" type="sphere"/> -->
                                             
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <include file="./common/gripper_chain.xml"/>
