@@ -341,6 +341,10 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
 }
 
 bool KinematicPlanner::isValidState(std::vector<double> state_vec){
+    if (allow_approximate){
+        return true;
+    }
+
     if (algo == "sst") {
         ss->getPlanner()->as<og::SST>()->clear();
     } else if (algo == "pdst") {
