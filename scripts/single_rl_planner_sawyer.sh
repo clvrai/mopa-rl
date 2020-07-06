@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.v17"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse"
 gpu=$1
 seed=$2
 algo='sac'
@@ -11,7 +11,7 @@ rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 max_global_step="60000000"
-env="sawyer-peg-insertion-obstacle-v1"
+env="sawyer-peg-insertion-obstacle-v2"
 max_episode_step="300"
 buffer_size="1000000"
 debug="False"
@@ -32,8 +32,8 @@ threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
 alpha="0.2"
-reuse_data_type="None"
-action_range="1.0"
+reuse_data_type="random"
+action_range="0.5"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.3"
