@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.v12"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.reuse.v16"
 gpu=$1
 seed=$2
 algo='sac'
@@ -32,7 +32,7 @@ threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
 alpha="0.2"
-reuse_data_type="None"
+reuse_data_type="random"
 action_range="1.0"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
