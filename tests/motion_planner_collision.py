@@ -67,10 +67,10 @@ def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
     success = False
     ik_env.set_state(qpos, qvel)
 
-    import ipdb; ipdb.set_trace()
-    # Obtain goal joint positions. Do IK to get joint positions for goal_site.
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=env._get_pos(goal_site),
-                target_quat=env._get_quat(goal_site), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+        # Obtain goal joint positions. Do IK to get joint positions for goal_site.
+    # target quat set to picking from above [0, 0, 1, 0]
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., 0.1])),
+                target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
 
     print("IK for %s successful? %s. Err_norm %.5f" % (goal_site, result.success, result.err_norm))
     # Equate qpos components not affected by planner
