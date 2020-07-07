@@ -221,6 +221,8 @@ class PlannerRolloutRunner(object):
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
                         if self._config.use_cum_rew:
+                            # if not pi.is_planner_ac(real_ac):
+                            #     meta_rew += len(traj) * (-10.) # penalize shorter one
                             rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
                         else:
                             if self._config.use_discount_meta:
