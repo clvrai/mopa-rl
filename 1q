@@ -216,6 +216,8 @@ class PlannerRolloutRunner(object):
                         if config.hindsight_transition and not pi.is_planner_ac(real_ac):
                             hindsight_ac = OrderedDict([('default', ac['default'].copy())])
                             hindsight_ac['default'][env.ref_joint_pos_indexes] = pi.invert_displacement(env.sim.data.qpos.copy()[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes], env._ac_scale)
+                            import pdb
+                            pdb.set_trace()
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_ac, 'ac_before_activation': ac_before_activation})
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})

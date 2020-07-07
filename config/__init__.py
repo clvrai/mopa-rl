@@ -53,7 +53,7 @@ def argparser():
                         choices=['discrete', 'subgoal'])
     parser.add_argument("--relative_subgoal", type=str2bool, default=True)
     parser.add_argument("--meta_oracle", type=str2bool, default=False)
-    parser.add_argument("--subgoal_hindsight", type=str2bool, default=False)
+    parser.add_argument("--hindsight_transition", type=str2bool, default=False)
 
 
     # vanilla rl
