@@ -340,8 +340,7 @@ class TD3Agent(BaseAgent):
 
         ## Actor loss
         actions_real, _ = self.act_log(o, meta_ac)
-        actor_loss = -torch.min(self._critic1(o, actions_real),
-                                self._critic2(o, actions_real)).mean()
+        actor_loss = -self._critic1(o, actions_real).mean()
         info['actor_loss'] = actor_loss.cpu().item()
 
         ## Critic loss
@@ -349,7 +348,7 @@ class TD3Agent(BaseAgent):
             actions_next, _ = self.target_act_log(o_next, meta_ac)
             for k, space in self._ac_space.spaces.items():
                 if isinstance(space, spaces.Box):
-                    actions_next[k] += torch.randn_like(actions_next[k]) * 0.1
+                    actions_next[k] += torch.randn_like(actions_next[k]) * self._config.policy_noise
                     actions_next[k] = torch.clamp(actions_next[k], self._config.action_min, self._config.action_max)
             q_next_value1 = self._critic1_target(o_next, actions_next)
             q_next_value2 = self._critic2_target(o_next, actions_next)
@@ -394,20 +393,8 @@ class TD3Agent(BaseAgent):
                 _actor_optim.zero_grad()
             actor_loss.backward()
             for i, _actor in enumerate(self._actors):
-                if self._config.max_grad_norm is not None:
-                    torch.nn.utils.clip_grad_norm_(_actor.parameters(), self._config.max_grad_norm)
                 sync_grads(_actor)
                 self._actor_optims[i].step()
-
-        # include info from policy
-        if len(self._actors) == 1:
-            info.update(self._actors[0].info)
-        else:
-            constructed_info = {}
-            for i, _actor in enumerate(self._actors):
-                    for k, v in _actor.info:
-                        constructed_info['skill_{}/{}'.format(i + 1, k)] = v
-            info.update(constructed_info)
 
         return mpi_average(info)
 
