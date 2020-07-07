@@ -322,11 +322,6 @@ class TD3Agent(BaseAgent):
         info = {}
 
         o, o_next = transitions['ob'], transitions['ob_next']
-
-        if config.policy == 'mlp':
-            o = self.normalize(o)
-            o_next = self.normalize(o_next)
-
         bs = len(transitions['done'])
         _to_tensor = lambda x: to_tensor(x, config.device)
         o = _to_tensor(o)

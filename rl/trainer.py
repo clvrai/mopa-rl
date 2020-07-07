@@ -195,9 +195,9 @@ class Trainer(object):
                 group=config.group,
             )
 
-    def _save_ckpt(self, ckpt_num, update_iter):
+    def _save_ckpt(self, ckpt_num, update_iter, env_step):
         ckpt_path = os.path.join(self._config.log_dir, "ckpt_%08d.pt" % ckpt_num)
-        state_dict = {"step": ckpt_num, "update_iter": update_iter}
+        state_dict = {"step": ckpt_num, "update_iter": update_iter, "env_step": env_step}
         state_dict["meta_agent"] = self._meta_agent.state_dict()
         state_dict["agent"] = self._agent.state_dict()
         torch.save(state_dict, ckpt_path)
@@ -251,10 +251,10 @@ class Trainer(object):
                     else:
                         self._agent.load_replay_buffer(replay_buffers["replay"])
 
-            return ckpt["step"], ckpt["update_iter"]
+            return ckpt["step"], ckpt["update_iter"], ckpt['env_step']
         else:
             logger.warn("Randomly initialize models")
-            return 0, 0
+            return 0, 0, 0
 
     def _log_train(self, step, train_info, ep_info, prefix="", env_step=None):
         if env_step is None:
@@ -292,7 +292,7 @@ class Trainer(object):
         num_batches = config.num_batches
 
         # load checkpoint
-        step, update_iter = self._load_ckpt()
+        step, update_iter, env_step = self._load_ckpt()
 
         # sync the networks across the cpus
         self._agent.sync_networks()
@@ -356,7 +356,6 @@ class Trainer(object):
                     else:
                         self._agent.store_episode(rollout)
 
-        env_step = 0
         while step < config.max_global_step:
             # collect rollouts
             env_step_per_batch = None
@@ -450,7 +449,7 @@ class Trainer(object):
                     self._log_test(step, info, vids, obs, env_step=env_step)
 
                 if update_iter % config.ckpt_interval == 0:
-                    self._save_ckpt(step, update_iter)
+                    self._save_ckpt(step, update_iter, env_step)
 
         logger.info("Reached %s steps. worker %d stopped.", step, config.rank)
 
