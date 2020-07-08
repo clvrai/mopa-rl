@@ -89,17 +89,3 @@ class SamplingBasedPlanner:
     def get_planner_status(self):
         return self.planner.getPlannerStatus().decode('utf-8')
 
-
-class SamplingBasedKinodynamicPlanner:
-    def __init__(self, config, xml_path, num_actions):
-        self.config = config
-        self.planner = PyKinodynamicPlanner(xml_path.encode('utf-8'), config.planner_type.encode('utf-8'), num_actions,
-                                 config.sst_selection_radius, config.sst_pruning_radius)
-
-    def plan(self, start, goal, timelimit=1.):
-        controls = np.array(self.planner.plan(start, goal, timelimit))
-
-        # TODO more efficient way
-        return controls
-
-

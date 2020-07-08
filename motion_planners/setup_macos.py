@@ -20,13 +20,6 @@ extensions = [
               extra_objects=[ompl_lib_path, os.path.join(prefix_path, '.mujoco/mujoco200/bin/libmujoco200.dylib')],
               extra_compile_args=['-std=c++11', '-stdlib=libc++'],
               language="c++"),
-    Extension('kino_planner', ['kino_planner.pyx', 'KinodynamicPlanner.cpp', './src/mujoco_ompl_interface.cpp', './src/mujoco_wrapper.cpp',
-                          ],
-              include_dirs=["./include/", '/opt/local/include', eigen_include_path, './3rd_party/include/', '/opt/local/include/boost/',
-                            os.path.join(prefix_path, '.mujoco/mujoco200/include/'), '/usr/local/include/ompl', '/usr/local/include'],
-              extra_objects=[ompl_lib_path, os.path.join(prefix_path, '.mujoco/mujoco200/bin/libmujoco200.dylib')],
-              extra_compile_args=['-std=c++11', '-stdlib=libc++'],
-              language="c++")
 ]
 setup(
     name='mujoco-ompl',

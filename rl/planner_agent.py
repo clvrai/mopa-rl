@@ -35,10 +35,6 @@ class PlannerAgent:
         else:
             return traj, success, valid, exact
 
-    def remove_collision(self, geom, contype=0, conaffinity=0):
-        self.planner.remove_collision(geom, contype, conaffinity)
-        logger.info('change (%s): contype (%d) conaffinity (%d)', geom, contype, conaffinity)
-
     def get_planner_status(self):
         return self.planner.get_planner_status()
 
