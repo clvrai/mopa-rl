@@ -1,3 +1,0 @@
-<mujoco model="simple_mover">
-    <include file="./common/simple_mover.xml" />
-</mujoco>
