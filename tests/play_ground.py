@@ -78,8 +78,6 @@ for state in traj:
     env.set_state(np.concatenate((state[:-2], goal)).ravel(), env.sim.data.qvel.ravel())
     action = inverse_dynamics(env)
     env_dynamics.step(action[:-2])
-import pdb
-pdb.set_trace()
 
 
 
