@@ -11,7 +11,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v4"
+prefix="BASELINE.sparse"
 max_global_step="60000000"
 env="sawyer-peg-insertion-obstacle-v2"
 gpu=$gpu
@@ -22,7 +22,7 @@ debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
-reward_type='dense'
+reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
 actor_num_hid_layers='2'
