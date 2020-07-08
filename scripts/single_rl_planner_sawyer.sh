@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.discount.0.99.sparse"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse.sparse.v6"
 gpu=$1
 seed=$2
 algo='sac'
@@ -20,8 +20,8 @@ reward_type='sparse'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+#log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 planner_type="rrt_connect"
@@ -33,7 +33,7 @@ timelimit="1.0"
 allow_manipulation_collision="True"
 alpha="0.2"
 reuse_data_type="random"
-action_range="1.0"
+action_range="0.5"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.0"
@@ -66,7 +66,6 @@ add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='15'
 min_reuse_span='20'
-hindsight_transition="False"
 reward_scale="1.0"
 # max_grad_norm='0.5'
 
@@ -135,5 +134,4 @@ python -m rl.main \
     --discount_factor $discount_factor  \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
-    --hindsight_transition $hindsight_transition \
     --reward_scale $reward_scale
