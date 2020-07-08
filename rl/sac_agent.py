@@ -375,10 +375,10 @@ class SACAgent(BaseAgent):
             if meta_ac is None:
                 q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
             if self._config.use_smdp_update:
-                target_q_value = rew + \
+                target_q_value = config.rewaard_scale * rew + \
                     (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
             else:
-                target_q_value = rew + \
+                target_q_value = config.reward_scale * rew + \
                     (1 - done) * self._config.discount_factor * q_next_value
             target_q_value = target_q_value.detach()
             ## clip the q value
