@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.scale.10.v5"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.discount.0.99.sparse"
 gpu=$1
 seed=$2
 algo='sac'
@@ -16,7 +16,7 @@ max_episode_step="300"
 buffer_size="1000000"
 debug="False"
 batch_size="256"
-reward_type='dense'
+reward_type='sparse'
 comment='Sanity Check'
 start_steps='10000'
 actor_num_hid_layers='2'
@@ -31,12 +31,12 @@ simple_planner_range="0.05"
 threshold="0.0"
 timelimit="1.0"
 allow_manipulation_collision="True"
-alpha="1.0"
+alpha="0.2"
 reuse_data_type="random"
 action_range="1.0"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
-invalid_planner_rew="-0.3"
+invalid_planner_rew="-0.0"
 extended_action="False"
 stochastic_eval="True"
 find_collision_free="True"
@@ -63,11 +63,11 @@ temperature="1.0"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
-discount_factor='1.0'
+discount_factor='0.99'
 max_reuse_data='15'
 min_reuse_span='20'
 hindsight_transition="False"
-reward_scale="10.0"
+reward_scale="1.0"
 # max_grad_norm='0.5'
 
 python -m rl.main \
