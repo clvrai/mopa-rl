@@ -130,7 +130,7 @@ class Trainer(object):
             self._runner = PlannerRolloutRunner(
                 config, self._env, self._env_eval, self._meta_agent, self._agent
             )
-        elif config.hrl:
+        else:
             self._runner = RolloutRunner(
                 config, self._env, self._env_eval, self._meta_agent, self._agent
             )
