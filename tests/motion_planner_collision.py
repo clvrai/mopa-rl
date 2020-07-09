@@ -6,17 +6,21 @@ import gym
 import env
 from config import argparser
 from rl.planner_agent import PlannerAgent
-from util.misc import make_ordered_pair, save_video, render_frame, mujocopy_render_hack
-from config.motion_planner import add_arguments as planner_add_arguments
-from env.inverse_kinematics import qpos_from_site_pose_sampling
+from util.misc import make_ordered_pair, save_video
 from util.gym import render_frame
-import cv2
+from config.motion_planner import add_arguments as planner_add_arguments
 import time
 import timeit
 import copy
 np.set_printoptions(precision=3)
 
-mujocopy_render_hack() # workaround for mujoco py issue #390
+# workaround for mujoco py issue #390
+mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
+if mujocopy_render_hack:
+    print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
+    from mujoco_py import GlfwContext
+    GlfwContext(offscreen=True)  # Create a window to init GLFW.
+
 
 def interpolate(env, next_qpos, out_of_bounds, planner):
     interpolated_traj = []
@@ -58,30 +62,6 @@ def interpolate(env, next_qpos, out_of_bounds, planner):
 
     return interpolated_traj
 
-def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
-    ik_env = gym.make(args.env, **args.__dict__)
-    ik_env.reset()
-
-    qpos = env.sim.data.qpos.ravel().copy()
-    qvel = env.sim.data.qvel.ravel().copy()
-    success = False
-    ik_env.set_state(qpos, qvel)
-
-        # Obtain goal joint positions. Do IK to get joint positions for goal_site.
-    # target quat set to picking from above [0, 0, 1, 0]
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., 0.1])),
-                target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
-
-    print("IK for %s successful? %s. Err_norm %.5f" % (goal_site, result.success, result.err_norm))
-    # Equate qpos components not affected by planner
-    goal = qpos.copy()
-    goal[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
-    ik_env.set_state(goal, qvel)
-    # print(goal[env.ref_joint_pos_indexes])
-    ik_env.render('human')
-    input("See if IK solution is fine. Press any key to continue; Ctrl-C to quit")
-
-    return goal
 
 parser = argparser()
 args, unparsed = parser.parse_known_args()
@@ -141,12 +121,8 @@ for episode in range(N):
 
     while not done:
         current_qpos = env.sim.data.qpos.copy()
-        goal_joint_pos = get_goal_position(env, goal_site='cube')
         target_qpos = current_qpos.copy()
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        print("Goal %s" % target_qpos)
-        print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat(goal_site)))
         if not simple_planner.isValidState(target_qpos): # check whether a target is valid or not
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:
