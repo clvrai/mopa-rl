@@ -117,6 +117,7 @@ for episode in range(N):
 
     # First move above
     goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.15)
+    optional_place_target = goal_joint_pos
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
     target_qpos[env.ref_gripper_joint_pos_indexes] = 0.015
@@ -231,8 +232,9 @@ for episode in range(N):
     # Then move to goal position
     curr_qpos = env.sim.data.qpos.copy()
     target_qpos = curr_qpos.copy()
+    # target_qpos[env.ref_joint_pos_indexes] = optional_place_target[env.ref_joint_pos_indexes]
     target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-    target_qpos[env.ref_gripper_joint_pos_indexes] = -0.008
+    target_qpos[env.ref_gripper_joint_pos_indexes] = -1
 
     env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
     trial = 0
