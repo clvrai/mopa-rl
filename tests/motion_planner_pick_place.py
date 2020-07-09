@@ -23,18 +23,17 @@ np.set_printoptions(precision=3)
 mujocopy_render_hack() # workaround for mujoco py issue #390
 
 
-def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
+def get_goal_position(env, goal_site='target', z_offset = 0.): # use goal_site='cube' for pick-place-v0
     ik_env = gym.make(config.env, **config.__dict__)
     ik_env.reset()
 
     qpos = env.sim.data.qpos.ravel().copy()
     qvel = env.sim.data.qvel.ravel().copy()
-    success = False
     ik_env.set_state(qpos, qvel)
 
-        # Obtain goal joint positions. Do IK to get joint positions for goal_site.
+    # Obtain goal joint positions. Do IK to get joint positions for goal_site.
     # target quat set to picking from above [0, 0, 1, 0]
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., 0.08])),
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., z_offset])),
                 target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
 
     print("IK for %s successful? %s. Err_norm %.5f" % (goal_site, result.success, result.err_norm))
@@ -85,11 +84,11 @@ if config.allow_manipulation_collision:
 
 ignored_contact_geom_ids = []
 ignored_contact_geom_ids.extend(allowed_collsion_pairs)
-config.ignored_contact_geom_ids = ignored_contact_geom_ids
+config.ignored_contact_geom_ids = ignored_contact_geom_ids # contacts to ignore for planner
 
 passive_joint_idx = list(range(len(env.sim.data.qpos)))
 [passive_joint_idx.remove(idx) for idx in env.ref_joint_pos_indexes]
-config.passive_joint_idx = passive_joint_idx
+config.passive_joint_idx = passive_joint_idx # joints not articulated by robot
 
 actor, critic = get_actor_critic_by_name(config.policy)
 
@@ -116,10 +115,11 @@ for episode in range(N):
     else:
         env.render('human')
 
-    goal_joint_pos = get_goal_position(env, goal_site='cube')
+    # First move above
+    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.15)
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
-    target_qpos[env.ref_gripper_joint_pos_indexes] = -0.008
+    target_qpos[env.ref_gripper_joint_pos_indexes] = 0.015
     print("Goal %s" % target_qpos)
     print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
 
@@ -165,7 +165,58 @@ for episode in range(N):
             while timeit.default_timer() - t < 0.1:
                 env.render('human')
 
-    # Now close gripper
+    # Then move down to cube
+    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.08)
+    curr_qpos = env.sim.data.qpos.copy()
+    target_qpos = curr_qpos.copy()
+    target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
+    target_qpos[env.ref_gripper_joint_pos_indexes] = 0.15
+    print("Goal %s" % target_qpos)
+    print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
+
+    env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+    trial = 0
+    while not agent.isValidState(target_qpos) and trial < 100:
+        d = env.sim.data.qpos.copy()-target_qpos
+        target_qpos += config.step_size * d/np.linalg.norm(d)
+        trial+=1
+
+    traj, success, interpolation, valid, exact = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
+
+    rewards = 0
+    if success:
+        for j, next_qpos in enumerate(traj):
+            action = env.form_action(next_qpos)
+            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+            action[-1] = -1.0
+            ob, reward, done, info = env.step(action, is_planner=True)
+            step += 1
+            if is_save_video:
+                info['ac'] = action['default']
+                info['next_qpos'] = next_qpos
+                info['target_qpos'] = target_qpos
+                info['curr_qpos'] = env.sim.data.qpos.copy()
+                frames[episode].append(render_frame(env, step, info))
+            else:
+                import timeit
+                t = timeit.default_timer()
+                while timeit.default_timer() - t < 0.1:
+                    env.render('human')
+            if done or step > config.max_episode_steps:
+                break
+    else:
+        step += 1
+        if step > config.max_episode_steps:
+            break
+        if is_save_video:
+            frames[episode].append(render_frame(env, step))
+        else:
+            import timeit
+            t = timeit.default_timer()
+            while timeit.default_timer() - t < 0.1:
+                env.render('human')
+
+    # Then close gripper
     close_gripper_action = OrderedDict([('default', np.array([0, 0, 0, 0, 0, 0, 0, 1.0]))])
     for temp in range(10):
         ob, reward, done, info = env.step(close_gripper_action, is_planner=False)
@@ -177,8 +228,11 @@ for episode in range(N):
             while timeit.default_timer() - t < 0.1:
                 env.render('human')
 
+    # Then move to goal position
+    curr_qpos = env.sim.data.qpos.copy()
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+    target_qpos[env.ref_gripper_joint_pos_indexes] = -0.008
 
     env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
     trial = 0
