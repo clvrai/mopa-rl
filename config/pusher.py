@@ -38,9 +38,13 @@ def add_arguments(parser):
     parser.add_argument("--reward_coef", type=float, default=10.)
     parser.add_argument("--ctrl_reward_coef", type=float, default=1)
     parser.add_argument("--pos_reward_coef", type=float, default=400.)
-    parser.add_argument("--success_reward", type=float, default=1.)
+    parser.add_argument("--success_reward", type=float, default=150.)
     parser.add_argument("--has_terminal", type=str2bool, default=True)
     parser.add_argument("--camera_name", type=str, default='cam0')
+    parser.add_argument("--range", type=float, default=0.2)
+    parser.add_argument("--simple_planner_range", type=float, default=0.1)
+    parser.add_argument("--timelimit", type=float, default=1.0)
+    parser.add_argument("--simple_planner_timelimit", type=float, default=0.02)
 
 
 

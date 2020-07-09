@@ -164,8 +164,7 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-        target_qpos[env.ref_joint_pos_indexes] =np.array([-0.457, -0.164, 2.13, -0.741, -0.0622, 0.0275, 0.00285]) 
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
         if not simple_planner.isValidState(target_qpos): # check whether a target is valid or not
             env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
             if is_save_video:

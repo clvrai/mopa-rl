@@ -91,7 +91,6 @@ namespace MotionPlanner
             ~KinematicPlanner();
             std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double min_steps, int attempts);
             bool isValidState(std::vector<double> state_vec);
-            void removeCollision(int geom_id, int contype, int conaffinity);
             std::string getPlannerStatus();
     };
 }

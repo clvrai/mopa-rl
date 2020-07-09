@@ -16,7 +16,7 @@ def add_arguments(parser):
     parser.add_argument("--screen_height", type=int, default=500,
                         help="height of camera image")
     parser.add_argument("--camera_depth", type=str2bool, default=False)
-    parser.add_argument("--camera_name", type=str, default="frontview")
+    parser.add_argument("--camera_name", type=str, default="topview")
 
     # observations
     parser.add_argument("--robot_ob", type=str2bool, default=True,
@@ -37,7 +37,11 @@ def add_arguments(parser):
     parser.add_argument("--use_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--use_target_robot_indicator", type=str2bool, default=True)
     parser.add_argument("--task_level", type=str, default='easy', choices=['easy', 'hard'])
-    parser.add_argument("--success_reward", type=float, default=1.)
+    parser.add_argument("--success_reward", type=float, default=150.)
+    parser.add_argument("--range", type=float, default=0.1)
+    parser.add_argument("--simple_planner_range", type=float, default=0.05)
+    parser.add_argument("--timelimit", type=float, default=1.)
+    parser.add_argument("--simple_planner_timelimit", type=float, default=0.05)
 
 def get_default_config():
     """

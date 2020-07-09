@@ -5,7 +5,6 @@ import subprocess
 from threading import Lock, Thread
 import yaml
 from motion_planners.planner import PyKinematicPlanner
-from motion_planners.kino_planner import PyKinodynamicPlanner
 from util.env import joint_convert
 
 
