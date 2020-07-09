@@ -55,10 +55,3 @@ for i in range(100):
         print('done')
         break
 
-if is_save_video:
-    prefix_path = './tmp/motion_planning_test/'
-    if not os.path.exists(prefix_path):
-        os.makedirs(prefix_path)
-    # for i, episode_frames in enumerate(frames):
-    fpath = os.path.join(prefix_path, 'test_trial.mp4')
-    save_video(fpath, frames[0], fps=5)
