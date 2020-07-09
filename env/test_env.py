@@ -3,8 +3,12 @@ import gym
 from config import argparser
 import numpy as np
 import time
+import os
+import cv2
+from util.misc import save_video, render_frame, mujocopy_render_hack
+np.set_printoptions(precision=3)
 
-# mujocopy_render_hack() # rendering fix for gautam
+mujocopy_render_hack() # rendering fix for gautam
 is_save_video = False
 parser = argparser()
 args, unparsed = parser.parse_known_args()
@@ -21,7 +25,6 @@ elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
 elif 'jaco' in args.env:
     from config.jaco import add_arguments
-
 else:
     raise ValueError('args.env (%s) is not supported' % args.env)
 
@@ -34,10 +37,11 @@ obs = env.reset()
 obs = env.reset()
 # env.render('human') # uncomment if you don't use mujocopy hack
 
-#for i in range(10000):
-timestep = 0
+frames = []
+frames.append([render_frame(env, 0)])
 env.reset_visualized_indicator()
-while True:
+for i in range(100):
+# while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()
     # action = np.ones(env.dof)
@@ -46,11 +50,29 @@ while True:
     # action[1] = -0.5
     # qpos = env.sim.data.qpos.ravel().copy()[env.ref_joint_pos_indexes].copy() + action['default'][:env.mujoco_robot.dof]
     # env.set_robot_indicator_joint_positions(qpos)
+    # print("Action:\t%s" % action)
     obs, reward, done, _ = env.step(action)
+<<<<<<< HEAD
     env.render(mode='human')
     if env.sim.data.ncon > 0:
         for i in range(env.sim.data.ncon):
             print(env.sim.data.contact[i].dist)
+=======
+    if is_save_video:
+        # WARNING: don't is_save_video with a 'while True` loop since it runs forever
+        frames[0].append(render_frame(env, i))
+    else:
+        env.render(mode='human')
+
+>>>>>>> 558502dd8dc5f86e82a1a1e18cf955f77e3e1f3f
     if done:
         print('done')
         break
+
+if is_save_video:
+    prefix_path = './tmp/motion_planning_test/'
+    if not os.path.exists(prefix_path):
+        os.makedirs(prefix_path)
+    # for i, episode_frames in enumerate(frames):
+    fpath = os.path.join(prefix_path, 'test_trial.mp4')
+    save_video(fpath, frames[0], fps=5)
