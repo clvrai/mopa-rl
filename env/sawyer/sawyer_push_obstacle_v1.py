@@ -66,6 +66,7 @@ class SawyerPushObstacleV1Env(SawyerEnv):
             reward += reward_reach + reward_push
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
         else:
+            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
             cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
             reward_push = 0.
             reward_reach = 0.
