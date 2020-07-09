@@ -9,7 +9,7 @@ from env.robosuite.utils.transform_utils import *
 
 class SawyerPushObstacleV1Env(SawyerEnv):
     def __init__(self, **kwargs):
-        super().__init__("sawyer_push.xml", **kwargs)
+        super().__init__("sawyer_push_obstacle_v1.xml", **kwargs)
         self._get_reference()
 
     def _get_reference(self):
@@ -27,16 +27,19 @@ class SawyerPushObstacleV1Env(SawyerEnv):
         self.cube_geom_id = self.sim.model.geom_name2id("cube")
         self.cube_site_id = self.sim.model.site_name2id("cube")
 
+    @property
+    def init_qpos(self):
+        return np.array([0., 1.05, 0.213, 0.0609, 0., -1.28, 0.613])
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        if self._kwargs['task_level'] == 'easy':
-            init_target_qpos = np.array([0.2, 0.1])
-            init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
-        else:
-            init_target_qpos = np.random.uniform(low=-3, high=3, size=2)
+        # if self._kwargs['task_level'] == 'easy':
+        init_target_qpos = np.array([0.2, 0.1])
+        init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
+        # else:
+        #     init_target_qpos = np.random.uniform(low=-3, high=3, size=2)
         self.goal = init_target_qpos
         self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
@@ -63,12 +66,12 @@ class SawyerPushObstacleV1Env(SawyerEnv):
             reward += reward_reach + reward_push
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
         else:
-            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
             cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
-            reward_reach = -(gripper_to_cube > 0.15)
-            reward_push = -(cube_to_target > self._kwargs['distance_threshold'])
-            reward += reward_reach
-            reward += reward_push
+            reward_push = 0.
+            reward_reach = 0.
+            if cube_to_target < 0.3:
+                reward_push += 0.2*(1-tanh(2*cube_to_target))
+            reward += reward_push + reward_reach
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
         if cube_to_target < self._kwargs['distance_threshold']:
