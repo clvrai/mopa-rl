@@ -42,6 +42,9 @@ def add_arguments(parser):
     parser.add_argument("--simple_planner_range", type=float, default=0.05)
     parser.add_argument("--timelimit", type=float, default=1.)
     parser.add_argument("--simple_planner_timelimit", type=float, default=0.05)
+    parser.add_argument("--contact_threshold", type=float, default=-0.002)
+    parser.add_argument("--joint_margin", type=float, default=0.001)
+    parser.add_argument("--step_size", type=float, default=0.02)
 
 def get_default_config():
     """

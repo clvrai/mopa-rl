@@ -31,11 +31,9 @@ use_double_planner="False"
 vis_replay="True"
 use_interpolation="True"
 interpolate_type="simple"
-joint_margin="0.001"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
-contact_threshold="-0.002"
 ac_space_type="piecewise"
 use_smdp_update="True"
 use_discount_meta="True"
@@ -81,12 +79,10 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --use_interpolation $use_interpolation \
     --interpolate_type $interpolate_type \
-    --joint_margin $joint_margin \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
-    --contact_threshold $contact_threshold \
     --ac_space_type $ac_space_type \
     --use_discount_meta $use_discount_meta \
     --step_size $step_size \

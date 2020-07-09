@@ -85,7 +85,6 @@ def argparser():
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
     parser.add_argument("--allow_invalid", type=str2bool, default=False)
     parser.add_argument("--find_collision_free", type=str2bool, default=False)
-    parser.add_argument("--step_size", type=float, default=0.04)
     parser.add_argument("--use_double_planner", type=str2bool, default=True)
     parser.add_argument("--num_trials", type=int, default=100)
     parser.add_argument("--use_interpolation", type=str2bool, default=True)
