@@ -54,7 +54,7 @@ def interpolate(env, next_qpos, out_of_bounds, planner):
             break
         interpolated_traj.append(interp_qpos.copy())
     if not valid:
-        interpolated_traj = planner.plan(env.sim.data.qpos, next_qpos, args.simple_timelimit)[0]
+        interpolated_traj = planner.plan(env.sim.data.qpos, next_qpos, args.simple_planner_timelimit)[0]
     else:
         interpolated_traj.append(next_qpos)
     print("Curr qpos %s,\torig. action %s,\tscaled down action %s" %(current_qpos[env.ref_joint_pos_indexes], action_arr, scaled_ac))
@@ -135,7 +135,7 @@ for episode in range(N):
         else:
             print("Valid goal state")
 
-        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+        traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_planner_timelimit)
         env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         xpos = OrderedDict()
         xquat = OrderedDict()

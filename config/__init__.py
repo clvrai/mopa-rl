@@ -88,7 +88,7 @@ def argparser():
     parser.add_argument("--use_double_planner", type=str2bool, default=True)
     parser.add_argument("--num_trials", type=int, default=100)
     parser.add_argument("--use_interpolation", type=str2bool, default=True)
-    parser.add_argument("--interpolate_type", type=str, default="planner", choices=["planner", "simple"])
+    parser.add_argument("--interpolate_type", type=str, default="simple", choices=["planner", "simple"])
 
     # single policy
     parser.add_argument("--ac_rl_minimum", type=float, default=-1.)

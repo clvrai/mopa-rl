@@ -29,8 +29,6 @@ stochastic_eval="True"
 find_collision_free="True"
 use_double_planner="False"
 vis_replay="True"
-use_interpolation="True"
-interpolate_type="simple"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
@@ -77,8 +75,6 @@ python -m rl.main \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
     --vis_replay $vis_replay \
-    --use_interpolation $use_interpolation \
-    --interpolate_type $interpolate_type \
     --task_level $task_level \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \

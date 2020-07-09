@@ -36,8 +36,6 @@ alpha='0.05'
 find_collision_free="True"
 max_reuse_data='30'
 min_reuse_span='20'
-use_interpolation="True"
-interpolate_type="simple"
 use_smdp_update="True"
 # max_grad_norm='0.5'
 
@@ -79,6 +77,4 @@ python -m rl.main \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
-    --use_interpolation $use_interpolation \
-    --interpolate_type $interpolate_type \
     --use_smdp_update $use_smdp_update \

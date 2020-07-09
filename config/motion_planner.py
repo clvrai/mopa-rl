@@ -20,8 +20,6 @@ def add_arguments(parser):
     parser.add_argument("--simplified_duration", type=float, default=0.01)
     parser.add_argument("--simple_planner_simplified", type=str2bool, default=False)
     parser.add_argument("--simple_planner_simplified_duration", type=float, default=0.01)
-    parser.add_argument("--contact_threshold", type=float, default=-0.0015)
-    parser.add_argument("--joint_margin", type=float, default=0.)
 
 
 def get_default_config():

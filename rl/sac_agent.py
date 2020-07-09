@@ -19,12 +19,6 @@ from util.pytorch import optimizer_cuda, count_parameters, \
 from util.gym import action_size, observation_size
 from gym import spaces
 
-# import line_profiler
-# import atexit
-# profile = line_profiler.LineProfiler()
-# atexit.register(profile.print_stats)
-
-
 class SACAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
                  actor, critic, non_limited_idx=None, ref_joint_pos_indexes=None, joint_space=None, is_jnt_limited=None, jnt_indices=None):
@@ -306,7 +300,6 @@ class SACAgent(BaseAgent):
             for _critic in self._critics2:
                 sync_networks(_critic)
 
-    # @profile
     def train(self):
         for i in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
