@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
-from rl.subgoal_rollouts import SubgoalRolloutRunner
 from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
 from rl.planner_rollouts import PlannerRolloutRunner
 from rl.dataset import HERSampler
@@ -133,22 +132,6 @@ class Trainer(object):
                 config, self._env, self._env_eval, self._meta_agent, self._agent
             )
         elif config.hrl:
-            if config.subgoal_predictor:
-                if config.algo == 'sac':
-                    self._runner = SubgoalRolloutRunner(
-                        config, self._env, self._env_eval, self._meta_agent, self._agent
-                    )
-                else:
-                    self._runner = SubgoalPPORolloutRunner(
-                        config, self._env, self._env_eval, self._meta_agent, self._agent
-                    )
-            else:
-                if config.ll_type == 'rl':
-                    # build rollout runner
-                    self._runner = RolloutRunner(
-                        config, self._env, self._env_eval, self._meta_agent, self._agent
-                    )
-        else:
             self._runner = RolloutRunner(
                 config, self._env, self._env_eval, self._meta_agent, self._agent
             )
