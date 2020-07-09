@@ -11,9 +11,9 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.sparse.v6"
+prefix="BASELINE.sparse.v2"
 max_global_step="60000000"
-env="sawyer-peg-insertion-obstacle-v2"
+env="sawyer-peg-insertion-obstacle-v1"
 gpu=$gpu
 max_episode_step="300"
 entropy_loss_coef="1e-3"
