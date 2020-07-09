@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse.sparse.v6"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range0.5.reuse.sparse.v8_2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -13,16 +13,16 @@ debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-#log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="True"
 alpha="0.2"
 reuse_data_type="random"
 action_range="0.5"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.0"
 extended_action="False"
 stochastic_eval="True"
@@ -50,7 +50,6 @@ python -m rl.main \
     --env $env \
     --gpu $gpu \
     --max_episode_step $max_episode_step \
-    --evaluate_interval $evaluate_interval \
     --num_batches $num_batches \
     --debug $debug \
     --batch_size $batch_size \
@@ -62,7 +61,6 @@ python -m rl.main \
     --log_freq $log_freq \
     --log_interval $log_interval \
     --planner_integration $planner_integration \
-    --threshold $threshold \
     --allow_manipulation_collision $allow_manipulation_collision \
     --alpha $alpha \
     --reuse_data_type $reuse_data_type \

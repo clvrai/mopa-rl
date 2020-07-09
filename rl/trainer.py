@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
-from rl.subgoal_ppo_rollouts import SubgoalPPORolloutRunner
 from rl.planner_rollouts import PlannerRolloutRunner
 from rl.dataset import HERSampler
 from util.logger import logger
