@@ -5,8 +5,13 @@ from collections import OrderedDict
 import gym
 import env
 from config import argparser
+import torch
 from rl.planner_agent import PlannerAgent
-from util.misc import make_ordered_pair, save_video, render_frame, mujocopy_render_hack
+import torchvision
+from rl.sac_agent import SACAgent
+from rl.policies import get_actor_critic_by_name
+from util.misc import make_ordered_pair, save_video, mujocopy_render_hack
+from util.gym import render_frame, observation_size, action_size
 from config.motion_planner import add_arguments as planner_add_arguments
 from env.inverse_kinematics import qpos_from_site_pose_sampling
 import cv2
@@ -17,48 +22,9 @@ np.set_printoptions(precision=3)
 
 mujocopy_render_hack() # workaround for mujoco py issue #390
 
-def interpolate(env, next_qpos, out_of_bounds, planner):
-    interpolated_traj = []
-    current_qpos = env.sim.data.qpos
-
-    min_action = env.action_space.spaces['default'].low[0] * env._ac_scale * 0.8  # assume equal for all
-    max_action = env.action_space.spaces['default'].high[0] * env._ac_scale * 0.8 # assume equal for all
-    assert max_action > min_action, "action space box is ill defined"
-    assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
-
-    action = env.form_action(next_qpos)
-    action_arr = action['default']
-
-    # Step1: get scaling factor. get scaled down action within action limits
-    scaling_factor = 1
-    for i in out_of_bounds:
-        ac = action_arr[i]
-        sf = ac/max_action if (ac > max_action) else ac/min_action # assumes max>0, min<0 !! Check signs!
-        scaling_factor = max(scaling_factor, sf)
-
-    scaled_ac = action_arr[:len(env.ref_joint_pos_indexes)]/scaling_factor
-    action['default'] = scaled_ac
-
-    # Step2: Run scaled down action for floor(scaling factor) steps
-    interp_qpos = current_qpos.copy()
-    valid = True
-    for i in range(int(scaling_factor)): # scaling_factor>0 => int(scaling_factor) == int(floor(scaling_factor))
-        interp_qpos[env.ref_joint_pos_indexes] += scaled_ac
-        if not planner.isValidState(interp_qpos):
-            valid = False
-            break
-        interpolated_traj.append(interp_qpos.copy())
-    if not valid:
-        interpolated_traj = planner.plan(env.sim.data.qpos, next_qpos, args.simple_timelimit)[0]
-    else:
-        interpolated_traj.append(next_qpos)
-    print("Curr qpos %s,\torig. action %s,\tscaled down action %s" %(current_qpos[env.ref_joint_pos_indexes], action_arr, scaled_ac))
-    print("Set of interpolated states\n\t", [qpos[env.ref_joint_pos_indexes] for qpos in interpolated_traj])
-
-    return interpolated_traj
 
 def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
-    ik_env = gym.make(args.env, **args.__dict__)
+    ik_env = gym.make(config.env, **config.__dict__)
     ik_env.reset()
 
     qpos = env.sim.data.qpos.ravel().copy()
@@ -68,7 +34,7 @@ def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
 
         # Obtain goal joint positions. Do IK to get joint positions for goal_site.
     # target quat set to picking from above [0, 0, 1, 0]
-    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., 0.1])),
+    result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., 0.08])),
                 target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
 
     print("IK for %s successful? %s. Err_norm %.5f" % (goal_site, result.success, result.err_norm))
@@ -83,153 +49,97 @@ def get_goal_position(env, goal_site='target'): # use cube for pick-place-v0
     return goal
 
 parser = argparser()
-args, unparsed = parser.parse_known_args()
-if 'pusher' in args.env:
+config, unparsed = parser.parse_known_args()
+if 'pusher' in config.env:
     from config.pusher import add_arguments
     add_arguments(parser)
-elif 'robosuite' in args.env:
+elif 'robosuite' in config.env:
     from config.robosuite import add_arguments
     add_arguments(parser)
-elif 'sawyer' in args.env:
+elif 'sawyer' in config.env:
     from config.sawyer import add_arguments
     add_arguments(parser)
-elif 'reacher' in args.env:
+elif 'reacher' in config.env:
     from config.reacher import add_arguments
     add_arguments(parser)
 
 planner_add_arguments(parser)
-args, unparsed = parser.parse_known_args()
-env = gym.make(args.env, **args.__dict__)
-args._xml_path = env.xml_path
-args.planner_type="rrt_connect"
-args.simple_planner_type="rrt_connect"
-args.planner_objective="path_length"
-# args.planner_objective="maximize_min_clearance"
-args.range = env._ac_scale
-args.threshold = 0.0
-args.timelimit = 2.0
-args.construct_time = 10.
-args.simple_timelimit = 0.05
-args.contact_threshold = -0.002
-args.is_simplified = False
-args.simplified_duration = 0.01
-step_size = 0.01
+config, unparsed = parser.parse_known_args()
+config.camera_name = 'agentview'
+env = gym.make(config.env, **config.__dict__)
+config._xml_path = env.xml_path
+config.device = torch.device("cpu")
+config.is_chef = False
+config.planner_integration = True
 
-ignored_contacts = []
-# Allow collision with manipulatable object
-geom_ids = env.agent_geom_ids
-for manipulation_geom_id in env.manipulation_geom_ids:
-    for geom_id in geom_ids:
-        ignored_contacts.append(make_ordered_pair(manipulation_geom_id, geom_id))
+ob_space = env.observation_space
+ac_space = env.action_space
+joint_space = env.joint_space
+
+allowed_collsion_pairs = []
+geom_ids = env.agent_geom_ids + env.static_geom_ids
+if config.allow_manipulation_collision:
+    for manipulation_geom_id in env.manipulation_geom_ids:
+        for geom_id in geom_ids:
+            allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
+
+ignored_contact_geom_ids = []
+ignored_contact_geom_ids.extend(allowed_collsion_pairs)
+config.ignored_contact_geom_ids = ignored_contact_geom_ids
 
 passive_joint_idx = list(range(len(env.sim.data.qpos)))
 [passive_joint_idx.remove(idx) for idx in env.ref_joint_pos_indexes]
+config.passive_joint_idx = passive_joint_idx
 
-non_limited_idx = np.where(env._is_jnt_limited==0)[0]
-planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, is_simplified=args.is_simplified, simplified_duration=args.simplified_duration) # default goal bias is 0.05
-simple_planner = PlannerAgent(args, env.action_space, non_limited_idx, passive_joint_idx, ignored_contacts, goal_bias=1.0, is_simplified=False)
+actor, critic = get_actor_critic_by_name(config.policy)
+
+# build up networks
+non_limited_idx = np.where(env.sim.model.jnt_limited[:action_size(env.action_space)]==0)[0]
+agent = SACAgent(
+    config, ob_space, ac_space, actor, critic, non_limited_idx, env.ref_joint_pos_indexes, env.joint_space, env._is_jnt_limited, env.jnt_indices
+)
 
 N = 1
-is_save_video = False # cannot do env.render('human') if you are saving video (env.render('rgb_array'))
+is_save_video = True # cannot do env.render('human') if you are saving video (env.render('rgb_array'))
 frames = []
-# TODO: This code is repeated in interpolate(). Fix this
-min_action = env.action_space.spaces['default'].low[0] * env._ac_scale * 0.8  # assume equal for all
-max_action = env.action_space.spaces['default'].high[0] * env._ac_scale * 0.8 # assume equal for all
-assert max_action > min_action, "action space box is ill defined"
-assert max_action > 0 and min_action < 0, "action space MAY be ill defined. Check this assertion"
-
 for episode in range(N):
     print("Episode: {}".format(episode))
     done = False
     ob = env.reset()
     curr_qpos = env.sim.data.qpos.copy()
-    env.set_state(curr_qpos, env.sim.data.qvel)
+    curr_qpos[env.ref_gripper_joint_pos_indexes] = -0.008
+    env.set_state(curr_qpos, env.sim.data.qvel.ravel())
+    curr_qpos = env.sim.data.qpos.copy()
     step = 0
     if is_save_video:
         frames.append([render_frame(env, step)])
     else:
         env.render('human')
 
-    current_qpos = env.sim.data.qpos.copy()
     goal_joint_pos = get_goal_position(env, goal_site='cube')
-    target_qpos = current_qpos.copy()
+    target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
-    # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+    target_qpos[env.ref_gripper_joint_pos_indexes] = -0.008
     print("Goal %s" % target_qpos)
     print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
 
-    if not simple_planner.isValidState(target_qpos): # check whether a target is valid or not
-        env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-        if is_save_video:
-            frames[episode].append(render_frame(env, step))
-        else:
-            env.render("human")
-        print("Invalid goal state")
-        step += 1
-        continue
-    else:
-        print("Valid goal state")
-
-    traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
     env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-    xpos = OrderedDict()
-    xquat = OrderedDict()
+    trial = 0
+    while not agent.isValidState(target_qpos) and trial < 100:
+        d = env.sim.data.qpos.copy()-target_qpos
+        target_qpos += config.step_size * d/np.linalg.norm(d)
+        trial+=1
 
-    if not success and not exact:
-        traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
-        print("Using normal planner path (%d points)" % len(traj))
-    else:
-        print("Using simpler planner path (%d points)" % len(traj))
-    print("==============")
+    traj, success, interpolation, valid, exact = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
 
-    if is_save_video:
-        frames[episode].append(render_frame(env, step))
-    else:
-        env.render('human')
-
-    reward = 0
+    rewards = 0
     if success:
         for j, next_qpos in enumerate(traj):
-
-            # move a next_qpos if it is invalid state
-            trial = 0
-            while not planner.isValidState(next_qpos) and trial < 100:
-                d = env.sim.data.qpos.copy()-next_qpos
-                next_qpos += 0.05 * d/np.linalg.norm(d)
-                trial+=1
-
             action = env.form_action(next_qpos)
-            action_arr = action['default']
-            out_of_bounds = np.where((action_arr[:len(env.ref_joint_pos_indexes)] > max_action) | (action_arr[:len(env.ref_joint_pos_indexes)]<min_action))[0]
-
-            env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-            if len(out_of_bounds) > 0: #Some actions out of bounds
-                reward = 0
-                # interpolate
-                interpolated_traj = interpolate(env, next_qpos, out_of_bounds, simple_planner)
-                for interp_qpos in interpolated_traj:
-                    if not planner.isValidState(interp_qpos):
-                        print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos[env.ref_joint_pos_indexes])
-                    action = env.form_action(interp_qpos)
-                    step += 1
-                    ob, interp_reward, done, info = env.step(action, is_planner=True)
-                    if is_save_video:
-                        info['ac'] = action['default']
-                        info['next_qpos'] = next_qpos
-                        info['target_qpos'] = target_qpos
-                        info['curr_qpos'] = env.sim.data.qpos.copy()
-                        frames[episode].append(render_frame(env, step, info))
-                    else:
-                        env.render('human')
-                    reward += interp_reward
-                    if done:
-                        break
-                action = env.form_action(next_qpos)
-                env._reset_prev_state()
-            else:
-                ob, reward, done, info = env.step(action, is_planner=True)
-                step += 1
-
+            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+            action[-1] = -1.0
+            ob, reward, done, info = env.step(action, is_planner=True)
+            step += 1
             if is_save_video:
                 info['ac'] = action['default']
                 info['next_qpos'] = next_qpos
@@ -241,101 +151,52 @@ for episode in range(N):
                 t = timeit.default_timer()
                 while timeit.default_timer() - t < 0.1:
                     env.render('human')
-            if done:
+            if done or step > config.max_episode_steps:
                 break
     else:
         step += 1
-        if step > args.max_episode_steps:
+        if step > config.max_episode_steps:
             break
         if is_save_video:
             frames[episode].append(render_frame(env, step))
         else:
-            env.render('human')
+            import timeit
+            t = timeit.default_timer()
+            while timeit.default_timer() - t < 0.1:
+                env.render('human')
 
     # Now close gripper
-    close_gripper_action = [0, 0, 0, 0, 0, 0, 0, 1.0]
+    close_gripper_action = OrderedDict([('default', np.array([0, 0, 0, 0, 0, 0, 0, 1.0]))])
     for temp in range(10):
-        ob, reward, done, info = env.step(action, is_planner=False)
+        ob, reward, done, info = env.step(close_gripper_action, is_planner=False)
         if is_save_video:
             frames[episode].append(render_frame(env, step))
         else:
-            env.render('human')
-    
-    import ipdb; ipdb.set_trace()
-    # Now move back to initial position
-    target_qpos = env.init_qpos
-    if not simple_planner.isValidState(target_qpos): # check whether a target is valid or not
-        env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-        if is_save_video:
-            frames[episode].append(render_frame(env, step))
-        else:
-            env.render("human")
-        print("Invalid goal state")
-        step += 1
-        continue
-    else:
-        print("Valid goal state")
+            import timeit
+            t = timeit.default_timer()
+            while timeit.default_timer() - t < 0.1:
+                env.render('human')
 
-    traj, success, valid, exact = simple_planner.plan(current_qpos, target_qpos, timelimit=args.simple_timelimit)
+    target_qpos = curr_qpos.copy()
+    target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
+
     env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-    xpos = OrderedDict()
-    xquat = OrderedDict()
+    trial = 0
+    while not agent.isValidState(target_qpos) and trial < 100:
+        d = env.sim.data.qpos.copy()-target_qpos
+        target_qpos += config.step_size * d/np.linalg.norm(d)
+        trial+=1
 
-    if not success and not exact:
-        traj, success, valid, exact = planner.plan(current_qpos, target_qpos)
-        print("Using normal planner path (%d points)" % len(traj))
-    else:
-        print("Using simpler planner path (%d points)" % len(traj))
-    print("==============")
+    traj, success, interpolation, valid, exact = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
 
-    if is_save_video:
-        frames[episode].append(render_frame(env, step))
-    else:
-        env.render('human')
-
-    reward = 0
+    rewards = 0
     if success:
         for j, next_qpos in enumerate(traj):
-
-            # move a next_qpos if it is invalid state
-            trial = 0
-            while not planner.isValidState(next_qpos) and trial < 100:
-                d = env.sim.data.qpos.copy()-next_qpos
-                next_qpos += 0.05 * d/np.linalg.norm(d)
-                trial+=1
-
             action = env.form_action(next_qpos)
-            action_arr = action['default']
-            out_of_bounds = np.where((action_arr[:len(env.ref_joint_pos_indexes)] > max_action) | (action_arr[:len(env.ref_joint_pos_indexes)]<min_action))[0]
-
-            env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-            if len(out_of_bounds) > 0: #Some actions out of bounds
-                reward = 0
-                # interpolate
-                interpolated_traj = interpolate(env, next_qpos, out_of_bounds, simple_planner)
-                for interp_qpos in interpolated_traj:
-                    if not planner.isValidState(interp_qpos):
-                        print("Interpolated state %s is invalid!! Still stepping\n" % interp_qpos[env.ref_joint_pos_indexes])
-                    action = env.form_action(interp_qpos)
-                    step += 1
-                    ob, interp_reward, done, info = env.step(action, is_planner=True)
-                    if is_save_video:
-                        info['ac'] = action['default']
-                        info['next_qpos'] = next_qpos
-                        info['target_qpos'] = target_qpos
-                        info['curr_qpos'] = env.sim.data.qpos.copy()
-                        frames[episode].append(render_frame(env, step, info))
-                    else:
-                        env.render('human')
-                    reward += interp_reward
-                    if done:
-                        break
-                action = env.form_action(next_qpos)
-                env._reset_prev_state()
-            else:
-                ob, reward, done, info = env.step(action, is_planner=True)
-                step += 1
-
+            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+            action[-1] = 1.0
+            ob, reward, done, info = env.step(action, is_planner=True)
+            step += 1
             if is_save_video:
                 info['ac'] = action['default']
                 info['next_qpos'] = next_qpos
@@ -347,17 +208,20 @@ for episode in range(N):
                 t = timeit.default_timer()
                 while timeit.default_timer() - t < 0.1:
                     env.render('human')
-            if done:
+            if done or step > config.max_episode_steps:
                 break
     else:
         step += 1
-        if step > args.max_episode_steps:
+        if step > config.max_episode_steps:
             break
         if is_save_video:
             frames[episode].append(render_frame(env, step))
         else:
-            env.render('human')
-       
+            import timeit
+            t = timeit.default_timer()
+            while timeit.default_timer() - t < 0.1:
+                env.render('human')
+
 
 if is_save_video:
     prefix_path = './tmp/motion_planning_test/'
