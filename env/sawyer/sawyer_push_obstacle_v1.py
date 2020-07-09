@@ -9,6 +9,7 @@ from env.robosuite.utils.transform_utils import *
 
 class SawyerPushObstacleV1Env(SawyerEnv):
     def __init__(self, **kwargs):
+        kwargs['camera_name'] = 'frontview'
         super().__init__("sawyer_push_obstacle_v1.xml", **kwargs)
         self._get_reference()
 
