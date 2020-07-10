@@ -291,7 +291,7 @@ class PlannerRolloutRunner(object):
                             info = {}
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                        done, info, _ = env._after_step(reward, False, info)
+                        done, info, _ = env._after_step(reward, env._terminal, info)
                         meta_rew += reward
                         rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         ep_len += 1
@@ -497,7 +497,7 @@ class PlannerRolloutRunner(object):
                         ep_rew += reward
                         info = {}
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
-                    done, info, _ = env._after_step(reward, False, info)
+                    done, info, _ = env._after_step(reward, env._terminal, info)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     ep_rew_with_penalty += reward
