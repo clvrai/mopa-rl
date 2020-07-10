@@ -64,7 +64,7 @@ elif 'reacher' in config.env:
 
 planner_add_arguments(parser)
 config, unparsed = parser.parse_known_args()
-config.camera_name = 'agentview'
+config.camera_name = 'frontview'
 env = gym.make(config.env, **config.__dict__)
 config._xml_path = env.xml_path
 config.device = torch.device("cpu")
@@ -229,54 +229,55 @@ for episode in range(N):
             while timeit.default_timer() - t < 0.1:
                 env.render('human')
 
-    # Then move to goal position
-    curr_qpos = env.sim.data.qpos.copy()
-    target_qpos = curr_qpos.copy()
-    # target_qpos[env.ref_joint_pos_indexes] = optional_place_target[env.ref_joint_pos_indexes]
-    target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
-    target_qpos[env.ref_gripper_joint_pos_indexes] = -1
+    while True:
+        # Then move to goal position
+        curr_qpos = env.sim.data.qpos.copy()
+        target_qpos = curr_qpos.copy()
+        # target_qpos[env.ref_joint_pos_indexes] = optional_place_target[env.ref_joint_pos_indexes]
+        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
 
-    env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
-    trial = 0
-    while not agent.isValidState(target_qpos) and trial < 100:
-        d = env.sim.data.qpos.copy()-target_qpos
-        target_qpos += config.step_size * d/np.linalg.norm(d)
-        trial+=1
+        env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+        trial = 0
+        while not agent.isValidState(target_qpos) and trial < 100:
+            d = env.sim.data.qpos.copy()-target_qpos
+            target_qpos += config.step_size * d/np.linalg.norm(d)
+            trial+=1
 
-    traj, success, interpolation, valid, exact = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
+        traj, success, interpolation, valid, exact = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
 
-    rewards = 0
-    if success:
-        for j, next_qpos in enumerate(traj):
-            action = env.form_action(next_qpos)
-            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-            action[-1] = 1.0
-            ob, reward, done, info = env.step(action, is_planner=True)
+        rewards = 0
+        print("Success?: ", success)
+        if success:
+            for j, next_qpos in enumerate(traj):
+                action = env.form_action(next_qpos)
+                # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+                action[-1] = 1.0
+                ob, reward, done, info = env.step(action, is_planner=True)
+                step += 1
+                if is_save_video:
+                    info['ac'] = action['default']
+                    info['next_qpos'] = next_qpos
+                    info['target_qpos'] = target_qpos
+                    info['curr_qpos'] = env.sim.data.qpos.copy()
+                    frames[episode].append(render_frame(env, step, info))
+                else:
+                    import timeit
+                    t = timeit.default_timer()
+                    while timeit.default_timer() - t < 0.1:
+                        env.render('human')
+                if done or step > config.max_episode_steps:
+                    break
+        else:
             step += 1
+            if step > config.max_episode_steps:
+                break
             if is_save_video:
-                info['ac'] = action['default']
-                info['next_qpos'] = next_qpos
-                info['target_qpos'] = target_qpos
-                info['curr_qpos'] = env.sim.data.qpos.copy()
-                frames[episode].append(render_frame(env, step, info))
+                frames[episode].append(render_frame(env, step))
             else:
                 import timeit
                 t = timeit.default_timer()
                 while timeit.default_timer() - t < 0.1:
                     env.render('human')
-            if done or step > config.max_episode_steps:
-                break
-    else:
-        step += 1
-        if step > config.max_episode_steps:
-            break
-        if is_save_video:
-            frames[episode].append(render_frame(env, step))
-        else:
-            import timeit
-            t = timeit.default_timer()
-            while timeit.default_timer() - t < 0.1:
-                env.render('human')
 
 
 if is_save_video:
