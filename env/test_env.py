@@ -50,7 +50,6 @@ for i in range(100):
         frames[0].append(render_frame(env, i))
     else:
         env.render(mode='human')
-
     if done:
         print('done')
         break
