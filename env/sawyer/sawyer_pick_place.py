@@ -116,26 +116,11 @@ class SawyerPickPlaceEnv(SawyerEnv):
         info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
                     reward_lift=reward_lift, reward_hover=reward_hover)
 
-        return reward, info
-
-
-
-
-        if reward_type == 'dense':
-            reach_multi = 0.6
-            # right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
-            reward += reward_reach
-            info = dict(reward_reach=reward_reach)
+        if object_above_bin and object_z_locs < self._get_pos('bin1') + 0.1:
+            reward += self._kwargs['success_reward']
+            self._success = True
         else:
-            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
-            reward_reach = -(gripper_to_cube > 0.15)
-            reward += reward_reach
-            info = dict(reward_reach=reward_reach)
-
-        # if cube_to_target < self._kwargs['distance_threshold']:
-        #     reward += self._kwargs['success_reward']
-        #     self._success = True
-        #     self._terminal = True
+            self._success = False
 
         return reward, info
 
