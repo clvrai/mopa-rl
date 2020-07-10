@@ -203,8 +203,8 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             # info = dict(reward_reach=reward_reach, reward_move=reward_move, reward_ctrl=reward_ctrl)
             info = dict(reward_reach=reward_reach, reward_move=reward_move)
         else:
-            reward_rach = 0.
-            reawrd_push = 0.
+            reward_reach = 0.
+            reward_push = 0.
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
             if dist_box_to_gripper < 0.15:
                 reward_reach += 0.1*(1-tanh(2*dist_box_to_gripper))
