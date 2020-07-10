@@ -82,12 +82,24 @@ class SawyerPickPlaceEnv(SawyerEnv):
         return di
 
     @property
+    def static_bodies(self):
+        return ['table', 'bin1', 'bin2']
+
+    @property
     def static_geoms(self):
-        return ['table_collision']
+        return []
 
     @property
     def static_geom_ids(self):
-        return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
+        body_ids = []
+        for body_name in self.robot_bodies + self.gripper_bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
+        geom_ids = []
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            if body_id in body_ids:
+                geom_ids.append(geom_id)
+        return geom_ids
 
     @property
     def manipulation_geom(self):

@@ -66,7 +66,7 @@ elif 'reacher' in config.env:
 
 planner_add_arguments(parser)
 config, unparsed = parser.parse_known_args()
-config.camera_name = 'agentview'
+config.camera_name = 'frontview'
 env = gym.make(config.env, **config.__dict__)
 config._xml_path = env.xml_path
 config.device = torch.device("cpu")
@@ -118,14 +118,14 @@ for episode in range(N):
         env.render('human')
 
     # First move above
-    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.05)
+    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.04)
     optional_place_target = goal_joint_pos
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
     print("Goal %s" % target_qpos)
     print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
 
-    # env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+    env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
     trial = 0
     while not agent.isValidState(target_qpos) and trial < 100:
         d = env.sim.data.qpos.copy()-target_qpos
@@ -138,7 +138,7 @@ for episode in range(N):
     if success:
         for j, next_qpos in enumerate(traj):
             action = env.form_action(next_qpos)
-            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+            env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
             action['default'][-1] = -1.0
             ob, reward, done, info = env.step(action, is_planner=True)
             step += 1
@@ -176,7 +176,7 @@ for episode in range(N):
     print("Goal %s" % target_qpos)
     print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
 
-    # env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+    env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
     trial = 0
     while not agent.isValidState(target_qpos) and trial < 100:
         d = env.sim.data.qpos.copy()-target_qpos
@@ -189,7 +189,7 @@ for episode in range(N):
     if success:
         for j, next_qpos in enumerate(traj):
             action = env.form_action(next_qpos)
-            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+            env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
             action['default'][-1] = -1.0
             ob, reward, done, info = env.step(action, is_planner=True)
             step += 1
@@ -237,7 +237,7 @@ for episode in range(N):
         # target_qpos[env.ref_joint_pos_indexes] = optional_place_target[env.ref_joint_pos_indexes]
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
 
-        # env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+        env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         trial = 0
         while not agent.isValidState(target_qpos) and trial < 100:
             d = env.sim.data.qpos.copy()-target_qpos
@@ -251,7 +251,7 @@ for episode in range(N):
         if success:
             for j, next_qpos in enumerate(traj):
                 action = env.form_action(next_qpos)
-                # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
+                env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
                 action['default'][-1] = 1.0
                 ob, reward, done, info = env.step(action, is_planner=True)
                 step += 1
