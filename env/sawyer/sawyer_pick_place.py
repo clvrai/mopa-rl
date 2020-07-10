@@ -12,6 +12,10 @@ class SawyerPickPlaceEnv(SawyerEnv):
         super().__init__("sawyer_pick_place.xml", **kwargs)
         self._get_reference()
 
+    # @property
+    # def init_qpos(self):
+    #     return np.array([-0.0305, -0.59325, 0.03043, 2.16124, 1.87488, 0, 0])
+
     def _get_reference(self):
         super()._get_reference()
 
@@ -28,6 +32,14 @@ class SawyerPickPlaceEnv(SawyerEnv):
         self.sim.forward()
 
         return self._get_obs()
+
+
+    def initialize_joints(self):
+        init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
+        self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+        self.sim.forward()
+
 
     def compute_reward(self, action):
         reward_type = self._kwargs['reward_type']

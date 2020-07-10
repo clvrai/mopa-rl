@@ -63,6 +63,7 @@ def interpolate(env, next_qpos, out_of_bounds, planner):
     return interpolated_traj
 
 
+>>>>>>> 1fd62cd... working IK for pre-grasp position
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 if 'pusher' in args.env:
