@@ -1,5 +1,5 @@
 <mujoco model="sawyer_lift">
-    <include file="./common/sawyer.xml" />
+    <include file="./common/sawyer_pick.xml" />
     <default>
     </default>
     <asset>

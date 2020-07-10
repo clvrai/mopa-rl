@@ -21,7 +21,7 @@
     <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/robots/sawyer/meshes/l4.stl" name="l4" />
     <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/robots/sawyer/meshes/l5.stl" name="l5" />
     <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/robots/sawyer/meshes/l6.stl" name="l6" />
-  <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/grippers/meshes/two_finger_gripper/electric_gripper_base.STL" name="electric_gripper_base" />
+  <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/grippers/meshes/two_finger_gripper/electric_iripper_base.STL" name="electric_gripper_base" />
         <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/grippers/meshes/two_finger_gripper/standard_narrow.STL" name="standard_narrow" />
         <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/grippers/meshes/two_finger_gripper/half_round_tip.STL" name="half_round_tip" />
     <mesh file="/Users/yamadajun/projects/hrl-planner/env/assets/robosuite/objects/meshes/milk.stl" name="milk_mesh" scale="0.9 0.9 0.9" />

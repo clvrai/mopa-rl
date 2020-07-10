@@ -33,6 +33,8 @@ def get_goal_position(env, goal_site='target', z_offset = 0.): # use goal_site='
 
     # Obtain goal joint positions. Do IK to get joint positions for goal_site.
     # target quat set to picking from above [0, 0, 1, 0]
+    # result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., z_offset])),
+    #             target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
     result = qpos_from_site_pose_sampling(ik_env, 'grip_site', target_pos=(env._get_pos(goal_site) + np.array([0., 0., z_offset])),
                 target_quat=np.array([0., 0., 1., 0.]), joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
 
@@ -116,7 +118,7 @@ for episode in range(N):
         env.render('human')
 
     # First move above
-    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.15)
+    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.05)
     optional_place_target = goal_joint_pos
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
@@ -167,7 +169,7 @@ for episode in range(N):
                 env.render('human')
 
     # Then move down to cube
-    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.08)
+    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.0)
     curr_qpos = env.sim.data.qpos.copy()
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]

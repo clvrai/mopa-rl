@@ -1,0 +1,69 @@
+<mujocoinclude>
+<!-- ======================================================
+    Model 		:: Sawyer (MuJoCoV2.0)
+    Author      :: Vikash Kumar
+        Contacts 	: vikashplus@gmail.com
+        Last edits 	: 3Apr'20, 25Aug'18
+    Copyright 2018 Vikash Kumar
+        Licensed under Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+====================================================== -->
+    <!-- <body name="clawGripper" pos="0 0 .045" quat="&#45;1 0 1 0"> -->
+    <!--     <geom  type="box" size="0.01 0.04 0.01" /> -->
+    <!--     <geom size="0.035 0.015" pos="&#45;.024 0 0" type="cylinder" rgba="0.2 0.2 0.2 10" euler="0 1.57 0"/> -->
+    <!--  -->
+    <!--     <body name="rightclaw" pos=".01 .015 0" > -->
+    <!--         <geom name="rightclaw_it" type="box" pos="0 0.0 0" size="0.05 0.005 0.005"/> -->
+    <!--         <site name="right_eef" rgba="1.0 0 0 0.0" size="0.01" pos="0.045 0 0"/> -->
+    <!--         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 &#45;1 0" range="&#45;0.008 .015" user="008" limited="true"/> -->
+    <!--     </body> -->
+    <!--     <!&#45;&#45; <site name='grip_site' pos="0.04 0 0" size="0.005" rgba="1 0 0 0.4" /> &#45;&#45;> -->
+    <!--  -->
+    <!--     <body name="leftclaw" pos=".01 .02 0"> -->
+    <!--         <geom name="leftclaw_it0" type="box" pos="0 &#45;.04 0" size="0.05 0.005 0.005"/> -->
+    <!--         <site name="left_eef" rgba="1.0 0 0 0.0" size="0.01" pos="0.045 &#45;0.04 0"/> -->
+    <!--         <joint name="lc_close" type="slide" pos="0 0 0" axis="0 1 0" range="&#45;0.008 .015" user="008" limited="true"/> -->
+    <!--     </body> -->
+    <!-- </body> -->
+    <body name="clawGripper" pos="0 0 0.0245" quat="0.707105 0 0 0.707108">
+        <!-- <geom  type="box" size="0.01 0.04 0.01" /> -->
+        <geom size="0.035 0.015" pos="-.0 0 -0.0145" type="cylinder" rgba="0.2 0.2 0.2 10"  quat="0.707105 0 0 0.707108"/>
+        <inertial diaginertia="1e-08 1e-08 1e-08" mass="1e-08" pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" />
+        <geom size="1e-08 5e-09" type="cylinder" />
+        <body name="right_gripper_base" pos="0 0 0.025">
+            <inertial diaginertia="3e-08 2e-08 2e-08" mass="0.3" pos="0 0 0" quat="-0.5 0.5 0.5 0.5" />
+            <geom conaffinity="0" contype="0" group="1" mesh="electric_gripper_base" quat="0 0 0.707107 0.707107" type="mesh" />
+            <geom quat="0 0 0.707107 0.707107" size="0.029 0.05" type="cylinder" />
+            <body name="right_gripper" pos="0 0 0.095">
+                <inertial diaginertia="0 0 0" mass="0.0001" pos="0 0 0" />
+                <site group="1" name="grip_site" pos="0 0 0" rgba="0 0 0 0" size="0.01 0.01 0.01" type="sphere" />
+                <site group="1" name="grip_site_cylinder" pos="0 0 0" rgba="0 0 0 0" size="0.005 10" type="cylinder" />
+                <camera fovy="75" mode="fixed" name="eye_in_hand" pos="0 0 0" quat="0 -1 1 0" />
+            </body>
+            <body name="rightclaw" pos="0 0.01 0.02">
+                <inertial diaginertia="0.01 0.01 0.01" mass="0.02" pos="0 0 0" quat="0 0 0 -1" />
+                <joint axis="0 -1 0" damping="100" limited="true" name="rc_close" pos="0 0 0" range="-0.0115 0.020833" type="slide" />
+                <geom conaffinity="0" contype="0" group="1" mesh="standard_narrow" name="r_gripper_l_finger" quat="0 0 0 -1" type="mesh" />
+                <geom conaffinity="1" contype="0" friction="0 0 0" name="l_finger_g0" pos="0 0.01725 0.04" quat="0 0 0 -1" size="0.005 0.00675 0.0375" type="box" />
+                <geom conaffinity="1" contype="0" friction="0 0 0" name="l_finger_g1" pos="-0.005 -0.003 0.0083" quat="0 0 0 -1" size="0.005 0.025 0.0085" type="box" />
+
+                <body name="r_gripper_l_finger_tip" pos="0 0.01725 0.075">
+                    <inertial diaginertia="0.01 0.01 0.01" mass="0.01" pos="0 0 0" quat="0 0 0 1" />
+                    <geom conaffinity="0" contype="0" group="1" mesh="half_round_tip" quat="0 0 0 1" type="mesh" />
+                    <geom conaffinity="1" contype="0" friction="0 0 0" name="l_fingertip_g0" pos="0 -0.0045 -0.015" quat="0 0 0 1" size="0.004 0.004 0.0185" type="box" />
+                </body>
+            </body>
+            <body name="leftclaw" pos="0 -0.01 0.02">
+                <inertial diaginertia="0.01 0.01 0.01" mass="0.02" pos="0 0 0" />
+                <joint axis="0 1 0" damping="100" limited="true" name="lc_close" pos="0 0 0" range="-0.0115 0.020833"  type="slide" />
+                <geom conaffinity="0" contype="0" group="1" mesh="standard_narrow" name="r_gripper_r_finger" type="mesh" />
+                <geom conaffinity="1" contype="0" friction="0 0 0" name="r_finger_g0" pos="0 -0.01725 0.04" size="0.005 0.00675 0.0375" type="box" />
+                <geom conaffinity="1" contype="0" friction="0 0 0" name="r_finger_g1" pos="0.005 0.003 0.0083" size="0.005 0.025 0.0085" type="box" />
+                <body name="r_gripper_r_finger_tip" pos="0 -0.01725 0.075">
+                    <inertial diaginertia="0.01 0.01 0.01" mass="0.01" pos="0 0 0" />
+                    <geom conaffinity="0" contype="0" group="1" mesh="half_round_tip" type="mesh" />
+                    <geom conaffinity="1" contype="0" friction="0 0 0" name="r_fingertip_g0" pos="0 0.0045 -0.015" size="0.004 0.004 0.0185" type="box" />
+                </body>
+            </body>
+        </body>
+    </body>
+</mujocoinclude>

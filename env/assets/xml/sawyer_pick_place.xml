@@ -1,19 +1,55 @@
 <mujoco model="sawyer_pick_place">
-    <include file="./common/sawyer.xml" />
+    <include file="./common/sawyer_pick.xml" />
     <default>
     </default>
+    <asset>
+        <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+        <texture file="../textures/dark-wood.png" name="tex-dark-wood" type="2d" />
+        <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true" />
+        <material name="dark-wood" reflectance="0.5" texrepeat="5 5" texture="tex-dark-wood" texuniform="true" />
+        <mesh file="../robosuite/objects/meshes/milk.stl" name="milk_mesh" scale="0.9 0.9 0.9" />
+        <texture file="../robosuite/objects/../textures/ceramic.png" name="tex-ceramic" />
+        <material name="ceramic" reflectance="0.5" texrepeat="1 1" texture="tex-ceramic" texuniform="true" />
+    </asset>
     <worldbody>
-        <body name="table" pos="0.66 0.0 0.41">
-          <geom friction="1 0.005 0.0001" name="table_collision" pos="0 0 0" size="0.4 0.4 0.4" type="box" />
-          <geom conaffinity="0" contype="0" group="1" name="table_visual" pos="0 0 0" size="0.4 0.4 0.4" type="box" />
+    <body name="bin1" pos="0.6 -0.45 0.8">
+      <geom friction="1 0.005 0.0001" pos="0 0 0" size="0.2 0.25 0.02" type="box" />
+      <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="0 0 0" size="0.2 0.25 0.02" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0 0.25 0.05" rgba="0 0 1 1" size="0.21 0.01 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="0 0.25 0.05" size="0.21 0.01 0.05" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0 -0.25 0.05" rgba="0 0 1 1" size="0.21 0.01 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="0 -0.25 0.05" size="0.21 0.01 0.05" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0.2 0 0.05" rgba="0 0 1 1" size="0.01 0.25 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="0.2 0 0.05" size="0.01 0.25 0.05" type="box" />
+        <geom friction="1 0.005 0.0001" pos="-0.2 0 0.05" rgba="0 0 1 1" size="0.01 0.25 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="light-wood" pos="-0.2 0 0.05" size="0.01 0.25 0.05" type="box" />
+    </body>
+    <body name="bin2" pos="0.6 0.45 0.8">
+      <geom friction="1 0.005 0.0001" pos="0 0 0" size="0.2 0.25 0.02" type="box" />
+      <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 0 0" size="0.2 0.25 0.02" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0 0.25 0.05" rgba="1 0 0 1" size="0.21 0.01 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 0.25 0.05" size="0.21 0.01 0.05" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0 -0.25 0.05" rgba="1 0 0 1" size="0.21 0.01 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 -0.25 0.05" size="0.21 0.01 0.05" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0.2 0 0.05" rgba="1 0 0 1" size="0.01 0.25 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0.2 0 0.05" size="0.01 0.25 0.05" type="box" />
+        <geom friction="1 0.005 0.0001" pos="-0.2 0 0.05" rgba="1 0 0 1" size="0.01 0.25 0.05" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="-0.2 0 0.05" size="0.01 0.25 0.05" type="box" />
+    </body>
+        <body name="table" pos="0.66 0.0 0.4">
+          <geom friction="1 0.005 0.0001" name="table_collision" pos="0 0 0" size="0.4 0.73 0.41" type="box" />
+          <geom conaffinity="0" contype="0" group="1" name="table_visual" pos="0 0 0" size="0.4 0.4 0.41" type="box" />
           <site name="table_top" pos="0.0 0.0 0.41" rgba="0 0 0 0" size="0.001 0.001 0.001" />
         </body>
         <body name="cube" pos="0.5317717157210129 -0.023869616735809365 0.83">
             <!-- <inertial pos="0 0 0" mass="0.0001" diaginertia="1 1 1"/> -->
             <!-- <geom contype="1" conaffinity="1" friction="2.0 0.005 0.0001" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.01 0.01 0.01" type="box" solimp="0.99 0.99 0.01" solref="0.01 1"/> -->
-            <geom contype="1" conaffinity="1" density="200" friction="2.0 0.005 0.0001" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.01 0.01 0.01" type="box"/>
+            <geom contype="1" conaffinity="1" density="100" friction="2.0 0.005 0.0001" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.02 0.02 0.02" type="box"/>
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.001 0.001 0.001" type="sphere" />
             <joint name="cube" type="free" />
         </body>
-    </worldbody>
+      <body name="Milk0" pos="0.6875872102695585 -0.2888418397563905 0.885" quat="0.35237256560892993 0 0 0.9358598052091885">
+            <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" material="ceramic" mesh="milk_mesh" name="Milk0" pos="0 0 0" solimp="0.998 0.998 0.001" solref="0.001 1" type="mesh" />
+          <site name="Milk0" pos="0 0 0" rgba="1 0 0 0" size="0.002 0.002 0.002" type="sphere" /><joint damping="0.0005" name="Milk0" type="free" /></body>
+        </worldbody>
 </mujoco>

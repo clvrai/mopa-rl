@@ -48,8 +48,8 @@ class SawyerPickPlaceEnv(SawyerEnv):
 
         if reward_type == 'dense':
             reach_multi = 0.6
-            right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
-            gripper_site_pos = (right_gripper + left_gripper) / 2.
+            # right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+            gripper_site_pos = self.sim.data.get_site_xpos("grip_site")
             cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
             gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
             reward_reach = -gripper_to_cube*reach_multi
@@ -96,6 +96,19 @@ class SawyerPickPlaceEnv(SawyerEnv):
     @property
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
+
+    @property
+    def gripper_bodies(self):
+        return ["clawGripper", "rightclaw", 'leftclaw', 'right_gripper_base', 'right_gripper', 'r_gripper_l_finger_tip', 'r_gripper_r_finger_tip']
+
+    @property
+    def gripper_target_bodies(self):
+        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target', 'right_gripper_base_target']
+
+    @property
+    def gripper_indicator_bodies(self):
+        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator', 'right_gripper_base_indicator']
+
 
     def _step(self, action, is_planner=False):
         """
