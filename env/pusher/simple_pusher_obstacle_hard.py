@@ -58,7 +58,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.2:
+            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1:
                 self.goal = goal
                 self.box = box
                 break
@@ -206,9 +206,9 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             reward_reach = 0.
             reward_push = 0.
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            if dist_box_to_gripper < 0.15:
+            if dist_box_to_gripper < 0.1:
                 reward_reach += 0.1*(1-np.tanh(2*dist_box_to_gripper))
-            if self._get_distance('box', 'target') < 0.15:
+            if self._get_distance('box', 'target') < 0.1:
                 reward_push += 0.3 * (1-np.tanh(2*self._get_distance('box', 'target')))
             reward = reward_reach + reward_push
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
@@ -250,8 +250,15 @@ class SimplePusherObstacleHardEnv(BaseEnv):
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             self._success = True
-            self._terminal = True
+            # done = True
+            if self._kwargs['has_terminal']:
+                done = True
+                self._success = True
+            else:
+                if self._episode_length == self._env_config['max_episode_steps']-1:
+                    self._success = True
             reward += self._env_config['success_reward']
+
         return obs, reward, self._terminal, info
 
 

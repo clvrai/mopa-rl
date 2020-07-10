@@ -6,10 +6,10 @@ evaluate_interval="1000"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
-log_interval="200"
+log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.SPARSE"
+prefix="BASELINE.SAC.SPARSE.v1"
 max_global_step="60000000"
 env="simple-pusher-obstacle-hard-v0"
 gpu=$gpu
