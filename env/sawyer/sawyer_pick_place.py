@@ -12,9 +12,9 @@ class SawyerPickPlaceEnv(SawyerEnv):
         super().__init__("sawyer_pick_place.xml", **kwargs)
         self._get_reference()
 
-    # @property
-    # def init_qpos(self):
-    #     return np.array([-0.0305, -0.7325, 0.03043, 2.16124, 1.87488, 0, 0])
+    @property
+    def init_qpos(self):
+        return np.array([-0.0305, -0.7325, 0.03043, 1.16124, 1.87488, 0, 0])
 
     def _get_reference(self):
         super()._get_reference()
@@ -40,19 +40,90 @@ class SawyerPickPlaceEnv(SawyerEnv):
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         self.sim.forward()
 
+    @property
+    def left_finger_geoms(self):
+        return ["l_finger_g0", "l_finger_g1", "l_fingertip_g0"]
+
+    @property
+    def right_finger_geoms(self):
+        return ["r_finger_g0", "r_finger_g1", "r_fingertip_g0"]
+
+    @property
+    def l_finger_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.left_finger_geoms]
+
+    @property
+    def r_finger_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.right_finger_geoms]
+
 
     def compute_reward(self, action):
         reward_type = self._kwargs['reward_type']
         info = {}
         reward = 0
 
+        reach_mult = 0.1
+        grasp_mult = 0.35
+        lift_mult = 0.5
+        hover_mult = 0.7
+
+        reward_reach = 0.
+        gripper_site_pos = self.sim.data.get_site_xpos("grip_site")
+        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+        gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+        reward_reach = (1-np.tanh(10*gripper_to_cube)) * reach_mult
+
+        touch_left_finger = False
+        touch_right_finger = False
+        for i in range(self.sim.data.ncon):
+            c = self.sim.data.contact[i]
+            if c.geom1 == self.cube_geom_id:
+                if c.geom2 in self.l_finger_geom_ids:
+                    touch_left_finger = True
+                if c.geom2 in self.r_finger_geom_ids:
+                    touch_right_finger = True
+            elif c.geom2 == self.cube_geom_id:
+                if c.geom1 in self.l_finger_geom_ids:
+                    touch_left_finger = True
+                if c.geom1 in self.r_finger_geom_ids:
+                    touch_right_finger = True
+        has_grasp = touch_right_finger and touch_left_finger
+        reward_grasp = int(has_grasp) * grasp_mult
+
+        reward_lift = 0.
+        if reward_grasp > 0.:
+            z_target = self._get_pos("bin1")[2] + 0.25
+            object_z_locs = self.sim.data.body_xpos[self.cube_body_id][2]
+            z_dist = np.maximum(z_target-object_z_locs, 0.)
+            reward_lift = grasp_mult + (1-np.tanh(15*z_dist)) * (lift_mult-grasp_mult)
+
+        reward_hover = 0.
+        target_bin = self._get_pos('bin2')
+        object_xy_locs = self.sim.data.body_xpos[self.cube_body_id][:2]
+        y_check = (
+            np.abs(object_xy_locs[1]-(target_bin[1]-0.075)) < 0.075
+        )
+        x_check = (
+            np.abs(object_xy_locs[0]-(target_bin[0]-0.075)) < 0.075
+        )
+        object_above_bin = np.logical_and(x_check, y_check)
+        object_not_above_bin = np.logical_not(object_above_bin)
+        dist = np.linalg.norm(target_bin[:2]-object_xy_locs)
+        reward_hover += int(object_above_bin) * (lift_mult + (1-np.tanh(10*dist)) * (hover_mult - lift_mult))
+        reward_hover += int(object_not_above_bin) * (reward_lift + (1-np.tanh(10*dist))*(hover_mult-lift_mult))
+
+        reward += max(reward_reach, reward_grasp, reward_lift, reward_hover)
+        info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
+                    reward_lift=reward_lift, reward_hover=reward_hover)
+
+        return reward, info
+
+
+
+
         if reward_type == 'dense':
             reach_multi = 0.6
             # right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
-            gripper_site_pos = self.sim.data.get_site_xpos("grip_site")
-            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
-            reward_reach = -gripper_to_cube*reach_multi
             reward += reward_reach
             info = dict(reward_reach=reward_reach)
         else:

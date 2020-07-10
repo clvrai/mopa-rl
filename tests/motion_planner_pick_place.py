@@ -147,6 +147,7 @@ for episode in range(N):
                 info['next_qpos'] = next_qpos
                 info['target_qpos'] = target_qpos
                 info['curr_qpos'] = env.sim.data.qpos.copy()
+                info['reward'] = reward
                 frames[episode].append(render_frame(env, step, info))
             else:
                 import timeit
@@ -198,6 +199,7 @@ for episode in range(N):
                 info['next_qpos'] = next_qpos
                 info['target_qpos'] = target_qpos
                 info['curr_qpos'] = env.sim.data.qpos.copy()
+                info['reward'] = reward
                 frames[episode].append(render_frame(env, step, info))
             else:
                 import timeit
@@ -256,11 +258,11 @@ for episode in range(N):
                 ob, reward, done, info = env.step(action, is_planner=True)
                 step += 1
                 if is_save_video:
-                    print(action)
                     info['ac'] = action['default']
                     info['next_qpos'] = next_qpos
                     info['target_qpos'] = target_qpos
                     info['curr_qpos'] = env.sim.data.qpos.copy()
+                    info['reward'] = reward
                     frames[episode].append(render_frame(env, step, info))
                 else:
                     import timeit
