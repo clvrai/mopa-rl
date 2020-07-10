@@ -58,7 +58,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1:
+            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.2:
                 self.goal = goal
                 self.box = box
                 break
@@ -187,7 +187,7 @@ class SimplePusherObstacleHardEnv(BaseEnv):
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']
-        reward_ctrl = self._ctrl_reward(action)
+        # reward_ctrl = self._ctrl_reward(action)
         reach_multi = 0.3
         move_multi = 0.9
         if reward_type == 'dense':
@@ -196,17 +196,21 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             reward_reach = -dist_box_to_gripper * reach_multi
             reward_move  = -self._get_distance('box', 'target') * move_multi
             # reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
-            reward_ctrl = self._ctrl_reward(action)
+            # reward_ctrl = self._ctrl_reward(action)
 
-            reward = reward_reach + reward_move + reward_ctrl
-
-            info = dict(reward_reach=reward_reach, reward_move=reward_move, reward_ctrl=reward_ctrl)
-        else:
-            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            reward_reach = -reach_multi*(dist_box_to_gripper > self._env_config['distance_threshold']).astype(np.float32)
-            reward_move = -move_multi*(self._get_distance('box', 'target') > self._env_config['distance_threshold']).astype(np.float32)
             reward = reward_reach + reward_move
+
+            # info = dict(reward_reach=reward_reach, reward_move=reward_move, reward_ctrl=reward_ctrl)
             info = dict(reward_reach=reward_reach, reward_move=reward_move)
+        else:
+            info = dict(reward_reach)
+            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
+            if dist_box_to_gripper < 0.15:
+                reward_reach = 0.1*(1-tanh(2*dist_box_to_gripper))
+            if self._get_distance('box', 'target') < 0.15
+                reward_push = 0.3 * (1-tanh(2*self._get_diatance('box', 'target')))
+            reward = reward_reach + reward_push
+            info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
         return reward, info
 
@@ -245,15 +249,9 @@ class SimplePusherObstacleHardEnv(BaseEnv):
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             self._success = True
-            # done = True
-            if self._kwargs['has_terminal']:
-                done = True
-                self._success = True
-            else:
-                if self._episode_length == self._env_config['max_episode_steps']-1:
-                    self._success = True
+            self._terminal = True
             reward += self._env_config['success_reward']
-        return obs, reward, done, info
+        return obs, reward, self._terminal, info
 
 
     def compute_subgoal_reward(self, name, info):
