@@ -66,7 +66,7 @@ elif 'reacher' in config.env:
 
 planner_add_arguments(parser)
 config, unparsed = parser.parse_known_args()
-config.camera_name = 'frontview'
+config.camera_name = 'agentview'
 env = gym.make(config.env, **config.__dict__)
 config._xml_path = env.xml_path
 config.device = torch.device("cpu")
@@ -122,11 +122,10 @@ for episode in range(N):
     optional_place_target = goal_joint_pos
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
-    target_qpos[env.ref_gripper_joint_pos_indexes] = 0.015
     print("Goal %s" % target_qpos)
     print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
 
-    env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+    # env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
     trial = 0
     while not agent.isValidState(target_qpos) and trial < 100:
         d = env.sim.data.qpos.copy()-target_qpos
@@ -140,7 +139,7 @@ for episode in range(N):
         for j, next_qpos in enumerate(traj):
             action = env.form_action(next_qpos)
             # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-            action[-1] = -1.0
+            action['default'][-1] = -1.0
             ob, reward, done, info = env.step(action, is_planner=True)
             step += 1
             if is_save_video:
@@ -173,11 +172,11 @@ for episode in range(N):
     curr_qpos = env.sim.data.qpos.copy()
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
-    target_qpos[env.ref_gripper_joint_pos_indexes] = 0.15
+    # target_qpos[env.ref_gripper_joint_pos_indexes] = 0.15
     print("Goal %s" % target_qpos)
     print("Cube pos %s\t quat%s" % (env._get_pos('cube'), env._get_quat('cube')))
 
-    env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+    # env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
     trial = 0
     while not agent.isValidState(target_qpos) and trial < 100:
         d = env.sim.data.qpos.copy()-target_qpos
@@ -191,7 +190,7 @@ for episode in range(N):
         for j, next_qpos in enumerate(traj):
             action = env.form_action(next_qpos)
             # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-            action[-1] = -1.0
+            action['default'][-1] = -1.0
             ob, reward, done, info = env.step(action, is_planner=True)
             step += 1
             if is_save_video:
@@ -238,7 +237,7 @@ for episode in range(N):
         # target_qpos[env.ref_joint_pos_indexes] = optional_place_target[env.ref_joint_pos_indexes]
         target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-1, high=1, size=len(env.ref_joint_pos_indexes))
 
-        env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+        # env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
         trial = 0
         while not agent.isValidState(target_qpos) and trial < 100:
             d = env.sim.data.qpos.copy()-target_qpos
@@ -253,10 +252,11 @@ for episode in range(N):
             for j, next_qpos in enumerate(traj):
                 action = env.form_action(next_qpos)
                 # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes].copy())
-                action[-1] = 1.0
+                action['default'][-1] = 1.0
                 ob, reward, done, info = env.step(action, is_planner=True)
                 step += 1
                 if is_save_video:
+                    print(action)
                     info['ac'] = action['default']
                     info['next_qpos'] = next_qpos
                     info['target_qpos'] = target_qpos
@@ -269,6 +269,8 @@ for episode in range(N):
                         env.render('human')
                 if done or step > config.max_episode_steps:
                     break
+            if done or step > config.max_episode_steps:
+                break
         else:
             step += 1
             if step > config.max_episode_steps:

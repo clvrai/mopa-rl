@@ -309,7 +309,6 @@ class SawyerEnv(BaseEnv):
 
     def _gripper_format_action(self, gripper_ac):
         gripper_state = self.sim.data.qpos[self.ref_gripper_joint_pos_indexes]
-        gripper_ac *= 0.15
         return gripper_state + gripper_ac
 
     def _step(self, action, is_planner=False):
