@@ -213,6 +213,11 @@ class SimplePusherObstacleHardEnv(BaseEnv):
             reward = reward_reach + reward_push
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
+        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
+            self._success = True
+            self._terminal = True
+            reward += self._env_config['success_reward']
+
         return reward, info
 
     def _step(self, action, is_planner=False):
@@ -238,28 +243,16 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         n_inner_loop = int(self._frame_dt/self.dt)
         self.check_stage()
 
-        reward, info = self.compute_reward(action)
         target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
             ac = self._get_control(desired_state, self._prev_state, target_vel)
             self._do_simulation(ac)
 
-
-        obs = self._get_obs()
         self._prev_state = np.copy(desired_state)
+        reward, info = self.compute_reward(action)
 
-        if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
-            self._success = True
-            # done = True
-            if self._kwargs['has_terminal']:
-                done = True
-                self._success = True
-            else:
-                if self._episode_length == self._env_config['max_episode_steps']-1:
-                    self._success = True
-            reward += self._env_config['success_reward']
 
-        return obs, reward, self._terminal, info
+        return self._get_obs(), reward, self._terminal, info
 
 
     def compute_subgoal_reward(self, name, info):
