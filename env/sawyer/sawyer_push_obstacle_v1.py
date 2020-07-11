@@ -37,7 +37,7 @@ class SawyerPushObstacleV1Env(SawyerEnv):
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         # if self._kwargs['task_level'] == 'easy':
-        init_target_qpos = np.array([0.2, 0.1])
+        init_target_qpos = np.array([0.15, 0.1])
         init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
         # else:
         #     init_target_qpos = np.random.uniform(low=-3, high=3, size=2)
