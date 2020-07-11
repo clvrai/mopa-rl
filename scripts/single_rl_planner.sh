@@ -6,18 +6,18 @@ algo='sac'
 evaluate_interval="1000"
 ckpt_interval='200000'
 rl_activation="relu"
-num_batches="4"
-log_interval="150"
+num_batches="1"
+log_interval="1000"
 
 workers="1"
 tanh="True"
-prefix="SAC.PUSHER.4OBS.reuse.random.smdp"
+prefix="SAC.PUSHER.SPARSE.reuse.v3"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="200"
 debug="False"
 batch_size="256"
-reward_type='dense'
+reward_type='sparse'
 comment='Sanity Check'
 log_root_dir="./logs"
 log_freq='1000'
@@ -25,18 +25,22 @@ planner_integration="True"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 reuse_data_type="random"
-action_range="2.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
-invalid_planner_rew="-0.5"
+action_range="1.0"
+ac_rl_minimum="-0.7"
+ac_rl_maximum="0.7"
+invalid_planner_rew="-0.0"
 extended_action="False"
 has_terminal='True'
 stochastic_eval="True"
-alpha='0.05'
+alpha='0.2'
 find_collision_free="True"
+use_double_planner="False"
 max_reuse_data='30'
 min_reuse_span='20'
 use_smdp_update="True"
+ac_space_type="piecewise"
+discount_factor='0.99'
+success_reward="150.0"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -49,7 +53,6 @@ python -m rl.main \
     --rl_hid_size $rl_hid_size \
     --max_episode_step $max_episode_step \
     --evaluate_interval $evaluate_interval \
-    --buffer_size $buffer_size \
     --num_batches $num_batches \
     --debug $debug \
     --batch_size $batch_size \
@@ -78,3 +81,6 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
     --use_smdp_update $use_smdp_update \
+    --ac_space_type $ac_space_type \
+    --discount_factor $discount_factor \
+    --use_double_planner $use_double_planner
