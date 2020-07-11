@@ -9,9 +9,9 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.SPARSE.v3"
+prefix="BASELINE.SAC.SPARSE.v1"
 max_global_step="60000000"
-env="simple-pusher-obstacle-hard-v0"
+env="simple-pusher-obstacle-hard-v1"
 gpu=$gpu
 rl_hid_size="256"
 max_episode_step="200"
