@@ -206,8 +206,8 @@ class SimplePusherObstacleHardV1Env(BaseEnv):
             reward_reach = 0.
             reward_push = 0.
             dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            if dist_box_to_gripper < 0.1:
-                reward_reach += 0.1*(1-np.tanh(2*dist_box_to_gripper))
+            # if dist_box_to_gripper < 0.1:
+            #     reward_reach += 0.1*(1-np.tanh(2*dist_box_to_gripper))
             if self._get_distance('box', 'target') < 0.1:
                 reward_push += 0.3 * (1-np.tanh(2*self._get_distance('box', 'target')))
             reward = reward_reach + reward_push
