@@ -67,13 +67,19 @@ class SawyerPushObstacleV1Env(SawyerEnv):
             reward += reward_reach + reward_push
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
         else:
+            right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+            gripper_site_pos = (right_gripper + left_gripper) / 2.
             cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
             target_pos = self.sim.data.body_xpos[self.target_id]
+            gripper_to_cube = np.linalg.norm(cube_pos[:2]-gripper_site_pos[:2])
             cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
             reward_push = 0.
             reward_reach = 0.
+            if gripper_to_cube < 0.3 and gripper_site_pos[2] > 0.8:
+                reward_reach += 0.1*(1-tanh(2*gripper_to_cube))
+
             if cube_to_target < 0.3:
-                reward_push += 0.2*(1-tanh(2*cube_to_target))
+                reward_push += 0.3*(1-tanh(2*cube_to_target))
             reward += reward_push + reward_reach
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
