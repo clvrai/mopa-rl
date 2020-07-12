@@ -10,12 +10,11 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-tanh="True"
-prefix="SAC.PUSHER.SPARSE.reuse.scale.0.2.ac_range0.5.v3.debug"
+prefix="SAC.PUSHER.SPARSE.reuse.scale.1.0.ac_range0.3.v3_2"
 env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="200"
-debug="debug"
+debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
@@ -23,7 +22,7 @@ log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="True"
-reward_scale="0.2"
+reward_scale="1.0"
 reuse_data_type="random"
 action_range="0.3"
 ac_rl_minimum="-0.7"
@@ -63,7 +62,6 @@ python -m rl.main \
     --comment $comment \
     --log_freq $log_freq \
     --log_interval $log_interval \
-    --tanh $tanh \
     --planner_integration $planner_integration \
     --allow_manipulation_collision $allow_manipulation_collision \
     --reward_scale $reward_scale \
