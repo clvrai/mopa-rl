@@ -220,15 +220,7 @@ class PlannerRolloutRunner(object):
                         else:
                             rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
-                        if self._config.use_cum_rew:
-                            # if not pi.is_planner_ac(real_ac):
-                            #     meta_rew += len(traj) * (-10.) # penalize shorter one
-                            rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
-                        else:
-                            if self._config.use_discount_meta:
-                                rollout.add({'done': done, 'rew': reward * cum_discount, 'intra_steps': i})
-                            else:
-                                rollout.add({'done': done, 'rew': reward * i, 'intra_steps': i})
+                        rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
@@ -238,10 +230,10 @@ class PlannerRolloutRunner(object):
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                        if config.reuse_data_type == 'random' and len(ob_list) > 2:
+                        if config.reuse_data_type == 'random' and len(ob_list) > 2 and len(traj) > config.min_reuse_span+1:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
-                                start = np.random.randint(low=0, high=len(ob_list)-1)
+                                start = np.random.randint(low=0, high=len(ob_list)-config.min_reuse_span-1)
                                 if start + config.min_reuse_span > len(ob_list)-1:
                                     continue
                                 goal = np.random.randint(low=start+config.min_reuse_span, high=len(ob_list))
@@ -255,13 +247,10 @@ class PlannerRolloutRunner(object):
                                     if config.extended_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
-                                    if config.use_cum_rew:
-                                        rollout.add({'done': done_list[goal], 'rew': meta_rew_list[goal]-meta_rew_list[start], 'intra_steps': goal-start})
-                                    else:
-                                        if config.use_discount_meta:
-                                            rollout.add({'done': done_list[goal], 'rew': rew_list[goal]*cum_discount_list[goal-start], 'intra_steps': goal-start})
-                                        else:
-                                            rollout.add({'done': done_list[goal], 'rew': rew_list[goal]*(goal-start), 'intra_steps': goal-start})
+                                    inter_rew = meta_rew_list[goal] - meta_rew_list[start]
+                                    if config.use_discount_meta:
+                                        inter_rew *= (config.discount_factor ** (-(start+1)))
+                                    rollout.add({'done': done_list[goal], 'rew': meta_rew_list[goal]-meta_rew_list[start], 'intra_steps': goal-start})
 
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
