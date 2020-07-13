@@ -77,6 +77,6 @@ for x in x_values:
 
 import matplotlib.pyplot as plt
 plt.plot(x_values, converted_list)
-plt.imsave("piecewise.png")
+plt.savefig("piecewise.png")
 
 
