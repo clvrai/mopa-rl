@@ -21,8 +21,8 @@
         <body name="obstacle4" pos="-0.25 -0.1. 0.01">
             <geom name="obstacle4_geom" size="0.04 0.08 0.05" type="box" class="obstacle" />
         </body>
-        <body name="obstacle5" pos="-0.23 0.02. 0.01">
-            <geom name="obstacle5_geom" size="0.06 0.04 0.05" type="box" class="obstacle" />
+        <body name="obstacle5" pos="-0.25 0.02. 0.01">
+            <geom name="obstacle5_geom" size="0.04 0.04 0.05" type="box" class="obstacle" />
         </body>
     </worldbody>
 </mujoco>

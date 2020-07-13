@@ -220,28 +220,26 @@ class PusherEnv(BaseEnv):
         done = False
 
         if not is_planner or self._prev_state is None:
-            self._prev_state = self.get_joint_positions
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
-        if not is_planner:
-            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        if is_planner:
+            rescaled_ac = np.clip(action, -self._ac_scale, self._ac_scale)
         else:
-            desired_state = self._prev_state + action
+            rescaled_ac = action * self._ac_scale
+        desired_state = self._prev_state + rescaled_ac
 
-        desired_state = self._prev_state + action # except for gripper action
+        print("desired state: ", desired_state)
 
         n_inner_loop = int(self._frame_dt/self.dt)
-        self.check_stage()
 
         target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            ac = self._get_control(desired_state, self._prev_state, target_vel)
-            self._do_simulation(ac)
+            self._do_simulation(desired_state)
 
         self._prev_state = np.copy(desired_state)
         reward, info = self.compute_reward(action)
-
-
         return self._get_obs(), reward, self._terminal, info
+
 
 
     def compute_subgoal_reward(self, name, info):

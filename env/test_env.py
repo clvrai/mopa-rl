@@ -40,11 +40,16 @@ obs = env.reset()
 frames = []
 frames.append([render_frame(env, 0)])
 env.reset_visualized_indicator()
-for i in range(100):
+curr_qpos = env.sim.data.qpos.copy()
+curr_qpos[:4] = np.zeros(4)
+env.set_state(curr_qpos, env.sim.data.qvel.copy())
+for i in range(10):
 # while True:
     # env.render(mode='rgb_array')
-    action = env.action_space.sample()
+    # action = env.action_space.sample()
+    action = np.ones(4)
     obs, reward, done, _ = env.step(action)
+    print(env.sim.data.qpos)
     if is_save_video:
         # WARNING: don't is_save_video with a 'while True` loop since it runs forever
         frames[0].append(render_frame(env, i))
