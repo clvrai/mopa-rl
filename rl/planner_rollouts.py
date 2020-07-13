@@ -230,7 +230,7 @@ class PlannerRolloutRunner(object):
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                        if config.reuse_data_type == 'random' and len(ob_list) > 2 and len(traj) > config.min_reuse_span+1:
+                        if config.reuse_data_type == 'random' and len(ob_list) > config.min_reuse_span+2:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
                                 start = np.random.randint(low=0, high=len(ob_list)-config.min_reuse_span-1)
