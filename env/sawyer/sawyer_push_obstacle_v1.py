@@ -76,10 +76,10 @@ class SawyerPushObstacleV1Env(SawyerEnv):
             reward_push = 0.
             reward_reach = 0.
             if gripper_to_cube < 0.3 and gripper_site_pos[2] > 0.8:
-                reward_reach += 0.1*(1-tanh(2*gripper_to_cube))
+                reward_reach += 0.1*(1-np.tanh(2*gripper_to_cube))
 
             if cube_to_target < 0.3:
-                reward_push += 0.3*(1-tanh(2*cube_to_target))
+                reward_push += 0.3*(1-np.tanh(2*cube_to_target))
             reward += reward_push + reward_reach
             info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
