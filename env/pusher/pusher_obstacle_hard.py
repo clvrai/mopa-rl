@@ -243,10 +243,11 @@ class PusherObstacleHardEnv(BaseEnv):
         if not is_planner or self._prev_state is None:
             self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
-        if not is_planner:
-            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        if is_planner:
+            rescaled_ac = np.clip(action, -self._ac_scale, self._ac_scale)
         else:
-            desired_state = self._prev_state + action
+            rescaled_ac = action * self._ac_scale
+        desired_state = self._prev_state + rescaled_ac
 
         n_inner_loop = int(self._frame_dt/self.dt)
 
