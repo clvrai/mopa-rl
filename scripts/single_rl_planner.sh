@@ -10,9 +10,8 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-tanh="True"
-prefix="SAC.PUSHER.SPARSE.reuse.ac_range0.5.reuse.v1"
-env="simple-pusher-obstacle-hard-v1"
+prefix="SAC.PUSHER.SPARSE.reuse.scale.1.0.ac_range0.3.v3_2"
+env="simple-pusher-obstacle-hard-v0"
 rl_hid_size="256"
 max_episode_step="200"
 debug="False"
@@ -25,17 +24,17 @@ planner_integration="True"
 allow_manipulation_collision="True"
 reward_scale="1.0"
 reuse_data_type="random"
-action_range="0.5"
+action_range="0.3"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.0"
 extended_action="False"
 has_terminal='True'
 stochastic_eval="True"
-alpha='0.2'
+alpha='1.0'
 find_collision_free="True"
 use_double_planner="False"
-max_reuse_data='20'
+max_reuse_data='15'
 min_reuse_span='20'
 use_smdp_update="True"
 ac_space_type="piecewise"
@@ -63,7 +62,6 @@ python -m rl.main \
     --comment $comment \
     --log_freq $log_freq \
     --log_interval $log_interval \
-    --tanh $tanh \
     --planner_integration $planner_integration \
     --allow_manipulation_collision $allow_manipulation_collision \
     --reward_scale $reward_scale \
