@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse.sparse.v2"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.scale0.2.reuse.sparse.v2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -18,7 +18,7 @@ log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="True"
-alpha="0.2"
+alpha="1.0"
 reuse_data_type="random"
 action_range="0.5"
 ac_rl_minimum="-0.7"
@@ -41,7 +41,7 @@ add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='15'
 min_reuse_span='20'
-reward_scale="1.0"
+reward_scale="0.2"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
