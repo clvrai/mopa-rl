@@ -231,27 +231,21 @@ class PusherObstacleHardEnv(BaseEnv):
         done = False
 
         if not is_planner or self._prev_state is None:
-            self._prev_state = self.get_joint_positions
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
         if not is_planner:
             desired_state = self._prev_state + self._ac_scale * action # except for gripper action
         else:
             desired_state = self._prev_state + action
 
-        desired_state = self._prev_state + action # except for gripper action
-
         n_inner_loop = int(self._frame_dt/self.dt)
-        self.check_stage()
 
         target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            ac = self._get_control(desired_state, self._prev_state, target_vel)
-            self._do_simulation(ac)
+            self._do_simulation(desired_state)
 
         self._prev_state = np.copy(desired_state)
         reward, info = self.compute_reward(action)
-
-
         return self._get_obs(), reward, self._terminal, info
 
 
