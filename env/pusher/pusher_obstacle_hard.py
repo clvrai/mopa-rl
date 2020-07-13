@@ -43,6 +43,16 @@ class PusherObstacleHardEnv(BaseEnv):
         self._num_primitives = len(self._primitive_skills)
         self._ac_scale = 0.1
 
+        num_actions = 4
+        minimum = -np.ones(num_actions)
+        maximum = np.ones(num_actions)
+
+        self._minimum = minimum
+        self._maximum = maximum
+        self.action_space = spaces.Dict([
+            ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
+        ])
+
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
