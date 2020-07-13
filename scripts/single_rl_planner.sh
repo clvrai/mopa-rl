@@ -10,10 +10,10 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.SPARSE.reuse.scale.1.0.ac_range0.3.v3_2"
-env="simple-pusher-obstacle-hard-v0"
+prefix="SAC.PUSHER.SPARSE.reuse.scale.1.0.ac_range0.5"
+env="pusher-obstacle-hard-v0"
 rl_hid_size="256"
-max_episode_step="200"
+max_episode_step="300"
 debug="False"
 batch_size="256"
 reward_type='sparse'

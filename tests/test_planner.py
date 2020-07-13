@@ -88,7 +88,8 @@ for episode in range(N):
     while not done:
         current_qpos = env.sim.data.qpos.copy()
         target_qpos = current_qpos.copy()
-        target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
+        # target_qpos[env.ref_joint_pos_indexes] += np.random.uniform(low=-2, high=2, size=len(env.ref_joint_pos_indexes))
+        target_qpos[env.ref_joint_pos_indexes] = np.array([2.39, 0.0, 0.0, 0.0])
 
         trial = 0
         while not agent.isValidState(target_qpos) and trial < 100:

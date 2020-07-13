@@ -2,18 +2,21 @@ import re
 from collections import OrderedDict
 
 import numpy as np
-from gym import spaces 
+from gym import spaces
+
 from env.base import BaseEnv
 
-class PusherEnv(BaseEnv):
+
+class PusherObstacleHardEnv(BaseEnv):
     """ Pusher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("pusher.xml", **kwargs)
+        super().__init__("pusher_obstacle_hard.xml", **kwargs)
+        self.obstacle_names = list(filter(lambda x: re.search(r'obstacle', x), self.sim.model.body_names))
         self._env_config.update({
             'success_reward': kwargs['success_reward']
         })
-        self.joint_names = ["joint0", "joint1", "joint2", 'joint3']
+        self.joint_names = ["joint0", "joint1", "joint2", "joint3"]
         self.ref_joint_pos_indexes = [
             self.sim.model.get_joint_qpos_addr(x) for x in self.joint_names
         ]
@@ -91,7 +94,7 @@ class PusherEnv(BaseEnv):
 
     @property
     def body_names(self):
-        return ['body0', 'body1', 'body2', 'body3', 'fingertip']
+        return ['body0', 'body1', 'body2', "body3", 'fingertip']
 
 
     @property
@@ -100,11 +103,11 @@ class PusherEnv(BaseEnv):
 
     @property
     def body_geoms(self):
-        return ['root', 'link0', 'link1', 'link2', 'link3', 'fingertip0', 'fingertip1', 'fingertip2']
+        return ['root', 'link0', 'link1', 'link2', "link3", 'fingertip0', 'fingertip1', 'fingertip2']
 
     @property
     def static_geoms(self):
-        return []
+        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom', "obstacle5_geom"]
 
     @property
     def static_geom_ids(self):
@@ -131,6 +134,14 @@ class PusherEnv(BaseEnv):
             self.set_state(qpos, self.sim.data.qvel.ravel())
             if self.sim.data.ncon == 0:
                 break
+
+    def _get_obstacle_states(self):
+        obstacle_states = []
+        obstacle_size = []
+        for name in self.obstacle_names:
+            obstacle_states.extend(self._get_pos(name)[:2])
+            obstacle_size.extend(self._get_size(name)[:2])
+        return np.concatenate([obstacle_states, obstacle_size])
 
     def _get_obs(self):
         theta = self.sim.data.qpos.flat[self.ref_joint_pos_indexes]
@@ -270,5 +281,4 @@ class PusherEnv(BaseEnv):
                     if geom1 not in pair and geom2 not in pair:
                         return False
             return True
-
 
