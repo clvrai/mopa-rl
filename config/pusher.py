@@ -34,7 +34,7 @@ def add_arguments(parser):
     parser.add_argument("--kp", type=float, default=150.)
     parser.add_argument("--kd", type=float, default=20.)
     parser.add_argument("--ki", type=float, default=0.1)
-    parser.add_argument("--frame_dt", type=float, default=1.)
+    parser.add_argument("--frame_dt", type=float, default=1.0)
     parser.add_argument("--reward_coef", type=float, default=10.)
     parser.add_argument("--ctrl_reward_coef", type=float, default=1)
     parser.add_argument("--pos_reward_coef", type=float, default=400.)

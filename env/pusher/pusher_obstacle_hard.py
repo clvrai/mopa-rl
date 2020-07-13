@@ -43,14 +43,24 @@ class PusherObstacleHardEnv(BaseEnv):
         self._num_primitives = len(self._primitive_skills)
         self._ac_scale = 0.1
 
+        num_actions = 4
+        minimum = -np.ones(num_actions)
+        maximum = np.ones(num_actions)
+
+        self._minimum = minimum
+        self._maximum = maximum
+        self.action_space = spaces.Dict([
+            ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
+        ])
+
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
-            box = np.random.uniform(low=[-0.2, 0.1], high=[0., 0.2], size=2)
+            goal = np.random.uniform(low=[-0.24, 0.1], high=[-0.08, 0.24], size=2)
+            box = np.random.uniform(low=[-0.24, 0.1], high=[-0.08, 0.24], size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
@@ -231,27 +241,22 @@ class PusherObstacleHardEnv(BaseEnv):
         done = False
 
         if not is_planner or self._prev_state is None:
-            self._prev_state = self.get_joint_positions
+            self._prev_state = self.sim.data.qpos[self.ref_joint_pos_indexes].copy()
 
-        if not is_planner:
-            desired_state = self._prev_state + self._ac_scale * action # except for gripper action
+        if is_planner:
+            rescaled_ac = np.clip(action, -self._ac_scale, self._ac_scale)
         else:
-            desired_state = self._prev_state + action
-
-        desired_state = self._prev_state + action # except for gripper action
+            rescaled_ac = action * self._ac_scale
+        desired_state = self._prev_state + rescaled_ac
 
         n_inner_loop = int(self._frame_dt/self.dt)
-        self.check_stage()
 
         target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
-            ac = self._get_control(desired_state, self._prev_state, target_vel)
-            self._do_simulation(ac)
+            self._do_simulation(desired_state)
 
         self._prev_state = np.copy(desired_state)
         reward, info = self.compute_reward(action)
-
-
         return self._get_obs(), reward, self._terminal, info
 
 

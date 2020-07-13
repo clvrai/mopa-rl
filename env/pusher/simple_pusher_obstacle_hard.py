@@ -238,8 +238,6 @@ class SimplePusherObstacleHardEnv(BaseEnv):
         else:
             desired_state = self._prev_state + action
 
-        desired_state = self._prev_state + action # except for gripper action
-
         n_inner_loop = int(self._frame_dt/self.dt)
         self.check_stage()
 
