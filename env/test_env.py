@@ -43,8 +43,7 @@ env.reset_visualized_indicator()
 curr_qpos = env.sim.data.qpos.copy()
 curr_qpos[:4] = np.zeros(4)
 env.set_state(curr_qpos, env.sim.data.qvel.copy())
-for i in range(10):
-# while True:
+while True:
     # env.render(mode='rgb_array')
     # action = env.action_space.sample()
     action = np.ones(4)
