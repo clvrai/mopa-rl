@@ -124,10 +124,14 @@
         <!-- <velocity ctrllimited="true" ctrlrange="&#45;1. 1." gear="10" joint="joint1"/> -->
         <!-- <velocity ctrllimited="true" ctrlrange="&#45;1. 1." gear="10" joint="joint2"/> -->
         <!-- <velocity ctrllimited="true" ctrlrange="&#45;1. 1." gear="10" joint="joint3"/> -->
-        <position ctrllimited="true" ctrlrange="-6.28 6.28"  joint="joint0"/>
-        <position ctrllimited="true" ctrlrange="-3. 3."  joint="joint1"/>
-        <position ctrllimited="true" ctrlrange="-3. 3." joint="joint2"/>
-        <position ctrllimited="true" ctrlrange="-3. 3." joint="joint3"/>
+        <!-- <position ctrllimited="true" ctrlrange="&#45;6.28 6.28" joint="joint0" kp="5.5" /> -->
+        <!-- <position ctrllimited="true" ctrlrange="&#45;3. 3."  joint="joint1" kp="5.0"/> -->
+        <!-- <position ctrllimited="true" ctrlrange="&#45;3. 3." joint="joint2" kp="4.5"/> -->
+        <!-- <position ctrllimited="true" ctrlrange="&#45;3. 3." joint="joint3" kp="4.5"/> -->
+        <position ctrllimited="true" ctrlrange="-6.28 6.28" joint="joint0" kp="4.0" />
+        <position ctrllimited="true" ctrlrange="-3. 3."  joint="joint1" kp="4.0"/>
+        <position ctrllimited="true" ctrlrange="-3. 3." joint="joint2" kp="3.5"/>
+        <position ctrllimited="true" ctrlrange="-3. 3." joint="joint3" kp="3.2"/>
     </actuator>
 </mujoco>
 

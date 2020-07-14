@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 algo='sac'
-evaluate_interval="1000"
+evaluate_interval="9000"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
