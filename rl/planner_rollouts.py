@@ -162,8 +162,6 @@ class PlannerRolloutRunner(object):
                             target_qpos += config.step_size * d/np.linalg.norm(d)
                             trial+=1
 
-
-
                     if pi.isValidState(target_qpos):
                         traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                     else:
@@ -193,7 +191,7 @@ class PlannerRolloutRunner(object):
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             if self._config.use_discount_meta:
-                                meta_rew += (config.discount_factor** i) * reward # the last reward is more important
+                                meta_rew += (config.discount_factor**i) * reward # the last reward is more important
                             else:
                                 meta_rew += reward
                             cum_discount += config.discount_factor**i
@@ -213,13 +211,7 @@ class PlannerRolloutRunner(object):
                                 break
                         real_ac = OrderedDict()
                         real_ac['default'] = pi.invert_displacement(target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes], env._ac_scale)
-                        if config.hindsight_transition and not pi.is_planner_ac(real_ac):
-                            hindsight_ac = OrderedDict([('default', ac['default'].copy())])
-                            hindsight_ac['default'][env.ref_joint_pos_indexes] = pi.invert_displacement(env.sim.data.qpos.copy()[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes], env._ac_scale)
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': hindsight_ac, 'ac_before_activation': ac_before_activation})
-                        else:
-                            rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-
+                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
