@@ -1,13 +1,13 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse.sparse.v2"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.reuse.sparse.v9"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-peg-insertion-obstacle-v1"
+env="sawyer-peg-insertion-obstacle-v2"
 max_episode_step="300"
 debug="False"
 batch_size="256"
@@ -18,9 +18,9 @@ log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="True"
-alpha="0.2"
+alpha="1.0"
 reuse_data_type="random"
-action_range="0.5"
+action_range="1.0"
 ac_rl_minimum="-0.7"
 ac_rl_maximum="0.7"
 invalid_planner_rew="-0.0"
@@ -41,7 +41,7 @@ add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='15'
 min_reuse_span='20'
-reward_scale="1.0"
+reward_scale="0.2"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
