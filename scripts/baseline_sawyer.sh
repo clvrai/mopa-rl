@@ -4,18 +4,18 @@ seed=$2
 
 algo='sac'
 rollout_length="10000"
-evaluate_interval="1000"
+evaluate_interval="10000"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v9"
+prefix="BASELINE"
 max_global_step="60000000"
-env="sawyer-peg-insertion-obstacle-v2"
+env="sawyer-push-obstacle-v1"
 gpu=$gpu
-max_episode_step="300"
+max_episode_step="400"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
 debug="False"
