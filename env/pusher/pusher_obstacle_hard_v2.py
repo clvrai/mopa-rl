@@ -7,7 +7,7 @@ from gym import spaces
 from env.base import BaseEnv
 
 
-class PusherObstacleHardV1Env(BaseEnv):
+class PusherObstacleHardV2Env(BaseEnv):
     """ Pusher with Obstacles environment. """
 
     def __init__(self, **kwargs):
