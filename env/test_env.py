@@ -45,8 +45,7 @@ curr_qpos[:4] = np.zeros(4)
 env.set_state(curr_qpos, env.sim.data.qvel.copy())
 while True:
     # env.render(mode='rgb_array')
-    # action = env.action_space.sample()
-    action = np.ones(4)
+    action = env.action_space.sample()
     obs, reward, done, _ = env.step(action)
     print(env.sim.data.qpos)
     if is_save_video:
