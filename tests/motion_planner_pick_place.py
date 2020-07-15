@@ -118,7 +118,7 @@ for episode in range(N):
         env.render('human')
 
     # First move above
-    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.04)
+    goal_joint_pos = get_goal_position(env, goal_site='cube', z_offset=0.1)
     optional_place_target = goal_joint_pos
     target_qpos = curr_qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = goal_joint_pos[env.ref_joint_pos_indexes]
