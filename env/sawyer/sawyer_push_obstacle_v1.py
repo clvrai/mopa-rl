@@ -71,7 +71,7 @@ class SawyerPushObstacleV1Env(SawyerEnv):
             gripper_site_pos = (right_gripper + left_gripper) / 2.
             cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
             target_pos = self.sim.data.body_xpos[self.target_id]
-            gripper_to_cube = np.linalg.norm(cube_pos[:2]-gripper_site_pos[:2])
+            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
             cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
             reward_push = 0.
             reward_reach = 0.
