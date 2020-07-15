@@ -107,7 +107,7 @@ class SimplePusherObstacleHardV1Env(BaseEnv):
 
     @property
     def static_geoms(self):
-        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
+        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom', 'obstacle5_geom']
 
     @property
     def static_geom_ids(self):
