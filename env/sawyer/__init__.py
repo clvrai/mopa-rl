@@ -10,5 +10,6 @@ from env.sawyer.sawyer_peg_insertion_obstacle import SawyerPegInsertionObstacleE
 from env.sawyer.sawyer_peg_insertion_obstacle_v1 import SawyerPegInsertionObstacleV1Env
 from env.sawyer.sawyer_peg_insertion_obstacle_v2 import SawyerPegInsertionObstacleV2Env
 from env.sawyer.sawyer_pick_place import SawyerPickPlaceEnv
+from env.sawyer.sawyer_pick_place_obstacle import SawyerPickPlaceObstacleEnv
 from env.sawyer.sawyer_push_obstacle_v1 import SawyerPushObstacleV1Env
 # from env.sawyer.sawyer_pick_place_obstacle import SawyerPickPlaceObstacleEnv
