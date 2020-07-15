@@ -1,28 +1,28 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range0.5.reuse.sparse.v9"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse.sparse.v12"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-push-obstacle-v1"
-max_episode_step="400"
+env="sawyer-peg-insertion-obstacle-v2"
+max_episode_step="250"
 debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="True"
 alpha="1.0"
 reuse_data_type="random"
 action_range="0.5"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.7"
+ac_rl_maximum="0.7"
 invalid_planner_rew="-0.0"
 extended_action="False"
 stochastic_eval="True"
