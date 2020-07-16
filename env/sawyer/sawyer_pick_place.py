@@ -56,6 +56,19 @@ class SawyerPickPlaceEnv(SawyerEnv):
     def r_finger_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.right_finger_geoms]
 
+    @property
+    def gripper_bodies(self):
+        return ["clawGripper", "rightclaw", 'leftclaw',
+                'right_gripper_base', 'right_gripper', 'r_gripper_l_finger_tip', 'r_gripper_r_finger_tip']
+    @property
+    def gripper_indicator_bodies(self):
+        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator',
+                'right_gripper_base_indicator', 'r_gripper_l_finger_tip_indicator', 'r_gripper_r_finger_tip_indicator']
+    @property
+    def gripper_target_bodies(self):
+        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target',
+                'right_gripper_base_target', 'r_gripper_l_finger_tip_target', 'r_gripper_r_finger_tip_target']
+
 
     def compute_reward(self, action):
         reward_type = self._kwargs['reward_type']
