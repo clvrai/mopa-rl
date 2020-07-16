@@ -51,7 +51,7 @@ class SimplePusherObstacleHardV1Env(BaseEnv):
         while True:
             goal = np.random.uniform(low=[-0.2, 0.1], high=[-0.08, 0.2], size=2)
             box = np.random.uniform(low=[-0.2, 0.1], high=[-0.08, 0.2], size=2)
-            qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
+            qpos = np.random.uniform(low=-0.02, high=0.02, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
             qvel = np.random.uniform(low=-.005, high=.005, size=self.sim.model.nv) + self.sim.data.qvel.ravel()
