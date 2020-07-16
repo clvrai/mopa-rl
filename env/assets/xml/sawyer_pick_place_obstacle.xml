@@ -56,7 +56,7 @@
         <!--   <geom conaffinity="0" contype="0" group="1" material="dark&#45;wood" pos="0.1 0.1 0." size="0.02 0.02 0.8" type="box" /> -->
             <!-- </body> -->
 
-        <body name="cube" pos="0.65 -0.45 0.86" quat="-0.8795838801266339 0 0 0.47574383634617406">
+        <body name="cube" pos="0.55 -0.25 0.86" quat="-0.8795838801266339 0 0 0.47574383634617406">
             <geom condim="4" density="100" friction="0.95 0.3 0.1" group="1" material="coke" mesh="can_mesh" name="cube" pos="0 0 0" solimp="0.998 0.998 0.001" solref="0.001 1" type="mesh" />
             <site name="cube" pos="0 0 0" rgba="1 0 0 0" size="0.002 0.002 0.002" type="sphere" /><joint damping="0.0005" name="cube" type="free" />
         </body>
