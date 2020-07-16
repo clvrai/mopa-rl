@@ -7,9 +7,9 @@ from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 from env.robosuite.utils.transform_utils import *
 
-class SawyerLiftEnv(SawyerEnv):
+class SawyerLiftObstacleEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        super().__init__("sawyer_lift.xml", **kwargs)
+        super().__init__("sawyer_lift_obstacle.xml", **kwargs)
         self._get_reference()
 
     @property
@@ -78,6 +78,7 @@ class SawyerLiftEnv(SawyerEnv):
         reach_mult = 0.1
         grasp_mult = 0.35
         lift_mult = 0.5
+        hover_mult = 0.7
 
         reward_reach = 0.
         gripper_site_pos = self.sim.data.get_site_xpos("grip_site")
@@ -105,18 +106,32 @@ class SawyerLiftEnv(SawyerEnv):
         reward_lift = 0.
         object_z_locs = self.sim.data.body_xpos[self.cube_body_id][2]
         if reward_grasp > 0.:
-            z_target = self._get_pos("bin1")[2] + 0.45
+            z_target = self._get_pos("bin1")[2] + 0.25
             z_dist = np.maximum(z_target-object_z_locs, 0.)
             reward_lift = grasp_mult + (1-np.tanh(15*z_dist)) * (lift_mult-grasp_mult)
 
-        reward += max(reward_reach, reward_grasp, reward_lift)
-        info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
-                    reward_lift=reward_lift)
+        reward_hover = 0.
+        target_bin = self._get_pos('bin2')
+        object_xy_locs = self.sim.data.body_xpos[self.cube_body_id][:2]
+        y_check = (
+            np.abs(object_xy_locs[1]-(target_bin[1]-0.075)) < 0.075
+        )
+        x_check = (
+            np.abs(object_xy_locs[0]-(target_bin[0]-0.075)) < 0.075
+        )
+        object_above_bin = np.logical_and(x_check, y_check)
+        object_not_above_bin = np.logical_not(object_above_bin)
+        dist = np.linalg.norm(target_bin[:2]-object_xy_locs)
+        reward_hover += int(object_above_bin) * (lift_mult + (1-np.tanh(10*dist)) * (hover_mult - lift_mult))
+        reward_hover += int(object_not_above_bin) * (reward_lift + (1-np.tanh(10*dist))*(hover_mult-lift_mult))
 
-        if reward_grasp > 0. and np.abs(z_taarget - object_z_locs) < 0.05:
+        reward += max(reward_reach, reward_grasp, reward_lift, reward_hover)
+        info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
+                    reward_lift=reward_lift, reward_hover=reward_hover)
+
+        if object_above_bin and object_z_locs < self._get_pos('bin1')[2] + 0.1:
             reward += self._kwargs['success_reward']
             self._success = True
-            self._terminal = True
         else:
             self._success = False
 
@@ -138,7 +153,7 @@ class SawyerLiftEnv(SawyerEnv):
 
     @property
     def static_bodies(self):
-        return ['table', 'bin1']
+        return ['table', 'bin1', 'bin2']
 
     @property
     def static_geoms(self):
@@ -163,7 +178,6 @@ class SawyerLiftEnv(SawyerEnv):
     @property
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
-
 
     def _step(self, action, is_planner=False):
         """

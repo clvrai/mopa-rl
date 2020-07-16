@@ -46,6 +46,8 @@ env.set_state(curr_qpos, env.sim.data.qvel.copy())
 while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()
+    import pdb
+    pdb.set_trace()
     obs, reward, done, _ = env.step(action)
     print(env.sim.data.qpos)
     if is_save_video:
