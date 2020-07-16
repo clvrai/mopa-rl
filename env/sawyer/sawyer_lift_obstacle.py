@@ -7,9 +7,9 @@ from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 from env.robosuite.utils.transform_utils import *
 
-class SawyerLiftEnv(SawyerEnv):
+class SawyerLiftObstacleEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        super().__init__("sawyer_lift.xml", **kwargs)
+        super().__init__("sawyer_lift_obstacle.xml", **kwargs)
         self._get_reference()
 
     @property
@@ -78,6 +78,7 @@ class SawyerLiftEnv(SawyerEnv):
         reach_mult = 0.1
         grasp_mult = 0.35
         lift_mult = 0.5
+        hover_mult = 0.7
 
         reward_reach = 0.
         gripper_site_pos = self.sim.data.get_site_xpos("grip_site")
@@ -113,7 +114,7 @@ class SawyerLiftEnv(SawyerEnv):
         info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
                     reward_lift=reward_lift)
 
-        if reward_grasp > 0. and np.abs(z_taarget - object_z_locs) < 0.05:
+        if reward_grasp > 0. and np.abs(object_z_locs-z_target) < 0.05:
             reward += self._kwargs['success_reward']
             self._success = True
             self._terminal = True
@@ -163,7 +164,6 @@ class SawyerLiftEnv(SawyerEnv):
     @property
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
-
 
     def _step(self, action, is_planner=False):
         """

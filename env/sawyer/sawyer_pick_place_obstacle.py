@@ -162,7 +162,7 @@ class SawyerPickPlaceObstacleEnv(SawyerEnv):
     @property
     def static_geom_ids(self):
         body_ids = []
-        for body_name in self.robot_bodies + self.gripper_bodies:
+        for body_name in self.static_bodies:
             body_ids.append(self.sim.model.body_name2id(body_name))
 
         geom_ids = []
