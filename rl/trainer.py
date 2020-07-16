@@ -93,8 +93,13 @@ class Trainer(object):
         self._meta_agent = get_meta_agent_by_name(config.meta_algo)(config, ob_space, meta_ac_space, sampler=sampler)
 
         ll_ob_space = ob_space
-        if config.planner_integration and config.extended_action:
-            ac_space.spaces['ac_type'] = spaces.Discrete(2)
+        if config.planner_integration:
+            if config.extended_action:
+                ac_space.spaces['ac_type'] = spaces.Discrete(2)
+            elif config.use_ik_target:
+                ac_space = spaces.Disct([('default', spaces.Box(low=np.ones(3)*-1, high=np.ones(3), dtype=np.float32)), ('quat', spaces.Box(low=np.ones(4)*-1, high=np.ones(4), dtype=np.float32))])
+
+
         if config.hrl:
             if config.use_subgoal_space:
                 if config.relative_goal:

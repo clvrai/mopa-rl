@@ -71,6 +71,7 @@ class PlannerRolloutRunner(object):
         self._env = env
         self._env_eval = env_eval
         self._meta_pi = meta_pi
+        self._ik_env = gym.make(config.env, **config.__dict__)
         self._pi = pi
 
 
@@ -88,6 +89,7 @@ class PlannerRolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
+        ik_env = self._ik_env if config.use_ik_target
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -106,6 +108,7 @@ class PlannerRolloutRunner(object):
             interpolation_path_len = 0
             ep_rew_with_penalty = 0
             ob = env.reset()
+            ik_env.reset() if config.use_ik_target
 
             # run rollout
             meta_ac = None
@@ -145,15 +148,20 @@ class PlannerRolloutRunner(object):
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
 
-                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner:
-                    if config.relative_goal:
+                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or config.use_ik_target:
+                    if not config.use_ik_target:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         target_qpos[env.ref_joint_pos_indexes] += displacement
                         tmp_target_qpos = target_qpos.copy()
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                     else:
-                        target_qpos[env.ref_joint_pos_indexes] = ac['default']
+                        target_cart = env._get_pos('fingertip') + ac['cart']
+                        target_quat = env._get_quat('fingertip') + ac['quat']
+                        ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                        result = qpos_from_site_pose(ik_env, 'fingertip', target_pos=target_cart, target_quat=target_quat,
+                                      joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                        target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
 
                     if config.find_collision_free and not pi.isValidState(target_qpos):
                         trial = 0
@@ -342,6 +350,7 @@ class PlannerRolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
+        ik_env = self._ik_env if config.use_ik_target
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -355,6 +364,7 @@ class PlannerRolloutRunner(object):
         ep_rew = 0
         ep_rew_with_penalty = 0
         ob = env.reset()
+        ik_env.reset()
         self._record_frames = []
         if record: self._store_frame(env)
 
@@ -400,14 +410,20 @@ class PlannerRolloutRunner(object):
             if config.extended_action:
                 is_planner = bool(ac['ac_type'][0])
             if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner:
-                if config.relative_goal:
+                if not config.use_ik_target:
                     displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                     target_qpos[env.ref_joint_pos_indexes] += displacement
                     tmp_target_qpos = target_qpos.copy()
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                 else:
-                    target_qpos[env.ref_joint_pos_indexes] = ac['default']
+                    target_cart = env._get_pos('fingertip') + ac['cart']
+                    target_quat = env._get_quat('fingertip') + ac['quat']
+                    ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                    result = qpos_from_site_pose(ik_env, 'fingertip', target_pos=target_cart, target_quat=target_quat,
+                                  joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                    target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+
 
                 if config.find_collision_free and not pi.isValidState(target_qpos):
                     trial = 0
@@ -445,7 +461,9 @@ class PlannerRolloutRunner(object):
 
                         if record:
                             frame_info = info.copy()
-                            frame_info['ac'] = ac['default']
+                            frame_info['ac'] = ac['default'] if not config.use_ik_target
+                            frame_info['cart'] = ac['cart'] if config.use_ik_target
+                            frame_info['quat'] = ac['quat'] if config.use_ik_target
                             frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
                             frame_info['states'] = 'Valid states'
@@ -488,6 +506,8 @@ class PlannerRolloutRunner(object):
                         frame_info = info.copy()
                         frame_info['states'] = 'Invalid states'
                         frame_info['target_qpos'] = target_qpos
+                        frame_info['cart'] = ac['cart'] if config.use_ik_target
+                        frame_info['quat'] = ac['quat'] if config.use_ik_target
                         frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                         curr_qpos = env.sim.data.qpos.copy()
                         frame_info['curr_qpos'] = curr_qpos

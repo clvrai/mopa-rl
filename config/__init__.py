@@ -38,6 +38,7 @@ def argparser():
     parser.add_argument("--use_discount_meta", type=str2bool, default=False)
     parser.add_argument("--ac_space_type", type=str, default="piecewise", choices=["normal", "piecewise"])
     parser.add_argument("--add_curr_rew", type=str2bool, default=True)
+    parser.add_argument("--use_ik_target", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
