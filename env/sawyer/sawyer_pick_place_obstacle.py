@@ -104,9 +104,9 @@ class SawyerPickPlaceObstacleEnv(SawyerEnv):
         reward_grasp = int(has_grasp) * grasp_mult
 
         reward_lift = 0.
+        object_z_locs = self.sim.data.body_xpos[self.cube_body_id][2]
         if reward_grasp > 0.:
             z_target = self._get_pos("bin1")[2] + 0.25
-            object_z_locs = self.sim.data.body_xpos[self.cube_body_id][2]
             z_dist = np.maximum(z_target-object_z_locs, 0.)
             reward_lift = grasp_mult + (1-np.tanh(15*z_dist)) * (lift_mult-grasp_mult)
 
@@ -129,7 +129,7 @@ class SawyerPickPlaceObstacleEnv(SawyerEnv):
         info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
                     reward_lift=reward_lift, reward_hover=reward_hover)
 
-        if object_above_bin and object_z_locs < self._get_pos('bin1') + 0.1:
+        if object_above_bin and object_z_locs < self._get_pos('bin1')[2] + 0.1:
             reward += self._kwargs['success_reward']
             self._success = True
         else:
@@ -147,6 +147,7 @@ class SawyerPickPlaceObstacleEnv(SawyerEnv):
         di["cube_quat"] = cube_quat
         gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
         di["gripper_to_cube"] = gripper_site_pos - cube_pos
+
 
         return di
 
@@ -177,19 +178,6 @@ class SawyerPickPlaceObstacleEnv(SawyerEnv):
     @property
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
-
-    @property
-    def gripper_bodies(self):
-        return ["clawGripper", "rightclaw", 'leftclaw', 'right_gripper_base', 'right_gripper', 'r_gripper_l_finger_tip', 'r_gripper_r_finger_tip']
-
-    @property
-    def gripper_target_bodies(self):
-        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target', 'right_gripper_base_target']
-
-    @property
-    def gripper_indicator_bodies(self):
-        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator', 'right_gripper_base_indicator']
-
 
     def _step(self, action, is_planner=False):
         """

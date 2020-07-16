@@ -179,18 +179,6 @@ class SawyerPickPlaceEnv(SawyerEnv):
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
 
-    @property
-    def gripper_bodies(self):
-        return ["clawGripper", "rightclaw", 'leftclaw', 'right_gripper_base', 'right_gripper', 'r_gripper_l_finger_tip', 'r_gripper_r_finger_tip']
-
-    @property
-    def gripper_target_bodies(self):
-        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target', 'right_gripper_base_target']
-
-    @property
-    def gripper_indicator_bodies(self):
-        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator', 'right_gripper_base_indicator']
-
 
     def _step(self, action, is_planner=False):
         """

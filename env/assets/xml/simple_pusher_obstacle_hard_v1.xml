@@ -24,9 +24,9 @@
         <body name="obstacle5" pos="-0.26 0.04 0.01">
             <geom name="obstacle5_geom" size="0.09 0.02 0.05" type="box" class="obstacle" />
         </body>
-        <body name="obstacle6" pos="0.05 -0.2 0.01">
-            <geom name="obstacle6_geom" size="0.01 0.01 0.05" type="box" class="obstacle" />
-        </body>
+        <!-- <body name="obstacle6" pos="0.05 &#45;0.2 0.01"> -->
+        <!--     <geom name="obstacle6_geom" size="0.01 0.01 0.05" type="box" class="obstacle" /> -->
+        <!-- </body> -->
         <body name="obstacle7" pos="-0.12 -0.16 0.01">
             <geom name="obstacle7_geom" size="0.01 0.01 0.05" type="box" class="obstacle" />
         </body>
