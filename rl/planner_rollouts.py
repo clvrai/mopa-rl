@@ -89,7 +89,7 @@ class PlannerRolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
-        ik_env = self._ik_env if config.use_ik_target
+        ik_env = self._ik_env if config.use_ik_target else None
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -108,7 +108,8 @@ class PlannerRolloutRunner(object):
             interpolation_path_len = 0
             ep_rew_with_penalty = 0
             ob = env.reset()
-            ik_env.reset() if config.use_ik_target
+            if config.use_ik_target:
+                ik_env.reset()
 
             # run rollout
             meta_ac = None
@@ -350,7 +351,7 @@ class PlannerRolloutRunner(object):
         config = self._config
         device = config.device
         env = self._env if is_train else self._env_eval
-        ik_env = self._ik_env if config.use_ik_target
+        ik_env = self._ik_env if config.use_ik_target else None
         meta_pi = self._meta_pi
         pi = self._pi
 
@@ -364,7 +365,8 @@ class PlannerRolloutRunner(object):
         ep_rew = 0
         ep_rew_with_penalty = 0
         ob = env.reset()
-        ik_env.reset()
+        if config.use_ik_target:
+            ik_env.reset()
         self._record_frames = []
         if record: self._store_frame(env)
 
@@ -461,9 +463,11 @@ class PlannerRolloutRunner(object):
 
                         if record:
                             frame_info = info.copy()
-                            frame_info['ac'] = ac['default'] if not config.use_ik_target
-                            frame_info['cart'] = ac['cart'] if config.use_ik_target
-                            frame_info['quat'] = ac['quat'] if config.use_ik_target
+                            if not config.use_ik_target:
+                                frame_info['ac'] = ac['default']
+                            else:
+                                frame_info['cart'] = ac['cart']
+                                frame_info['quat'] = ac['quat']
                             frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
                             frame_info['states'] = 'Valid states'
@@ -506,8 +510,9 @@ class PlannerRolloutRunner(object):
                         frame_info = info.copy()
                         frame_info['states'] = 'Invalid states'
                         frame_info['target_qpos'] = target_qpos
-                        frame_info['cart'] = ac['cart'] if config.use_ik_target
-                        frame_info['quat'] = ac['quat'] if config.use_ik_target
+                        if config.use_ik_target:
+                            frame_info['cart'] = ac['cart']
+                            frame_info['quat'] = ac['quat']
                         frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                         curr_qpos = env.sim.data.qpos.copy()
                         frame_info['curr_qpos'] = curr_qpos
