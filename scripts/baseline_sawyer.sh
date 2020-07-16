@@ -11,9 +11,9 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.v1"
+prefix="BASELINE.v2"
 max_global_step="60000000"
-env="sawyer-pick-place-v0"
+env="sawyer-pick-place-obstacle-v0"
 gpu=$gpu
 max_episode_step="400"
 entropy_loss_coef="1e-3"
