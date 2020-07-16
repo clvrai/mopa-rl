@@ -49,8 +49,8 @@ class SimplePusherObstacleHardV1Env(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=[-0.2, 0.1], high=[-0.05, 0.2], size=2)
-            box = np.random.uniform(low=[-0.2, 0.1], high=[-0.05, 0.2], size=2)
+            goal = np.random.uniform(low=[-0.2, 0.1], high=[-0.08, 0.2], size=2)
+            box = np.random.uniform(low=[-0.2, 0.1], high=[-0.08, 0.2], size=2)
             qpos = np.random.uniform(low=-0.1, high=0.1, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
@@ -107,7 +107,8 @@ class SimplePusherObstacleHardV1Env(BaseEnv):
 
     @property
     def static_geoms(self):
-        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom']
+        return ['obstacle1_geom', 'obstacle2_geom', 'obstacle3_geom', 'obstacle4_geom',
+                'obstacle5_geom', 'obstacle6_geom', 'obstacle7_geom']
 
     @property
     def static_geom_ids(self):
