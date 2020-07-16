@@ -301,6 +301,16 @@ register(
     kwargs={}
 )
 register(
+    id='sawyer-lift-v0',
+    entry_point='env.sawyer:SawyerLiftEnv',
+    kwargs={}
+)
+register(
+    id='sawyer-lift-obstacle-v0',
+    entry_point='env.sawyer:SawyerLiftObstacleEnv',
+    kwargs={}
+)
+register(
     id="sawyer-reach-v0",
     entry_point="env.sawyer:SawyerReachEnv",
     kwargs={}
