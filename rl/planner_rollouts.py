@@ -201,7 +201,7 @@ class PlannerRolloutRunner(object):
                                 if not config.use_ik_target:
                                     converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                                 else:
-                                    if 'gripper' is in ac.keys():
+                                    if 'gripper' in ac.keys():
                                         converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
@@ -466,7 +466,7 @@ class PlannerRolloutRunner(object):
                             if not config.use_ik_target:
                                 converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                             else:
-                                if 'gripper' is in ac.keys():
+                                if 'gripper' in ac.keys():
                                     converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                         ob, reward, done, info = env.step(converted_ac, is_planner=True)
                         meta_rew += reward
