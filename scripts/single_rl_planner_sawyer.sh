@@ -1,13 +1,13 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.reuse.sparse.v12"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.scale.0.2.reuse.sparse.v2"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-peg-insertion-obstacle-v2"
+env="sawyer-lift-obstacle-v0"
 max_episode_step="250"
 debug="False"
 batch_size="256"
