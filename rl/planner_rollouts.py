@@ -201,7 +201,8 @@ class PlannerRolloutRunner(object):
                                 if not config.use_ik_target:
                                     converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                                 else:
-                                    converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
+                                    if 'gripper' is in ac.keys():
+                                        converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             if self._config.use_discount_meta:
@@ -465,7 +466,8 @@ class PlannerRolloutRunner(object):
                             if not config.use_ik_target:
                                 converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
                             else:
-                                converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
+                                if 'gripper' is in ac.keys():
+                                    converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                         ob, reward, done, info = env.step(converted_ac, is_planner=True)
                         meta_rew += reward
                         ep_len += 1
