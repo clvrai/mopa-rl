@@ -98,7 +98,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
                 regularization_strength if err_norm > regularization_threshold else 0.0
             )
 
-            env.sim.step()
             collision = env.sim.data.ncon
             update_joints = nullspace_method(jac_joints, err, regularization_strength, collision)
             update_norm = np.linalg.norm(update_joints)
@@ -111,13 +110,11 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
                 update_joints *= max_update_norm / update_norm
 
             update_nv[dof_indices] = update_joints
-            env.set_state(env.sim.data.qpos+update_nv, env.sim.data.qvel.ravel())
-            # if steps % 10 == 0:
-            #     print('Step %2i: err_norm=%-10.3g update_norm=%-10.3g',
-            #           steps, err_norm, update_norm)
 
-    if env.sim.data.ncon > 0:
-        print("Colision detected")
+            env.set_state(env.sim.data.qpos.copy()+update_nv, env.sim.data.qvel.ravel().copy())
+
+    # if env.sim.data.ncon > 0:
+    #     print("Colision detected")
     return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
 
 
@@ -192,7 +189,7 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
                 err_norm += np.linalg.norm(err_rot) * rot_weight
 
             if err_norm < tol:
-                print('IK success')
+                # print('IK success')
                 success =True
                 break
             else:

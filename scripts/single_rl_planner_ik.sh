@@ -10,7 +10,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.SPARSE.piecewise0.7.reuse.ac_range0.5.scale0.2.v2"
+prefix="SAC.PUSHER.SPARSE.IK.reuse"
 env="pusher-obstacle-hard-v3"
 rl_hid_size="256"
 max_episode_step="400"
@@ -25,11 +25,8 @@ planner_integration="True"
 allow_manipulation_collision="True"
 reward_scale="0.2"
 reuse_data_type="random"
-action_range="0.5"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+action_range="0.3"
 invalid_planner_rew="-0.0"
-extended_action="False"
 has_terminal='True'
 stochastic_eval="True"
 alpha='1.0'
@@ -38,9 +35,9 @@ use_double_planner="False"
 max_reuse_data='15'
 min_reuse_span='20'
 use_smdp_update="True"
-ac_space_type="piecewise"
 discount_factor='0.99'
 success_reward="150.0"
+use_ik_target="True"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -68,10 +65,7 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --reuse_data_type $reuse_data_type \
     --action_range $action_range \
-    --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
-    --extended_action $extended_action \
     --success_reward $success_reward \
     --has_terminal $has_terminal \
     --stochastic_eval $stochastic_eval \
@@ -80,6 +74,6 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
     --use_smdp_update $use_smdp_update \
-    --ac_space_type $ac_space_type \
     --discount_factor $discount_factor \
-    --use_double_planner $use_double_planner
+    --use_double_planner $use_double_planner \
+    --use_ik_target $use_ik_target
