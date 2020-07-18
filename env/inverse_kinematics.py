@@ -74,6 +74,7 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
 
         if target_pos is not None:
             err_pos[:] = target_pos - site_xpos
+           # print('steps=', steps, '   ', np.linalg.norm(err_pos))
             err_norm += np.linalg.norm(err_pos)
 
         if target_quat is not None:
@@ -83,8 +84,8 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             mjlib.mju_quat2Vel(err_rot, err_rot_quat, 1)
             err_norm += np.linalg.norm(err_rot) * rot_weight
 
-
         if err_norm < tol:
+            # print('IK success')
             success =True
             break
         else:
@@ -112,10 +113,13 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             update_nv[dof_indices] = update_joints
 
             env.set_state(env.sim.data.qpos.copy()+update_nv, env.sim.data.qvel.ravel().copy())
-
-    # if env.sim.data.ncon > 0:
-    #     print("Colision detected")
+            ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
+            #env.step(update_nv[:-2])
     return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
+
+
+
+
 
 
 

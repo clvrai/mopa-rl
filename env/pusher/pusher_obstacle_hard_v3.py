@@ -65,6 +65,10 @@ class PusherObstacleHardV3Env(BaseEnv):
         return self._get_obs()
 
     @property
+    def robot_joints(self):
+        return ['joint0', 'joint1', 'joint2', 'joint3']
+
+    @property
     def manipulation_geom(self):
         return ['box']
 
