@@ -1,5 +1,6 @@
 <mujoco model="sawyer_lift">
     <include file="./common/sawyer_pick.xml" />
+    <size njmax="8000" nconmax="4000"/>
     <default>
     </default>
     <asset>
