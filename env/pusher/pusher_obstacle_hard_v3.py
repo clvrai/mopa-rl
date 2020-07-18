@@ -68,6 +68,10 @@ class PusherObstacleHardV3Env(BaseEnv):
     def manipulation_geom(self):
         return ['box']
 
+    @property
+    def robot_joints(self):
+        return ['joint0', 'joint1', 'joint2', 'joint3']
+
     def visualize_goal_indicator(self, qpos):
         self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
         for body_name in self.body_names:

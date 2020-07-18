@@ -101,7 +101,9 @@ class Trainer(object):
                 ac_space.spaces['ac_type'] = spaces.Discrete(2)
             elif config.use_ik_target:
                 if action_size(ac_space) == len(self._env.ref_joint_pos_indexes):
-                    ac_space = spaces.Dict([('default', spaces.Box(low=np.ones(3)*-1, high=np.ones(3), dtype=np.float32)), ('quat', spaces.Box(low=np.ones(4)*-1, high=np.ones(4), dtype=np.float32))])
+                    ac_space = spaces.Dict([('default', spaces.Box(low=np.ones(3)*-1, high=np.ones(3), dtype=np.float32))])
+                    if 'sawyer' in config.env:
+                        ac_space.spaces['quat'] = spaces.Box(low=np.ones(4)*-1, high=np.ones(4), dtype=np.float32)
                 else:
                     ac_space = spaces.Dict([('default', spaces.Box(low=np.ones(3)*-1, high=np.ones(3), dtype=np.float32)), ('quat', spaces.Box(low=np.ones(4)*-1, high=np.ones(4), dtype=np.float32)),
                                         ('gripper', spaces.Box(low=np.array([-1.]), high=np.array([1.]), dtype=np.float32))])

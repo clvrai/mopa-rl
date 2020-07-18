@@ -1,14 +1,14 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.IK.reuse"
+prefix="SAC.PLANNER.AUGMENTED.IK.reuse.v2"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-push-obstacle-v1"
-max_episode_step="400"
+env="sawyer-lift-obstacle-v0"
+max_episode_step="250"
 debug="False"
 batch_size="256"
 reward_type='sparse'
@@ -20,7 +20,7 @@ planner_integration="True"
 allow_manipulation_collision="True"
 alpha="1.0"
 reuse_data_type="random"
-action_range="0.3"
+action_range="0.2"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
@@ -39,6 +39,7 @@ max_reuse_data='15'
 min_reuse_span='20'
 reward_scale="0.2"
 use_ik_target="True"
+ik_target="grip_site"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -79,4 +80,5 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
-    --use_ik_target $use_ik_target
+    --use_ik_target $use_ik_target \
+    --ik_target $ik_target

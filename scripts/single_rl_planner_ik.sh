@@ -10,7 +10,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.SPARSE.IK.reuse"
+prefix="SAC.PUSHER.SPARSE.IK.reuse.v2"
 env="pusher-obstacle-hard-v3"
 rl_hid_size="256"
 max_episode_step="400"
@@ -25,7 +25,7 @@ planner_integration="True"
 allow_manipulation_collision="True"
 reward_scale="0.2"
 reuse_data_type="random"
-action_range="0.3"
+action_range="0.2"
 invalid_planner_rew="-0.0"
 has_terminal='True'
 stochastic_eval="True"
@@ -38,6 +38,7 @@ use_smdp_update="True"
 discount_factor='0.99'
 success_reward="150.0"
 use_ik_target="True"
+ik_target="fingertip"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -76,4 +77,5 @@ python -m rl.main \
     --use_smdp_update $use_smdp_update \
     --discount_factor $discount_factor \
     --use_double_planner $use_double_planner \
-    --use_ik_target $use_ik_target
+    --use_ik_target $use_ik_target \
+    --ik_target $ik_target
