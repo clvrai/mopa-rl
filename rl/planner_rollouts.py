@@ -9,7 +9,7 @@ from gym import spaces
 from collections import OrderedDict
 from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 from util.logger import logger
-from util.env import joint_convert
+from util.env import joint_convert, mat2quat
 from util.gym import action_size
 from util.info import Info
 import line_profiler
@@ -149,20 +149,22 @@ class PlannerRolloutRunner(object):
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
 
-                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or config.use_ik_target:
+                if config.use_ik_target:
+                    target_cart = np.clip(env.sim.data.get_site_xpos('grip_site') + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                    target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat('grip_site'))+ config.action_range * ac['quat'], -1., 1.)
+                    ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                    result = qpos_from_site_pose(ik_env, 'grip_site', target_pos=target_cart, target_quat=target_quat,
+                                  joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                    target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                    displacement = pi.invert_displacement(target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])
+
+                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                     if not config.use_ik_target:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         target_qpos[env.ref_joint_pos_indexes] += displacement
                         tmp_target_qpos = target_qpos.copy()
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
-                    else:
-                        target_cart = env._get_pos('fingertip') + ac['cart']
-                        target_quat = env._get_quat('fingertip') + ac['quat']
-                        ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
-                        result = qpos_from_site_pose(ik_env, 'fingertip', target_pos=target_cart, target_quat=target_quat,
-                                      joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
-                        target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
 
                     if config.find_collision_free and not pi.isValidState(target_qpos):
                         trial = 0
@@ -192,11 +194,17 @@ class PlannerRolloutRunner(object):
                         done_list = []
                         cum_discount = 0
                         cum_discount_list = []
+                        cart_list = []
+                        quat_list = []
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
                             if i == len(traj)-1:
-                                converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
+                                if not config.use_ik_target:
+                                    converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
+                                else:
+                                    if 'gripper' in ac.keys():
+                                        converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
 
                             if self._config.use_discount_meta:
@@ -209,6 +217,9 @@ class PlannerRolloutRunner(object):
                             meta_rew_list.append(meta_rew)
                             rew_list.append(reward)
                             ob_list.append(ob.copy())
+                            if config.use_ik_target:
+                                cart_list.append(env.sim.data.get_site_xpos('grip_site'))
+                                quat_list.append(mat2quat(env.sim.data.get_site_xmat('grip_site')))
                             ep_len += 1
                             step += 1
                             meta_len += 1
@@ -218,8 +229,6 @@ class PlannerRolloutRunner(object):
                             reward_info.add(info)
                             if done or ep_len >= max_step:
                                 break
-                        real_ac = OrderedDict()
-                        real_ac['default'] = pi.invert_displacement(target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes], env._ac_scale)
                         rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
 
@@ -242,8 +251,12 @@ class PlannerRolloutRunner(object):
                                     continue
 
                                 pairs.append((start, goal))
-                                inter_subgoal_ac = env.form_action(traj[goal], traj[start])
-                                inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                                if not config.use_ik_target:
+                                    inter_subgoal_ac = env.form_action(traj[goal], traj[start])
+                                    inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                                else:
+                                    inter_subgoal_ac = OrderedDict([('default', (cart_list[goal]-cart_list[start])/config.action_range),
+                                                                    ('quat', (quat_list[goal]-quat_list[start])/config.action_range)])
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     if config.extended_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
@@ -301,10 +314,16 @@ class PlannerRolloutRunner(object):
                     ll_ob = ob.copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
-                    rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                    if not config.extended_action:
-                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
-                    ob, reward, done, info = env.step(rescaled_ac)
+                    if not config.use_ik_target:
+                        rescaled_ac = OrderedDict([('default', ac['default'].copy())])
+                        if not config.extended_action:
+                            rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                        ob, reward, done, info = env.step(rescaled_ac)
+                    else:
+                        converted_ac = OrderedDict([('default', displacement)])
+                        if 'gripper' in ac.keys():
+                            converted_ac['gripper'] = np.array(['gripper'])
+                        ob, reward, done, info = env.step(rescaled_ac)
                     rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     ep_len += 1
                     step += 1
@@ -411,7 +430,17 @@ class PlannerRolloutRunner(object):
             target_qpos = env.sim.data.qpos.copy()
             if config.extended_action:
                 is_planner = bool(ac['ac_type'][0])
-            if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner:
+
+            if config.use_ik_target:
+                target_cart = np.clip(env.sim.data.get_site_xpos('grip_site') + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat('grip_site'))+ config.action_range * ac['quat'], -1., 1.)
+                ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                result = qpos_from_site_pose(ik_env, 'grip_site', target_pos=target_cart, target_quat=target_quat,
+                              joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                displacement = pi.invert_displacement(target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])
+
+            if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                 if not config.use_ik_target:
                     displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                     target_qpos[env.ref_joint_pos_indexes] += displacement
@@ -419,10 +448,10 @@ class PlannerRolloutRunner(object):
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
                 else:
-                    target_cart = env._get_pos('fingertip') + ac['cart']
-                    target_quat = env._get_quat('fingertip') + ac['quat']
+                    target_cart = np.clip(env.sim.data.get_site_xpos('grip_site') + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                    target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat('grip_site'))+ config.action_range * ac['quat'], -1., 1.)
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
-                    result = qpos_from_site_pose(ik_env, 'fingertip', target_pos=target_cart, target_quat=target_quat,
+                    result = qpos_from_site_pose(ik_env, 'grip_site', target_pos=target_cart, target_quat=target_quat,
                                   joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
 
@@ -452,7 +481,11 @@ class PlannerRolloutRunner(object):
                         ll_ob = ob.copy()
                         converted_ac = env.form_action(next_qpos)
                         if i == len(traj)-1:
-                            converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
+                            if not config.use_ik_target:
+                                converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['default'][len(env.ref_joint_pos_indexes):]
+                            else:
+                                if 'gripper' in ac.keys():
+                                    converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                         ob, reward, done, info = env.step(converted_ac, is_planner=True)
                         meta_rew += reward
                         ep_len += 1
@@ -466,7 +499,7 @@ class PlannerRolloutRunner(object):
                             if not config.use_ik_target:
                                 frame_info['ac'] = ac['default']
                             else:
-                                frame_info['cart'] = ac['cart']
+                                frame_info['cart'] = ac['default']
                                 frame_info['quat'] = ac['quat']
                             frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
@@ -506,12 +539,19 @@ class PlannerRolloutRunner(object):
                     ep_rew_with_penalty += reward
                     meta_len += 1
                     reward_info.add(info)
+
+                    contact_pairs = []
+                    for n in range(env.sim.data.ncon):
+                        con = env.sim.data.contact[n]
+                        contact_pairs.append((con.geom1, con.geom2))
+
                     if record:
                         frame_info = info.copy()
                         frame_info['states'] = 'Invalid states'
                         frame_info['target_qpos'] = target_qpos
+                        frame_info['contact_pairs'] = contact_pairs
                         if config.use_ik_target:
-                            frame_info['cart'] = ac['cart']
+                            frame_info['cart'] = ac['default']
                             frame_info['quat'] = ac['quat']
                         frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                         curr_qpos = env.sim.data.qpos.copy()
@@ -524,10 +564,16 @@ class PlannerRolloutRunner(object):
             else:
                 ll_ob = ob.copy()
                 counter['rl'] += 1
-                rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                if not config.extended_action:
-                    rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
-                ob, reward, done, info = env.step(rescaled_ac)
+                if not config.use_ik_target:
+                    rescaled_ac = OrderedDict([('default', ac['default'].copy())])
+                    if not config.extended_action:
+                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                    ob, reward, done, info = env.step(rescaled_ac)
+                else:
+                    converted_ac = OrderedDict([('default', displacement)])
+                    if 'gripper' in ac.keys():
+                        converted_ac['gripper'] = np.array(['gripper'])
+                    ob, reward, done, info = env.step(rescaled_ac)
                 ep_len += 1
                 ep_rew += reward
                 ep_rew_with_penalty += reward

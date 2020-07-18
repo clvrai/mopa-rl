@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.sparse.no_manipu_obs.v2_2"
+prefix="SAC.PLANNER.AUGMENTED.IK.reuse"
 gpu=$1
 seed=$2
 algo='sac'
@@ -8,7 +8,7 @@ rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 env="sawyer-push-obstacle-v1"
-max_episode_step="250"
+max_episode_step="400"
 debug="False"
 batch_size="256"
 reward_type='sparse'
@@ -20,11 +20,8 @@ planner_integration="True"
 allow_manipulation_collision="True"
 alpha="1.0"
 reuse_data_type="random"
-action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+action_range="0.3"
 invalid_planner_rew="-0.0"
-extended_action="False"
 stochastic_eval="True"
 find_collision_free="True"
 use_double_planner="False"
@@ -32,16 +29,16 @@ vis_replay="True"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="piecewise"
 use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='30'
-min_reuse_span='10'
+max_reuse_data='15'
+min_reuse_span='20'
 reward_scale="0.2"
+use_ik_target="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -65,10 +62,7 @@ python -m rl.main \
     --alpha $alpha \
     --reuse_data_type $reuse_data_type \
     --action_range $action_range \
-    --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
-    --extended_action $extended_action \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
@@ -77,7 +71,6 @@ python -m rl.main \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
-    --ac_space_type $ac_space_type \
     --use_discount_meta $use_discount_meta \
     --step_size $step_size \
     --success_reward $success_reward \
@@ -85,4 +78,5 @@ python -m rl.main \
     --discount_factor $discount_factor  \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
-    --reward_scale $reward_scale
+    --reward_scale $reward_scale \
+    --use_ik_target $use_ik_target
