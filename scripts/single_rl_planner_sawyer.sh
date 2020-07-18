@@ -1,13 +1,13 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range0.5.scale.0.2.reuse.sparse.v2"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.sparse.no_manipu_obs.v2_2"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-lift-obstacle-v0"
+env="sawyer-push-obstacle-v1"
 max_episode_step="250"
 debug="False"
 batch_size="256"
@@ -20,9 +20,9 @@ planner_integration="True"
 allow_manipulation_collision="True"
 alpha="1.0"
 reuse_data_type="random"
-action_range="0.5"
-ac_rl_minimum="-0.3"
-ac_rl_maximum="0.3"
+action_range="1.0"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.0"
 extended_action="False"
 stochastic_eval="True"
@@ -39,8 +39,8 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='15'
-min_reuse_span='20'
+max_reuse_data='30'
+min_reuse_span='10'
 reward_scale="0.2"
 
 python -m rl.main \

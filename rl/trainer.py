@@ -67,11 +67,14 @@ class Trainer(object):
         joint_space = self._env.joint_space
 
         allowed_collsion_pairs = []
-        geom_ids = self._env.agent_geom_ids + self._env.static_geom_ids
-        if config.allow_manipulation_collision:
-            for manipulation_geom_id in self._env.manipulation_geom_ids:
-                for geom_id in geom_ids:
+        # geom_ids = self._env.agent_geom_ids + self._env.static_geom_ids
+        for manipulation_geom_id in self._env.manipulation_geom_ids:
+            if config.allow_manipulation_collision:
+                for geom_id in self._env.agent_geom_ids:
                     allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
+            for geom_id in self._env.static_geom_ids:
+                allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
+
 
         ignored_contact_geom_ids = []
         ignored_contact_geom_ids.extend(allowed_collsion_pairs)

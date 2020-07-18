@@ -149,20 +149,22 @@ class PlannerRolloutRunner(object):
                 if config.extended_action:
                     is_planner = bool(ac['ac_type'][0])
 
-                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or config.use_ik_target:
+                if config.use_ik_target:
+                    target_cart = np.clip(env.sim.data.get_site_xpos('grip_site') + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                    target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat('grip_site'))+ config.action_range * ac['quat'], -1., 1.)
+                    ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                    result = qpos_from_site_pose(ik_env, 'grip_site', target_pos=target_cart, target_quat=target_quat,
+                                  joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                    target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                    displacement = pi.invert_displacement(target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])
+
+                if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                     if not config.use_ik_target:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         target_qpos[env.ref_joint_pos_indexes] += displacement
                         tmp_target_qpos = target_qpos.copy()
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
-                    else:
-                        target_cart = np.clip(env.sim.data.get_site_xpos('grip_site') + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
-                        target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat('grip_site'))+ config.action_range * ac['quat'], -1., 1.)
-                        ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
-                        result = qpos_from_site_pose(ik_env, 'grip_site', target_pos=target_cart, target_quat=target_quat,
-                                      joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
-                        target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
 
                     if config.find_collision_free and not pi.isValidState(target_qpos):
                         trial = 0
@@ -312,10 +314,16 @@ class PlannerRolloutRunner(object):
                     ll_ob = ob.copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
-                    rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                    if not config.extended_action:
-                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
-                    ob, reward, done, info = env.step(rescaled_ac)
+                    if not config.use_ik_target:
+                        rescaled_ac = OrderedDict([('default', ac['default'].copy())])
+                        if not config.extended_action:
+                            rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                        ob, reward, done, info = env.step(rescaled_ac)
+                    else:
+                        converted_ac = OrderedDict([('default', displacement)])
+                        if 'gripper' in ac.keys():
+                            converted_ac['gripper'] = np.array(['gripper'])
+                        ob, reward, done, info = env.step(rescaled_ac)
                     rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     ep_len += 1
                     step += 1
@@ -422,7 +430,17 @@ class PlannerRolloutRunner(object):
             target_qpos = env.sim.data.qpos.copy()
             if config.extended_action:
                 is_planner = bool(ac['ac_type'][0])
-            if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or config.use_ik_target:
+
+            if config.use_ik_target:
+                target_cart = np.clip(env.sim.data.get_site_xpos('grip_site') + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat('grip_site'))+ config.action_range * ac['quat'], -1., 1.)
+                ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                result = qpos_from_site_pose(ik_env, 'grip_site', target_pos=target_cart, target_quat=target_quat,
+                              joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                displacement = pi.invert_displacement(target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])
+
+            if (not config.extended_action and pi.is_planner_ac(ac)) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                 if not config.use_ik_target:
                     displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                     target_qpos[env.ref_joint_pos_indexes] += displacement
@@ -546,10 +564,16 @@ class PlannerRolloutRunner(object):
             else:
                 ll_ob = ob.copy()
                 counter['rl'] += 1
-                rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                if not config.extended_action:
-                    rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
-                ob, reward, done, info = env.step(rescaled_ac)
+                if not config.use_ik_target:
+                    rescaled_ac = OrderedDict([('default', ac['default'].copy())])
+                    if not config.extended_action:
+                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                    ob, reward, done, info = env.step(rescaled_ac)
+                else:
+                    converted_ac = OrderedDict([('default', displacement)])
+                    if 'gripper' in ac.keys():
+                        converted_ac['gripper'] = np.array(['gripper'])
+                    ob, reward, done, info = env.step(rescaled_ac)
                 ep_len += 1
                 ep_rew += reward
                 ep_rew_with_penalty += reward
