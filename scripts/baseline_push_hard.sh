@@ -9,7 +9,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.IK.debug"
+prefix="BASELINE.SAC.IK"
 max_global_step="60000000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
@@ -17,13 +17,13 @@ rl_hid_size="256"
 max_episode_step="400"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="True"
+debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
-log_root_dir="./logs"
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_freq='1000'
 reward_scale='10.'
 alpha='1.0'
@@ -60,4 +60,5 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --success_reward $success_reward \
     --alpha $alpha \
-    --use_ik_target $use_ik_target
+    --use_ik_target $use_ik_target \
+    --ckpt_interval $ckpt_interval
