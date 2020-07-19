@@ -2,14 +2,14 @@
 gpu=$1
 seed=$2
 algo='sac'
-evaluate_interval="100"
+evaluate_interval="9000"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.IK"
+prefix="BASELINE.SAC.IK.v4"
 max_global_step="60000000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu

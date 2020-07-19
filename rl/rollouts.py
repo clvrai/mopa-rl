@@ -132,7 +132,7 @@ class RolloutRunner(object):
 
                     if config.use_ik_target:
                         curr_qpos = env.sim.data.qpos.copy()
-                        target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + 0.05 * ac['default'], env.min_world_size, env.max_world_size)
+                        target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + 0.01 * ac['default'], env.min_world_size, env.max_world_size)
                         if len(env.min_world_size) == 2:
                             target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
 
@@ -240,7 +240,7 @@ class RolloutRunner(object):
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 if config.use_ik_target:
                     curr_qpos = env.sim.data.qpos.copy()
-                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + 0.05 * ac['default'], env.min_world_size, env.max_world_size)
+                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + 0.01 * ac['default'], env.min_world_size, env.max_world_size)
                     if len(env.min_world_size) == 2:
                         target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
 
