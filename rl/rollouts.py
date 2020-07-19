@@ -125,7 +125,24 @@ class RolloutRunner(object):
                             ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                    ob, reward, done, info = env.step(ac)
+
+                    if config.use_ik_target:
+                        target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target) + 0.01 * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                        if  'quat' in ac.keys():
+                            target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat(config.ik_target))+ 0.01 * ac['quat'], -1., 1.)
+                        else:
+                            target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                        ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                        result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
+                                      joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                        target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                        converted_ac = OrderedDict([('default', (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale)])
+                        if 'gripper' in ac.keys():
+                            converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
+
+                        ob, reward, done, info = env.step(converted_ac)
+                    else:
+                        ob, reward, done, info = env.step(ac)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     step += 1
@@ -209,7 +226,23 @@ class RolloutRunner(object):
                         ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                ob, reward, done, info = env.step(ac)
+                if config.use_ik_target:
+                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target) + 0.01 * ac['default'], [-1, -1, 0], [1., 1., 2.])
+                    if  'quat' in ac.keys():
+                        target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat(config.ik_target))+ 0.01 * ac['quat'], -1., 1.)
+                    else:
+                        target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                    ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                    result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
+                                  joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                    target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                    converted_ac = OrderedDict([('default', (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale)])
+                    if 'gripper' in ac.keys():
+                        converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
+
+                    ob, reward, done, info = env.step(converted_ac)
+                else:
+                    ob, reward, done, info = env.step(ac)
 
                 rollout.add({'done': done, 'rew': reward})
                 ep_len += 1

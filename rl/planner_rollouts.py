@@ -325,7 +325,7 @@ class PlannerRolloutRunner(object):
                         ob, reward, done, info = env.step(rescaled_ac)
                     else:
                         if 'gripper' in ac.keys():
-                            displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
+                            displacement['default'] = np.concatenate((displacement['default']/config.ac_rl_maximum, ac['gripper']))
                         ob, reward, done, info = env.step(displacement)
                     rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     ep_len += 1
@@ -572,7 +572,7 @@ class PlannerRolloutRunner(object):
                 else:
                     converted_ac = OrderedDict([('default', displacement)])
                     if 'gripper' in ac.keys():
-                        displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
+                        displacement['default'] = np.concatenate((displacement['default']/config.ac_rl_maximum, ac['gripper']))
                     ob, reward, done, info = env.step(displacement)
                 ep_len += 1
                 ep_rew += reward
