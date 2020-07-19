@@ -138,13 +138,6 @@ class RolloutRunner(object):
 
                         if 'quat' in ac.keys():
                             target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
-                            # target_rotation = quat2mat(target_quat)
-                            # target_rotation = target_rotation.dot(
-                            #     rotation_matrix(angle=-np.pi / 2, direction=[0., 0., 1.], point=None)[
-                            #         :3, :3
-                            #     ]
-                            # )
-                            # target_quat = mat2quat(target_rotation)
                         else:
                             target_quat = None
                         ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
