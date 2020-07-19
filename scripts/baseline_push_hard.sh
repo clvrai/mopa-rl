@@ -30,6 +30,7 @@ alpha='1.0'
 vis_replay="True"
 success_reward='150.'
 use_ik_target="True"
+action_range="0.01"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -61,4 +62,5 @@ python -m rl.main \
     --success_reward $success_reward \
     --alpha $alpha \
     --use_ik_target $use_ik_target \
-    --ckpt_interval $ckpt_interval
+    --ckpt_interval $ckpt_interval \
+    --action_range $action_range
