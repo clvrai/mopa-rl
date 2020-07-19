@@ -12,14 +12,6 @@
     <body name="table" pos="0.9 0.0 0.8">
         <geom pos="0 0 0" size="0.4 0.4 0.02" type="box" friction="1 0.005 0.0001"/>
         <geom pos="0 0 0" material="light-wood" size="0.4 0.4 0.02" type="box" conaffinity="0" contype="0" group="1"/>
-        <!-- <geom pos="0 0.4 0.05" size="0.4 0.01 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/> -->
-        <!-- <geom pos="0 0.4 0.05" size="0.4 0.01 0.05" type="box" conaffinity="0" contype="0" group="1" material="light&#45;wood"/> -->
-        <!-- <geom pos="0 &#45;0.4 0.05" size="0.4 0.01 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/> -->
-        <!-- <geom pos="0 &#45;0.4 0.05" size="0.4 0.01 0.05" type="box" conaffinity="0" contype="0" group="1" material="light&#45;wood"/> -->
-        <!-- <geom pos="0.4 0 0.05" size="0.01 0.4 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/> -->
-        <!-- <geom pos="0.4 0 0.05" size="0.01 0.4 0.05" type="box" conaffinity="0" contype="0" group="1" material="light&#45;wood"/> -->
-        <!-- <geom pos="&#45;0.4 0 0.05" size="0.01 0.4 0.05" type="box" friction="1 0.005 0.0001" rgba="0 0 1 1"/> -->
-        <!-- <geom pos="&#45;0.4 0 0.05" size="0.01 0.4 0.05" type="box" conaffinity="0" contype="0" group="1" material="light&#45;wood"/> -->
         <geom pos="0.38 0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
         <geom pos="0.38 0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
         <geom pos="-0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
@@ -30,17 +22,15 @@
         <geom pos="0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
     </body>
 
-    <body name="bin1" pos="0.9 0.0 1.0" quat="0 1 0 1">
-      <!-- <geom friction="1 0.005 0.0001" pos="0 0 0" size="0.2 0.2 0.02" type="box" /> -->
-      <!-- <geom conaffinity="0" contype="0" group="1" material="light&#45;wood" pos="0 0 0" size="0.2 0.2 0.02" type="box" /> -->
-        <geom friction="1 0.005 0.0001" pos="0 0.15 0.05" rgba="0 0 1 1" size="0.16 0.01 0.2" type="box" />
-        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 0.15 0.05" size="0.16 0.01 0.2" type="box" />
-        <geom friction="1 0.005 0.0001" pos="0 -0.15 0.05" rgba="0 0 1 1" size="0.16 0.01 0.2" type="box" />
-        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 -0.15 0.05" size="0.16 0.01 0.2" type="box" />
-        <geom friction="1 0.005 0.0001" pos="0.15 0 0.05" rgba="0 0 1 1" size="0.01 0.15 0.2" type="box" />
-        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0.15 0 0.05" size="0.01 0.15 0.2" type="box" />
-        <geom friction="1 0.005 0.0001" pos="-0.15 0 0.05" rgba="0 0 1 1" size="0.01 0.15 0.2" type="box" />
-        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="-0.15 0 0.05" size="0.01 0.15 0.2" type="box" />
+    <body name="bin1" pos="0.9 0.0 1.01" quat="0 1 0 1">
+        <geom friction="1 0.005 0.0001" pos="0 0.15 0.05" rgba="0 0 1 1" size="0.18 0.01 0.2" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 0.15 0.05" size="0.18 0.01 0.2" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0 -0.15 0.05" rgba="0 0 1 1" size="0.18 0.01 0.2" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 -0.15 0.05" size="0.18 0.01 0.2" type="box" />
+        <geom friction="1 0.005 0.0001" pos="0.17 0 0.05" rgba="0 0 1 1" size="0.01 0.15 0.2" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0.17 0 0.05" size="0.01 0.15 0.2" type="box" />
+        <geom friction="1 0.005 0.0001" pos="-0.17 0 0.05" rgba="0 0 1 1" size="0.01 0.15 0.2" type="box" />
+        <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="-0.17 0 0.05" size="0.01 0.15 0.2" type="box" />
     </body>
 
         <body name="cube" pos="0.8 -0.023869616735809365 0.9">
@@ -49,7 +39,7 @@
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
             <joint name="cube" type="free" />
         </body>
-        <body name="target" pos="1.1 0.0 0.9">
+        <body name="target" pos="1.1 0.0 0.85">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
             <geom conaffinity="0" contype="0" group="0" name="target" pos="0 0 0" rgba="0.2 0.8 0.2 1" size=".030 .001 .001" type="cylinder"/>
