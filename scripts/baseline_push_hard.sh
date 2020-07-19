@@ -9,7 +9,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.SPARSE.v2"
+prefix="BASELINE.SAC.IK.v4"
 max_global_step="60000000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
@@ -29,6 +29,8 @@ reward_scale='10.'
 alpha='1.0'
 vis_replay="True"
 success_reward='150.'
+use_ik_target="True"
+action_range="0.01"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -58,4 +60,7 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
     --success_reward $success_reward \
-    --alpha $alpha
+    --alpha $alpha \
+    --use_ik_target $use_ik_target \
+    --ckpt_interval $ckpt_interval \
+    --action_range $action_range

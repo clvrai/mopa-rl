@@ -42,6 +42,8 @@ class PusherObstacleHardV3Env(BaseEnv):
             self._primitive_skills = ['reach', 'push']
         self._num_primitives = len(self._primitive_skills)
         self._ac_scale = 0.1
+        self.max_world_size = [0.41, 0.41]
+        self.min_world_size = [-0.41, -0.41]
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
@@ -241,6 +243,11 @@ class PusherObstacleHardV3Env(BaseEnv):
 
         if not is_planner or self._prev_state is None:
             self._prev_state = self.get_joint_positions
+
+        if is_planner:
+            rescaled_ac = np.clip(action, -self._ac_scale, self._ac_scale)
+        else:
+            rescaled_ac = np.clip(action * self._ac_scale, -self._ac_scale, self._ac_scale)
 
         if not is_planner:
             desired_state = self._prev_state + self._ac_scale * action # except for gripper action

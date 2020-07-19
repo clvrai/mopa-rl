@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.IK.reuse.v2"
+prefix="SAC.PLANNER.AUGMENTED.IK.reuse.v2.debug"
 gpu=$1
 seed=$2
 algo='sac'
@@ -9,7 +9,7 @@ num_batches="1"
 log_interval="1000"
 env="sawyer-lift-obstacle-v0"
 max_episode_step="250"
-debug="False"
+debug="True"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
@@ -20,7 +20,7 @@ planner_integration="True"
 allow_manipulation_collision="True"
 alpha="1.0"
 reuse_data_type="random"
-action_range="0.2"
+action_range="0.1"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
