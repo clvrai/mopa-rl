@@ -4,8 +4,8 @@ seed=$2
 
 algo='sac'
 rollout_length="10000"
-# evaluate_interval="10000"
-evaluate_interval="100"
+evaluate_interval="10000"
+# evaluate_interval="100"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
