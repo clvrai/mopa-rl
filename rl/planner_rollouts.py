@@ -9,7 +9,7 @@ from gym import spaces
 from collections import OrderedDict
 from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 from util.logger import logger
-from util.env import joint_convert, mat2quat
+from util.env import joint_convert, mat2quat, quat_mul
 from util.gym import action_size
 from util.info import Info
 import line_profiler
@@ -152,7 +152,7 @@ class PlannerRolloutRunner(object):
                 if config.use_ik_target:
                     target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target) + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
                     if  'quat' in ac.keys():
-                        target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat(config.ik_target))+ config.action_range * ac['quat'], -1., 1.)
+                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target))), ac['quat']))
                     else:
                         target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
@@ -437,7 +437,7 @@ class PlannerRolloutRunner(object):
             if config.use_ik_target:
                 target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target) + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
                 if  'quat' in ac.keys():
-                    target_quat = np.clip(mat2quat(env.sim.data.get_site_xmat(config.ik_target))+ config.action_range * ac['quat'], -1., 1.)
+                    target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target))), ac['quat']))
                 else:
                     target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
                 ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
