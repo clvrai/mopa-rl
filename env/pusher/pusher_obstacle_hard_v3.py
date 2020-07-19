@@ -247,7 +247,7 @@ class PusherObstacleHardV3Env(BaseEnv):
         if is_planner:
             rescaled_ac = np.clip(action, -self._ac_scale, self._ac_scale)
         else:
-            rescaled_ac = np.clip(action * self._ac_scale, -self._ac_sacle, self._ac_scale)
+            rescaled_ac = np.clip(action * self._ac_scale, -self._ac_scale, self._ac_scale)
 
         if not is_planner:
             desired_state = self._prev_state + self._ac_scale * action # except for gripper action
