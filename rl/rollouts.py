@@ -137,7 +137,7 @@ class RolloutRunner(object):
                             target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
 
                         if 'quat' in ac.keys():
-                            target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'])
+                            target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
                         else:
                             target_quat = None
                         ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
@@ -245,7 +245,7 @@ class RolloutRunner(object):
                         target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
 
                     if 'quat' in ac.keys():
-                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'])
+                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
                     else:
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
