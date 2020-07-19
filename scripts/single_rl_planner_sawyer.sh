@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.8.ac_range1.0.scale0.1.sparse.v12"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.scale0.2.sparse.no_manipu.no.col.v12"
 gpu=$1
 seed=$2
 algo='sac'
@@ -26,7 +26,7 @@ ac_rl_maximum="0.8"
 invalid_planner_rew="-0.0"
 extended_action="False"
 stochastic_eval="True"
-find_collision_free="True"
+find_collision_free="False"
 use_double_planner="False"
 vis_replay="True"
 task_level='easy'
@@ -41,8 +41,7 @@ add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='15'
 min_reuse_span='20'
-reward_scale="0.1"
-timelimit="1.5"
+reward_scale="0.2"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
