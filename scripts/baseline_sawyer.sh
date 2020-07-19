@@ -4,21 +4,22 @@ seed=$2
 
 algo='sac'
 rollout_length="10000"
-evaluate_interval="10000"
+# evaluate_interval="10000"
+evaluate_interval="100"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.IK.v3"
+prefix="BASELINE.IK.v3.debug"
 max_global_step="60000000"
-env="sawyer-peg-insertion-obstacle-v2"
+env="sawyer-lift-obstacle-v0"
 gpu=$gpu
 max_episode_step="250"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-debug="False"
+debug="True"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
@@ -38,6 +39,7 @@ success_reward='150.'
 reward_scale="10."
 use_ik_target="True"
 ik_target="grip_site"
+action_range="0.01"
 # has_terminal='True'
 # max_grad_norm='0.5'
 
@@ -77,5 +79,6 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --use_ik_target $use_ik_target \
     --ckpt_interval $ckpt_interval \
-    --ik_target $ik_target
+    --ik_target $ik_target \
+    --action_range $action_range
     # --has_terminal $has_terminal \

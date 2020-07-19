@@ -154,7 +154,7 @@ class PlannerRolloutRunner(object):
                     if len(env.min_world_size) == 2:
                         target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
                     if 'quat' in ac.keys():
-                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
+                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), 0.001*ac['quat'].astype(np.float64))
                     else:
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
@@ -164,8 +164,6 @@ class PlannerRolloutRunner(object):
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
                     # inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
-
-                if (not config.extended_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                     if not config.use_ik_target:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         target_qpos[env.ref_joint_pos_indexes] += displacement

@@ -278,56 +278,6 @@ def mat2euler(rmat, axes="sxyz"):
         firstaxis, parity, repetition, frame = _AXES2TUPLE[axes.lower()]
     except (AttributeError, KeyError):
         firstaxis, parity, repetition, frame = axes
-
-    i = firstaxis
-    j = _NEXT_AXIS[i + parity]
-    k = _NEXT_AXIS[i - parity + 1]
-
-    M = np.array(rmat, dtype=np.float32, copy=False)[:3, :3]
-    if repetition:
-        sy = math.sqrt(M[i, j] * M[i, j] + M[i, k] * M[i, k])
-        if sy > EPS:
-            ax = math.atan2(M[i, j], M[i, k])
-            ay = math.atan2(sy, M[i, i])
-            az = math.atan2(M[j, i], -M[k, i])
-        else:
-            ax = math.atan2(-M[j, k], M[j, j])
-            ay = math.atan2(sy, M[i, i])
-            az = 0.0
-    else:
-        cy = math.sqrt(M[i, i] * M[i, i] + M[j, i] * M[j, i])
-        if cy > EPS:
-            ax = math.atan2(M[k, j], M[k, k])
-            ay = math.atan2(-M[k, i], cy)
-            az = math.atan2(M[j, i], M[i, i])
-        else:
-            ax = math.atan2(-M[j, k], M[j, j])
-            ay = math.atan2(-M[k, i], cy)
-            az = 0.0
-
-    if parity:
-        ax, ay, az = -ax, -ay, -az
-    if frame:
-        ax, az = az, ax
-    return vec((ax, ay, az))
-
-
-def pose2mat(pose):
-    """
-    Converts pose to homogeneous matrix.
-    Args:
-        pose: a (pos, orn) tuple where pos is vec3 float cartesian, and
-            orn is vec4 float quaternion.
-    Returns:
-        4x4 homogeneous matrix
-    """
-    homo_pose_mat = np.zeros((4, 4), dtype=np.float32)
-    homo_pose_mat[:3, :3] = quat2mat(pose[1])
-    homo_pose_mat[:3, 3] = np.array(pose[0], dtype=np.float32)
-    homo_pose_mat[3, 3] = 1.
-    return homo_pose_mat
-
-
 def quat2mat(quaternion):
     """
     Converts given quaternion (x, y, z, w) to matrix.

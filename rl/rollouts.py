@@ -8,7 +8,7 @@ import gym
 from collections import OrderedDict
 from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 from util.logger import logger
-from util.env import joint_convert, mat2quat, quat_mul
+from util.env import joint_convert, mat2quat, quat_mul, rotation_matrix, quat2mat
 from util.gym import action_size
 from util.info import Info
 
@@ -132,12 +132,19 @@ class RolloutRunner(object):
 
                     if config.use_ik_target:
                         curr_qpos = env.sim.data.qpos.copy()
-                        target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + 0.05 * ac['default'], env.min_world_size, env.max_world_size)
+                        target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
                         if len(env.min_world_size) == 2:
                             target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
 
                         if 'quat' in ac.keys():
                             target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
+                            # target_rotation = quat2mat(target_quat)
+                            # target_rotation = target_rotation.dot(
+                            #     rotation_matrix(angle=-np.pi / 2, direction=[0., 0., 1.], point=None)[
+                            #         :3, :3
+                            #     ]
+                            # )
+                            # target_quat = mat2quat(target_rotation)
                         else:
                             target_quat = None
                         ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
@@ -145,10 +152,10 @@ class RolloutRunner(object):
                                       joint_names=env.robot_joints, max_steps=1000, tol=1e-2)
                         target_qpos = env.sim.data.qpos.copy()
                         target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
-                        converted_ac = OrderedDict([('default', (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale)])
+                        pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
                         if 'gripper' in ac.keys():
-                            converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
-
+                            pre_converted_ac = np.concatenate((pre_converted_ac, ac['gripper']))
+                        converted_ac = OrderedDict([('default', pre_converted_ac)])
                         ob, reward, done, info = env.step(converted_ac)
                     else:
                         ob, reward, done, info = env.step(ac)
@@ -240,7 +247,7 @@ class RolloutRunner(object):
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 if config.use_ik_target:
                     curr_qpos = env.sim.data.qpos.copy()
-                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + 0.05 * ac['default'], env.min_world_size, env.max_world_size)
+                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
                     if len(env.min_world_size) == 2:
                         target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
 
@@ -253,9 +260,10 @@ class RolloutRunner(object):
                                   joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
                     target_qpos = env.sim.data.qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
-                    converted_ac = OrderedDict([('default', (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale)])
+                    pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
                     if 'gripper' in ac.keys():
-                        converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
+                        pre_converted_ac = np.concatenate((pre_converted_ac, ac['gripper']))
+                    converted_ac = OrderedDict([('default', pre_converted_ac)])
 
                     ob, reward, done, info = env.step(converted_ac)
                 else:

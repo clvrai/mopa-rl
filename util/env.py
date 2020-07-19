@@ -6,8 +6,10 @@ from numbers import Number
 import numpy as np
 from gym.spaces import Box
 import mujoco_py
+import math
 
 
+EPS = np.finfo(float).eps * 4.
 ENV_ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 
 def joint_convert(angle):
@@ -22,6 +24,53 @@ def joint_convert(angle):
         else:
             return angle % -3.14 + 3.14
 
+
+def rotation_matrix(angle, direction, point=None):
+    """
+    Returns matrix to rotate about axis defined by point and direction.
+    Examples:
+        >>> angle = (random.random() - 0.5) * (2*math.pi)
+        >>> direc = numpy.random.random(3) - 0.5
+        >>> point = numpy.random.random(3) - 0.5
+        >>> R0 = rotation_matrix(angle, direc, point)
+        >>> R1 = rotation_matrix(angle-2*math.pi, direc, point)
+        >>> is_same_transform(R0, R1)
+        True
+        >>> R0 = rotation_matrix(angle, direc, point)
+        >>> R1 = rotation_matrix(-angle, -direc, point)
+        >>> is_same_transform(R0, R1)
+        True
+        >>> I = numpy.identity(4, numpy.float32)
+        >>> numpy.allclose(I, rotation_matrix(math.pi*2, direc))
+        True
+        >>> numpy.allclose(2., numpy.trace(rotation_matrix(math.pi/2,
+        ...                                                direc, point)))
+        True
+    """
+    sina = math.sin(angle)
+    cosa = math.cos(angle)
+    direction = unit_vector(direction[:3])
+    # rotation matrix around unt vector
+    R = np.array(
+        ((cosa, 0.0, 0.0), (0.0, cosa, 0.0), (0.0, 0.0, cosa)), dtype=np.float32
+    )
+    R += np.outer(direction, direction) * (1.0 - cosa)
+    direction *= sina
+    R += np.array(
+        (
+            (0.0, -direction[2], direction[1]),
+            (direction[2], 0.0, -direction[0]),
+            (-direction[1], direction[0], 0.0),
+        ),
+        dtype=np.float32,
+    )
+    M = np.identity(4)
+    M[:3, :3] = R
+    if point is not None:
+        # rotation not around origin
+        point = np.array(point[:3], dtype=np.float32, copy=False)
+        M[:3, 3] = point - np.dot(R, point)
+    return M
 
 
 
@@ -231,3 +280,68 @@ def mat2quat(rmat, precise=False):
     if q[0] < 0.0:
         np.negative(q, q)
     return q[[1, 2, 3, 0]]
+
+def quat2mat(quaternion):
+    """
+    Converts given quaternion (x, y, z, w) to matrix.
+    Args:
+        quaternion: vec4 float angles
+    Returns:
+        3x3 rotation matrix
+    """
+    q = np.array(quaternion, dtype=np.float32, copy=True)[[3, 0, 1, 2]]
+    n = np.dot(q, q)
+    if n < EPS:
+        return np.identity(3)
+    q *= math.sqrt(2.0 / n)
+    q = np.outer(q, q)
+    return np.array(
+        [
+            [1.0 - q[2, 2] - q[3, 3], q[1, 2] - q[3, 0], q[1, 3] + q[2, 0]],
+            [q[1, 2] + q[3, 0], 1.0 - q[1, 1] - q[3, 3], q[2, 3] - q[1, 0]],
+            [q[1, 3] - q[2, 0], q[2, 3] + q[1, 0], 1.0 - q[1, 1] - q[2, 2]],
+        ]
+    )
+
+def unit_vector(data, axis=None, out=None):
+    """
+    Returns ndarray normalized by length, i.e. eucledian norm, along axis.
+    Examples:
+        >>> v0 = numpy.random.random(3)
+        >>> v1 = unit_vector(v0)
+        >>> numpy.allclose(v1, v0 / numpy.linalg.norm(v0))
+        True
+        >>> v0 = numpy.random.rand(5, 4, 3)
+        >>> v1 = unit_vector(v0, axis=-1)
+        >>> v2 = v0 / numpy.expand_dims(numpy.sqrt(numpy.sum(v0*v0, axis=2)), 2)
+        >>> numpy.allclose(v1, v2)
+        True
+        >>> v1 = unit_vector(v0, axis=1)
+        >>> v2 = v0 / numpy.expand_dims(numpy.sqrt(numpy.sum(v0*v0, axis=1)), 1)
+        >>> numpy.allclose(v1, v2)
+        True
+        >>> v1 = numpy.empty((5, 4, 3), dtype=numpy.float32)
+        >>> unit_vector(v0, axis=1, out=v1)
+        >>> numpy.allclose(v1, v2)
+        True
+        >>> list(unit_vector([]))
+        []
+        >>> list(unit_vector([1.0]))
+        [1.0]
+    """
+    if out is None:
+        data = np.array(data, dtype=np.float32, copy=True)
+        if data.ndim == 1:
+            data /= math.sqrt(np.dot(data, data))
+            return data
+    else:
+        if out is not data:
+            out[:] = np.array(data, copy=False)
+        data = out
+    length = np.atleast_1d(np.sum(data * data, axis))
+    np.sqrt(length, length)
+    if axis is not None:
+        length = np.expand_dims(length, axis)
+    data /= length
+    if out is None:
+        return data
