@@ -2,14 +2,14 @@
 gpu=$1
 seed=$2
 algo='sac'
-evaluate_interval="9000"
+evaluate_interval="100"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.SPARSE.v2"
+prefix="BASELINE.SAC.IK.debug"
 max_global_step="60000000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
@@ -17,18 +17,19 @@ rl_hid_size="256"
 max_episode_step="400"
 lr_actor="3e-4"
 lr_critic="3e-4"
-debug="False"
+debug="True"
 batch_size="256"
 reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
-# log_root_dir="./logs"
-log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_freq='1000'
 reward_scale='10.'
 alpha='1.0'
 vis_replay="True"
 success_reward='150.'
+use_ik_target="True"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -58,4 +59,5 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
     --success_reward $success_reward \
-    --alpha $alpha
+    --alpha $alpha \
+    --use_ik_target $use_ik_target

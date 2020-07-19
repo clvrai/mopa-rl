@@ -90,8 +90,11 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             break
         else:
             jac_pos = env.data.get_site_jacp(site).reshape((3, env.sim.model.nv))
-            jac_rot = env.data.get_site_jacr(site).reshape((3, env.sim.model.nv))
-            jac = np.concatenate((jac_pos, jac_rot))
+            if target_quat is not None:
+                jac_rot = env.data.get_site_jacr(site).reshape((3, env.sim.model.nv))
+                jac = np.concatenate((jac_pos, jac_rot))
+            else:
+                jac = jac_pos
             jac_joints = jac[:, dof_indices]
 
             # reg_strength later

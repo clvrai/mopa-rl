@@ -50,6 +50,8 @@ class SawyerEnv(BaseEnv):
         self._prev_state = None
         self._i_term = None
         self.reset_visualized_indicator()
+        self.min_world_size = [-1.2, -1.2, 0.]
+        self.max_world_size = [1.2, 1.2, 2.]
 
     @property
     def action_spec(self):

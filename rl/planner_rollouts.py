@@ -9,7 +9,7 @@ from gym import spaces
 from collections import OrderedDict
 from env.inverse_kinematics import qpos_from_site_pose_sampling, qpos_from_site_pose
 from util.logger import logger
-from util.env import joint_convert, mat2quat, quat_mul
+from util.env import joint_convert, mat2quat, quat_mul, quat_inv
 from util.gym import action_size
 from util.info import Info
 import line_profiler
@@ -150,16 +150,20 @@ class PlannerRolloutRunner(object):
                     is_planner = bool(ac['ac_type'][0])
 
                 if config.use_ik_target:
-                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target) + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
-                    if  'quat' in ac.keys():
-                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target))), ac['quat']))
+                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
+                    if len(env.min_world_size) == 2:
+                        target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
+                    if 'quat' in ac.keys():
+                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
                     else:
-                        target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                        target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                     result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
                                   joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                    target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
+                    # inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
 
                 if (not config.extended_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                     if not config.use_ik_target:
@@ -260,7 +264,7 @@ class PlannerRolloutRunner(object):
                                 else:
                                     inter_subgoal_ac = OrderedDict([('default', (cart_list[goal]-cart_list[start])/config.action_range)])
                                     if 'quat' in ac.keys():
-                                        inter_subgoal_ac['quat'] = (quat_list[goal]-quat_list[start])/config.action_range
+                                        inter_subgoal_ac['quat'] = quat_mul(quat_inv(quat_list[start]), quat_list[goal])
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     if config.extended_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
@@ -435,11 +439,13 @@ class PlannerRolloutRunner(object):
                 is_planner = bool(ac['ac_type'][0])
 
             if config.use_ik_target:
-                target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target) + config.action_range * ac['default'], [-1, -1, 0], [1., 1., 2.])
-                if  'quat' in ac.keys():
-                    target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target))), ac['quat']))
+                target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
+                if len(env.min_world_size) == 2:
+                    target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
+                if 'quat' in ac.keys():
+                    target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
                 else:
-                    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                    target_quat = None
                 ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                 result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
                               joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
