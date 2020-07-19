@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.sparse.no_manipu_obs.v2_2"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.8.ac_range1.0.scale0.1.sparse.v12"
 gpu=$1
 seed=$2
 algo='sac'
@@ -8,21 +8,21 @@ rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 env="sawyer-push-obstacle-v1"
-max_episode_step="250"
+max_episode_step="400"
 debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+#log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
-allow_manipulation_collision="True"
+allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.8"
+ac_rl_maximum="0.8"
 invalid_planner_rew="-0.0"
 extended_action="False"
 stochastic_eval="True"
@@ -39,9 +39,10 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='30'
-min_reuse_span='10'
-reward_scale="0.2"
+max_reuse_data='15'
+min_reuse_span='20'
+reward_scale="0.1"
+timelimit="1.5"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -85,4 +86,5 @@ python -m rl.main \
     --discount_factor $discount_factor  \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
-    --reward_scale $reward_scale
+    --reward_scale $reward_scale \
+    --timelimit $timelimit
