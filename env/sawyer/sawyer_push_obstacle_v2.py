@@ -28,9 +28,9 @@ class SawyerPushObstacleV2Env(SawyerEnv):
         self.cube_geom_id = self.sim.model.geom_name2id("cube")
         self.cube_site_id = self.sim.model.site_name2id("cube")
 
-    # @property
-    # def init_qpos(self):
-    #     return np.array([0., 1.05, 0.213, 0.0609, 0., -1.28, 0.613])
+    @property
+    def init_qpos(self):
+        return np.array([0.000457, -0.114, 0.0321, -0.00712, 0.0303, -0.0302, -0.00994])
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
