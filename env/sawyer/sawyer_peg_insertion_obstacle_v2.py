@@ -86,7 +86,7 @@ class SawyerPegInsertionObstacleV2Env(SawyerEnv):
         if is_planner:
             rescaled_ac = np.clip(action[:self.robot_dof], -self._ac_scale, self._ac_scale)
         else:
-            rescaled_ac = action[:self.robot_dof] * self._ac_scale
+            rescaled_ac = np.clip(action[:self.robot_dof] * self._ac_scale, -self._ac_scale, self._ac_scale)
         desired_state = self._prev_state + rescaled_ac
 
         n_inner_loop = int(self._frame_dt/self.dt)

@@ -4,22 +4,22 @@ seed=$2
 
 algo='sac'
 rollout_length="10000"
-# evaluate_interval="10000"
-evaluate_interval="100"
+evaluate_interval="10000"
+# evaluate_interval="100"
 ckpt_interval='100000'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.IK.v3.debug"
+prefix="BASELINE.IK.v4"
 max_global_step="60000000"
-env="sawyer-lift-obstacle-v0"
+env="sawyer-peg-insertion-obstacle-v2"
 gpu=$gpu
 max_episode_step="250"
 entropy_loss_coef="1e-3"
 buffer_size="1000000"
-debug="True"
+debug="False"
 batch_size="256"
 clip_param="0.2"
 ctrl_reward='1e-2'
