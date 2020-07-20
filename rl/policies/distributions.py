@@ -145,7 +145,7 @@ class GumbelSoftmax(torch.distributions.RelaxedOneHotCategorical):
         if value.shape != self.logits.shape:
             value = F.one_hot(value.long(), self.logits.shape[-1]).float()
             assert value.shape == self.logits.shape
-        return - torch.sum(- value * F.log_softmax(self.logits, -1), -1)
+        return - torch.sum(- value * F.log_softmax(self.logits, -1), -1) * 10. #scaling
 
     def entropy(self):
         return self.base_dist._categorical.entropy()

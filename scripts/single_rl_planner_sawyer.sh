@@ -1,30 +1,30 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.scale0.2"
+prefix="SAC.PLANNER.AUGMENTED.discrete.ac_range0.5.scale0.2.v1"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-push-obstacle-v2"
+env="sawyer-lift-obstacle-v0"
 max_episode_step="250"
 debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-#log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="0.5"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+ac_rl_minimum="-0.0"
+ac_rl_maximum="0.0"
 invalid_planner_rew="-0.0"
-extended_action="False"
+extended_action="True"
 stochastic_eval="True"
 find_collision_free="True"
 use_double_planner="False"
@@ -32,7 +32,7 @@ vis_replay="True"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="piecewise"
+ac_space_type="normal"
 use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
@@ -42,6 +42,8 @@ discount_factor='0.99'
 max_reuse_data='15'
 min_reuse_span='20'
 reward_scale="0.2"
+log_indiv_entropy="True"
+evaluate_interval="10000"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -86,3 +88,5 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
+    --log_indiv_entropy $log_indiv_entropy \
+    --evaluate_interval $evaluate_interval
