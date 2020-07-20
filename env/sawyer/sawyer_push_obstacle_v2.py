@@ -7,10 +7,10 @@ from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 from env.robosuite.utils.transform_utils import *
 
-class SawyerPushObstacleV1Env(SawyerEnv):
+class SawyerPushObstacleV2Env(SawyerEnv):
     def __init__(self, **kwargs):
         kwargs['camera_name'] = 'frontview'
-        super().__init__("sawyer_push_obstacle_v1.xml", **kwargs)
+        super().__init__("sawyer_push_obstacle_v2.xml", **kwargs)
         self._get_reference()
 
     def _get_reference(self):
@@ -30,14 +30,14 @@ class SawyerPushObstacleV1Env(SawyerEnv):
 
     @property
     def init_qpos(self):
-        return np.array([0., 1.05, 0.213, 0.0609, 0., -1.28, 0.613])
+        return np.array([0.000457, -0.114, 0.0321, -0.00712, 0.0303, -0.0302, -0.00994])
 
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         # if self._kwargs['task_level'] == 'easy':
-        init_target_qpos = np.array([0.15, 0.1])
+        init_target_qpos = self.sim.data.qpos[self.ref_target_pos_indexes]
         init_target_qpos += np.random.randn(init_target_qpos.shape[0]) * 0.02
         # else:
         #     init_target_qpos = np.random.uniform(low=-3, high=3, size=2)
@@ -75,10 +75,10 @@ class SawyerPushObstacleV1Env(SawyerEnv):
             cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
             reward_push = 0.
             reward_reach = 0.
-            if gripper_to_cube < 0.2 and gripper_site_pos[2] > 0.8:
+            if gripper_to_cube < 0.1:
                 reward_reach += 0.1*(1-np.tanh(5*gripper_to_cube))
 
-            if cube_to_target < 0.3:
+            if cube_to_target < 0.1:
                 reward_push += 0.3*(1-np.tanh(5*cube_to_target))
             reward += reward_push + reward_reach
             info = dict(reward_reach=reward_reach, reward_push=reward_push)

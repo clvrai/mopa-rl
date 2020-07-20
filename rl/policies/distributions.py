@@ -43,6 +43,7 @@ normal_rsample = FixedNormal.rsample
 FixedNormal.rsample = lambda self: normal_rsample(self).float()
 
 
+
 def init(module, weight_init, bias_init, gain=1):
     weight_init(module.weight.data, gain=gain)
     bias_init(module.bias.data)
@@ -146,6 +147,9 @@ class GumbelSoftmax(torch.distributions.RelaxedOneHotCategorical):
             assert value.shape == self.logits.shape
         return - torch.sum(- value * F.log_softmax(self.logits, -1), -1)
 
+    def entropy(self):
+        return self.base_dist._categorical.entropy()
+
 
 FixedGumbelSoftmax = GumbelSoftmax
 old_sample_gumbel = FixedGumbelSoftmax.sample
@@ -157,5 +161,4 @@ FixedGumbelSoftmax.entropy = lambda self: gumbel_entropy(self) * 10.0 # scaling
 FixedGumbelSoftmax.mode = lambda self: self.probs.argmax(dim=-1, keepdim=True)
 gumbel_rsample = FixedGumbelSoftmax.rsample
 FixedGumbelSoftmax.rsample = lambda self: gumbel_rsample(self).float()
-
 

@@ -336,7 +336,12 @@ class SACAgent(BaseAgent):
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
 
         # update alpha
-        actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
+        if self._config.log_indiv_entropy:
+            actions_real, log_pi, entropies = self.act_log(o, meta_ac=meta_ac)
+            for key in entropies.keys():
+                info['entropy_'  + key] = entropies[key].mean().cpu().item()
+        else:
+            actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
         alpha_loss = -(self._log_alpha[0].exp() * (log_pi + self._target_entropy[0]).detach()).mean()
 
         if self._config.use_automatic_entropy_tuning:
@@ -362,7 +367,10 @@ class SACAgent(BaseAgent):
 
         # calculate the target Q value function
         with torch.no_grad():
-            actions_next, log_pi_next = self.act_log(o_next, meta_ac=meta_ac)
+            if self._config.log_indiv_entropy:
+                actions_next, log_pi_next, _ = self.act_log(o_next, meta_ac=meta_ac)
+            else:
+                actions_next, log_pi_next = self.act_log(o_next, meta_ac=meta_ac)
             q_next_value1 = self._critic1_targets[0](o_next, actions_next)
             q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             if meta_ac is None:
