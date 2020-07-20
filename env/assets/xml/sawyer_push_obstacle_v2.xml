@@ -33,13 +33,13 @@
         <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="-0.17 0 0.05" size="0.01 0.15 0.2" type="box" />
     </body>
 
-        <body name="cube" pos="0.9 -0.023869616735809365 0.9">
-            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
-            <geom contype="1" conaffinity="1" friction="2.0 0.005 0.0001" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.04 0.04 0.04" type="box" solimp="0.99 0.99 0.01" solref="0.01 1"/>
+        <body name="cube" pos="0.85 -0.023869616735809365 0.9">
+            <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
+            <geom contype="1" density="100" conaffinity="1" friction="0.95 0.3 0.1" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.04 0.04 0.04" type="box" solimp="0.99 0.99 0.01" solref="0.001 1"/>
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
-            <joint name="cube" type="free" />
+            <joint name="cube" type="free" damping="0.0005"/>
         </body>
-        <body name="target" pos="1.1 0.0 0.85">
+        <body name="target" pos="1.05 0.0 0.85">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
             <geom conaffinity="0" contype="0" group="0" name="target" pos="0 0 0" rgba="0.2 0.8 0.2 1" size=".030 .001 .001" type="cylinder"/>
