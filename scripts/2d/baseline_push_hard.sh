@@ -10,7 +10,7 @@ log_interval="1000"
 
 workers="1"
 prefix="BASELINE.SAC.IK.v5"
-max_global_step="60000000"
+max_global_step="1500000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
 rl_hid_size="256"

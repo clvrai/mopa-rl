@@ -10,11 +10,12 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.SPARSE.IK.reuse.v2.debug"
+prefix="SAC.PUSHER.SPARSE.IK.reuse.v2."
 env="pusher-obstacle-hard-v3"
 rl_hid_size="256"
 max_episode_step="400"
-debug="True"
+max_global_step="1500000"
+debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
@@ -48,6 +49,7 @@ python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
+    --max_global_step $max_global_step \
     --env $env \
     --gpu $gpu \
     --rl_hid_size $rl_hid_size \

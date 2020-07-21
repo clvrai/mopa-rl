@@ -12,6 +12,7 @@ log_interval="1000"
 workers="1"
 prefix="SAC.PUSHER.SPARSE.extended_action.ac_range1.0.v2"
 env="pusher-obstacle-hard-v3"
+max_global_step="1500000"
 rl_hid_size="256"
 max_episode_step="400"
 debug="False"
@@ -51,6 +52,7 @@ python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
     --prefix $prefix \
+    --max_global_step $max_global_step \
     --env $env \
     --gpu $gpu \
     --rl_hid_size $rl_hid_size \
