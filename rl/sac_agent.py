@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from rl.dataset import ReplayBuffer, RandomSampler, LowLevelReplayBuffer
+from rl.dataset import ReplayBuffer, RandomSampler
 from rl.base_agent import BaseAgent
 from rl.planner_agent import PlannerAgent
 from util.logger import logger
@@ -51,15 +51,9 @@ class SACAgent(BaseAgent):
         buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
         if config.planner_integration:
             buffer_keys.append("intra_steps")
-        if config.hrl:
-            self._buffer = LowLevelReplayBuffer(buffer_keys,
-                                                config.buffer_size,
-                                                len(config.primitive_skills),
-                                                sampler.sample_func)
-        else:
-            self._buffer = ReplayBuffer(buffer_keys,
-                                        config.buffer_size,
-                                        sampler.sample_func)
+        self._buffer = ReplayBuffer(buffer_keys,
+                                    config.buffer_size,
+                                    sampler.sample_func)
 
         self._log_creation()
 
