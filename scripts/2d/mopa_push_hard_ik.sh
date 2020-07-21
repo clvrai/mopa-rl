@@ -39,6 +39,8 @@ discount_factor='0.99'
 success_reward="150.0"
 use_ik_target="True"
 ik_target="fingertip"
+ac_rl_maximum="0.1"
+ac_rl_minimum="-0.1"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers
@@ -78,4 +80,6 @@ python -m rl.main \
     --discount_factor $discount_factor \
     --use_double_planner $use_double_planner \
     --use_ik_target $use_ik_target \
-    --ik_target $ik_target
+    --ik_target $ik_target \
+    --ac_rl_maximum $ac_rl_maximum \
+    --ac_rl_minimum $ac_rl_minimum
