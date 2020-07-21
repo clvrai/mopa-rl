@@ -15,13 +15,14 @@ import env
 import gym
 from gym import spaces
 from sklearn.externals import joblib
-from mpl_toolkits.mplot3d import Axes3D 
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
 from rl.planner_rollouts import PlannerRolloutRunner
 from rl.dataset import HERSampler
+from rl.meta_ppo_agent import MetaPPOAgent
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
@@ -40,16 +41,6 @@ def get_agent_by_name(algo):
     elif algo == "ppo":
         from rl.ppo_agent import PPOAgent
         return PPOAgent
-
-def get_meta_agent_by_name(algo):
-    if algo == 'ppo':
-        from rl.meta_ppo_agent import MetaPPOAgent
-        return MetaPPOAgent
-    elif algo == 'sac':
-        from rl.meta_sac_agent import MetaSACAgent
-        return MetaSACAgent
-    else:
-        raise NotImplementedError
 
 class Trainer(object):
     def __init__(self, config):
@@ -93,7 +84,7 @@ class Trainer(object):
         meta_ac_space = joint_space
 
         sampler = None
-        self._meta_agent = get_meta_agent_by_name(config.meta_algo)(config, ob_space, meta_ac_space, sampler=sampler)
+        self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space, sampler=sampler)
 
         ll_ob_space = ob_space
         if config.planner_integration:
@@ -111,30 +102,11 @@ class Trainer(object):
 
 
         if config.hrl:
-            if config.use_subgoal_space:
-                if config.relative_goal:
-                    subgoal_space = self._env.subgoal_space
-                else:
-                    subgoal_space = spaces.Dict({'default': spaces.Box(low=self._env._jnt_minimum[self._env.ref_joint_pos_indexes],
-                                               high=self._env._jnt_maximum[self._env.ref_joint_pos_indexes])})
-            else:
-                subgoal_space = ac_space
-
-            if config.termination:
-                subgoal_space.spaces['term'] = spaces.Discrete(2)
-                ac_space.spaces['term'] = spaces.Discrete(2)
-            if config.algo == 'sac':
-                from rl.low_level_agent import LowLevelAgent
-                self._agent = LowLevelAgent(
-                    config, ll_ob_space, ac_space, actor, critic,
-                    non_limited_idx, subgoal_space,
-                )
-            else:
-                from rl.low_level_ppo_agent import LowLevelPPOAgent
-                self._agent = LowLevelPPOAgent(
-                    config, ll_ob_space, ac_space, subgoal_space, actor, critic, non_limited_idx
-                )
-
+            from rl.low_level_agent import LowLevelAgent
+            self._agent = LowLevelAgent(
+                config, ll_ob_space, ac_space, actor, critic,
+                non_limited_idx, subgoal_space,
+            )
         else:
             self._agent = get_agent_by_name(config.algo)(
                 config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
