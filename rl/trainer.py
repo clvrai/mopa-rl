@@ -479,7 +479,7 @@ class Trainer(object):
         return rollout, info, np.array(vids)
 
     def evaluate(self):
-        step, update_iter = self._load_ckpt(ckpt_num=self._config.ckpt_num)
+        step, update_iter, _ = self._load_ckpt(ckpt_num=self._config.ckpt_num)
 
         logger.info("Run %d evaluations at step=%d, update_iter=%d",
                     self._config.num_eval, step, update_iter)

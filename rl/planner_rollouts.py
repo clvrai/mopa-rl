@@ -405,6 +405,7 @@ class PlannerRolloutRunner(object):
         stochastic = is_train or not config.stochastic_eval
         # run rollout
         meta_ac = None
+        total_contact_force = 0.
         counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
@@ -491,6 +492,8 @@ class PlannerRolloutRunner(object):
                                 if 'gripper' in ac.keys():
                                     converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                         ob, reward, done, info = env.step(converted_ac, is_planner=True)
+                        contact_force = env.get_contact_force()
+                        total_contact_force += contact_force
                         meta_rew += reward
                         ep_len += 1
                         ep_rew += reward
@@ -506,6 +509,7 @@ class PlannerRolloutRunner(object):
                                 frame_info['cart'] = ac['default']
                                 if 'quat' in ac.keys():
                                     frame_info['quat'] = ac['quat']
+                            frame_info['contact_force'] = contact_force
                             frame_info['converted_ac'] = converted_ac['default']
                             frame_info['target_qpos'] = target_qpos
                             frame_info['states'] = 'Valid states'
@@ -575,11 +579,15 @@ class PlannerRolloutRunner(object):
                     if not config.extended_action:
                         rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                     ob, reward, done, info = env.step(rescaled_ac)
+                    contact_force = env.get_contact_force()
+                    total_contact_force += contact_force
                 else:
                     converted_ac = OrderedDict([('default', displacement)])
                     if 'gripper' in ac.keys():
                         displacement['default'] = np.concatenate((displacement['default']/config.ac_rl_maximum, ac['gripper']))
                     ob, reward, done, info = env.step(displacement)
+                    contact_force = env.get_contact_force()
+                    total_contact_force += contact_force
                 ep_len += 1
                 ep_rew += reward
                 ep_rew_with_penalty += reward
@@ -590,6 +598,7 @@ class PlannerRolloutRunner(object):
                 if record:
                     frame_info = info.copy()
                     frame_info['ac'] = ac['default']
+                    frame_info['contact_force'] = contact_force
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
                     env.reset_visualized_indicator()
                     self._store_frame(env, frame_info)
@@ -602,7 +611,7 @@ class PlannerRolloutRunner(object):
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
 
-        ep_info.add({'len': ep_len, 'rew': ep_rew})
+        ep_info.add({'len': ep_len, 'rew': ep_rew, "contact_force": total_contact_force, "avg_conntact_force": total_contact_force/ep_len})
         ep_info.add(counter)
         reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
         ep_info.add(reward_info_dict)

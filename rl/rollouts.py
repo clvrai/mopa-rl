@@ -213,6 +213,7 @@ class RolloutRunner(object):
 
         # run rollout
         meta_ac = None
+        total_contact_force = 0.
         while not done and ep_len < max_step:
             meta_ac, meta_ac_before_activation, meta_log_prob =\
                     meta_pi.act(ob, is_train=is_train)
@@ -262,6 +263,9 @@ class RolloutRunner(object):
                 else:
                     ob, reward, done, info = env.step(ac)
 
+
+                contact_force = env.get_contact_force()
+                total_contact_force += contact_force
                 rollout.add({'done': done, 'rew': reward})
                 ep_len += 1
                 ep_rew += reward
@@ -273,6 +277,7 @@ class RolloutRunner(object):
                 if record:
                     frame_info = info.copy()
                     frame_info['ac'] = ac['default']
+                    frame_info['contact_force'] = contact_force
                     if config.use_ik_target:
                         frame_info['converted_ac'] = converted_ac['default']
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
@@ -291,7 +296,7 @@ class RolloutRunner(object):
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
 
-        ep_info = {'len': ep_len, 'rew': ep_rew}
+        ep_info = {'len': ep_len, 'rew': ep_rew, "avg_conntact_force": total_contact_force/ep_len}
         for key, value in reward_info.items():
             if isinstance(value[0], (int, float, bool)):
                 if '_mean' in key:

@@ -505,6 +505,20 @@ class BaseEnv(gym.Env):
                 return True
         return False
 
+    def get_contact_force(self):
+        mjcontacts = self.data.contact
+        ncon = self.data.ncon
+        # total_contact_force = np.zeros(6, dtype=np.float64)
+        total_contact_force = 0.
+        for i in range(ncon):
+            contact = mjcontacts[i]
+            c_array = np.zeros(6, dtype=np.float64)
+            mujoco_py.functions.mj_contactForce(self.sim.model, self.sim.data, i, c_array)
+            total_contact_force += np.sum(np.abs(c_array))
+
+        return total_contact_force
+
+
     def _check_contact(self):
         return False
 
