@@ -276,7 +276,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             og::PathGeometric p = ss->getSolutionPath();
             if (isSimplified){
                 psimp_->reduceVertices(p, attempts);
-                // psimp_->shortcutPath(p, attempts);
+                psimp_->simplify(p, 0.5);
                 p.checkAndRepair(attempts);
             }
             std::vector<ob::State*> &states =  p.getStates();
