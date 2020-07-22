@@ -159,7 +159,7 @@ class PlannerRolloutRunner(object):
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                     result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
-                                  joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                                  joint_names=env.robot_joints, max_steps=100, tol=1e-3)
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
@@ -449,7 +449,7 @@ class PlannerRolloutRunner(object):
                     target_quat = None
                 ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                 result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
-                              joint_names=env.robot_joints, max_steps=1000, tol=1e-3)
+                              joint_names=env.robot_joints, max_steps=100, tol=1e-3)
                 target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
                 displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
 
