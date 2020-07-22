@@ -10,7 +10,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.discrete.ac_range.1.0.scale0.2"
+prefix="SAC.PUSHER.piecewise0.5.ac_range.1.0.scale.0.2"
 env="pusher-obstacle-hard-v3"
 max_global_step="1500000"
 rl_hid_size="256"
@@ -38,14 +38,13 @@ use_double_planner="False"
 max_reuse_data='15'
 min_reuse_span='20'
 use_smdp_update="True"
-ac_space_type="normal"
+ac_space_type="piecewise"
 discount_factor='0.99'
 success_reward="150.0"
-is_simplified="True"
 # max_grad_norm='0.5'
 
 # variants
-extended_action="True"
+extended_action="False"
 
 
 #mpiexec -n $workers
@@ -88,5 +87,4 @@ python -m rl.main \
     --use_smdp_update $use_smdp_update \
     --ac_space_type $ac_space_type \
     --discount_factor $discount_factor \
-    --use_double_planner $use_double_planner \
-    --is_simplified $is_simplified
+    --use_double_planner $use_double_planner
