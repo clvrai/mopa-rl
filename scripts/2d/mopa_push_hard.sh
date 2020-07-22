@@ -10,7 +10,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.piecewise0.5.ac_range.1.0.scale.0.2"
+prefix="SAC.PUSHER.piecewise0.5.action_range1.0.scale0.2"
 env="pusher-obstacle-hard-v3"
 max_global_step="1500000"
 rl_hid_size="256"
