@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_rang0.5.scale0.2"
+prefix="SAC.PLANNER.AUGMENTED.discrete.ac_rang0.5.scale.0.2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -30,7 +30,7 @@ use_double_planner="False"
 vis_replay="True"
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="piecewise"
+ac_space_type="normal"
 use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
@@ -42,10 +42,9 @@ min_reuse_span='20'
 reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
-is_simplified="True"
 
 #variants
-extended_action="False"
+extended_action="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -90,5 +89,4 @@ python -m rl.main \
     --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
-    --evaluate_interval $evaluate_interval \
-    --is_simplified $is_simplified
+    --evaluate_interval $evaluate_interval

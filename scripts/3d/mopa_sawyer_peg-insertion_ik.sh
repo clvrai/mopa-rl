@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.IK.reuse"
+prefix="SAC.PLANNER.AUGMENTED.IK.reward.scale.0.2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -9,7 +9,7 @@ num_batches="1"
 log_interval="1000"
 env="sawyer-peg-insertion-obstacle-v2"
 max_episode_step="250"
-debug="True"
+debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
@@ -17,7 +17,7 @@ comment='Sanity Check'
 log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
-allow_manipulation_collision="True"
+allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="0.1"
@@ -69,7 +69,6 @@ python -m rl.main \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
     --vis_replay $vis_replay \
-    --task_level $task_level \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
