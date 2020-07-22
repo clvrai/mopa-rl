@@ -10,7 +10,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.SPARSE.extended_action.ac_range1.0.v2"
+prefix="SAC.PUSHER.piecewise0.5.ac_range.1.0.scale.0.2"
 env="pusher-obstacle-hard-v3"
 max_global_step="1500000"
 rl_hid_size="256"
@@ -19,32 +19,32 @@ debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-log_root_dir="./logs"
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="False"
-reward_scale="1.0"
+reward_scale="0.2"
 reuse_data_type="random"
 action_range="1.0"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.0"
 has_terminal='True'
 stochastic_eval="True"
 alpha='1.0'
-find_collision_free="False"
+find_collision_free="True"
 use_double_planner="False"
 max_reuse_data='15'
 min_reuse_span='20'
 use_smdp_update="True"
-ac_space_type="normal"
+ac_space_type="piecewise"
 discount_factor='0.99'
 success_reward="150.0"
 # max_grad_norm='0.5'
 
 # variants
-extended_action="True"
+extended_action="False"
 
 
 #mpiexec -n $workers

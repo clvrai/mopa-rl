@@ -9,7 +9,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC"
+prefix="BASELINE.SAC.IK"
 max_global_step="1500000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
@@ -29,7 +29,7 @@ reward_scale='10.'
 alpha='1.0'
 vis_replay="True"
 success_reward='150.'
-use_ik_target="False"
+use_ik_target="True"
 action_range="0.02"
 # max_grad_norm='0.5'
 
