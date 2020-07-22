@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_rang0.5.data30.scale0.2"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_rang0.5.scale0.2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -13,16 +13,16 @@ debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="0.5"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
@@ -37,11 +37,12 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='30'
-min_reuse_span='10'
+max_reuse_data='15'
+min_reuse_span='20'
 reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
+is_simplified="True"
 
 #variants
 extended_action="False"
@@ -89,4 +90,5 @@ python -m rl.main \
     --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
-    --evaluate_interval $evaluate_interval
+    --evaluate_interval $evaluate_interval \
+    --is_simplified $is_simplified
