@@ -50,7 +50,7 @@ class SawyerAssemblyEnv(SawyerEnv):
         else:
             reward_reach = 0
             if dist < 0.3:
-                reward_reach += 0.2 * (1-np.tanh(2*dist))
+                reward_reach += 0.2 * (1-np.tanh(5*dist))
             reward += reward_reach
         if dist < 0.05:
             reward += self._kwargs['success_reward']
