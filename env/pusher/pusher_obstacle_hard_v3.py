@@ -51,8 +51,8 @@ class PusherObstacleHardV3Env(BaseEnv):
         self._stages = [False] * self._num_primitives
         self._stage = 0
         while True:
-            goal = np.random.uniform(low=[-0.35, 0.1], high=[-0.2, 0.2], size=2)
-            box = np.random.uniform(low=[-0.35, 0.1], high=[-0.2, 0.2], size=2)
+            goal = np.random.uniform(low=[-0.35, 0.13], high=[-0.24, 0.2], size=2)
+            box = np.random.uniform(low=[-0.35, 0.13], high=[-0.24, 0.2], size=2)
             qpos = np.random.uniform(low=-0.02, high=0.02, size=self.sim.model.nq) + self.sim.data.qpos.ravel()
             qpos[-4:-2] = goal
             qpos[-2:] = box
@@ -60,7 +60,7 @@ class PusherObstacleHardV3Env(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1:
+            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1 and goal[0] <= box[0]:
                 self.goal = goal
                 self.box = box
                 break
