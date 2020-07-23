@@ -283,6 +283,11 @@ register(
     entry_point='env.robosuite:SawyerPushEnv',
     kwargs={}
 )
+register(
+    id='sawyer-assembly-v0',
+    entry_point='env.sawyer:SawyerAssemblyEnv',
+    kwargs={}
+)
 
 register(
     id='sawyer-stack-robosuite-v0',

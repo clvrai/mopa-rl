@@ -1,0 +1,40 @@
+<mujocoinclude>
+<!-- ======================================================
+    Model 		:: Sawyer (MuJoCoV2.0)
+    Author      :: Vikash Kumar
+        Contacts 	: vikashplus@gmail.com
+        Last edits 	: 3Apr'20, 25Aug'18
+    Copyright 2018 Vikash Kumar
+        Licensed under Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+====================================================== -->
+    <body name="clawGripper" pos="0 0 .045" quat="-1 0 1 0">
+        <geom  type="box" size="0.01 0.04 0.01" />
+        <geom size="0.035 0.015" pos="-.024 0 0" type="cylinder" rgba="0.2 0.2 0.2 10" euler="0 1.57 0"/>
+
+        <body name="rightclaw" pos=".01 .015 0" >
+            <geom name="rightclaw_it" type="box" pos="0 0.0 0" size="0.05 0.005 0.005"/>
+            <joint name="rc_close" type="slide" pos="0 0 0" axis="0 -1 0" range="0 .015" user="008" limited="true"/>
+        </body>
+
+        <body name="peg" pos="0.08 -0.05 -0.05">
+          <geom density="01" mesh="part1" name="peg" pos="-0.05 0.05 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+          <site name="pegHead" pos="-0.05 0.05 -0.3" size="0.011" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead1" pos="-0.08 0.05 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead2" pos="-0.02 0.05 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead3" pos="-0.05 0.08 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead4" pos="-0.05 0.02 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegEnd" pos="-0.05 0.05 0.3" size="0.014" rgba="0.0 0 1 0.0"/>
+        </body>
+        <!-- <body name="peg" pos="0.05 0.0 &#45;0.04" quat="&#45;1 0 1 0"> -->
+        <!--   <inertial pos="0 0 0" mass="0.1" diaginertia="1 1 1"/> -->
+        <!--   <!&#45;&#45; <inertial pos="0 0 0" mass="0.1" diaginertia="100000 100000 100000"/> &#45;&#45;> -->
+        <!--   <!&#45;&#45; <geom name="peg" fromto="&#38;#45;0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" solref="0.02 1" conaffinity="1" contype="1" group="1"/> &#45;&#45;> -->
+        <!--   <geom name="peg" fromto="&#45;0.25 0 0 0.25 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" group="1" /> -->
+        <!--   <geom name="peg_visual" fromto="&#45;0.25 0 0 &#45;0.2 0 0" rgba="1 0.3 0.3 1" size="0.02 0.08" type="cylinder" group="1" /> -->
+        <!-- </body> -->
+        <body name="leftclaw" pos=".01 .02 0">
+            <geom name="leftclaw_it0" type="box" pos="0 -.04 0" size="0.05 0.005 0.005"/>
+            <joint name="lc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .015" user="008" limited="true"/>
+        </body>
+    </body>
+</mujocoinclude>
