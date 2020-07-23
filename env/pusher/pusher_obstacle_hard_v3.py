@@ -60,7 +60,7 @@ class PusherObstacleHardV3Env(BaseEnv):
             qvel[-4:-2] = 0
             qvel[-2:] = 0
             self.set_state(qpos, qvel)
-            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1:
+            if self.sim.data.ncon == 0 and self._get_distance('box', 'target') > 0.1 and goal[0] <= box[0]:
                 self.goal = goal
                 self.box = box
                 break
