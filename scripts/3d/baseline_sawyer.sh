@@ -2,8 +2,8 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE.IK"
-env="sawyer-peg-insertion-obstacle-v2"
+prefix="BASELINE.test"
+env="sawyer-assembly-v0"
 algo='sac'
 rollout_length="10000"
 evaluate_interval="10000"
@@ -28,9 +28,9 @@ plot_type='3d'
 task_level='easy'
 success_reward='150.'
 reward_scale="10."
-use_ik_target="True"
+use_ik_target="False"
 ik_target="grip_site"
-action_range="0.01"
+action_range="0.02"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
