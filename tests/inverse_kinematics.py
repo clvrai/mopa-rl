@@ -51,7 +51,7 @@ config._xml_path = env.xml_path
 config.device = torch.device("cpu")
 config.is_chef = False
 config.planner_integration = True
-config.ik_target = 'cube'
+config.ik_target = 'grip_site'
 config.action_range = 0.1
 
 ob_space = env.observation_space
@@ -94,7 +94,7 @@ qvel = env.sim.data.qvel.ravel().copy()
 ik_env.set_state(qpos, qvel)
 
 
-is_save_video = True
+is_save_video = False
 frames = []
 done = False
 ob = env.reset()
@@ -106,16 +106,28 @@ else:
     env.render('human')
 
 while True:
-    # Actioon -- displacement of coordinates and orientation
-    cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
-    quat = np.random.uniform(low=-np.ones(4), high=np.ones(4))
+    qpos = env.sim.data.qpos.ravel().copy()
+    qvel = env.sim.data.qvel.ravel().copy()
+    ik_env.set_state(qpos, qvel)
+    env.set_state(qpos, qvel)
 
-    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * cart, env.min_world_size, env.max_world_size)
-    target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), 0.001*quat.astype(np.float64))
+    # Actioon -- displacement of coordinates and orientation
+    # cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
+    # quat = np.random.uniform(low=-np.ones(4), high=np.ones(4))
+    cart = np.array([0., 0., 0.])
+    quat = np.array([0.9961947, 0, 0, 0.0871557])
+
+    target_cart = np.clip(env.sim.data.get_site_xpos(target_site)[:len(env.min_world_size)] + config.action_range * cart, env.min_world_size, env.max_world_size)
+    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+    target_quat = target_quat[[3, 0, 1, 2]]
+    target_quat = quat_mul(target_quat, quat/np.linalg.norm(quat))
+
+    print('current_cart', env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)])
+    print('target_cart', target_cart)
+    print('target_quat', target_quat)
 
     result = qpos_from_site_pose(ik_env, target_site, target_pos=target_cart,
-                target_quat=target_quat, joint_names=env.robot_joints, max_steps=100, tol=1e-3)
-
+                                 target_quat=target_quat, joint_names=env.robot_joints, max_steps=1000, tol=1e-5)
     target_qpos = env.sim.data.qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
 
@@ -125,7 +137,7 @@ while True:
     while not agent.isValidState(target_qpos) and trial < 100:
         d = env.sim.data.qpos.copy()-target_qpos
         target_qpos += config.step_size * d/np.linalg.norm(d)
-        trial+=1
+        trial += 1
 
     traj, success, interpolation, valid, exact = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
     print("Planning Statues: Exact {} Valid {}".format(exact, valid))
