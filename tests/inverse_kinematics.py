@@ -112,19 +112,21 @@ while True:
     env.set_state(qpos, qvel)
 
     # Actioon -- displacement of coordinates and orientation
-    # cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
-    # quat = np.random.uniform(low=-np.ones(4), high=np.ones(4))
-    cart = np.array([0., 0., 0.])
-    quat = np.array([0.9961947, 0, 0, 0.0871557])
+    cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
+    angle = np.random.uniform(low=-0.3, high=0.3)
+    axis = np.random.randn(3)
+    axis = axis / np.linalg.norm(axis) * np.sin(angle/2.0)
+    quat = np.array([np.cos(angle/2.0), axis[0], axis[1], axis[2]])  # (w,x,y,z)
 
     target_cart = np.clip(env.sim.data.get_site_xpos(target_site)[:len(env.min_world_size)] + config.action_range * cart, env.min_world_size, env.max_world_size)
-    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
-    target_quat = target_quat[[3, 0, 1, 2]]
+    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))  # (x,y,z,w)
+    target_quat = target_quat[[3, 0, 1, 2]]  # (w,x,y,z)
     target_quat = quat_mul(target_quat, quat/np.linalg.norm(quat))
 
     print('current_cart', env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)])
     print('target_cart', target_cart)
     print('target_quat', target_quat)
+    print('angle [rad]', 2 * np.arccos(quat[0]))
 
     result = qpos_from_site_pose(ik_env, target_site, target_pos=target_cart,
                                  target_quat=target_quat, joint_names=env.robot_joints, max_steps=1000, tol=1e-5)
