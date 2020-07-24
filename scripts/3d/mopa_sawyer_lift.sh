@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_rang0.5.data30.scale0.2.no_discount.v2"
+prefix="SAC.PLANNER.AUGMENTED.discrete.ac_rang0.5.data30.span10"
 env="sawyer-lift-obstacle-v0"
 gpu=$1
 seed=$2
@@ -31,7 +31,7 @@ vis_replay="True"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="piecewise"
+ac_space_type="normal"
 use_smdp_update="True"
 # use_discount_meta="False"
 step_size="0.02"
@@ -45,7 +45,7 @@ log_indiv_entropy="True"
 evaluate_interval="10000"
 
 # variants
-extended_action="False"
+extended_action="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
