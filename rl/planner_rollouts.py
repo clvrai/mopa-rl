@@ -154,12 +154,14 @@ class PlannerRolloutRunner(object):
                     if len(env.min_world_size) == 2:
                         target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
                     if 'quat' in ac.keys():
-                        target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), 0.001*ac['quat'].astype(np.float64))
+                        target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                        target_quat = target_quat[[3, 0, 1, 1]]
+                        target_quat = quat_mul(target_quat, ac['quat']/np.linalg.norm(quat))
                     else:
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                     result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
-                                  joint_names=env.robot_joints, max_steps=100, tol=1e-3)
+                                  joint_names=env.robot_joints, max_steps=300, tol=1e-2)
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
                     target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                     displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
@@ -328,8 +330,9 @@ class PlannerRolloutRunner(object):
                             rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
                         ob, reward, done, info = env.step(rescaled_ac)
                     else:
+                        displacement['default'] /= config.ac_rl_maximum
                         if 'gripper' in ac.keys():
-                            displacement['default'] = np.concatenate((displacement['default']/config.ac_rl_maximum, ac['gripper']))
+                            displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                         ob, reward, done, info = env.step(displacement)
                     rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                     ep_len += 1
@@ -444,13 +447,16 @@ class PlannerRolloutRunner(object):
                 if len(env.min_world_size) == 2:
                     target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
                 if 'quat' in ac.keys():
-                    target_quat = quat_mul(mat2quat(env.sim.data.get_site_xmat(config.ik_target)), ac['quat'].astype(np.float64))
+                    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                    target_quat = target_quat[[3, 0, 1, 1]]
+                    target_quat = quat_mul(target_quat, ac['quat']/np.linalg.norm(quat))
                 else:
                     target_quat = None
                 ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                 result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
-                              joint_names=env.robot_joints, max_steps=100, tol=1e-3)
+                              joint_names=env.robot_joints, max_steps=300, tol=1e-2)
                 target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                 displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
 
             if (not config.extended_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
@@ -582,9 +588,9 @@ class PlannerRolloutRunner(object):
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
                 else:
-                    converted_ac = OrderedDict([('default', displacement)])
+                    displacement['default'] /= config.ac_rl_maximum
                     if 'gripper' in ac.keys():
-                        displacement['default'] = np.concatenate((displacement['default']/config.ac_rl_maximum, ac['gripper']))
+                        displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                     ob, reward, done, info = env.step(displacement)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
