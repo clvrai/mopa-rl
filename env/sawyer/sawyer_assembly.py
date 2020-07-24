@@ -69,9 +69,24 @@ class SawyerAssemblyEnv(SawyerEnv):
         return di
 
     @property
-    def static_geom_ids(self):
-        return ['table_collision', '0_part0_mesh', '4_part4_mesh''2_part2_mesh', '1_part1_mesh']
+    def static_bodies(self):
+        return ['table', 'furniture', '0_part0', '1_part1', '4_part4', '2_part2']
 
+    @property
+    def static_geoms(self):
+        return []
+
+    @property
+    def static_geom_ids(self):
+        body_ids = []
+        for body_name in self.static_bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
+        geom_ids = []
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            if body_id in body_ids:
+                geom_ids.append(geom_id)
+        return geom_ids
     def _step(self, action, is_planner=False):
         """
         (Optional) does gripper visualization after actions.
