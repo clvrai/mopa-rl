@@ -32,7 +32,7 @@ use_cum_rew="True"
 plot_type='3d'
 ac_space_type="normal"
 use_smdp_update="True"
-use_discount_meta="True"
+# use_discount_meta="False"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
@@ -80,7 +80,6 @@ python -m rl.main \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
     --ac_space_type $ac_space_type \
-    --use_discount_meta $use_discount_meta \
     --step_size $step_size \
     --success_reward $success_reward \
     --add_curr_rew $add_curr_rew \
@@ -89,4 +88,5 @@ python -m rl.main \
     --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
-    --evaluate_interval $evaluate_interval
+    --evaluate_interval $evaluate_interval \
+    # --use_discount_meta $use_discount_meta \

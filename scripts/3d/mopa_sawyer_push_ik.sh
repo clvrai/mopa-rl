@@ -29,7 +29,7 @@ vis_replay="True"
 use_cum_rew="True"
 plot_type='3d'
 use_smdp_update="True"
-use_discount_meta="True"
+# use_discount_meta="False"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
@@ -72,7 +72,6 @@ python -m rl.main \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
-    --use_discount_meta $use_discount_meta \
     --step_size $step_size \
     --success_reward $success_reward \
     --add_curr_rew $add_curr_rew \
@@ -83,4 +82,5 @@ python -m rl.main \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \
     --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum
+    --ac_rl_minimum $ac_rl_minimum \
+    # --use_discount_meta $use_discount_meta \
