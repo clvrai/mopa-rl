@@ -98,7 +98,6 @@ is_save_video = False
 frames = []
 done = False
 ob = env.reset()
-curr_qpos = env.sim.data.qpos.copy()
 step = 0
 if is_save_video:
     frames.append(render_frame(env, step))
@@ -106,6 +105,7 @@ else:
     env.render('human')
 
 while True:
+    curr_qpos = env.sim.data.qpos.copy()
     qpos = env.sim.data.qpos.ravel().copy()
     qvel = env.sim.data.qvel.ravel().copy()
     ik_env.set_state(qpos, qvel)
