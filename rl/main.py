@@ -38,6 +38,11 @@ def run(config):
         logger.setLevel(CRITICAL)
 
 
+        if config.date is None:
+            now = datetime.now()
+            date = now.strftime("%m.%d")
+        else:
+            date = config.date
         config.run_name = 'rl.{}.{}.{}.{}'.format(config.env, date, config.prefix, config.seed-rank)
         if config.group is None:
             config.group = 'rl.{}.{}.{}'.format(config.env, date, config.prefix)
@@ -86,8 +91,12 @@ def run(config):
 
 
 def make_log_files(config):
-    now = datetime.now()
-    date = now.strftime("%m.%d")
+    if config.date is None:
+        now = datetime.now()
+        date = now.strftime("%m.%d")
+    else:
+        date = config.date
+    date = '07.22'
     config.run_name = 'rl.{}.{}.{}.{}'.format(config.env, date, config.prefix, config.seed)
     if config.group is None:
         config.group = 'rl.{}.{}.{}'.format(config.env, date, config.prefix)

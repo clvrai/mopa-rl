@@ -9,6 +9,7 @@ def argparser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
+    parser.add_argument("--date", type=str, default=None)
     # environment
     parser.add_argument("--env", type=str, default="reacher-obstacle-v0",
                         help="environment name")
