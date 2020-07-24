@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.discrete.ac_rang0.5.scale.0.2"
+prefix="SAC.PLANNER.AUGMENTED.discrete.ac_rang0.5.scale.0.2.no_discount"
 gpu=$1
 seed=$2
 algo='sac'
@@ -37,7 +37,7 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='15'
+max_reuse_data='30'
 min_reuse_span='20'
 reward_scale="0.2"
 log_indiv_entropy="True"
