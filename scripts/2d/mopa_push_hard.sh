@@ -10,7 +10,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="SAC.PUSHER.discrete.action_range.1.0.scale.0.2.debug"
+prefix="SAC.PUSHER.discrete.action_range.1.0.scale.0.2"
 env="pusher-obstacle-hard-v3"
 max_global_step="1500000"
 rl_hid_size="256"
@@ -46,6 +46,7 @@ log_indiv_entropy="True"
 
 # variants
 extended_action="True"
+discrete_ent_coef="1.0"
 
 
 #mpiexec -n $workers
@@ -89,4 +90,5 @@ python -m rl.main \
     --ac_space_type $ac_space_type \
     --discount_factor $discount_factor \
     --use_double_planner $use_double_planner \
-    --log_indiv_entropy $log_indiv_entropy
+    --log_indiv_entropy $log_indiv_entropy \
+    --discrete_ent_coef $discrete_ent_coef

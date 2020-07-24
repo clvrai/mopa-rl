@@ -120,6 +120,7 @@ class Actor(nn.Module):
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
+                log_probs[k] *= self._config.discrete_ent_coef
 
             actions[k] = action
 
@@ -131,8 +132,10 @@ class Actor(nn.Module):
         if activations is None:
             if self._config.log_indiv_entropy:
                 entropies = {}
-                for key in mixed_dist.distributions.keys():
+                for key, space in self._ac_space.spaces.items():
                     entropies[key] = mixed_dist.distributions[key].entropy()
+                    if isinstance(space, spaces.Discrete):
+                        entropies[key] *= self._config.discrete_ent_coef
                 return actions, log_probs_, entropies
             else:
                 return actions, log_probs_
