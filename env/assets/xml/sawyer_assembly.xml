@@ -33,7 +33,7 @@
         </body>
         <body name="4_part4" pos="-0.17516966081204696 0.17516964229908347 -0.22027505841291783" quat="0 0 -1 0">
           <!-- <geom density="50" mesh="part4" name="4_part4_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" /> -->
-          <site name="hole" pos="0.175 -0.175 -0.00" size="0.015" rgba="0 0. 1 0.3"/>
+          <site name="hole" pos="0.175 -0.175 0.04" size="0.015" rgba="0 0. 1 0.3"/>
           <geom density="50" quat="1 0 0 0" name="noviz_collision_4_part4_0" pos="-0.17453 0.15043 -0.00268" rgba="1 0 0 1" size="0.01 0.0015 0.03" solref="0.001 1" type="box" />
           <geom density="50" quat="1 0 0 0" name="noviz_collision_4_part4_1" pos="-0.17453 0.19991 -0.00268" rgba="1 0 0 1" size="0.01 0.0015 0.03" solref="0.001 1" type="box" />
           <geom density="50" quat="0.9238796 0 0 -0.3826834" name="noviz_collision_4_part4_2" pos="-0.19243 0.15743 -0.00268" rgba="1 0 0 1" size="0.01 0.0015 0.03" solref="0.001 1" type="box" />
