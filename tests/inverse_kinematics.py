@@ -52,7 +52,7 @@ config.device = torch.device("cpu")
 config.is_chef = False
 config.planner_integration = True
 config.ik_target = 'grip_site'
-config.action_range = 1.0
+config.action_range = 0.001
 
 ob_space = env.observation_space
 ac_space = env.action_space
@@ -112,7 +112,7 @@ while True:
     env.set_state(qpos, qvel)
 
     # Actioon -- displacement of coordinates and orientation
-    cart = np.random.uniform(low=[-0.2, -0.2, -0.2], high=[0.2, 0.2, 0.2])
+    cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
     angle = np.random.uniform(low=-0.3, high=0.3)
     axis = np.random.randn(3)
     axis = axis / np.linalg.norm(axis) * np.sin(angle/2.0)
@@ -132,6 +132,8 @@ while True:
                                  target_quat=target_quat, joint_names=env.robot_joints, max_steps=10, tol=1e-5)
     target_qpos = env.sim.data.qpos.copy()
     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes]
+    import pdb
+    pdb.set_trace()
 
     env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
 

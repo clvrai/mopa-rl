@@ -46,8 +46,8 @@ curr_qpos = env.sim.data.qpos.copy()
 while True:
     # env.render(mode='rgb_array')
     action = env.action_space.sample()
-    obs, reward, done, _ = env.step(action)
-    print(env.sim.data.qpos)
+    obs, reward, done, info = env.step(action)
+    print(info)
     if is_save_video:
         # WARNING: don't is_save_video with a 'while True` loop since it runs forever
         frames[0].append(render_frame(env, i))
