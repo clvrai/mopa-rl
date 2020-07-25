@@ -49,7 +49,7 @@ class SawyerAssemblyEnv(SawyerEnv):
             info = dict(reward_reach=reward_reach)
         else:
             reward_reach = 0
-            if dist < 0.1:
+            if dist < 0.2:
                 reward_reach += 0.4 * (1-np.tanh(10*dist))
             reward += reward_reach
         if dist < 0.05:
