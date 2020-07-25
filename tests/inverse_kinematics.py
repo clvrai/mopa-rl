@@ -113,8 +113,9 @@ while True:
 
     # Actioon -- displacement of coordinates and orientation
     cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
-    angle = np.random.uniform(low=-0.3, high=0.3)
-    axis = np.random.randn(3)
+    rot_vector = np.random.uniform(low=[-0.5, -0.5, -0.5], high=[0.5, 0.5, 0.5])
+    angle = np.linalg.norm(rot_vector)
+    axis = rot_vector / angle
     axis = axis / np.linalg.norm(axis) * np.sin(angle/2.0)
     quat = np.array([np.cos(angle/2.0), axis[0], axis[1], axis[2]])  # (w,x,y,z)
 
