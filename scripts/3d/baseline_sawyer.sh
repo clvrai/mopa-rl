@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE.v3"
+prefix="BASELINE.test.v4"
 env="sawyer-assembly-v0"
 algo='sac'
 rollout_length="10000"
