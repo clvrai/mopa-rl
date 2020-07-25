@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise.ac_rang0.5.scale.0.2.v4"
+prefix="SAC.PLANNER.AUGMENTED.piecewise.ac_rang0.5.scale.0.2.v6"
 gpu=$1
 seed=$2
 algo='sac'
