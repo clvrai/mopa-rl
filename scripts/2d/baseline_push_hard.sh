@@ -9,7 +9,7 @@ num_batches="1"
 log_interval="1000"
 
 workers="1"
-prefix="BASELINE.SAC.IK.v2"
+prefix="BASELINE.SAC.IK.v3"
 max_global_step="1500000"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
@@ -23,14 +23,14 @@ reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
 log_root_dir="./logs"
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_freq='1000'
 reward_scale='10.'
 alpha='1.0'
 vis_replay="True"
 success_reward='150.'
 use_ik_target="True"
-action_range="0.02"
+action_range="0.01"
 # max_grad_norm='0.5'
 
 #mpiexec -n $workers

@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE.test.v4"
+prefix="BASELINE.v5"
 env="sawyer-assembly-v0"
 algo='sac'
 rollout_length="10000"
@@ -30,7 +30,7 @@ success_reward='150.'
 reward_scale="10."
 use_ik_target="False"
 ik_target="grip_site"
-action_range="0.02"
+action_range="0.005"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
