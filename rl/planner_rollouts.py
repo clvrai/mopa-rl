@@ -156,7 +156,7 @@ class PlannerRolloutRunner(object):
                     if 'quat' in ac.keys():
                         target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
                         target_quat = target_quat[[3, 0, 1, 1]]
-                        target_quat = quat_mul(target_quat, ac['quat']/np.linalg.norm(ac['quat']))
+                        target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
                     else:
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
@@ -449,7 +449,7 @@ class PlannerRolloutRunner(object):
                 if 'quat' in ac.keys():
                     target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
                     target_quat = target_quat[[3, 0, 1, 1]]
-                    target_quat = quat_mul(target_quat, ac['quat']/np.linalg.norm(ac['quat']))
+                    target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
                 else:
                     target_quat = None
                 ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
