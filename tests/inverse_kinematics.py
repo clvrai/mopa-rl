@@ -115,9 +115,12 @@ while True:
     cart = np.random.uniform(low=[-0.1, -0.1, -0.1], high=[0.1, 0.1, 0.1])
     rot_vector = np.random.uniform(low=[-0.5, -0.5, -0.5], high=[0.5, 0.5, 0.5])
     angle = np.linalg.norm(rot_vector)
-    axis = rot_vector / angle
-    axis = axis / np.linalg.norm(axis) * np.sin(angle/2.0)
-    quat = np.array([np.cos(angle/2.0), axis[0], axis[1], axis[2]])  # (w,x,y,z)
+    if angle > 0.0:
+        axis = rot_vector / angle
+        axis = axis / np.linalg.norm(axis) * np.sin(angle/2.0)
+        quat = np.array([np.cos(angle/2.0), axis[0], axis[1], axis[2]])  # (w,x,y,z)
+    else:
+        quat = np.array([1., 0., 0., 0.])  # (w,x,y,z)
 
     target_cart = np.clip(env.sim.data.get_site_xpos(target_site)[:len(env.min_world_size)] + config.action_range * cart, env.min_world_size, env.max_world_size)
     target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))  # (x,y,z,w)
