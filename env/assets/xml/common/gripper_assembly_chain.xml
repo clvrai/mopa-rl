@@ -18,11 +18,11 @@
 
         <body name="peg" pos="0.08 -0.05 -0.05">
           <geom density="01" mesh="part1" name="peg" pos="-0.05 0.05 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
-          <site name="pegHead" pos="-0.05 0.05 -0.3" size="0.011" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead1" pos="-0.08 0.05 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead2" pos="-0.02 0.05 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead3" pos="-0.05 0.08 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead4" pos="-0.05 0.02 -0.28" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead" pos="-0.05 0.05 -0.39" size="0.011" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead1" pos="-0.08 0.05 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead2" pos="-0.02 0.05 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead3" pos="-0.05 0.08 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead4" pos="-0.05 0.02 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
           <site name="pegEnd" pos="-0.05 0.05 0.3" size="0.014" rgba="0.0 0 1 0.0"/>
         </body>
         <!-- <body name="peg" pos="0.05 0.0 &#45;0.04" quat="&#45;1 0 1 0"> -->
