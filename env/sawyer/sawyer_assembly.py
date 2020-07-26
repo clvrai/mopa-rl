@@ -43,6 +43,8 @@ class SawyerAssemblyEnv(SawyerEnv):
         pegHeadPos = self.sim.data.get_site_xpos("pegHead")
         hole = self.sim.data.get_site_xpos("hole")
         dist = np.linalg.norm(pegHeadPos-hole)
+        hole_bottom = self.sim.data.get_site_xpos("hole_bottom")
+        dist_to_hole_bottom = np.linalg.norm(pegHeadPos - hole_bottom)
         if reward_type == 'dense':
             reward_reach = np.tanh(-1.5*dist)
             reward += reward_reach
@@ -50,10 +52,9 @@ class SawyerAssemblyEnv(SawyerEnv):
         else:
             reward_reach = 0
             if dist < 0.3:
-                reward_reach += 0.4 * (1-np.tanh(10*dist))
+                # reward_reach += 0.4 * (1-np.tanh(15*dist))
+                reward_reach += 0.4 * (1-np.tanh(10*dist_to_hole_bottom))
             reward += reward_reach
-        hole_bottom = self.sim.data.get_site_xpos("hole_bottom")
-        dist_to_hole_bottom = np.linalg.norm(pegHeadPos - hole_bottom)
         if dist_to_hole_bottom < 0.04:
             reward += self._kwargs['success_reward']
             self._success = True

@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise.ac_rang0.5.scale.0.2.v8"
+prefix="SAC.PLANNER.AUGMENTED.piecewise.ac_rang0.5.scale.0.2.span1.v12"
 gpu=$1
 seed=$2
 algo='sac'
@@ -38,7 +38,7 @@ success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='30'
-min_reuse_span='20'
+min_reuse_span='1'
 reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
