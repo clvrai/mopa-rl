@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.discrete.ac_rang0.5.scale.0.2.span1.v13"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_rang0.5.scale.0.2.span1.v15"
 gpu=$1
 seed=$2
 algo='sac'
@@ -13,16 +13,16 @@ debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="0.5"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.7"
+ac_rl_maximum="0.7"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
@@ -30,7 +30,7 @@ use_double_planner="False"
 vis_replay="True"
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="normal"
+ac_space_type="piecewise"
 use_smdp_update="True"
 # use_discount_meta="False"
 step_size="0.02"
@@ -44,7 +44,7 @@ log_indiv_entropy="True"
 evaluate_interval="10000"
 
 #variants
-extended_action="True"
+extended_action="False"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
