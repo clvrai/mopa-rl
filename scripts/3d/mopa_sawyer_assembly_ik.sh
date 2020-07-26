@@ -1,13 +1,13 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.span5.scale.0.1.v2"
+prefix="SAC.PLANNER.AUGMENTED.IK.v13"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-push-obstacle-v2"
+env="sawyer-assembly-v0"
 max_episode_step="250"
 debug="False"
 batch_size="256"
@@ -17,12 +17,10 @@ comment='Sanity Check'
 log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
-allow_manipulation_collision="False"
+allow_manipulation_collision="True"
 alpha="1.0"
 reuse_data_type="random"
-action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+action_range="0.2"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
@@ -30,23 +28,19 @@ use_double_planner="False"
 vis_replay="True"
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="piecewise"
 use_smdp_update="True"
 # use_discount_meta="False"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
-discount_factor='0.995'
+discount_factor='0.99'
 max_reuse_data='30'
 min_reuse_span='5'
-reward_scale="0.1"
-log_indiv_entropy="True"
-evaluate_interval="10000"
-timelimit='1.2'
-
-# variants
-extended_action="False"
-
+reward_scale="0.2"
+use_ik_target="True"
+ik_target="grip_site"
+ac_rl_maximum="0.05"
+ac_rl_minimum="-0.05"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -70,10 +64,7 @@ python -m rl.main \
     --alpha $alpha \
     --reuse_data_type $reuse_data_type \
     --action_range $action_range \
-    --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum \
     --invalid_planner_rew $invalid_planner_rew \
-    --extended_action $extended_action \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --use_double_planner $use_double_planner \
@@ -81,7 +72,6 @@ python -m rl.main \
     --use_cum_rew $use_cum_rew \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
-    --ac_space_type $ac_space_type \
     --step_size $step_size \
     --success_reward $success_reward \
     --add_curr_rew $add_curr_rew \
@@ -89,7 +79,8 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
-    --log_indiv_entropy $log_indiv_entropy \
-    --evaluate_interval $evaluate_interval \
-    --timelimit $timelimit
+    --use_ik_target $use_ik_target \
+    --ik_target $ik_target \
+    --ac_rl_maximum $ac_rl_maximum \
+    --ac_rl_minimum $ac_rl_minimum \
     # --use_discount_meta $use_discount_meta \
