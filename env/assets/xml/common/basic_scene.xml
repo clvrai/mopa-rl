@@ -15,12 +15,12 @@
     <!-- </asset> -->
     <asset>
         <!-- <texture builtin="gradient" height="256" rgb1=".9 .9 1." rgb2=".2 .3 .4" type="skybox" width="256" /> -->
-             <texture name="skybox" type="skybox" builtin="gradient" rgb1="0.556 0.705 0.960" rgb2="0.556 0.705 0.960"
+        <texture name="skybox" type="skybox" builtin="gradient" rgb1="0.556 0.705 0.960" rgb2="0.556 0.705 0.960"
             width="800" height="800" mark="none"/>
         <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2"
             width="512" height="512"/>
-          <texture name="grid" type="2d" builtin="checker" rgb1=".5 .5 .5" rgb2=".7 .7 .7" width="500" height="500" mark="none"/>
-        <material name="grid" texture="grid" texrepeat="1 1" reflectance=".1"/>
+        <texture name="grid" type="2d" builtin="checker" rgb1=".8 .8 .8" rgb2=".99 .99 .99" width="37.5" height="37.5" mark="none"/>
+        <material name="grid" texture="grid" texrepeat="10 10" reflectance=".1"/>
         <!-- <material name="MatGnd" reflectance="0.5" texture="texplane" texrepeat="1 1" texuniform="true"/> -->
         <material name="MatGnd" texture="grid"  texrepeat="10 10" specular="1" shininess=".3" reflectance="0.00001"/>
     </asset>
