@@ -29,7 +29,7 @@ class SawyerPegInsertionObstacleV2Env(SawyerEnv):
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         goal = self._init_goal.copy()
-        goal[:2] += np.random.randn(2) * 0.02
+        goal[:2] += np.random.randn(1) * 0.02
         self.sim.model.body_pos[self.sim.model.body_name2id('box')] = goal
         self.sim.forward()
 

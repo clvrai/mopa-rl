@@ -42,6 +42,7 @@ min_reuse_span='50'
 reward_scale="5.0"
 log_indiv_entropy="True"
 evaluate_interval="10000"
+timelimit='1.2'
 
 # variants
 extended_action="False"
@@ -90,4 +91,5 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
+    --timelimit $timelimit
     # --use_discount_meta $use_discount_meta \
