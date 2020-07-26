@@ -22,7 +22,7 @@ class SawyerAssemblyEnv(SawyerEnv):
 
     @property
     def init_qpos(self):
-        return np.array([0.487, 0.13, 0.0557, 0.114, -0.0622, 0.0276, 0.00356])
+        return np.array([0.607, 0.13, 0.0557, 0.114, -0.0622, 0.0276, 0.00356])
         # return np.array([-0.122, -0.0164, 1.16, -0.609, -0.0605, 0.0232, 0.0021])
 
     def _reset(self):
