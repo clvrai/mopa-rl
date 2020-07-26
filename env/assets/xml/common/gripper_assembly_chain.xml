@@ -21,12 +21,12 @@
           <geom density="50" name="noviz_collision_1_part3_0" pos="-0.05 0.05 0.19" quat="1 0 0 0" rgba="1 0 0 0" size="0.02 0.2" solref="0.001 1" type="cylinder" />
           <geom density="50" name="noviz_collision_1_part3_1" pos="-0.05 0.05 -0.19" quat="1 0 0 0" rgba="1 0 0 0" size="0.018 0.2" solref="0.001 1" type="cylinder" />
 
-          <site name="pegHead" pos="-0.05 0.05 -0.39" size="0.011" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead1" pos="-0.08 0.05 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead2" pos="-0.02 0.05 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead3" pos="-0.05 0.08 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegHead4" pos="-0.05 0.02 -0.37" size="0.014" rgba="0.0 0 1 0.3"/>
-          <site name="pegEnd" pos="-0.05 0.05 0.3" size="0.014" rgba="0.0 0 1 0.0"/>
+          <site name="pegHead" pos="-0.05 0.05 -0.33" size="0.011" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead1" pos="-0.08 0.05 -0.31" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead2" pos="-0.02 0.05 -0.31" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead3" pos="-0.05 0.08 -0.31" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegHead4" pos="-0.05 0.02 -0.31" size="0.014" rgba="0.0 0 1 0.3"/>
+          <site name="pegEnd" pos="-0.05 0.05 0.33" size="0.014" rgba="0.0 0 1 0.0"/>
         </body>
         <!-- <body name="peg" pos="0.05 0.0 &#45;0.04" quat="&#45;1 0 1 0"> -->
         <!--   <inertial pos="0 0 0" mass="0.1" diaginertia="1 1 1"/> -->
