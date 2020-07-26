@@ -2,11 +2,11 @@
     <asset>
     <texture file="../robosuite/textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true" />
-    <mesh file="../meshes/toy_table/0.stl" name="part0" scale="0.037025927036999993 0.037025927036999993 0.097025927036999993" />
+    <mesh file="../meshes/toy_table/0.stl" name="part0" scale="0.040025927036999993 0.040025927036999993 0.097025927036999993" />
     <mesh file="../meshes/toy_table/4.stl" name="part4" scale="0.047025927036999993 0.047025927036999993 0.047025927036999993" />
     <!-- <mesh file="../meshes/toy_table/3.stl" name="part3" scale="0.047025927036999993 0.047025927036999993 0.077025927036999993" /> -->
-    <mesh file="../meshes/toy_table/2.stl" name="part2" scale="0.037025927036999993 0.037025927036999993 0.097025927036999993" />
-    <mesh file="../meshes/toy_table/1.stl" name="part1" scale="0.037025927036999993 0.037025927036999993 0.097025927036999993" />
+    <mesh file="../meshes/toy_table/2.stl" name="part2" scale="0.040025927036999993 0.040025927036999993 0.097025927036999993" />
+    <mesh file="../meshes/toy_table/1.stl" name="part1" scale="0.040025927036999993 0.040025927036999993 0.097025927036999993" />
     </asset>
     <include file="./common/sawyer_assembly.xml" />
     <default>
