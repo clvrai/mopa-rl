@@ -7,11 +7,22 @@
     Copyright 2018 Vikash Kumar
         Licensed under Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 ====================================================== -->
+    <!-- <asset> -->
+    <!--     <texture builtin="gradient" height="256" rgb1=".9 .9 1." rgb2=".2 .3 .4" type="skybox" width="256" /> -->
+    <!--     <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" -->
+    <!--             width="512" height="512"/> -->
+    <!--     <material name="MatGnd" reflectance="0.5" texture="texplane" texrepeat="1 1" texuniform="true"/> -->
+    <!-- </asset> -->
     <asset>
-        <texture builtin="gradient" height="256" rgb1=".9 .9 1." rgb2=".2 .3 .4" type="skybox" width="256" />
+        <!-- <texture builtin="gradient" height="256" rgb1=".9 .9 1." rgb2=".2 .3 .4" type="skybox" width="256" /> -->
+             <texture name="skybox" type="skybox" builtin="gradient" rgb1="0.556 0.705 0.960" rgb2="0.556 0.705 0.960"
+            width="800" height="800" mark="none"/>
         <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2"
-                width="512" height="512"/>
-        <material name="MatGnd" reflectance="0.5" texture="texplane" texrepeat="1 1" texuniform="true"/>
+            width="512" height="512"/>
+          <texture name="grid" type="2d" builtin="checker" rgb1=".5 .5 .5" rgb2=".7 .7 .7" width="500" height="500" mark="none"/>
+        <material name="grid" texture="grid" texrepeat="1 1" reflectance=".1"/>
+        <!-- <material name="MatGnd" reflectance="0.5" texture="texplane" texrepeat="1 1" texuniform="true"/> -->
+        <material name="MatGnd" texture="grid"  texrepeat="10 10" specular="1" shininess=".3" reflectance="0.00001"/>
     </asset>
 
     <worldbody>
@@ -20,7 +31,8 @@
         <!-- <!&#45;&#45; <light directional="false" diffuse=".8 .8 .8" specular="0.3 0.3 0.3" pos="&#45;1 0 3" dir="1 0 &#45;3" /> &#45;&#45;> -->
         <light castshadow="false" diffuse=".8 .8 .8" dir="0 -.15 -1" directional="false" pos="1.5 0.7 4.0" specular="0.3 0.3 0.3" />
         <light castshadow="false" diffuse=".8 .8 .8" dir="0 -.15 -1" directional="false" pos="-2.5 -3.3 4.0" specular="0.3 0.3 0.3" />
-        <geom name="ground" pos="0 0 0" size="5 5 10" material="MatGnd" type="plane" contype="1" conaffinity="1"/>
+        <!-- <geom name="ground" pos="0 0 0" size="5 5 10" material="MatGnd" type="plane" contype="1" conaffinity="1"/> -->
+            <geom name="ground" pos="0 0 0" size="5 5 10" material="MatGnd" type="plane" contype="1" conaffinity="1"/>
     </worldbody>
 
 </mujocoinclude>
