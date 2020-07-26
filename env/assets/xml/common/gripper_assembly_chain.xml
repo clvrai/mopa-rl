@@ -17,7 +17,7 @@
         </body>
 
         <body name="peg" pos="0.08 -0.05 -0.05">
-          <geom conaffinity="0" contype="0" density="01" mesh="part1" name="peg" pos="-0.05 0.05 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+          <geom conaffinity="0" contype="0" density="01" mesh="part3" name="peg" pos="-0.05 0.05 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
           <geom density="50" name="noviz_collision_1_part3_0" pos="-0.05 0.05 0.19" quat="1 0 0 0" rgba="1 0 0 0" size="0.02 0.2" solref="0.001 1" type="cylinder" />
           <geom density="50" name="noviz_collision_1_part3_1" pos="-0.05 0.05 -0.19" quat="1 0 0 0" rgba="1 0 0 0" size="0.018 0.2" solref="0.001 1" type="cylinder" />
 
