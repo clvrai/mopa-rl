@@ -49,7 +49,7 @@ class SawyerAssemblyEnv(SawyerEnv):
             info = dict(reward_reach=reward_reach)
         else:
             reward_reach = 0
-            if dist < 0.2:
+            if dist < 0.3:
                 reward_reach += 0.4 * (1-np.tanh(10*dist))
             reward += reward_reach
         hole_bottom = self.sim.data.get_site_xpos("hole_bottom")
