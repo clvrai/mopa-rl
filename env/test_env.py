@@ -37,8 +37,9 @@ obs = env.reset()
 obs = env.reset()
 # env.render('human') # uncomment if you don't use mujocopy hack
 
-frames = []
-frames.append([render_frame(env, 0)])
+if is_save_video:
+    frames = []
+    frames.append([render_frame(env, 0)])
 env.reset_visualized_indicator()
 curr_qpos = env.sim.data.qpos.copy()
 # curr_qpos[:4] = np.zeros(4)
