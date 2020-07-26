@@ -52,7 +52,7 @@
             </default>
 
             <default class='sawyer_col_target'>
-                <geom rgba=".6 .5 .1 0.2" group="0" contype="0" conaffinity="0"/>
+                <geom rgba="0. 0.4 0. 0.5" group="0" contype="0" conaffinity="0"/>
             </default>
             <default class='sawyer_viz_target'>
                 <geom type="mesh" contype="0" conaffinity="0" group="0" rgba="0.5 0.1 0.1 0.2"/>
