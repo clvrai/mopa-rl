@@ -274,7 +274,7 @@ class PlannerRolloutRunner(object):
                                     inter_rew = meta_rew_list[goal] - meta_rew_list[start]
                                     if config.use_discount_meta:
                                         inter_rew *= (config.discount_factor ** (-(start+1)))
-                                    rollout.add({'done': done_list[goal], 'rew': inter_rew, 'intra_steps': goal-start})
+                                    rollout.add({'done': done_list[goal], 'rew': inter_rew, 'intra_steps': goal-start-1})
 
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
