@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_range1.0.reuse15.span50.scale.0.2.v2"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.span5.scale.0.1.v2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -21,8 +21,8 @@ allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="1.0"
-ac_rl_minimum="-0.7"
-ac_rl_maximum="0.7"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
@@ -36,10 +36,10 @@ use_smdp_update="True"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
-discount_factor='0.99'
-max_reuse_data='15'
-min_reuse_span='50'
-reward_scale="5.0"
+discount_factor='0.995'
+max_reuse_data='30'
+min_reuse_span='5'
+reward_scale="0.1"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 timelimit='1.2'
