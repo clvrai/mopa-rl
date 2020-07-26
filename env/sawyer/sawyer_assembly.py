@@ -52,7 +52,9 @@ class SawyerAssemblyEnv(SawyerEnv):
             if dist < 0.2:
                 reward_reach += 0.4 * (1-np.tanh(10*dist))
             reward += reward_reach
-        if dist < 0.05:
+        hole_bottom = self.sim.data.get_site_xpos("hole_bottom")
+        dist_to_hole_bottom = np.linalg.norm(pegHeadPos - hole_bottom)
+        if dist_to_hole_bottom < 0.04:
             reward += self._kwargs['success_reward']
             self._success = True
             self._terminal = True
