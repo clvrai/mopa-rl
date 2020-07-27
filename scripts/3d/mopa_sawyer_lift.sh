@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.discrete.ac_rang0.5.data30.span10"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_ran0.5.data30.span10_2"
 env="sawyer-lift-obstacle-v0"
 gpu=$1
 seed=$2
@@ -13,8 +13,8 @@ debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="False"
@@ -31,7 +31,7 @@ vis_replay="True"
 task_level='easy'
 use_cum_rew="True"
 plot_type='3d'
-ac_space_type="normal"
+ac_space_type="piecewise"
 use_smdp_update="True"
 # use_discount_meta="False"
 step_size="0.02"
@@ -40,12 +40,12 @@ add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='30'
 min_reuse_span='10'
-reward_scale="0.2"
+reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 
 # variants
-extended_action="True"
+extended_action="False"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
