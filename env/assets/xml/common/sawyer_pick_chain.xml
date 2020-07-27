@@ -9,6 +9,7 @@
 ====================================================== -->
     <camera pos="0.2 0 3.2" name="topview" />
     <camera mode="fixed" name="frontview" pos="3.16 0.0 2.15" quat="0.56 0.43 0.43 0.56" />
+    <camera mode="fixed" name="visview" pos="1.16 0.0 2.85" quat="0.56 0.13 0.13 0.56" />
     <!-- <camera mode="fixed" name="frontview" pos="3.16 0.0 1.95" quat="0.56 0.43 0.43 0.56" /> -->
 
     <camera mode="fixed" name="birdview" pos="0.36000000000000004 0.0 3.0" quat="0.7071 0 0 0.7071" />
