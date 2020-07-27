@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE.v9"
+prefix="BASELINE.IK.v20"
 env="sawyer-assembly-v0"
 algo='sac'
 rollout_length="10000"
@@ -19,8 +19,8 @@ batch_size="256"
 reward_type='sparse'
 comment='Baseline'
 start_steps='10000'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 log_freq='1000'
 alpha="1.0"
 vis_replay="True"
@@ -28,10 +28,9 @@ plot_type='3d'
 task_level='easy'
 success_reward='150.'
 reward_scale="10."
-use_ik_target="False"
+use_ik_target="True"
 ik_target="grip_site"
 action_range="0.001"
-action_range="0.0001"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \

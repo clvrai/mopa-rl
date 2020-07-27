@@ -114,7 +114,8 @@ class SACAgent(BaseAgent):
         if ac_space_type == 'normal':
             return ac * action_range
         elif ac_space_type == 'piecewise':
-            return np.where(np.abs(ac) < ac_rl_maximum, ac/(ac_rl_maximum/ac_scale), np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((1.0-ac_scale)/(1.0-ac_rl_maximum))*((action_range-ac_scale)/(1.0-ac_scale))))
+            return np.where(np.abs(ac) < ac_rl_maximum, ac/(ac_rl_maximum/ac_scale), np.sign(ac) * (ac_scale + (action_range-ac_scale)*((np.abs(ac)-ac_rl_maximum)/(1-ac_rl_maximum))))
+            # return np.where(np.abs(ac) < ac_rl_maximum, ac/(ac_rl_maximum/ac_scale), np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((1.0-ac_scale)/(1.0-ac_rl_maximum))*((action_range-ac_scale)/(1.0-ac_scale))))
         else:
             raise NotImplementedError
 
