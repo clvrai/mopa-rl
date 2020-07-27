@@ -18,8 +18,8 @@
 
         <body name="peg" pos="0.08 -0.05 -0.0">
           <geom conaffinity="0" contype="0" density="01" mesh="part3" name="peg" pos="-0.05 0.05 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
-          <geom density="50" name="noviz_collision_1_part3_0" pos="-0.05 0.05 0.19" quat="1 0 0 0" rgba="1 0 0 0" size="0.02 0.2" solref="0.001 1" type="cylinder" />
-          <geom density="50" name="noviz_collision_1_part3_1" pos="-0.05 0.05 -0.19" quat="1 0 0 0" rgba="1 0 0 0" size="0.018 0.2" solref="0.001 1" type="cylinder" />
+          <geom density="50" name="noviz_collision_1_part3_0" pos="-0.05 0.05  0.16" quat="1 0 0 0" rgba="1 0 0 0" size="0.02 0.165" solref="0.001 1" type="cylinder" />
+          <geom density="50" name="noviz_collision_1_part3_1" pos="-0.05 0.05 -0.16" quat="1 0 0 0" rgba="1 0 0 0" size="0.016 0.165" solref="0.001 1" type="cylinder" />
 
           <site name="pegHead" pos="-0.05 0.05 -0.33" size="0.011" rgba="0.0 0 1 0.3"/>
           <site name="pegHead1" pos="-0.08 0.05 -0.31" size="0.014" rgba="0.0 0 1 0.3"/>
