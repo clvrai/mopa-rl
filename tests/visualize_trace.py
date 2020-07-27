@@ -20,14 +20,18 @@ np.set_printoptions(precision=3)
 mujocopy_render_hack() # rendering fix for gautam
 is_save_video = False
 parser = argparser()
-args, unparsed = parser.parse_known_args()
+config, unparsed = parser.parse_known_args()
 
 from config.sawyer import add_arguments
-args.env = 'sawyer-assembly-v0'
 
 add_arguments(parser)
-args, unparsed = parser.parse_known_args()
-env = gym.make(args.env, **args.__dict__)
+planner_add_arguments(parser)
+config, unparsed = parser.parse_known_args()
+
+config.camera_name = 'frontview'
+config.env = 'sawyer-assembly-v0'
+
+env = gym.make(config.env, **config.__dict__)
 obs = env.reset()
 
 config._xml_path = env.xml_path
@@ -66,14 +70,45 @@ agent = SACAgent(
 
 frames = []
 env.reset_visualized_indicator()
-curr_qpos = env.sim.data.qpos.copy()
 img = env.render('rgb_array')
 
-target_qpos[env.ref_joint_pos_indexes] = np.array([-0.153, -0.164, -0.0304, 0.693, 1.93, -2.32, 0.848])
-traj = agent.plan(target_qpos)
+curr_qpos = env.sim.data.qpos.copy()
+target_qpos = curr_qpos.copy()
+targets = [np.array([-0.274, -0.846, 0.667, 0.254, -0.169, 0.0374, 0.0049]),
+    np.array([-0.274, -0.341, -0.0609, 0.67, 1.93, -2.26, 0.801]),
+            np.array([-0.335, -0.341, -0.0609, 0.852, 1.96, -1.87, 0.801])]
 
-for i, state in enumerate(traj):
-    imageio.imsave('{}.png'.format(i),
-                           (env.render('rgb_array') * 255).astype(np.uint8))
-    curr_qpos = env.sim.data.qpos.copy()
-    curr_qpos[env.ref_joint_pos_indexes] = state
+is_target_vis = False
+# target_qpos[env.ref_joint_pos_indexes] = np.array([-0.335, -0.341, -0.0609, 0.852, 1.96, -1.87, 0.801])
+
+i = 0
+
+# traj1 = np.load('traj_1.npy')
+# traj2 = np.load('traj_2.npy')
+# traj_list = [traj0, traj1, traj2]
+# for target_id, traj in enumerate(traj_list):
+#     for state in traj:
+#         env.visualize_goal_indicator(state[env.ref_joint_pos_indexes])
+#         imageio.imsave('./tmp/vis/target_interm_{}_target_{}.png'.format(i, target_id),
+#                                (env.render('rgb_array') * 255).astype(np.uint8))
+#         i += 1
+
+for j, target in enumerate(targets):
+    if is_target_vis:
+        env.visualize_goal_indicator(target)
+        imageio.imsave('./tmp/vis/target_{}.png'.format(i),
+                               (env.render('rgb_array') * 255).astype(np.uint8))
+        i += 1
+    else:
+        target_qpos[env.ref_joint_pos_indexes] = target
+        curr_qpos = env.sim.data.qpos.copy()
+        traj, _, _, _,_ = agent.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
+        np.save('traj_{}.npy'.format(j), traj)
+
+        for state in traj:
+            imageio.imsave('./tmp/vis/{}.png'.format(i),
+                                   (env.render('rgb_array') * 255).astype(np.uint8))
+            curr_qpos = env.sim.data.qpos.copy()
+            curr_qpos[env.ref_joint_pos_indexes] = state[env.ref_joint_pos_indexes]
+            env.set_state(curr_qpos, env.sim.data.qvel.ravel())
+            i += 1
