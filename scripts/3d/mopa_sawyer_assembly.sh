@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_rang0.5.scale.0.2.span1.v15"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.7.ac_rang0.5.scale.0.2.span1.v19"
 gpu=$1
 seed=$2
 algo='sac'
@@ -13,8 +13,8 @@ debug="False"
 batch_size="256"
 reward_type='sparse'
 comment='Sanity Check'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 log_freq='1000'
 planner_integration="True"
 allow_manipulation_collision="False"
