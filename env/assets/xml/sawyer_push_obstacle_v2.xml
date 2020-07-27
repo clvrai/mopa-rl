@@ -7,7 +7,12 @@
     <texture file="../textures/dark-wood.png" type="2d" name="tex-dark-wood"/>
     <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true"/>
     <material name="dark-wood" reflectance="0.5" texrepeat="5 5" texture="tex-dark-wood" texuniform="true"/>
-  </asset>
+</asset>
+    <visual>
+        <headlight ambient=".5 .5 .5" diffuse=".8 .8 .8" specular="0.1 0.1 0.1"/>
+        <map znear=".01"/>
+        <quality shadowsize="2048"/>
+    </visual>
     <worldbody>
     <body name="table" pos="0.9 0.0 0.8">
         <geom pos="0 0 0" size="0.4 0.4 0.02" type="box" friction="1 0.005 0.0001"/>
