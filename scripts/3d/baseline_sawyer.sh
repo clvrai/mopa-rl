@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE.v22"
+prefix="BASELINE.IK.v24"
 env="sawyer-assembly-v0"
 algo='sac'
 rollout_length="10000"
@@ -28,7 +28,7 @@ plot_type='3d'
 task_level='easy'
 success_reward='150.'
 reward_scale="10."
-use_ik_target="False"
+use_ik_target="True"
 ik_target="grip_site"
 action_range="0.001"
 

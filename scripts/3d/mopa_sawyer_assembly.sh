@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_rang0.5.scale.0.5.span1.v21"
+prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_rang0.5.scale.0.2.span1.v24"
 gpu=$1
 seed=$2
 algo='sac'
@@ -32,14 +32,14 @@ use_cum_rew="True"
 plot_type='3d'
 ac_space_type="piecewise"
 use_smdp_update="True"
-# use_discount_meta="False"
+use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='30'
 min_reuse_span='5'
-reward_scale="0.5"
+reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 
@@ -89,4 +89,4 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
-    # --use_discount_meta $use_discount_meta \
+    --use_discount_meta $use_discount_meta \
