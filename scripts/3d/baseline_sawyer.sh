@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE.IK.v19"
+prefix="BASELINE.IK.v20"
 env="sawyer-assembly-v0"
 algo='sac'
 rollout_length="10000"
