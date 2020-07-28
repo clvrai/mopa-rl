@@ -28,8 +28,10 @@ add_arguments(parser)
 planner_add_arguments(parser)
 config, unparsed = parser.parse_known_args()
 
-config.camera_name = 'frontview'
-config.env = 'sawyer-push-obstacle-v2'
+# config.camera_name = 'visview'
+config.camera_name='cam0'
+config.env = 'pusher-obstacle-hard-v3'
+config.timelimit = 2.0
 
 env = gym.make(config.env, **config.__dict__)
 obs = env.reset()
@@ -77,8 +79,17 @@ target_qpos = curr_qpos.copy()
 #     np.array([-0.274, -0.341, -0.0609, 0.67, 1.93, -2.26, 0.801]),
 #             np.array([-0.335, -0.341, -0.0609, 0.852, 1.96, -1.87, 0.801])]
 
-# targets  = [np.array([-1.01, -0.896, 0.304, 2.13, -0.0653, 0.0308, 0.00208])] # sawyer push
-targets  = [np.array([-0.244, -0.215, 0.0913, 1.49, 0.0595, -0.982, -0.0113])]
+# targets  = [np.array([-1.01, -0.896, 0.304, 2.13, -0.0653, 0.0308, 0.00208])] # sawyer lift
+# curr_qpos[env.ref_joint_pos_indexes] = targets[0]
+# targets = [env.sim.data.qpos.copy()[env.ref_joint_pos_indexes]]
+# targets  = [np.array([-0.153, -0.265, -0.00348, 1.28, 0.298, -0.298, 1.46])] # sawyer push
+
+targets = [np.array([-1.16, -1.89, -1.2, -0.18])]
+curr_qpos = env.sim.data.qpos.copy()
+# curr_qpos[-4:-2] = np.array([-0.252, 0.16])
+# env.set_state(curr_qpos, env.sim.data.qvel.ravel())
+
+# env.set_state(curr_qpos, env.sim.data.qvel.copy())
 
 is_target_vis = False
 # target_qpos[env.ref_joint_pos_indexes] = np.array([-0.335, -0.341, -0.0609, 0.852, 1.96, -1.87, 0.801])
@@ -89,7 +100,7 @@ i = 0
 # traj2 = np.load('traj_2.npy')
 # traj_list = [traj0, traj1, traj2]
 # for target_id, traj in enumerate(traj_list):
-#     for state in traj:
+#     for state in traj:t
 #         env.visualize_goal_indicator(state[env.ref_joint_pos_indexes])
 #         imageio.imsave('./tmp/vis/target_interm_{}_target_{}.png'.format(i, target_id),
 #                                (env.render('rgb_array') * 255).astype(np.uint8))

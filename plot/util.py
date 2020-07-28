@@ -104,7 +104,7 @@ def draw_line(log, method, methods_label, avg_step=3, mean_std=False, max_step=N
 
 def draw_graph(logs, title, methods_label, xlabel='Step', ylabel='Success', legend=False, put_title=True,
                mean_std=False, min_step=0, max_step=None, min_y=None, max_y=None, smooth_steps=10,
-               num_points=50, no_fill=False, num_x_tick=5, legend_loc=2, bbox_to_anchor=None):
+               num_points=50, no_fill=False, num_x_tick=5, legend_loc=2, bbox_to_anchor=None, fontsize='small', label_fontsize='large'):
     max_value = -9999
     min_value = 9999
 
@@ -159,9 +159,9 @@ def draw_graph(logs, title, methods_label, xlabel='Step', ylabel='Success', lege
     plt.xticks(np.arange(min_step, max_step + 0.1, (max_step - min_step) / num_x_tick))
     ax.grid(b=True, which='major', color='lightgray', linestyle='--')
 
-    ax.set_xlabel(xlabel, fontsize='large')
+    ax.set_xlabel(xlabel, fontsize=label_fontsize)
     #plt.ylabel(ylabel, fontsize='large')
-    ax.set_ylabel(ylabel, fontsize='large')
+    ax.set_ylabel(ylabel, fontsize=label_fontsize)
 
     if min_y >= 0:
         ax.set_ylim(bottom=-0.01)
@@ -169,9 +169,9 @@ def draw_graph(logs, title, methods_label, xlabel='Step', ylabel='Success', lege
 
     if legend:
         if bbox_to_anchor is not None:
-            plt.legend(fontsize='small', loc=legend_loc, bbox_to_anchor=bbox_to_anchor)
+            plt.legend(fontsize=fontsize, loc=legend_loc, bbox_to_anchor=bbox_to_anchor)
         else:
-            plt.legend(fontsize='small', loc=legend_loc)
+            plt.legend(fontsize=fontsize, loc=legend_loc)
         #labs = [l.get_label() for l in lines]
         #plt.legend(lines, labs, fontsize='small', loc=2)
         #plt.legend()#bbox_to_anchor=(1.03, 0.73))
