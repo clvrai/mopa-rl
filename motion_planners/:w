@@ -34,8 +34,8 @@ cdef extern from "KinematicPlanner.h" namespace "MotionPlanner":
 
 cdef class PyKinematicPlanner:
     cdef KinematicPlanner *thisptr
-    def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime, vector[int] passive_joint_idx, vector[string] glue_bodies, vector[pair[int, int]] ignored_contacts, double contact_threshold, double goal_bias, bool_ allow_approximate, bool_ is_simplified, double simplified_duration, int seed):
-        self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime, passive_joint_idx, glue_bodies, ignored_contacts, contact_threshold, goal_bias, allow_approximate, is_simplified, simplified_duration, seed)
+    def __cinit__(self, string xml_filename, string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, string opt, double threshold, double _range, double constructTime, vector[int] passive_joint_idx, vector[string] glue_bodies, vector[pair[int, int]] ignored_contacts, double contact_threshold, double goal_bias, bool_ allow_approximate, bool_ is_simplified, double simplified_duration):
+        self.thisptr = new KinematicPlanner(xml_filename, algo, num_actions, sst_selection_radius, sst_pruning_radius, opt, threshold, _range, constructTime, passive_joint_idx, glue_bodies, ignored_contacts, contact_threshold, goal_bias, allow_approximate, is_simplified, simplified_duration)
 
     def __dealloc__(self):
         del self.thisptr

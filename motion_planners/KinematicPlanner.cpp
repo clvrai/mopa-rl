@@ -28,6 +28,7 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/PathSimplifier.h>
+#include <ompl/util/RandomNumbers.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 
@@ -52,7 +53,7 @@ using namespace MotionPlanner;
 
 
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate, bool is_simplified, double simplified_duration)
+                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate, bool is_simplified, double simplified_duration, int seed)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -119,6 +120,8 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     psimp_ = std::make_shared<og::PathSimplifier>(si);
     _range = _Range;
 
+
+    ompl::RNG::setSeed(seed);
     si->setup();
     ss = std::make_shared<og::SimpleSetup>(si);
 
