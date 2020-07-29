@@ -30,7 +30,8 @@ class SamplingBasedPlanner:
                                           goal_bias,
                                           allow_approximate,
                                           is_simplified,
-                                          simplified_duration)
+                                          simplified_duration,
+                                          config.seed)
         self.non_limited_idx = non_limited_idx
 
     def convert_nonlimited(self, state):

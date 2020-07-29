@@ -149,7 +149,7 @@ def argparser():
     parser.add_argument("--reward_scale", type=float, default=1.0)
     parser.add_argument("--use_smdp_update", type=str2bool, default=False)
     parser.add_argument("--actor_bias", type=float, default=None)
-    parser.add_argument("--discrete_ent_coef", type=float, default=10.)
+    parser.add_argument("--discrete_ent_coef", type=float, default=1.)
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)
