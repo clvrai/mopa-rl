@@ -33,8 +33,11 @@ args, unparsed = parser.parse_known_args()
 env = gym.make(args.env, **args.__dict__)
 if 'robosuite' in args.env:
     env.use_camera_obs = False
+
+env.seed(1234)
 obs = env.reset()
-obs = env.reset()
+import pdb
+pdb.set_trace()
 # env.render('human') # uncomment if you don't use mujocopy hack
 
 if is_save_video:

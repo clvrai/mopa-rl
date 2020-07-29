@@ -26,7 +26,7 @@ class SawyerAssemblyEnv(SawyerEnv):
         # return np.array([-0.122, -0.0164, 1.16, -0.609, -0.0605, 0.0232, 0.0021])
 
     def _reset(self):
-        init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
+        init_qpos = self.init_qpos + self.np_random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         # goal = self._init_goal.copy()

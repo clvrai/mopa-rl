@@ -25,7 +25,7 @@ class SawyerLiftObstacleEnv(SawyerEnv):
 
 
     def _reset(self):
-        init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
+        init_qpos = self.init_qpos + self.np_random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
@@ -35,7 +35,7 @@ class SawyerLiftObstacleEnv(SawyerEnv):
 
 
     def initialize_joints(self):
-        init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
+        init_qpos = self.init_qpos + self.np_random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         self.sim.forward()

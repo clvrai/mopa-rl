@@ -13,6 +13,7 @@ import scipy.misc
 import numpy as np
 import gym
 from gym import spaces, error
+from gym.utils import seeding, EzPickle
 
 import env.transform_utils as T
 from util.logger import logger
@@ -46,6 +47,7 @@ class BaseEnv(gym.Env):
         self._screen_width = kwargs['screen_width']
         self._screen_height = kwargs['screen_height']
         self._seed = kwargs['seed']
+        self.seed(self._seed)
         self._gym_disable_underscore_compat = True
         self._kp = kwargs['kp']
         self._kd = kwargs['kd']
@@ -198,7 +200,7 @@ class BaseEnv(gym.Env):
 
     def _init_random(self, size):
         r = self._env_config["init_randomness"]
-        return np.random.uniform(low=-r, high=r, size=size)
+        return self.np_random.uniform(low=-r, high=r, size=size)
 
     def _reset(self):
         pass
@@ -317,6 +319,10 @@ class BaseEnv(gym.Env):
             self._get_viewer().render()
             return None
         return None
+
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
 
     def _viewer_reset(self):
         pass

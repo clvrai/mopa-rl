@@ -25,11 +25,11 @@ class SawyerPegInsertionObstacleEnv(SawyerEnv):
         return np.array([0.061, -0.0377, 1.07, 1.03, 0.804, 0.714, 0.754])
 
     def _reset(self):
-        init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
+        init_qpos = self.init_qpos + self.np_random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         goal = self._init_goal.copy()
-        goal[:2] += np.random.randn(2) * 0.02
+        goal[:2] += self.np_random.randn(2) * 0.02
         self.sim.model.body_pos[self.sim.model.body_name2id('box')] = goal
         self.sim.forward()
 
