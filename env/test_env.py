@@ -36,8 +36,6 @@ if 'robosuite' in args.env:
 
 env.seed(1234)
 obs = env.reset()
-import pdb
-pdb.set_trace()
 # env.render('human') # uncomment if you don't use mujocopy hack
 
 if is_save_video:
