@@ -111,11 +111,18 @@ class SawyerPushObstacleV2Env(SawyerEnv):
         return []
 
     @property
+    def static_bodies(self):
+        return ['table', 'bin1']
+
+    @property
     def static_geom_ids(self):
-        ref_body_id = self.sim.model.body_name2id("table")
+        body_ids = []
+        for body_name in self.static_bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
         geom_ids = []
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
-            if body_id == ref_body_id:
+            if body_id in body_ids:
                 geom_ids.append(geom_id)
         return geom_ids
 
