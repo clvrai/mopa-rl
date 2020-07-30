@@ -26,7 +26,6 @@
         <geom pos="0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" friction="1 0.005 0.0001" rgba="0 0 1 1" />
         <geom pos="0.38 -0.38 -0.4" size="0.02 0.4 0.08" type="cylinder" conaffinity="0" contype="0" group="1" material="light-wood"/>
     </body>
-
     <body name="bin1" pos="0.9 0.0 1.02" quat="0 1 0 1">
         <geom friction="1 0.005 0.0001" pos="0 0.2 0.05" rgba="0 0 1 1" size="0.21 0.01 0.2" type="box" />
         <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="0 0.2 0.05" size="0.21 0.01 0.20" type="box" />
@@ -38,9 +37,9 @@
         <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="-0.2 0 0.05" size="0.01 0.2 0.2" type="box" />
     </body>
 
-        <body name="cube" pos="0.9 -0.023869616735809365 0.9">
+        <body name="cube" pos="0.85 -0.023869616735809365 0.9">
             <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
-            <geom contype="1" density="100" conaffinity="1" friction="0.95 0.3 0.1" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.02 0.02 0.02" type="box" solimp="0.99 0.99 0.01" solref="0.001 1"/>
+            <geom contype="1" density="100" conaffinity="1" friction="0.95 0.3 0.1" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.03 0.03 0.03" type="box" solimp="0.99 0.99 0.01" solref="0.001 1"/>
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
             <joint name="cube" type="free" damping="0.0005"/>
         </body>
