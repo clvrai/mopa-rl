@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.normal.0.1.range0.5"
+prefix="SAC.PLANNER.AUGMENTED.ablation.reuse0"
 env="sawyer-lift-obstacle-v0"
 gpu=$1
 seed=$2
@@ -21,8 +21,8 @@ allow_manipulation_collision="False"
 alpha="1.0"
 reuse_data_type="random"
 action_range="0.5"
-ac_rl_minimum="-0.1"
-ac_rl_maximum="0.1"
+ac_rl_minimum="-0.5"
+ac_rl_maximum="0.5"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
 find_collision_free="True"
@@ -38,8 +38,8 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='30'
-min_reuse_span='10'
+max_reuse_data='0'
+min_reuse_span='1'
 reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"

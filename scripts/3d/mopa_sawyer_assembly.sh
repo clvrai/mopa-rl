@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.Ablation.range0.5.reuse45"
+prefix="SAC.PLANNER.AUGMENTED.Ablation.range0.5.reuse30.scale0.05"
 gpu=$1
 seed=$2
 algo='sac'
@@ -36,9 +36,9 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='45'
+max_reuse_data='30'
 min_reuse_span='1'
-reward_scale="0.1"
+reward_scale="0.05"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 
