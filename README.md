@@ -65,12 +65,6 @@ or on macOS
 python setup_macos.py build_ext --inplace
 ```
 
-### Install metaworld
-```
-git clone https://github.com/rlworkgroup/metaworld.git
-cd metaworld
-pip install -e .
-```
 
 ## Usage
 ### Test environment
@@ -82,26 +76,25 @@ python -m env.test_env
 sh ./scripts/test_env
 ````
 
-### Create Robosuite xml file
-
-The command below generates a robosuite xml file in `env/assets/xml/` folder.
-
-#### Environments currently supported
-- sawyer-pick-place-[single, milk, can, cereal]-v0
-- sawyer-move-[single, milk, can, cereal]-v0
-
-```
-cd /path/to/repo/home
-python -m env.create_robosuite_xml --env sawyer-pick-place-can-v0
-# or 
-sh ./scripts/create_robosuite_xml.sh
-```
-
-
 ### SAC Baseline
+
+#### 2-D Push
+
+- Baseline
 ```
-sh ./scripts/baseline.sh
+sh ./scripts/2d/baseline.sh
 ```
+- MoPA-SAC
+
+````
+sh ./scripts/2d/mopa.sh
+````
+
+- MoPA-SAC IK
+```
+sh ./scripts/2d/mopa_ik.sh
+`````
+
 
 ### HRL Baseline
 ```
