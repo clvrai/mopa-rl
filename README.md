@@ -1,4 +1,4 @@
-# Motion Planner Augmented RL
+# Motion Planner Augmented Reinforcement Learning
 
 ## Prerequisites
 - Python 3.7 (`python3.7`, `python3.7-dev`)
