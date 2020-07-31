@@ -76,9 +76,8 @@ python -m env.test_env
 sh ./scripts/test_env
 ````
 
-### SAC Baseline
 
-#### 2-D Push
+### 2-D Push
 
 - Baseline
 ```
@@ -95,21 +94,12 @@ sh ./scripts/2d/mopa.sh
 sh ./scripts/2d/mopa_ik.sh
 `````
 
+### Sawyer-Push
 
-### HRL Baseline
-```
-sh ./scripts/hrl_baseline.sh
-```
+### Sawyer-Lift
 
-### HRL baseline with subgoals
-```
-sh ./scripts/hrl_subgoal_baseline.sh
-```
+### Sawyer-Assembly
 
-### Subgoal + Motion planner
-```
-sh ./scripts/subgoal_mp.sh
-```
 
 ## Trouble shooting
 
