@@ -9,14 +9,6 @@ register(
     entry_point='env.pusher:SimplePusherEnv',
     kwargs={}
 )
-
-register(
-    id='simple-peg-insertion-v0',
-    entry_point='env.peg_insertion:SimplePegInsertionEnv',
-    kwargs={}
-)
-
-
 register(
     id='pusher-v0',
     entry_point='env.pusher:PusherEnv',
@@ -107,26 +99,6 @@ register(
 register(
     id="sawyer-push-obstacle-easy-v0",
     entry_point="env.sawyer:SawyerPushObstacleEasyEnv",
-    kwargs={}
-)
-register(
-    id="sawyer-peg-insertion-v0",
-    entry_point="env.sawyer:SawyerPegInsertionEnv",
-    kwargs={}
-)
-register(
-    id="sawyer-peg-insertion-obstacle-v0",
-    entry_point="env.sawyer:SawyerPegInsertionObstacleEnv",
-    kwargs={}
-)
-register(
-    id="sawyer-peg-insertion-obstacle-v1",
-    entry_point="env.sawyer:SawyerPegInsertionObstacleV1Env",
-    kwargs={}
-)
-register(
-    id="sawyer-peg-insertion-obstacle-v2",
-    entry_point="env.sawyer:SawyerPegInsertionObstacleV2Env",
     kwargs={}
 )
 register(
