@@ -3,7 +3,7 @@ gpu=$1
 seed=$2
 
 prefix="BASELINE"
-env="sawyer-assembly-easy-v0"
+env="sawyer-lift-v0"
 algo='sac'
 rollout_length="10000"
 evaluate_interval="10000"

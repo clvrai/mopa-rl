@@ -1,13 +1,13 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.Ablation.range0.5.reuse30.scale0.05"
+prefix="SAC.PLANNER.AUGMENTED.Ablation.range0.5.reuse30.scale0.2"
 gpu=$1
 seed=$2
 algo='sac'
 rl_activation="relu"
 num_batches="1"
 log_interval="1000"
-env="sawyer-assembly-v0"
+env="sawyer-assembly-easy-v0"
 max_episode_step="250"
 debug="False"
 batch_size="256"
@@ -38,7 +38,7 @@ add_curr_rew="True"
 discount_factor='0.99'
 max_reuse_data='30'
 min_reuse_span='1'
-reward_scale="0.05"
+reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 

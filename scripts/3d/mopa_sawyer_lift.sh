@@ -1,7 +1,7 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.ablation.reuse0"
-env="sawyer-lift-obstacle-v0"
+prefix="SAC.PLANNER.AUGMENTED.reuse30"
+env="sawyer-lift-v0"
 gpu=$1
 seed=$2
 algo='sac'
@@ -33,12 +33,12 @@ use_cum_rew="True"
 plot_type='3d'
 ac_space_type="normal"
 use_smdp_update="True"
-# use_discount_meta="False"
+use_discount_meta="False"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 discount_factor='0.99'
-max_reuse_data='0'
+max_reuse_data='30'
 min_reuse_span='1'
 reward_scale="0.5"
 log_indiv_entropy="True"
