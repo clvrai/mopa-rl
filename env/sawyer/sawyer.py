@@ -3,7 +3,7 @@ import time
 import logging
 import traceback
 from collections import OrderedDict
-from env.robosuite.utils.transform_utils import *
+from util.transform_utils import *
 
 try:
     import mujoco_py
@@ -15,7 +15,6 @@ import numpy as np
 import gym
 from gym import spaces, error
 
-import env.transform_utils as T
 from util.logger import logger
 np.set_printoptions(suppress=True)
 from env.base import BaseEnv

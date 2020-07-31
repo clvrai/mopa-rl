@@ -5,7 +5,7 @@ import numpy as np
 from gym import spaces
 from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
-from env.robosuite.utils.transform_utils import *
+from util.transform_utils import *
 
 class SawyerPushObstacleV2Env(SawyerEnv):
     def __init__(self, **kwargs):
