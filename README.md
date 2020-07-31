@@ -67,39 +67,28 @@ python setup_macos.py build_ext --inplace
 
 
 ## Usage
-### Test environment
-Run this line to start the test environment. You might face [this libGL problem](https://github.com/openai/mujoco-py/issues/268) on Ubuntu.
+
 ```
-cd /path/to/repo/home
-python -m env.test_env 
-# or 
-sh ./scripts/test_env
-````
+# 2-D Push
+sh ./scripts/2d/baseline.sh  # baseline
+sh ./scripts/2d/mopa.sh # MoPA-SAC
+sh ./scripts/2d/mopa_ik.sh # MoPA-SAC IK
 
+# Sawyer Push
+sh ./scripts/3d/push/baseline.sh # baseline
+sh ./scripts/3d/push/mopa.sh # MoPA-SAC
+sh ./scripts/3d/push/mopa_ik.sh # MoPA-SAC IK
 
-### 2-D Push
+# Sawyer Lift
+sh ./scripts/3d/lift/baseline.sh # baseline
+sh ./scripts/3d/lift/mopa.sh # MoPA-SAC
+sh ./scripts/3d/lift/mopa_ik.sh # MoPA-SAC IK
 
-- Baseline
+# Sawyer Assembly
+sh ./scripts/3d/assembly/baseline.sh # baseline
+sh ./scripts/3d/assembly/mopa.sh # MoPA-SAC
+sh ./scripts/3d/assembly/mopa_ik.sh # MoPA-SAC IK
 ```
-sh ./scripts/2d/baseline.sh
-```
-- MoPA-SAC
-
-````
-sh ./scripts/2d/mopa.sh
-````
-
-- MoPA-SAC IK
-```
-sh ./scripts/2d/mopa_ik.sh
-`````
-
-### Sawyer-Push
-
-### Sawyer-Lift
-
-### Sawyer-Assembly
-
 
 ## Trouble shooting
 
