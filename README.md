@@ -1,4 +1,4 @@
-# hrl-planner
+# Motion Planner Augmented RL
 
 ## Prerequisites
 - Python 3.7 (`python3.7`, `python3.7-dev`)
