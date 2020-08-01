@@ -26,7 +26,6 @@ step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 max_reuse_data='30'
-min_reuse_span='1'
 reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
@@ -56,7 +55,6 @@ python -m rl.main \
     --step_size $step_size \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
-    --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \

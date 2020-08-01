@@ -22,15 +22,14 @@ vis_replay="True"
 plot_type='3d'
 ac_space_type="piecewise"
 use_smdp_update="True"
-# use_discount_meta="False"
+use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-discount_factor='0.995'
+discount_factor='0.99'
 max_reuse_data='30'
 reward_scale="0.4"
 log_indiv_entropy="True"
 evaluate_interval="10000"
-timelimit='1.2'
 
 # variants
 extended_action="True"
@@ -65,5 +64,4 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
-    --timelimit $timelimit
     --use_discount_meta $use_discount_meta \

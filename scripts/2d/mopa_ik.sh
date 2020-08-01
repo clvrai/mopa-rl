@@ -17,7 +17,6 @@ action_range="0.1"
 stochastic_eval="True"
 find_collision_free="True"
 max_reuse_data='30'
-min_reuse_span='1'
 use_smdp_update="True"
 success_reward="150.0"
 use_ik_target="True"
@@ -46,7 +45,6 @@ python -m rl.main \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
-    --min_reuse_span $min_reuse_span \
     --use_smdp_update $use_smdp_update \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \

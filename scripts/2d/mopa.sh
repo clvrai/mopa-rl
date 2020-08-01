@@ -20,15 +20,12 @@ use_smdp_update="True"
 stochastic_eval="True"
 find_collision_free="True"
 max_reuse_data='30'
-min_reuse_span='1'
 ac_space_type="piecewise"
 success_reward="150.0"
 log_indiv_entropy="True"
 # max_grad_norm='0.5'
-
 # variants
 extended_action="True"
-discrete_ent_coef="1.0"
 
 
 python -m rl.main \
@@ -53,8 +50,6 @@ python -m rl.main \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
-    --min_reuse_span $min_reuse_span \
     --ac_space_type $ac_space_type \
     --log_indiv_entropy $log_indiv_entropy \
-    --discrete_ent_coef $discrete_ent_coef \
     --use_smdp_update $use_smdp_update

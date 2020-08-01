@@ -26,7 +26,6 @@ log_indiv_entropy="True"
 
 # variants
 extended_action="True"
-discrete_ent_coef="1.0"
 
 
 #mpiexec -n $workers
@@ -58,4 +57,3 @@ python -m rl.main \
     --ac_space_type $ac_space_type \
     --use_double_planner $use_double_planner \
     --log_indiv_entropy $log_indiv_entropy \
-    --discrete_ent_coef $discrete_ent_coef
