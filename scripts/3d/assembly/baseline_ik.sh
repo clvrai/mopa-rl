@@ -1,8 +1,9 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
+
 prefix="BASELINE"
-env="sawyer-assembly-v0"
+env="sawyer-lift-obstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"

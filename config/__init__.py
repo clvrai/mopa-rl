@@ -88,7 +88,7 @@ def argparser():
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
     parser.add_argument("--allow_invalid", type=str2bool, default=False)
     parser.add_argument("--find_collision_free", type=str2bool, default=False)
-    parser.add_argument("--use_double_planner", type=str2bool, default=True)
+    parser.add_argument("--use_double_planner", type=str2bool, default=False)
     parser.add_argument("--num_trials", type=int, default=100)
     parser.add_argument("--use_interpolation", type=str2bool, default=True)
     parser.add_argument("--interpolate_type", type=str, default="simple", choices=["planner", "simple"])
@@ -132,12 +132,12 @@ def argparser():
 
     # training
     parser.add_argument("--is_train", type=str2bool, default=True)
-    parser.add_argument("--num_batches", type=int, default=50,
+    parser.add_argument("--num_batches", type=int, default=1,
                         help="the times to update the network per epoch")
     parser.add_argument("--batch_size", type=int, default=256,
                         help="the sample batch size")
     parser.add_argument("--max_grad_norm", type=float, default=None)
-    parser.add_argument("--max_global_step", type=int, default=int(10e7))
+    parser.add_argument("--max_global_step", type=int, default=int(3e6))
     parser.add_argument("--gpu", type=int, default=None)
     parser.add_argument("--invalid_planner_rew", type=float, default=0.)
 
@@ -162,10 +162,10 @@ def argparser():
     parser.add_argument("--ppo_hid_size", type=int, default=64)
 
     # log
-    parser.add_argument("--log_interval", type=int, default=1)
+    parser.add_argument("--log_interval", type=int, default=1000)
     parser.add_argument("--vis_replay_interval", type=int, default=10000)
-    parser.add_argument("--evaluate_interval", type=int, default=1000)
-    parser.add_argument("--ckpt_interval", type=int, default=10000)
+    parser.add_argument("--evaluate_interval", type=int, default=10000)
+    parser.add_argument("--ckpt_interval", type=int, default=200000)
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,
                         help="set it True if you want to use wandb")
@@ -197,6 +197,6 @@ def argparser():
     parser.add_argument("--debug_render", type=str2bool, default=False)
 
     parser.add_argument("--comment", nargs='+', default=None)
-    parser.add_argument("--log_freq", type=int, default=1)
+    parser.add_argument("--log_freq", type=int, default=1000)
 
     return parser

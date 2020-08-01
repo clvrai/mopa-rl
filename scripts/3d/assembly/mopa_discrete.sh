@@ -1,35 +1,36 @@
-#/!/bin/bash -x
+#<!/bin/bash -x
+
+prefix="SAC.PLANNER.AUGMENTED.Ablation.range0.5.reuse30.scale0.2"
 gpu=$1
 seed=$2
-
 algo='sac'
-prefix="SAC.PUSHER.action_range.1.0.data30.scale.0.2"
-env="pusher-obstacle-hard-v3"
-max_episode_step="400"
+env="sawyer-assembly-easy-v0"
+max_episode_step="250"
 debug="False"
 reward_type='sparse'
-# log_root_dir="./logs"
 log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 planner_integration="True"
-reward_scale="0.2"
 reuse_data_type="random"
-action_range="1.0"
+action_range="0.5"
 ac_rl_minimum="-0.5"
 ac_rl_maximum="0.5"
-use_smdp_update="True"
 stochastic_eval="True"
 find_collision_free="True"
+vis_replay="True"
+plot_type='3d'
+ac_space_type="piecewise"
+use_smdp_update="True"
+step_size="0.02"
+success_reward="150.0"
 max_reuse_data='30'
 min_reuse_span='1'
-ac_space_type="piecewise"
-success_reward="150.0"
+reward_scale="0.2"
 log_indiv_entropy="True"
-# max_grad_norm='0.5'
+evaluate_interval="10000"
 
-# variants
-extended_action="True"
-discrete_ent_coef="1.0"
-
+#variants
+extended_action="False"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -43,18 +44,21 @@ python -m rl.main \
     --seed $seed \
     --reward_type $reward_type \
     --planner_integration $planner_integration \
-    --reward_scale $reward_scale \
     --reuse_data_type $reuse_data_type \
     --action_range $action_range \
     --ac_rl_maximum $ac_rl_maximum \
     --ac_rl_minimum $ac_rl_minimum \
     --extended_action $extended_action \
-    --success_reward $success_reward \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
+    --vis_replay $vis_replay \
+    --plot_type $plot_type \
+    --use_smdp_update $use_smdp_update \
+    --ac_space_type $ac_space_type \
+    --step_size $step_size \
+    --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
     --min_reuse_span $min_reuse_span \
-    --ac_space_type $ac_space_type \
+    --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
-    --discrete_ent_coef $discrete_ent_coef \
-    --use_smdp_update $use_smdp_update
+    --evaluate_interval $evaluate_interval \
