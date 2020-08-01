@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.span5.scale.0.4.v2"
+prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range1.0.reuse15"
 gpu=$1
 seed=$2
 algo='sac'
@@ -8,13 +8,13 @@ env="sawyer-push-obstacle-v2"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 planner_integration="True"
 reuse_data_type="random"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+ac_rl_minimum="-0.7"
+ac_rl_maximum="0.7"
 stochastic_eval="True"
 find_collision_free="True"
 vis_replay="True"
@@ -24,11 +24,10 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='30'
-reward_scale="0.4"
+max_reuse_data='15'
+reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
-timelimit='1.2'
 
 # variants
 
@@ -61,5 +60,4 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
-    --timelimit $timelimit
     --use_discount_meta $use_discount_meta \
