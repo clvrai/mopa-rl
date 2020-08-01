@@ -144,7 +144,7 @@ class RolloutRunner(object):
                             target_quat = None
                         ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                         result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat, rot_weight=2.,
-                                      joint_names=env.robot_joints, max_steps=40, tol=1e-2)
+                                      joint_names=env.robot_joints, max_steps=100, tol=1e-2)
                         target_qpos = env.sim.data.qpos.copy()
                         target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
                         pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
@@ -255,7 +255,7 @@ class RolloutRunner(object):
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                     result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat, rot_weight=2.,
-                                  joint_names=env.robot_joints, max_steps=40, tol=1e-3)
+                                  joint_names=env.robot_joints, max_steps=100, tol=1e-3)
                     target_qpos = env.sim.data.qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
                     pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
