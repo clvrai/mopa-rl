@@ -22,7 +22,6 @@ use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='30'
-min_reuse_span='1'
 reward_scale="0.2"
 use_ik_target="True"
 ik_target="grip_site"
@@ -51,7 +50,6 @@ python -m rl.main \
     --step_size $step_size \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
-    --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \

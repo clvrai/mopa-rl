@@ -24,13 +24,12 @@ use_smdp_update="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='30'
-min_reuse_span='1'
 reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 
 #variants
-extended_action="False"
+extended_action="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -58,7 +57,6 @@ python -m rl.main \
     --step_size $step_size \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
-    --min_reuse_span $min_reuse_span \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
