@@ -482,6 +482,7 @@ class PlannerRolloutRunner(object):
                     exact = True
 
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
+                env.color_agent()
                 if success:
                     if interpolation:
                         counter['interpolation'] += 1
@@ -525,7 +526,7 @@ class PlannerRolloutRunner(object):
                             frame_info['mp_path_qpos'] = next_qpos[env.ref_joint_pos_indexes]
                             if hasattr(env, 'goal'):
                                 frame_info['goal'] = env.goal
-                            env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes])
+                            # env.visualize_dummy_indicator(next_qpos[env.ref_joint_pos_indexes])
                             self._store_frame(env, frame_info, planner=True)
                         if done or ep_len >= max_step:
                             break
@@ -575,8 +576,9 @@ class PlannerRolloutRunner(object):
                         if hasattr(env, 'goal'):
                             frame_info['goal'] = env.goal
                         frame_info['contacts'] = env.sim.data.ncon
-                        env.visualize_dummy_indicator(env.sim.data.qpos[env.ref_joint_pos_indexes].copy())
+                        # env.visualize_dummy_indicator(env.sim.data.qpos[env.ref_joint_pos_indexes].copy())
                         self._store_frame(env, frame_info, planner=True)
+                env.reset_color_agent()
             else:
                 ll_ob = ob.copy()
                 counter['rl'] += 1
