@@ -13,7 +13,7 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 planner_integration="True"
 reuse_data="True"
 action_range="0.5"
-omega=-'0.7'
+omega='0.7'
 stochastic_eval="True"
 find_collision_free="True"
 vis_replay="True"
@@ -40,7 +40,7 @@ python -m rl.main \
     --planner_integration $planner_integration \
     --reuse_data $reuse_data \
     --action_range $action_range \
-    --omega $omega
+    --omega $omega \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --vis_replay $vis_replay \

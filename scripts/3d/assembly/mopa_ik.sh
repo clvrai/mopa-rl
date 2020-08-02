@@ -52,5 +52,5 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \
-    --omega $omega
+    --omega $omega \
     --use_discount_meta $use_discount_meta \

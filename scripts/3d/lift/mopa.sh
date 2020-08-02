@@ -43,7 +43,7 @@ python -m rl.main \
     --planner_integration $planner_integration \
     --reuse_data $reuse_data \
     --action_range $action_range \
-    --omega $omega
+    --omega $omega \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --vis_replay $vis_replay \

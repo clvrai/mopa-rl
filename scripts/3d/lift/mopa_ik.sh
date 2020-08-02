@@ -34,6 +34,7 @@ python -m rl.main \
     --env $env \
     --gpu $gpu \
     --max_episode_step $max_episode_step \
+    --omega $omega \
     --debug $debug \
     --algo $algo \
     --seed $seed \

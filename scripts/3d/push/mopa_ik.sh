@@ -53,3 +53,4 @@ python -m rl.main \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \
     --use_discount_meta $use_discount_meta \
+    --omega $omega
