@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.reuse30"
+prefix="SAC.PLANNER.AUGMENTED.reuse45.scale0.2"
 env="sawyer-lift-v0"
 gpu=$1
 seed=$2
@@ -25,8 +25,8 @@ use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
-max_reuse_data='30'
-reward_scale="0.5"
+max_reuse_data='45'
+reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 
