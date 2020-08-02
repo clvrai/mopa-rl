@@ -113,7 +113,7 @@ sh ./scripts/3d/assembly/mopa.sh # MoPA-SAC
 sh ./scripts/3d/assembly/mopa_ik.sh # MoPA-SAC IK
 ```
 
-# Directories 
+## Directories 
 The structure of the repository:
 
 - `rl`: Reinforcement learning code
@@ -130,6 +130,9 @@ Log directories:
   - `wandb`: Training summary of W&B, like tensorboard summary
   - `ckpt_*.pt`: Stored checkpoints (every ckpt_interval)
   - `replay_*.pt`: Stored replay buffers (every ckpt_interval)
+
+## Reference
+- PyTorch implementation of PPO and SAC: https://github.com/clvrai/coordination
 
 ## Trouble shooting
 
