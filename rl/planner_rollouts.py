@@ -249,7 +249,7 @@ class PlannerRolloutRunner(object):
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                        if config.reuse_data_type == 'random' and len(ob_list) > config.min_reuse_span+2:
+                        if config.reuse_data and len(ob_list) > config.min_reuse_span+2:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
                                 start = np.random.randint(low=0, high=len(ob_list)-config.min_reuse_span-1)
@@ -327,10 +327,10 @@ class PlannerRolloutRunner(object):
                     if not config.use_ik_target:
                         rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                         if not config.extended_action:
-                            rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                            rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config._omega
                         ob, reward, done, info = env.step(rescaled_ac)
                     else:
-                        displacement['default'] /= config.ac_rl_maximum
+                        displacement['default'] /= config._omega
                         if 'gripper' in ac.keys():
                             displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                         ob, reward, done, info = env.step(displacement)
@@ -583,12 +583,12 @@ class PlannerRolloutRunner(object):
                 if not config.use_ik_target:
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                     if not config.extended_action:
-                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.ac_rl_maximum
+                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config._omega
                     ob, reward, done, info = env.step(rescaled_ac)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
                 else:
-                    displacement['default'] /= config.ac_rl_maximum
+                    displacement['default'] /= config._omega
                     if 'gripper' in ac.keys():
                         displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                     ob, reward, done, info = env.step(displacement)

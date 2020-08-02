@@ -11,10 +11,9 @@ reward_type='sparse'
 # log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_root_dir="./logs"
 planner_integration="True"
-reuse_data_type="random"
+reuse_data="True"
 action_range="0.5"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+omega='0.5'
 stochastic_eval="True"
 find_collision_free="True"
 vis_replay="True"
@@ -25,7 +24,7 @@ use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
-max_reuse_data='45'
+max_reuse_data='15'
 reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
@@ -42,10 +41,9 @@ python -m rl.main \
     --seed $seed \
     --reward_type $reward_type \
     --planner_integration $planner_integration \
-    --reuse_data_type $reuse_data_type \
+    --reuse_data $reuse_data \
     --action_range $action_range \
-    --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum \
+    --omega $omega
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --vis_replay $vis_replay \

@@ -12,10 +12,9 @@ reward_type='sparse'
 log_root_dir="/data/jun/projects/hrl-planner/logs"
 planner_integration="True"
 reward_scale="0.2"
-reuse_data_type="random"
+reuse_data="True"
 action_range="1.0"
-ac_rl_minimum="-0.5"
-ac_rl_maximum="0.5"
+omega='0.5'
 use_smdp_update="True"
 stochastic_eval="True"
 find_collision_free="True"
@@ -41,10 +40,9 @@ python -m rl.main \
     --reward_type $reward_type \
     --planner_integration $planner_integration \
     --reward_scale $reward_scale \
-    --reuse_data_type $reuse_data_type \
+    --reuse_data $reuse_data \
     --action_range $action_range \
-    --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum \
+    --omega $omega
     --extended_action $extended_action \
     --success_reward $success_reward \
     --stochastic_eval $stochastic_eval \

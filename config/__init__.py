@@ -94,9 +94,8 @@ def argparser():
     parser.add_argument("--interpolate_type", type=str, default="simple", choices=["planner", "simple"])
 
     # single policy
-    parser.add_argument("--ac_rl_minimum", type=float, default=-1.)
-    parser.add_argument("--ac_rl_maximum", type=float, default=1.)
-    parser.add_argument("--reuse_data_type", type=str, default="subgoal_forward", choices=["forward", "backward", "rl", "random", "None"])
+    parser.add_argument("--omega", type=float, default=1.)
+    parser.add_argument("--reuse_data", type=str2bool, default=False)
     parser.add_argument("--max_reuse_data", type=int, default=30)
     parser.add_argument("--min_reuse_span", type=int, default=1)
     parser.add_argument("--action_range", type=float, default=2.0)

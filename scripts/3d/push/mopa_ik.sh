@@ -11,7 +11,7 @@ reward_type='sparse'
 # log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_root_dir="./logs"
 planner_integration="True"
-reuse_data_type="random"
+reuse_data="True"
 action_range="0.1"
 stochastic_eval="True"
 find_collision_free="True"
@@ -25,8 +25,7 @@ max_reuse_data='30'
 reward_scale="0.2"
 use_ik_target="True"
 ik_target="grip_site"
-ac_rl_maximum="0.05"
-ac_rl_minimum="-0.05"
+omega='0.05'
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -53,6 +52,4 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \
-    --ac_rl_maximum $ac_rl_maximum \
-    --ac_rl_minimum $ac_rl_minimum \
     --use_discount_meta $use_discount_meta \

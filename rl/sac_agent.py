@@ -66,8 +66,7 @@ class SACAgent(BaseAgent):
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.simple_planner_type,
                                                 passive_joint_idx=config.passive_joint_idx,
                                                 ignored_contacts=config.ignored_contact_geom_ids, goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration, range_=config.simple_planner_range)
-            self._ac_rl_minimum = config.ac_rl_minimum
-            self._ac_rl_maximum = config.ac_rl_maximum
+            self._omega = config.omega
 
 
     def _log_creation(self):
@@ -100,7 +99,7 @@ class SACAgent(BaseAgent):
         return np.all(ac['default'] >= -1.0) and np.all(ac['default'] <= 1.0)
 
     def is_planner_ac(self, ac):
-        if np.any(ac['default'][:len(self._ref_joint_pos_indexes)] < self._ac_rl_minimum) or np.any(ac['default'][:len(self._ref_joint_pos_indexes)] > self._ac_rl_maximum):
+        if np.any(ac['default'][:len(self._ref_joint_pos_indexes)] < -self._omega) or np.any(ac['default'][:len(self._ref_joint_pos_indexes)] > self._omega):
             return True
         return False
 
@@ -110,23 +109,20 @@ class SACAgent(BaseAgent):
     def convert2planner_displacement(self, ac, ac_scale):
         ac_space_type = self._config.ac_space_type
         action_range = self._config.action_range
-        ac_rl_maximum = self._config.ac_rl_maximum
         if ac_space_type == 'normal':
             return ac * action_range
         elif ac_space_type == 'piecewise':
-            return np.where(np.abs(ac) < ac_rl_maximum, ac/(ac_rl_maximum/ac_scale), np.sign(ac) * (ac_scale + (action_range-ac_scale)*((np.abs(ac)-ac_rl_maximum)/(1-ac_rl_maximum))))
-            # return np.where(np.abs(ac) < ac_rl_maximum, ac/(ac_rl_maximum/ac_scale), np.sign(ac)*(ac_scale+(np.abs(ac)-ac_rl_maximum)*((1.0-ac_scale)/(1.0-ac_rl_maximum))*((action_range-ac_scale)/(1.0-ac_scale))))
+            return np.where(np.abs(ac) < self._omega, ac/(self._omega/ac_scale), np.sign(ac) * (ac_scale + (action_range-ac_scale)*((np.abs(ac)-self._omega)/(1-self._omega))))
         else:
             raise NotImplementedError
 
     def invert_displacement(self, displacement, ac_scale):
         ac_space_type = self._config.ac_space_type
         action_range = self._config.action_range
-        ac_rl_maximum = self._config.ac_rl_maximum
         if ac_space_type == 'normal':
             return displacement / action_range
         elif ac_space_type == 'piecewise':
-            return np.where(np.abs(displacement)<ac_scale, displacement*(ac_rl_maximum/ac_scale), np.sign(displacement) * ((np.abs(displacement) - ac_scale)/((action_range-ac_scale)/(1.0-ac_scale))/((1.0-ac_scale)/(1.0-ac_rl_maximum))+ac_rl_maximum))
+            return np.where(np.abs(displacement)<ac_scale, displacement*(self._omega/ac_scale), np.sign(displacement) * ((np.abs(displacement) - ac_scale)/((action_range-ac_scale)/(1.0-ac_scale))/((1.0-ac_scale)/(1.0-self._omega))+self._omega))
         else:
             raise NotImplementedError
 
