@@ -52,7 +52,7 @@ class SawyerEnv(BaseEnv):
         self.min_world_size = [-1.2, -1.2, 0.]
         self.max_world_size = [1.2, 1.2, 2.]
 
-        self._agent_colors = [self.sim.model.geom_rgba[idx] for idx in self.agnet_geom_ids]
+        self._agent_colors = [self.sim.model.geom_rgba[idx].copy() for idx in self.agent_geom_ids]
 
     @property
     def action_spec(self):
@@ -200,7 +200,7 @@ class SawyerEnv(BaseEnv):
             self.sim.data.qpos[self.ref_target_indicator_joint_pos_indexes] = qpos
             for idx in self.target_indicator_agent_geom_ids:
                 color = self.sim.model.geom_rgba[idx]
-                color[-1] = 0.3
+                color[-1] = 0.2
                 self.sim.model.geom_rgba[idx] = color
             self.sim.forward()
 
@@ -209,7 +209,7 @@ class SawyerEnv(BaseEnv):
             self.sim.data.qpos[self.ref_indicator_joint_pos_indexes] = qpos
             for idx in self.indicator_agent_geom_ids:
                 color = self.sim.model.geom_rgba[idx]
-                color[-1] = 0.3
+                color[-1] = 0.2
                 self.sim.model.geom_rgba[idx] = color
             self.sim.forward()
 
@@ -222,11 +222,11 @@ class SawyerEnv(BaseEnv):
     def color_agent(self):
         for idx in self.agent_geom_ids:
             color = self.sim.model.geom_rgba[idx]
-            color = np.array([0.1, 0.1, 0.5, 1.0])
+            color = np.array([0.1, 0.3, 0.7, 1.0])
             self.sim.model.geom_rgba[idx] = color
 
     def reset_color_agent(self):
-        for i, idx in enumerate(self.agnet_geom_ids):
+        for i, idx in enumerate(self.agent_geom_ids):
             color = self._agent_colors[i]
             self.sim.model.geom_rgba[idx] = color
 
