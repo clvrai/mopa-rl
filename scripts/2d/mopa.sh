@@ -42,7 +42,7 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --reuse_data $reuse_data \
     --action_range $action_range \
-    --omega $omega
+    --omega $omega \
     --extended_action $extended_action \
     --success_reward $success_reward \
     --stochastic_eval $stochastic_eval \
