@@ -52,6 +52,8 @@ class SawyerEnv(BaseEnv):
         self.min_world_size = [-1.2, -1.2, 0.]
         self.max_world_size = [1.2, 1.2, 2.]
 
+        self._agent_colors = [self.sim.model.geom_rgba[idx] for idx in self.agnet_geom_ids]
+
     @property
     def action_spec(self):
         """
@@ -215,6 +217,17 @@ class SawyerEnv(BaseEnv):
         for idx in self.indicator_agent_geom_ids + self.target_indicator_agent_geom_ids:
             color = self.sim.model.geom_rgba[idx]
             color[-1] = 0.
+            self.sim.model.geom_rgba[idx] = color
+
+    def color_agent(self):
+        for idx in self.agent_geom_ids:
+            color = self.sim.model.geom_rgba[idx]
+            color = np.array([0.1, 0.1, 0.5, 1.0])
+            self.sim.model.geom_rgba[idx] = color
+
+    def reset_color_agent(self):
+        for i, idx in enumerate(self.agnet_geom_ids):
+            color = self._agent_colors[i]
             self.sim.model.geom_rgba[idx] = color
 
     @property
