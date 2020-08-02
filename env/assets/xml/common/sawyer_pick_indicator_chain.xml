@@ -45,7 +45,6 @@
                         <geom size="0.12 0.07 0.001" type="box" group="0" contype="0" conaffinity="0" />
                     </body>
                 </body>
-                <site name="right_torso_itb_indicator" pos="-0.055 0 0.22" quat="0.707107 0 -0.707107 0"/>
                 <body name="right_l1_indicator" pos="0.081 0.05 0.237" quat="0.5 -0.5 0.5 0.5">
                     <inertial pos="-0.0030849 -0.026811 0.092521" quat="0.424888 0.891987 0.132364 -0.0794296" mass="4.505" diaginertia="0.0224339 0.0221624 0.0097097" />
                     <!--<joint name="right_j1" pos="0 0 0" axis="0 0 1" range="-3.8095 2.2736"/>-->
@@ -59,7 +58,6 @@
                         <geom class="sawyer_viz_indicator" mesh="l2" />
                         <geom size="0.06 0.17" pos="0 0 0.08" type="capsule" class="sawyer_col_indicator" />
                         <body name="right_l3_indicator" pos="0 -0.042 0.26" quat="0.707107 -0.707107 0 0">
-                            <site name="armsite_indicator" pos="0 0 0" size="0.01" />
                             <inertial pos="-0.0048135 -0.0281 -0.084154" quat="0.902999 0.385391 -0.0880901 0.168247" mass="2.5097" diaginertia="0.0102404 0.0096997 0.00369622" />
                             <joint name="right_j3_indicator" pos="0 0 0" axis="0 0 1" range="-3.0439 3.0439" damping="25"/>
                             <geom class="sawyer_viz_indicator" mesh="l3" />
@@ -69,21 +67,17 @@
                                 <joint name="right_j4_indicator" pos="0 0 0" axis="0 0 1" range="-2.9761 2.9761" />
                                 <geom class="sawyer_viz_indicator" mesh="l4" />
                                 <geom size="0.045 0.15" pos="0 0 0.11" type="capsule" class="sawyer_col_indicator" />
-                                <site name="right_arm_itb_indicator" pos="-0.055 0 0.075" quat="0.707107 0 -0.707107 0"/>
                                 <body name="right_l5_indicator" pos="0 0.031 0.275" quat="0.707107 -0.707107 0 0">
                                     <!-- <inertial pos="0.0061133 -0.023697 0.076416" quat="0.404076 0.9135 0.0473125 0.00158335" mass="1.5625" diaginertia="0.00474131 0.00422857 0.00190672" /> -->
                                     <joint name="right_j5_indicator" pos="0 0 0" axis="0 0 1" range="-2.9761 2.9761"/>
                                     <geom class="sawyer_viz_indicator" mesh="l5" />
                                     <geom type="capsule" size="0.045 0.05" pos="0 0 0.05" class="sawyer_col_indicator" />
-                                    <site name="right_hand_camera_indicator" pos="0.039552 -0.033 0.0695" quat="0.707107 0 0.707107 0"/>
-                                    <site name="right_wrist_indicator" pos="0 0 0.10541" quat="0.707107 0.707107 0 0"/>
                                     <body name="right_l6_indicator" pos="0 -0.11 0.1053" quat="0.0616248 0.06163 -0.704416 0.704416">
                                         <!-- <inertial pos="-8.0726e-06 0.0085838 -0.0049566" quat="0.479044 0.515636 -0.513069 0.491322" mass="0.3292" diaginertia="0.000360258 0.000311068 0.000214974" /> -->
                                         <joint name="right_j6_indicator" pos="0 0 0" axis="0 0 1" range="-4.7124 4.7124"/>
                                         <geom class="sawyer_viz_indicator" mesh="l6"/>
                                         <geom size="0.055 0.025" pos="0 0.015 -0.01" type="cylinder" class="sawyer_col_indicator" />
                                         <body name="right_ee_attchment_indicator" pos="0 0 0.0245" quat="0.707107 0 0 0.707107" childclass="sawyer_gripper_indicator">
-                                            <site name="grip_site_indicator" pos="0 0 0" size="0.01" type="sphere"/>
 
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <include file="./common/gripper_pick_indicator_chain.xml"/>
