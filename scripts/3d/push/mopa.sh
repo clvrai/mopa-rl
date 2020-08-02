@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range1.0.reuse15"
+prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range1.0.reuse15.span1"
 gpu=$1
 seed=$2
 algo='sac'
@@ -43,7 +43,7 @@ python -m rl.main \
     --seed $seed \
     --reward_type $reward_type \
     --planner_integration $planner_integration \
-    --reuse_datae $reuse_data \
+    --reuse_data $reuse_data \
     --action_range $action_range \
     --omega $omega
     --stochastic_eval $stochastic_eval \
