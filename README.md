@@ -59,7 +59,7 @@ python setup.py build_ext --inplace
 ```
 
 ## Mujoco GPU rendering
-To use GPU rendering for mujoco, you need to add /usr/lib/nvidia-000 (000 should be replaced with your NVIDIA driver version) to LD_LIBRARY_PATH before installing mujoco-py. Then, during mujoco-py compilation, it will show you linuxgpuextension instead of linuxcpuextension. In Ubuntu 18.04, you may encounter an GL-related error while building mujoco-py, open venv/lib/python3.6/site-packages/mujoco_py/gl/eglshim.c and comment line 5 #include <GL/gl.h> and line 7 #include <GL/glext.h>.
+To use GPU rendering for mujoco, you need to add `/usr/lib/nvidia-000` (`000` should be replaced with your NVIDIA driver version) to `LD_LIBRARY_PATH` before installing `mujoco-py`. Then, during `mujoco-py` compilation, it will show you `linuxgpuextension` instead of `linuxcpuextension`. In Ubuntu 18.04, you may encounter an GL-related error while building `mujoco-py`, open `venv/lib/python3.6/site-packages/mujoco_py/gl/eglshim.c` and comment line 5 `#include <GL/gl.h>` and line 7 `#include <GL/glext.h>`.
 
 ### Virtual display on headless machines
 On servers, you don’t have a monitor. Use this to get a virtual monitor for rendering and put DISPLAY=:1 in front of a command.
