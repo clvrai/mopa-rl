@@ -327,10 +327,10 @@ class PlannerRolloutRunner(object):
                     if not config.use_ik_target:
                         rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                         if not config.extended_action:
-                            rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config._omega
+                            rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.omega
                         ob, reward, done, info = env.step(rescaled_ac)
                     else:
-                        displacement['default'] /= config._omega
+                        displacement['default'] /= config.omega
                         if 'gripper' in ac.keys():
                             displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                         ob, reward, done, info = env.step(displacement)
@@ -583,12 +583,12 @@ class PlannerRolloutRunner(object):
                 if not config.use_ik_target:
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
                     if not config.extended_action:
-                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config._omega
+                        rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.omega
                     ob, reward, done, info = env.step(rescaled_ac)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
                 else:
-                    displacement['default'] /= config._omega
+                    displacement['default'] /= config.omega
                     if 'gripper' in ac.keys():
                         displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                     ob, reward, done, info = env.step(displacement)
