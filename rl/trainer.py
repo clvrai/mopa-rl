@@ -129,7 +129,7 @@ class Trainer(object):
             if config.debug:
                 os.environ["WANDB_MODE"] = "dryrun"
 
-            tags = [config.env, config.hl_type, config.ll_type, config.policy, config.algo, config.reward_type]
+            tags = [config.env, config.algo, config.reward_type]
             if config.hrl:
                 tags.append('hrl')
 
