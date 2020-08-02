@@ -11,66 +11,52 @@ Deep reinforcement learning (RL) agents are able to learn contact-rich manipulat
 - [MuJoCo 2.0.2.5 ](http://www.mujoco.org/)
 
 ## Installation 
-1. Install Mujoco 2.0 and add the following environment variables into
-
-
-It's recommended to use a virtualenv or conda environment
+1. Install Mujoco 2.0 and add the following environment variables into `~/.bashrc` or `~/.zshrc`.
 ```
-virtualenv --python /path/to/python3.7 --no-site-packages <envname> #e.g. hrlenv
-source <envname>/bin/activate
+# Download mujoco 2.0
+$ wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip
+$ unzip mujoco.zip -d ~/.mujoco
+$ mv ~/.mujoco/mujoco200_linux ~/.mujoco/mujoco200
+
+# Copy mujoco license key `mjkey.txt` to `~/.mujoco`
+
+# Add mujoco to LD_LIBRARY_PATH
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mujoco200/bin
+
+# For GPU rendering (replace 418 with your nvidia driver version)
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-418
+
+# Only for a headless server
+$ export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/nvidia-418/libGL.so
 ```
 
-### Clone repo
-Create project folder, you'll need it for other packages like `ompl`
+2. Clone this repository and install python dependencies
 ```
-mkdir HRLPlanner
-cd HRLPLanner/
+sudo apt-get install libgl1-mesa-dev libgl1-mesa-glx libosmesa6-dev patchelf libopenmpi-dev libglew-dev python3-pip python3-numpy python3-scipy
 git clone git@github.com:youngwoon/hrl-planner.git
 # install required python packages in your new env
 pip install -r requirements.txt
 ```
 
-### Install ompl
-#### Prerequisite: Install Eigen first
-Linux install
+3. Install ompl 
 
 ```
-sh ./scripts/misc/installEigen.sh #from the home directory
-```
-MacOS install
-
-```
+# Linux 
+sh ./scripts/misc/installEigen.sh #from the home directory # install Eigen
+# Mac OS
 brew install eigen
-```
-#### Continue to install OMPL
-Go to the repo home directory
-```
+
 git clone git@github.com:ompl/ompl.git ../ompl
 cd ../ompl
 cmake .
 sudo make install
 ```
 
-### OMPL-mujoco wrapper 
-
-macOS users: ensure DYLD_LIBRARY_PATH is set to the mujoco bin folder
+4. Compile motion planner 
 ```
-export DYLD_LIBRARY_PATH=/Users/gautam/.mujoco/mujoco200/bin:$DYLD_LIBRARY_PATH
-```
-
-- Compile cython for ompl-mujoco wrapper
-
-```
-cd ./motion_planners
-# Note that you need to set `prefix_path` variable in setup.py
-# You also need to adapt the path to ompl / eigen if you installed it at a different location
+cd ./hrl-planner/motion_planner
 python setup.py build_ext --inplace
 ```
-or on macOS
-```
-python setup_macos.py build_ext --inplace
-```
-
 
 ## Usage
 
