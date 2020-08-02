@@ -1,6 +1,9 @@
 # Motion Planner Augmented Reinforcement Learning
 
+Deep reinforcement learning (RL) agents are able to learn contact-rich manipulation tasks by maximizing a reward signal, but require large amounts of experience, especially in environments with many obstacles that complicate exploration. In contrast, motion planners use explicit models of the agent and environment to plan collision-free paths to faraway goals, but suffer from inaccurate models in tasks that require contacts with the environment. To combine the benefits of both approaches, we propose motion planner augmented RL (MoPA-RL) which augments the action space of an RL agent with the long-horizon planning capabilities of motion planners.
+
 ## Prerequisites
+- Ubuntu 18.04
 - Python 3.7 (`python3.7`, `python3.7-dev`)
 - torch
 - `libyaml-cpp-dev` (`sudo apt install libyaml-cpp-dev` or `brew install libyaml yaml-cpp`)
@@ -8,6 +11,9 @@
 - [MuJoCo 2.0.2.5 ](http://www.mujoco.org/)
 
 ## Installation 
+1. Install Mujoco 2.0 and add the following environment variables into
+
+
 It's recommended to use a virtualenv or conda environment
 ```
 virtualenv --python /path/to/python3.7 --no-site-packages <envname> #e.g. hrlenv
