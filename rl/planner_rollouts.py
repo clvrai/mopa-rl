@@ -642,36 +642,37 @@ class PlannerRolloutRunner(object):
 
         frame = env.render('rgb_array') * 255.0
 
-        if planner:
-            for geom_idx, color in geom_colors.items():
-                env.sim.model.geom_rgba[geom_idx] = color
+        if self._config.vis_info:
+            if planner:
+                for geom_idx, color in geom_colors.items():
+                    env.sim.model.geom_rgba[geom_idx] = color
 
-        fheight, fwidth = frame.shape[:2]
-        frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
+            fheight, fwidth = frame.shape[:2]
+            frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 
-        if self._config.record_caption:
-            font_size = 0.4
-            thickness = 1
-            offset = 12
-            x, y = 5, fheight + 10
-            cv2.putText(frame, text,
-                        (x, y), cv2.FONT_HERSHEY_SIMPLEX,
-                        font_size, (255, 255, 0), thickness, cv2.LINE_AA)
-            for i, k in enumerate(info.keys()):
-                v = info[k]
-                key_text = '{}: '.format(k)
-                (key_width, _), _ = cv2.getTextSize(key_text, cv2.FONT_HERSHEY_SIMPLEX,
-                                                    font_size, thickness)
+            if self._config.record_caption:
+                font_size = 0.4
+                thickness = 1
+                offset = 12
+                x, y = 5, fheight + 10
+                cv2.putText(frame, text,
+                            (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                            font_size, (255, 255, 0), thickness, cv2.LINE_AA)
+                for i, k in enumerate(info.keys()):
+                    v = info[k]
+                    key_text = '{}: '.format(k)
+                    (key_width, _), _ = cv2.getTextSize(key_text, cv2.FONT_HERSHEY_SIMPLEX,
+                                                        font_size, thickness)
 
-                cv2.putText(frame, key_text,
-                            (x, y + offset * (i + 2)),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            font_size, (66, 133, 244), thickness, cv2.LINE_AA)
+                    cv2.putText(frame, key_text,
+                                (x, y + offset * (i + 2)),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                font_size, (66, 133, 244), thickness, cv2.LINE_AA)
 
-                cv2.putText(frame, str(v),
-                            (x + key_width, y + offset * (i + 2)),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            font_size, (255, 255, 255), thickness, cv2.LINE_AA)
+                    cv2.putText(frame, str(v),
+                                (x + key_width, y + offset * (i + 2)),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                font_size, (255, 255, 255), thickness, cv2.LINE_AA)
 
         self._record_frames.append(frame)
 

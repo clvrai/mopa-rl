@@ -142,6 +142,7 @@ def argparser():
     parser.add_argument("--vis_replay", type=str2bool, default=True)
     parser.add_argument("--plot_type", type=str, default="2d")
     parser.add_argument("--log_indiv_entropy", type=str2bool, default=False)
+    parser.add_argument("--vis_info", type=str2bool, default=True)
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)
