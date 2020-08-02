@@ -1,7 +1,7 @@
 #<!/bin/bash -x
 
 prefix="SAC.PLANNER.AUGMENTED.reuse45.scale0.2"
-env="sawyer-lift-v0"
+env="sawyer-lift-obstacle-v0"
 gpu=$1
 seed=$2
 algo='sac'
