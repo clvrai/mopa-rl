@@ -172,7 +172,6 @@ class Trainer(object):
                 joblib.dump(replay_buffers, f)
             else:
                 pickle.dump(replay_buffers, f)
-            #joblib.dump(replay_buffers, f)
 
     def _load_ckpt(self, ckpt_num=None):
         ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
@@ -330,7 +329,7 @@ class Trainer(object):
                 env_step_per_batch = int(info['env_step'])
 
             # train an agent
-            if step % config.log_freq == 0:
+            if step % config.log_interval == 0:
                 logger.info("Update networks %d", update_iter)
             if config.hrl:
                 if (config.meta_update_target == "HL" or \
@@ -352,7 +351,7 @@ class Trainer(object):
             else:
                 train_info = self._agent.train()
 
-            if step % config.log_freq == 0:
+            if step % config.log_interval == 0:
                 logger.info("Update networks done")
 
             # if step < config.max_ob_norm_step and self._config.policy != 'cnn':

@@ -29,13 +29,7 @@ def argparser():
     parser.add_argument("--her", type=str2bool, default=False)
     parser.add_argument("--replay_strategy", type=str, default='future')
     parser.add_argument("--replay_k", type=int, default=4)
-    parser.add_argument("--subgoal_predictor", type=str2bool, default=False)
-    parser.add_argument("--use_subgoal_space", type=str2bool, default=True)
-    parser.add_argument("--use_single_critic", type=str2bool, default=False)
-    parser.add_argument("--termination", type=str2bool, default=False)
-    parser.add_argument("--alternation", type=str2bool, default=False)
     parser.add_argument("--planner_integration", type=str2bool, default=False)
-    parser.add_argument("--use_cum_rew", type=str2bool, default=True)
     parser.add_argument("--use_discount_meta", type=str2bool, default=False)
     parser.add_argument("--ac_space_type", type=str, default="piecewise", choices=["normal", "piecewise"])
     parser.add_argument("--add_curr_rew", type=str2bool, default=True)
@@ -52,12 +46,6 @@ def argparser():
     parser.add_argument("--ll_type", type=str, default="rl",
                         help="low level controller choice", choices=["rl", "mp", "mix"])
     parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
-    parser.add_argument("--hl_type", type=str, default='discrete',
-                        choices=['discrete', 'subgoal'])
-    parser.add_argument("--relative_subgoal", type=str2bool, default=True)
-    parser.add_argument("--meta_oracle", type=str2bool, default=False)
-    parser.add_argument("--hindsight_transition", type=str2bool, default=False)
-
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=256)
@@ -82,9 +70,7 @@ def argparser():
     # motion planning
     parser.add_argument("--min_path_len", type=int, default=10)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
-    parser.add_argument("--subgoal_scale", type=float, default=1.0)
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
-    parser.add_argument("--allow_self_collision", type=str2bool, default=False)
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
     parser.add_argument("--allow_invalid", type=str2bool, default=False)
     parser.add_argument("--find_collision_free", type=str2bool, default=False)
@@ -99,7 +85,6 @@ def argparser():
     parser.add_argument("--max_reuse_data", type=int, default=30)
     parser.add_argument("--min_reuse_span", type=int, default=1)
     parser.add_argument("--action_range", type=float, default=2.0)
-    parser.add_argument("--relative_goal", type=str2bool, default=True)
     parser.add_argument("--extended_action", type=str2bool, default=False)
     parser.add_argument("--stochastic_eval", type=str2bool, default=False)
 
@@ -111,23 +96,8 @@ def argparser():
     parser.add_argument("--lr_critic", type=float, default=3e-4, help="the learning rate of the critic")
     parser.add_argument("--lr_alpha", type=float, default=3e-4, help="the learning rate of the alpha")
     parser.add_argument("--polyak", type=float, default=0.995, help="the average coefficient")
-    parser.add_argument("--encoder_kernel_size", nargs='+', default=[3, 3, 3])
-    parser.add_argument("--encoder_conv_dim", nargs='+', default=[32, 64, 32])
-    parser.add_argument("--encoder_stride", nargs='+', default=[2, 2, 1])
-    parser.add_argument("--decoder_kernel_size", nargs='+', default=[3, 3, 3])
-    parser.add_argument("--decoder_conv_dim", nargs='+', default=[64, 32, 3])
-    parser.add_argument("--decoder_stride", nargs='+', default=[1, 2, 2])
-    parser.add_argument("--decoder_out_padding", nargs='+', default=[0, 0, 1])
-    parser.add_argument("--decoder_padding", nargs='+', default=[0, 0,  0])
-    parser.add_argument('--decoder_latent_lambda', default=1e-6, type=float)
-    parser.add_argument("--ae_feat_dim", type=int, default=50)
     parser.add_argument("--actor_update_freq", type=int, default=1)
     parser.add_argument("--critic_target_update_freq", type=int, default=1)
-
-    parser.add_argument("--lr_encoder", type=float, default=1e-3, help="the learning rate of the encoder")
-    parser.add_argument("--lr_decoder", type=float, default=1e-3, help="the learning rate of the decoder")
-
-
 
     # training
     parser.add_argument("--is_train", type=str2bool, default=True)
@@ -196,6 +166,5 @@ def argparser():
     parser.add_argument("--debug_render", type=str2bool, default=False)
 
     parser.add_argument("--comment", nargs='+', default=None)
-    parser.add_argument("--log_freq", type=int, default=1000)
 
     return parser
