@@ -29,7 +29,7 @@ pip install -r requirements.txt
 Linux install
 
 ```
-sh ./scripts/installEigen.sh #from the home directory
+sh ./scripts/misc/installEigen.sh #from the home directory
 ```
 MacOS install
 
