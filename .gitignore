@@ -68,5 +68,5 @@ tmp
 eigen-3.3.7/
 
 motion_planners/*.so
-
+./result
 # env/assets/xml/sawyer*
