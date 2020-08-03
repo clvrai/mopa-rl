@@ -5,32 +5,12 @@ from gym.envs.registration import register
 # register all environments to use
 
 register(
-    id='simple-pusher-v0',
-    entry_point='env.pusher:SimplePusherEnv',
-    kwargs={}
-)
-register(
     id='pusher-v0',
     entry_point='env.pusher:PusherEnv',
     kwargs={}
 )
 
-register(
-    id='simple-pusher-push-obstacle-v0',
-    entry_point="env.pusher.primitives.simple_pusher_push_obstacle:SimplePusherPushObstacleEnv",
-    kwargs={}
-)
 
-register(
-    id='simple-pusher-obstacle-v0',
-    entry_point='env.pusher:SimplePusherObstacleEnv',
-    kwargs={}
-)
-register(
-    id='simple-pusher-obstacle-hard-v0',
-    entry_point='env.pusher:SimplePusherObstacleHardEnv',
-    kwargs={}
-)
 register(
     id='pusher-obstacle-hard-v0',
     entry_point='env.pusher:PusherObstacleHardEnv',
@@ -49,11 +29,6 @@ register(
 register(
     id='pusher-obstacle-hard-v3',
     entry_point='env.pusher:PusherObstacleHardV3Env',
-    kwargs={}
-)
-register(
-    id='simple-pusher-obstacle-hard-v1',
-    entry_point='env.pusher:SimplePusherObstacleHardV1Env',
     kwargs={}
 )
 
