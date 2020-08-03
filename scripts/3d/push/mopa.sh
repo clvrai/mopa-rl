@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range1.0.reuse10.scale0.2.v2"
+prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range1.0.reuse30.scale0.2.v2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -23,7 +23,7 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='10'
+max_reuse_data='30'
 reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"

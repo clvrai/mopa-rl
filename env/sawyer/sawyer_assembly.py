@@ -8,7 +8,7 @@ from env.sawyer.sawyer import SawyerEnv
 
 class SawyerAssemblyEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        kwargs['camera_name'] = 'topview'
+        # kwargs['camera_name'] = 'topview'
         super().__init__("sawyer_assembly.xml", **kwargs)
         self._get_reference()
         # self._init_goal = self.sim.model.body_pos[self.sim.model.body_name2id("box")].copy()

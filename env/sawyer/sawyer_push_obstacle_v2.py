@@ -9,7 +9,7 @@ from util.transform_utils import *
 
 class SawyerPushObstacleV2Env(SawyerEnv):
     def __init__(self, **kwargs):
-        kwargs['camera_name'] = 'frontview'
+        kwargs['camera_name'] = 'zoomview'
         super().__init__("sawyer_push_obstacle_v2.xml", **kwargs)
         self._get_reference()
 
