@@ -15,7 +15,6 @@ def argparser():
                         help="environment name")
     parser.add_argument("--env_args", type=str, default=None)
     parser.add_argument("--terminal", type=str2bool, default=True)
-    parser.add_argument("--env_debug", type=str2bool, default=False)
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",

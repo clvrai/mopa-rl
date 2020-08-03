@@ -1,6 +1,2 @@
 from env.pusher.pusher import PusherEnv
-from env.pusher.pusher_obstacle import PusherObstacleEnv
-from env.pusher.pusher_obstacle_hard import PusherObstacleHardEnv
-from env.pusher.pusher_obstacle_hard_v1 import PusherObstacleHardV1Env
-from env.pusher.pusher_obstacle_hard_v2 import PusherObstacleHardV2Env
 from env.pusher.pusher_obstacle_hard_v3 import PusherObstacleHardV3Env
