@@ -30,26 +30,14 @@ class PusherObstacleHardV3Env(BaseEnv):
             self.sim.model.get_joint_qpos_addr(x+'-dummy') for x in self.joint_names
         ]
 
-        self._subgoal_scale = kwargs['subgoal_scale']
-        subgoal_minimum = np.ones(len(self.ref_joint_pos_indexes)) * -self._subgoal_scale
-        subgoal_maximum = np.ones(len(self.ref_joint_pos_indexes)) * self._subgoal_scale
-        self.subgoal_space = spaces.Dict([
-            ('default', spaces.Box(low=subgoal_minimum, high=subgoal_maximum, dtype=np.float32))
-        ])
-
-        self._primitive_skills = kwargs['primitive_skills']
-        if len(self._primitive_skills) != 2:
-            self._primitive_skills = ['reach', 'push']
-        self._num_primitives = len(self._primitive_skills)
         self._ac_scale = 0.1
         self.max_world_size = [0.41, 0.41]
         self.min_world_size = [-0.41, -0.41]
+        self._agent_colors = [self._get_color(body_name) for body_name in self.body_names]
 
     def _reset(self):
         self._set_camera_position(0, [0, -0.7, 1.5])
         self._set_camera_rotation(0, [0, 0, 0])
-        self._stages = [False] * self._num_primitives
-        self._stage = 0
         while True:
             goal = self.np_random.uniform(low=[-0.35, 0.13], high=[-0.24, 0.2], size=2)
             box = self.np_random.uniform(low=[-0.35, 0.13], high=[-0.24, 0.2], size=2)
@@ -101,6 +89,17 @@ class PusherObstacleHardV3Env(BaseEnv):
                 color = self._get_color(key)
                 color[-1] = 0.
                 self._set_color(key, color)
+
+    def color_agent(self):
+        for body_name in self.body_names:
+            color = self._get_color(body_name)
+            color = np.array([0.1, 0.3, 0.7, 1.0])
+            self._set_color(body_name, color)
+
+    def reset_color_agent(self):
+        for i, body_name in enumerate(self.body_names):
+            color = self._agent_colors[i]
+            self._set_color(body_name, color)
 
     @property
     def body_names(self):
@@ -183,18 +182,6 @@ class PusherObstacleHardV3Env(BaseEnv):
         """
         return self.sim.data.qpos.ravel()[self.ref_joint_pos_indexes]
 
-    def check_stage(self):
-        dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-        if dist_box_to_gripper < 0.1:
-            self._stages[0] = True
-        else:
-            self._stages[0] = False
-
-        if self._get_distance('box', 'target') < 0.04 and self._stages[0]:
-            self._stages[1] = True
-        else:
-            self._stages[1] = False
-
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']
@@ -257,7 +244,6 @@ class PusherObstacleHardV3Env(BaseEnv):
         desired_state = self._prev_state + action # except for gripper action
 
         n_inner_loop = int(self._frame_dt/self.dt)
-        self.check_stage()
 
         target_vel = (desired_state-self._prev_state) / self._frame_dt
         for t in range(n_inner_loop):
@@ -269,32 +255,4 @@ class PusherObstacleHardV3Env(BaseEnv):
 
 
         return self._get_obs(), reward, self._terminal, info
-
-
-    def compute_subgoal_reward(self, name, info):
-        reward_subgoal_dist = -0.5*self._get_distance(name, "subgoal")
-        info['reward_subgoal_dist'] = reward_subgoal_dist
-        return reward_subgoal_dist, info
-
-    def get_next_primitive(self, prev_primitive):
-        for i in reversed(range(self._num_primitives)):
-            if self._stages[i]:
-                if i == self._num_primitives-1:
-                    return self._primitive_skills[i]
-                else:
-                    return self._primitive_skills[i+1]
-        return self._primitive_skills[0]
-
-    def isValidState(self, ignored_contacts=[]):
-        if len(ignored_contacts) == 0:
-            return self.sim.data.ncon == 0
-        else:
-            for i in range(self.sim.data.ncon):
-                c = self.sim.data.contact[i]
-                geom1 = self.sim.model.geom_id2name(c.geom1)
-                geom2 = self.sim.model.geom_id2name(c.geom2)
-                for pair in ignored_contacts:
-                    if geom1 not in pair and geom2 not in pair:
-                        return False
-            return True
 
