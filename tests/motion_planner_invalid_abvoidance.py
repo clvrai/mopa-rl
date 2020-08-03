@@ -52,8 +52,8 @@ args, unparsed = parser.parse_known_args()
 if 'pusher' in args.env:
     from config.pusher import add_arguments
     add_arguments(parser)
-elif 'robosuite' in args.env:
-    from config.robosuite import add_arguments
+elif 'sawyer' in args.env:
+    from config.sawyer import add_arguments
     add_arguments(parser)
 
 planner_add_arguments(parser)

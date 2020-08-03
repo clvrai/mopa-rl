@@ -63,20 +63,13 @@ def interpolate(env, next_qpos, out_of_bounds, planner):
     return interpolated_traj
 
 
->>>>>>> 1fd62cd... working IK for pre-grasp position
 parser = argparser()
 args, unparsed = parser.parse_known_args()
 if 'pusher' in args.env:
     from config.pusher import add_arguments
     add_arguments(parser)
-elif 'robosuite' in args.env:
-    from config.robosuite import add_arguments
-    add_arguments(parser)
 elif 'sawyer' in args.env:
     from config.sawyer import add_arguments
-    add_arguments(parser)
-elif 'reacher' in args.env:
-    from config.reacher import add_arguments
     add_arguments(parser)
 
 planner_add_arguments(parser)

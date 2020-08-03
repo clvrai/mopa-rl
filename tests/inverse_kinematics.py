@@ -30,16 +30,10 @@ target_site = 'fingertip'
 if 'pusher' in config.env:
     from config.pusher import add_arguments
     add_arguments(parser)
-elif 'robosuite' in config.env:
-    from config.robosuite import add_arguments
-    add_arguments(parser)
 elif 'sawyer' in config.env:
     from config.sawyer import add_arguments
     add_arguments(parser)
     target_site = 'grip_site'
-elif 'reacher' in config.env:
-    from config.reacher import add_arguments
-    add_arguments(parser)
 
 
 
