@@ -149,6 +149,7 @@ class MoPARolloutRunner(object):
                 if config.discrete_action:
                     is_planner = bool(ac['ac_type'][0])
 
+                # MoPA+IK
                 if config.use_ik_target:
                     target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
                     if len(env.min_world_size) == 2:
@@ -167,7 +168,9 @@ class MoPARolloutRunner(object):
                     displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
                     # inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
 
+                # Check if the action is for motion planner or direct action execution
                 if (not config.discrete_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
+                    # MoPA-SAC
                     if not config.use_ik_target:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         target_qpos[env.ref_joint_pos_indexes] += displacement
@@ -175,6 +178,7 @@ class MoPARolloutRunner(object):
                         target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                         target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
 
+                    # Invalid target joint state handling
                     if config.find_collision_free and not pi.isValidState(target_qpos):
                         trial = 0
                         while not pi.isValidState(target_qpos) and trial < config.num_trials:
@@ -201,8 +205,6 @@ class MoPARolloutRunner(object):
                         meta_rew_list = []
                         ob_list = []
                         done_list = []
-                        cum_discount = 0
-                        cum_discount_list = []
                         cart_list = []
                         quat_list = []
                         for i, next_qpos in enumerate(traj):
@@ -220,8 +222,6 @@ class MoPARolloutRunner(object):
                                 meta_rew += (config.discount_factor**i) * reward # the last reward is more important
                             else:
                                 meta_rew += reward
-                            cum_discount += config.discount_factor**i
-                            cum_discount_list.append(cum_discount)
                             done_list.append(done)
                             meta_rew_list.append(meta_rew)
                             rew_list.append(reward)
@@ -249,6 +249,7 @@ class MoPARolloutRunner(object):
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
+                        # Resample the trajectory from motion planner
                         if config.reuse_data and len(ob_list) > config.min_reuse_span+2:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
@@ -263,10 +264,11 @@ class MoPARolloutRunner(object):
                                 if not config.use_ik_target:
                                     inter_subgoal_ac = env.form_action(traj[goal], traj[start])
                                     inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
-                                else:
+                                else: # IK
                                     inter_subgoal_ac = OrderedDict([('default', (cart_list[goal]-cart_list[start])/config.action_range)])
                                     if 'quat' in ac.keys():
                                         inter_subgoal_ac['quat'] = quat_mul(quat_inv(quat_list[start]), quat_list[goal])
+
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     if config.discrete_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
@@ -283,7 +285,7 @@ class MoPARolloutRunner(object):
                                         env_step = 0
                                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                    else:
+                    else: # Failure in motion planner
                         if not exact:
                             counter['approximate'] += 1
                         if not valid:
@@ -320,7 +322,8 @@ class MoPARolloutRunner(object):
                             ep_info.add({'env_step': env_step})
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
-                else:
+
+                else: # Direct action execution
                     ll_ob = ob.copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
@@ -633,14 +636,6 @@ class MoPARolloutRunner(object):
                                 env._episode_reward)
 
         geom_colors = {}
-        # if planner:
-        #     for geom_idx in env.agent_geom_ids:
-        #         color = env.sim.model.geom_rgba[geom_idx]
-        #         geom_colors[geom_idx] = color.copy()
-        #         color[0] = 0.0
-        #         color[1] = 0.6
-        #         color[2] = 0.4
-        #         env.sim.model.geom_rgba[geom_idx] = color
 
         frame = env.render('rgb_array') * 255.0
 
