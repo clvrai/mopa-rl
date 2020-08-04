@@ -28,7 +28,7 @@ def argparser():
     parser.add_argument("--her", type=str2bool, default=False)
     parser.add_argument("--replay_strategy", type=str, default='future')
     parser.add_argument("--replay_k", type=int, default=4)
-    parser.add_argument("--planner_integration", type=str2bool, default=False)
+    parser.add_argument("--mopa", type=str2bool, default=False)
     parser.add_argument("--use_discount_meta", type=str2bool, default=False)
     parser.add_argument("--ac_space_type", type=str, default="piecewise", choices=["normal", "piecewise"])
     parser.add_argument("--add_curr_rew", type=str2bool, default=True)

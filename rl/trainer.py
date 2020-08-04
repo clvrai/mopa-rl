@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
-from rl.planner_rollouts import PlannerRolloutRunner
+from rl.mopa_rollouts import MoPARolloutRunner
 from rl.dataset import HERSampler
 from rl.meta_ppo_agent import MetaPPOAgent
 from util.logger import logger
@@ -87,7 +87,7 @@ class Trainer(object):
         self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space, sampler=sampler)
 
         ll_ob_space = ob_space
-        if config.planner_integration:
+        if config.mopa:
             if config.extended_action:
                 ac_space.spaces['ac_type'] = spaces.Discrete(2)
 
@@ -113,8 +113,8 @@ class Trainer(object):
             )
 
         self._runner = None
-        if config.planner_integration:
-            self._runner = PlannerRolloutRunner(
+        if config.mopa:
+            self._runner = MoPARolloutRunner(
                 config, self._env, self._env_eval, self._meta_agent, self._agent
             )
         else:
@@ -325,7 +325,7 @@ class Trainer(object):
             else:
                 step_per_batch = len(rollout['ac'])
 
-            if self._config.planner_integration and 'env_step' in info.keys():
+            if self._config.mopa and 'env_step' in info.keys():
                 env_step_per_batch = int(info['env_step'])
 
             # train an agent
@@ -360,7 +360,7 @@ class Trainer(object):
 
             if env_step_per_batch is not None:
                 env_step += env_step_per_batch
-            if not self._config.planner_integration:
+            if not self._config.mopa:
                 env_step = None
             update_iter += 1
 
