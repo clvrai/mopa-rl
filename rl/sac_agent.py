@@ -126,6 +126,7 @@ class SACAgent(BaseAgent):
         else:
             raise NotImplementedError
 
+    # Calls motion planner to plan a path
     def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
 
         curr_qpos = self.clip_qpos(curr_qpos)
@@ -171,6 +172,7 @@ class SACAgent(BaseAgent):
             curr_qpos = new_curr_qpos
         return curr_qpos
 
+    # interpolation function
     def simple_interpolate(self, curr_qpos, target_qpos, ac_scale, use_planner=False):
         success = True
         exact = True
