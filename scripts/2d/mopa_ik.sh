@@ -23,7 +23,6 @@ use_ik_target="True"
 ik_target="fingertip"
 omega='0.1'
 
-#mpiexec -n $workers
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \

@@ -14,7 +14,7 @@ vis_replay="True"
 plot_type='3d'
 success_reward='150.'
 reward_scale="10."
-use_ik_target="False"
+use_ik_target="True"
 ik_target="grip_site"
 action_range="0.001"
 
