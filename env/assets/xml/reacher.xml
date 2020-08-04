@@ -1,4 +1,0 @@
-<mujoco model="reacher">
-    <include file="./common/reacher.xml" />
-</mujoco>
-
