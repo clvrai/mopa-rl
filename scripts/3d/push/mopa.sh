@@ -24,7 +24,7 @@ use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
-reward_scale="0.5"
+reward_scale="0.2"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 

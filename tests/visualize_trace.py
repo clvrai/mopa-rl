@@ -17,7 +17,7 @@ from rl.sac_agent import SACAgent
 from rl.policies import get_actor_critic_by_name
 np.set_printoptions(precision=3)
 
-mujocopy_render_hack() # rendering fix for gautam
+mujocopy_render_hack() # rendering fix (if needed)
 is_save_video = False
 parser = argparser()
 config, unparsed = parser.parse_known_args()

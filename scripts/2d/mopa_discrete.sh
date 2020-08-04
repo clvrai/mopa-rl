@@ -20,8 +20,6 @@ use_smdp_update="True"
 ac_space_type="normal"
 success_reward="150.0"
 log_indiv_entropy="True"
-
-# variants
 discrete_action="True"
 
 

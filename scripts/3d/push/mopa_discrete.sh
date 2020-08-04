@@ -28,8 +28,6 @@ max_reuse_data='15'
 reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
-
-# variants
 discrete_action="True"
 
 

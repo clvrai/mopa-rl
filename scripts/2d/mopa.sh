@@ -22,8 +22,6 @@ max_reuse_data='30'
 ac_space_type="piecewise"
 success_reward="150.0"
 log_indiv_entropy="True"
-# max_grad_norm='0.5'
-# variants
 
 
 python -m rl.main \

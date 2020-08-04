@@ -50,6 +50,9 @@ git clone git@github.com:ompl/ompl.git ../ompl
 cd ../ompl
 cmake .
 sudo make install
+
+# if ompl-x.x (x.x is the version) is installed in /usr/local/include, you need to rename it to ompl
+mv /usr/local/include/ompl-x.x /usr/local/include/ompl
 ```
 
 4. Compile motion planner 
@@ -117,9 +120,9 @@ sh ./scripts/3d/assembly/mopa_ik.sh # MoPA-SAC IK
 The structure of the repository:
 
 - `rl`: Reinforcement learning code
-- `env`: Environment code for simulated experiments (Jaco, Ant)
+- `env`: Environment code for simulated experiments (2D Push, and Sawyer tasks)
 - `util`: Utility code
-
+- `motion_planners`: Motion Planner code
 Log directories:
 
 - `logs/rl.ENV.DATE.PREFIX.SEED`:
