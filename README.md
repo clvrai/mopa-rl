@@ -116,9 +116,9 @@ sh ./scripts/3d/assembly/mopa_ik.sh # MoPA-SAC IK
 The structure of the repository:
 
 - `rl`: Reinforcement learning code
-- `env`: Environment code for simulated experiments (Jaco, Ant)
+- `env`: Environment code for simulated experiments (2D Push, and Sawyer tasks)
 - `util`: Utility code
-
+- `motion_planners`: Motion Planner code
 Log directories:
 
 - `logs/rl.ENV.DATE.PREFIX.SEED`:
