@@ -146,7 +146,7 @@ class MoPARolloutRunner(object):
                 target_qpos = curr_qpos.copy()
                 prev_ob = ob.copy()
                 is_planner = False
-                if config.extended_action:
+                if config.discrete_action:
                     is_planner = bool(ac['ac_type'][0])
 
                 if config.use_ik_target:
@@ -167,7 +167,7 @@ class MoPARolloutRunner(object):
                     displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
                     # inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
 
-                if (not config.extended_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
+                if (not config.discrete_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                     if not config.use_ik_target:
                         displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                         target_qpos[env.ref_joint_pos_indexes] += displacement
@@ -268,7 +268,7 @@ class MoPARolloutRunner(object):
                                     if 'quat' in ac.keys():
                                         inter_subgoal_ac['quat'] = quat_mul(quat_inv(quat_list[start]), quat_list[goal])
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
-                                    if config.extended_action:
+                                    if config.discrete_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                     inter_rew = meta_rew_list[goal] - meta_rew_list[start]
@@ -326,7 +326,7 @@ class MoPARolloutRunner(object):
                     counter['rl'] += 1
                     if not config.use_ik_target:
                         rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                        if not config.extended_action:
+                        if not config.discrete_action:
                             rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.omega
                         ob, reward, done, info = env.step(rescaled_ac)
                     else:
@@ -439,7 +439,7 @@ class MoPARolloutRunner(object):
             prev_ob = ob.copy()
             is_planner = False
             target_qpos = env.sim.data.qpos.copy()
-            if config.extended_action:
+            if config.discrete_action:
                 is_planner = bool(ac['ac_type'][0])
 
             if config.use_ik_target:
@@ -459,7 +459,7 @@ class MoPARolloutRunner(object):
                 target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
                 displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
 
-            if (not config.extended_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
+            if (not config.discrete_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                 if not config.use_ik_target:
                     displacement = pi.convert2planner_displacement(ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
                     target_qpos[env.ref_joint_pos_indexes] += displacement
@@ -584,7 +584,7 @@ class MoPARolloutRunner(object):
                 counter['rl'] += 1
                 if not config.use_ik_target:
                     rescaled_ac = OrderedDict([('default', ac['default'].copy())])
-                    if not config.extended_action:
+                    if not config.discrete_action:
                         rescaled_ac['default'][:len(env.ref_joint_pos_indexes)] /=  config.omega
                     ob, reward, done, info = env.step(rescaled_ac)
                     contact_force = env.get_contact_force()

@@ -10,7 +10,7 @@ debug="False"
 reward_type='sparse'
 # log_root_dir="./logs"
 log_root_dir="/data/jun/projects/hrl-planner/logs"
-planner_integration="True"
+mopa="True"
 reward_scale="0.2"
 reuse_data="True"
 action_range="1.0"
@@ -24,7 +24,6 @@ success_reward="150.0"
 log_indiv_entropy="True"
 # max_grad_norm='0.5'
 # variants
-extended_action="True"
 
 
 python -m rl.main \
@@ -38,12 +37,11 @@ python -m rl.main \
     --algo $algo \
     --seed $seed \
     --reward_type $reward_type \
-    --planner_integration $planner_integration \
+    --mopa $mopa \
     --reward_scale $reward_scale \
     --reuse_data $reuse_data \
     --action_range $action_range \
     --omega $omega \
-    --extended_action $extended_action \
     --success_reward $success_reward \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \

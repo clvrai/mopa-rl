@@ -1,31 +1,31 @@
 #/!/bin/bash -x
 gpu=$1
 seed=$2
+
 algo='sac'
-prefix="MoPA-SAC.discrete"
+prefix="MoPA-SAC"
 env="pusher-obstacle-hard-v3"
 max_episode_step="400"
 debug="False"
 reward_type='sparse'
 # log_root_dir="./logs"
 log_root_dir="/data/jun/projects/hrl-planner/logs"
-mopa="True"
+planner_integration="True"
 reward_scale="0.2"
 reuse_data="True"
 action_range="1.0"
+omega='0.5'
+use_smdp_update="True"
 stochastic_eval="True"
 find_collision_free="True"
 max_reuse_data='30'
-use_smdp_update="True"
-ac_space_type="normal"
+ac_space_type="piecewise"
 success_reward="150.0"
 log_indiv_entropy="True"
-
+# max_grad_norm='0.5'
 # variants
-discrete_action="True"
 
 
-#mpiexec -n $workers
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
@@ -37,17 +37,15 @@ python -m rl.main \
     --algo $algo \
     --seed $seed \
     --reward_type $reward_type \
-    --comment $comment \
-    --mopa $mopa \
+    --planner_integration $planner_integration \
     --reward_scale $reward_scale \
     --reuse_data $reuse_data \
     --action_range $action_range \
-    --discrete_action $discrete_action \
+    --omega $omega \
     --success_reward $success_reward \
     --stochastic_eval $stochastic_eval \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
-    --use_smdp_update $use_smdp_update \
     --ac_space_type $ac_space_type \
-    --use_double_planner $use_double_planner \
     --log_indiv_entropy $log_indiv_entropy \
+    --use_smdp_update $use_smdp_update

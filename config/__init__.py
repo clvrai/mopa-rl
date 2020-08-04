@@ -84,7 +84,7 @@ def argparser():
     parser.add_argument("--max_reuse_data", type=int, default=30)
     parser.add_argument("--min_reuse_span", type=int, default=1)
     parser.add_argument("--action_range", type=float, default=2.0)
-    parser.add_argument("--extended_action", type=str2bool, default=False)
+    parser.add_argument("--discrete_action", type=str2bool, default=False)
     parser.add_argument("--stochastic_eval", type=str2bool, default=False)
 
 

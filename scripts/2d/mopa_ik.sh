@@ -10,7 +10,7 @@ debug="False"
 reward_type='sparse'
 log_root_dir="./logs"
 # log_root_dir="/data/jun/projects/hrl-planner/logs"
-planner_integration="True"
+mopa="True"
 reward_scale="0.2"
 reuse_data="True"
 action_range="0.1"
@@ -35,7 +35,7 @@ python -m rl.main \
     --algo $algo \
     --seed $seed \
     --reward_type $reward_type \
-    --planner_integration $planner_integration \
+    --mopa $mopa \
     --reward_scale $reward_scale \
     --reuse_data $reuse_data \
     --action_range $action_range \

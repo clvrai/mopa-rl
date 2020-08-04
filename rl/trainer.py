@@ -88,7 +88,7 @@ class Trainer(object):
 
         ll_ob_space = ob_space
         if config.mopa:
-            if config.extended_action:
+            if config.discrete_action:
                 ac_space.spaces['ac_type'] = spaces.Discrete(2)
 
         if config.use_ik_target:
