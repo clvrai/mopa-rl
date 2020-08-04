@@ -49,6 +49,8 @@ git clone git@github.com:ompl/ompl.git ../ompl
 cd ../ompl
 cmake .
 sudo make install
+
+# if ompl-x.x (x.x is the version) is installed in /usr/local/include, you need to rename it to ompl
 ```
 
 4. Compile motion planner 
