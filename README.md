@@ -51,6 +51,7 @@ cmake .
 sudo make install
 
 # if ompl-x.x (x.x is the version) is installed in /usr/local/include, you need to rename it to ompl
+mv /usr/local/include/ompl-x.x /usr/local/include/ompl
 ```
 
 4. Compile motion planner 
