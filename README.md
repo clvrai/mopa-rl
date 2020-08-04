@@ -5,7 +5,6 @@ Deep reinforcement learning (RL) agents are able to learn contact-rich manipulat
 ## Prerequisites
 - Ubuntu 18.04
 - Python 3.7 (`python3.7`, `python3.7-dev`)
-- torch
 - `libyaml-cpp-dev` (`sudo apt install libyaml-cpp-dev` or `brew install libyaml yaml-cpp`)
 - gym 0.15.4
 - [MuJoCo 2.0.2.5 ](http://www.mujoco.org/)
