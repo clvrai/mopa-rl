@@ -65,7 +65,7 @@ class MetaRollout(object):
         return batch
 
 
-class PlannerRolloutRunner(object):
+class MoPARolloutRunner(object):
     def __init__(self, config, env, env_eval, meta_pi, pi):
         self._config = config
         self._env = env
