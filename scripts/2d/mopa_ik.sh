@@ -3,7 +3,7 @@ gpu=$1
 seed=$2
 
 algo='sac'
-prefix="SAC.PUSHER.SPARSE.IK.reuse"
+prefix="MoPA-SAC.IK"
 env="pusher-obstacle-hard-v3"
 max_episode_step="400"
 debug="False"

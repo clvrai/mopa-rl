@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 algo='sac'
-prefix="SAC.PUSHER.discrete.action_range.1.0.data30.scale.0.2"
+prefix="MoPA-SAC.discrete"
 env="pusher-obstacle-hard-v3"
 max_episode_step="400"
 debug="False"

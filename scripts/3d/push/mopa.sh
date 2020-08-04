@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range0.5.reuse15.scale0.5"
+prefix="MoPA-SAC"
 gpu=$1
 seed=$2
 algo='sac'

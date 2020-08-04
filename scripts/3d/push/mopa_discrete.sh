@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.piecewise0.5.ac_range1.0.reuse30.span5.scale.0.4.v2"
+prefix="MoPA=SAC.discrete"
 gpu=$1
 seed=$2
 env="sawyer-push-obstacle-v2"
@@ -24,8 +24,8 @@ use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 discount_factor='0.99'
-max_reuse_data='30'
-reward_scale="0.4"
+max_reuse_data='15'
+reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 

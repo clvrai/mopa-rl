@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.PLANNER.AUGMENTED.IK.reuse"
+prefix="MoPA-SAC"
 gpu=$1
 seed=$2
 algo='sac'
@@ -21,7 +21,7 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='30'
+max_reuse_data='15'
 reward_scale="0.2"
 use_ik_target="True"
 ik_target="grip_site"
