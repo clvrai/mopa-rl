@@ -8,7 +8,7 @@ import cv2
 from util.misc import save_video, render_frame, mujocopy_render_hack
 np.set_printoptions(precision=3)
 
-mujocopy_render_hack() # rendering fix for gautam
+mujocopy_render_hack() # rendering fix
 is_save_video = False
 parser = argparser()
 args, unparsed = parser.parse_known_args()

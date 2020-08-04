@@ -52,7 +52,7 @@ def render_frame(env, step, info={}):
 
 # workaround for mujoco py issue #390
 def mujocopy_render_hack():
-    render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
+    render_hack = false #set to true for bugfix on bad openGL context
     if render_hack:
         print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
         from mujoco_py import GlfwContext

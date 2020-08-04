@@ -15,7 +15,7 @@ import copy
 np.set_printoptions(precision=3)
 
 # workaround for mujoco py issue #390
-mujocopy_render_hack = (os.environ['USER'] == 'gautam') #bugfix for bad openGL context on my machine
+mujocopy_render_hack = false #bugfix for bad openGL context
 if mujocopy_render_hack:
     print("Setting an offscreen GlfwContext. See mujoco-py issue #390")
     from mujoco_py import GlfwContext
