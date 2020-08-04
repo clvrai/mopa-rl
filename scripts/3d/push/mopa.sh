@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range0.5.reuse15.scale0.2.v2"
+prefix="SAC.MoPA.Ablation.piecewise0.7.ac_range0.5.reuse15.scale0.5"
 gpu=$1
 seed=$2
 algo='sac'
@@ -8,8 +8,8 @@ env="sawyer-push-obstacle-v2"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 planner_integration="True"
 reuse_data="True"
 action_range="0.5"
@@ -24,7 +24,7 @@ use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
-reward_scale="0.2"
+reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 

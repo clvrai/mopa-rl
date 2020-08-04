@@ -4,7 +4,7 @@ prefix="MoPA-SAC"
 gpu=$1
 seed=$2
 algo='sac'
-env="sawyer-assembly-easy-v0"
+env="sawyer-assembly-v0"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
@@ -13,7 +13,7 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 planner_integration="True"
 reuse_data="True"
 action_range="0.5"
-omega='0.7'
+omega='0.5'
 stochastic_eval="True"
 find_collision_free="True"
 vis_replay="True"
@@ -22,9 +22,10 @@ ac_space_type="piecewise"
 use_smdp_update="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='30'
-reward_scale="0.2"
-log_indiv_entropy="True"
+max_reuse_data='15'
+reward_scale="0.1"
+log_indiv_entropy="False"
+use_discount_meta="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -52,3 +53,4 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
+    --use_discount_meta $use_discount_meta
