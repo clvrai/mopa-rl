@@ -29,10 +29,11 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-418
 $ export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/nvidia-418/libGL.so
 ```
 
-2. Clone this repository and install python dependencies
+2. Download this repository and install python dependencies
 ```
 sudo apt-get install libgl1-mesa-dev libgl1-mesa-glx libosmesa6-dev patchelf libopenmpi-dev libglew-dev python3-pip python3-numpy python3-scipy
-git clone git@github.com:youngwoon/hrl-planner.git
+unzip code-130.zip
+cd code-130
 # install required python packages in your new env
 pip install -r requirements.txt
 ```

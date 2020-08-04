@@ -49,7 +49,7 @@ class SACAgent(BaseAgent):
 
         sampler = RandomSampler()
         buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
-        if config.planner_integration:
+        if config.mopa:
             buffer_keys.append("intra_steps")
         self._buffer = ReplayBuffer(buffer_keys,
                                     config.buffer_size,
@@ -59,7 +59,7 @@ class SACAgent(BaseAgent):
 
         self._planner = None
         self._is_planner_initialized = False
-        if config.planner_integration:
+        if config.mopa:
             self._planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.planner_type,
                                          passive_joint_idx=config.passive_joint_idx, ignored_contacts=config.ignored_contact_geom_ids,
                                          is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate, range_=config.range)
