@@ -164,14 +164,14 @@ class RolloutRunner(object):
                     if every_steps is not None and step % every_steps == 0:
                         # last frame
                         ll_ob = ob.copy()
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
                 if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
                     ll_ob = ob.copy()
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                    rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
                     meta_rollout.add({'meta_ob': ob})
                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
             ep_info.add({'len': ep_len, 'rew': ep_rew})
