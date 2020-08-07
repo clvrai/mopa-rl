@@ -31,6 +31,7 @@ class Rollout(object):
     def get(self):
         batch = {}
         batch['ob'] = self._history['ob']
+        batch['ob_next'] = self._history['ob_next']
         batch['ac'] = self._history['ac']
         batch['meta_ac'] = self._history['meta_ac']
         batch['ac_before_activation'] = self._history['ac_before_activation']
@@ -244,7 +245,7 @@ class MoPARolloutRunner(object):
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
                             ep_info.add({'env_step': env_step})
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
@@ -280,7 +281,7 @@ class MoPARolloutRunner(object):
 
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
-                                        rollout.add({'ob': ob_list[goal], 'meta_ac': meta_ac})
+                                        rollout.add({'ob_next': ob_list[goal], 'meta_ac': meta_ac})
                                         ep_info.add({'env_step': env_step})
                                         env_step = 0
                                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
@@ -318,7 +319,7 @@ class MoPARolloutRunner(object):
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
                             ep_info.add({'env_step': env_step})
                             env_step = 0
                             yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
@@ -349,7 +350,7 @@ class MoPARolloutRunner(object):
                     if every_steps is not None and step % every_steps == 0:
                         # last frame
                         ll_ob = ob.copy()
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
                         ep_info.add({'env_step': env_step})
                         env_step = 0
                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
@@ -372,7 +373,7 @@ class MoPARolloutRunner(object):
             episode += 1
             if every_episodes is not None and episode % every_episodes == 0:
                 ll_ob = ob.copy()
-                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
                 meta_rollout.add({'meta_ob': ob})
                 ep_info.add({'env_step': env_step})
                 env_step = 0

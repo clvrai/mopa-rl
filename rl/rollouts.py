@@ -27,6 +27,7 @@ class Rollout(object):
     def get(self):
         batch = {}
         batch['ob'] = self._history['ob']
+        batch['ob_next'] = self._history['ob_next']
         batch['ac'] = self._history['ac']
         batch['meta_ac'] = self._history['meta_ac']
         batch['ac_before_activation'] = self._history['ac_before_activation']
