@@ -1,7 +1,7 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-prefix="BASELINE.action_range0.5.v7"
+prefix="BASELINE.action_range0.5.v8"
 env="sawyer-assembly-v0"
 algo='sac'
 max_episode_step="250"

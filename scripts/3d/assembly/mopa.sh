@@ -1,10 +1,10 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.debug"
+prefix="MoPA-SAC"
 gpu=$1
 seed=$2
 algo='sac'
-env="sawyer-assembly-v0"
+env="sawyer-assembly-v1"
 max_episode_step="250"
 debug="True"
 reward_type='sparse'
@@ -38,7 +38,7 @@ python -m rl.main \
     --algo $algo \
     --seed $seed \
     --reward_type $reward_type \
-    --moopa $mopa \
+    --mopa $mopa \
     --reuse_data $reuse_data \
     --action_range $action_range \
     --omega $omega \

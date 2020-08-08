@@ -41,7 +41,7 @@ def argparser():
                         help="whether to use HRL or not")
     parser.add_argument("--primitive_dir", type=str, default=None,
                         help="path to primitive directory")
-    parser.add_argument("--max_meta_len", type=int, default=25)
+    parser.add_argument("--max_meta_len", type=int, default=1)
 
     parser.add_argument("--ll_type", type=str, default="rl",
                         help="low level controller choice", choices=["rl", "mp", "mix"])

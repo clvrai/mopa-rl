@@ -101,7 +101,6 @@ class RolloutRunner(object):
             done = False
             ep_len = 0
             ep_rew = 0
-            env_step = 0
             ob = env.reset()
             if config.use_ik_target:
                 ik_env.reset()
@@ -119,6 +118,7 @@ class RolloutRunner(object):
                 })
                 meta_len = 0
                 meta_rew = 0
+                env_step = 0
 
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
