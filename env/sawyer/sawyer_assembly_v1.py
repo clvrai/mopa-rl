@@ -6,10 +6,10 @@ from gym import spaces
 from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 
-class SawyerAssemblyEnv(SawyerEnv):
+class SawyerAssemblyV1Env(SawyerEnv):
     def __init__(self, **kwargs):
         # kwargs['camera_name'] = 'topview'
-        super().__init__("sawyer_assembly_v2.xml", **kwargs)
+        super().__init__("sawyer_assembly_v1.xml", **kwargs)
         self._get_reference()
         # self._init_goal = self.sim.model.body_pos[self.sim.model.body_name2id("box")].copy()
 

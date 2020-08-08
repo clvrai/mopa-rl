@@ -23,6 +23,11 @@ register(
     entry_point='env.sawyer:SawyerAssemblyEnv',
     kwargs={}
 )
+register(
+    id='sawyer-assembly-v1',
+    entry_point='env.sawyer:SawyerAssemblyV1Env',
+    kwargs={}
+)
 
 register(
     id='sawyer-lift-v0',
