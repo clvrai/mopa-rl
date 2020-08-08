@@ -34,6 +34,7 @@ def argparser():
     parser.add_argument("--add_curr_rew", type=str2bool, default=True)
     parser.add_argument("--use_ik_target", type=str2bool, default=False)
     parser.add_argument("--ik_target", type=str, default="fingertip")
+    parser.add_argument("--expand_ac_space", type=str2bool, default=False)
 
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
@@ -83,7 +84,7 @@ def argparser():
     parser.add_argument("--reuse_data", type=str2bool, default=False)
     parser.add_argument("--max_reuse_data", type=int, default=30)
     parser.add_argument("--min_reuse_span", type=int, default=1)
-    parser.add_argument("--action_range", type=float, default=2.0)
+    parser.add_argument("--action_range", type=float, default=1.0)
     parser.add_argument("--discrete_action", type=str2bool, default=False)
     parser.add_argument("--stochastic_eval", type=str2bool, default=False)
 

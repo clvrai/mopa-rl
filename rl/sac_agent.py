@@ -49,7 +49,7 @@ class SACAgent(BaseAgent):
 
         sampler = RandomSampler()
         buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
-        if config.mopa:
+        if config.mopa or config.expand_ac_space:
             buffer_keys.append("intra_steps")
         self._buffer = ReplayBuffer(buffer_keys,
                                     config.buffer_size,

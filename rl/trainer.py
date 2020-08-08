@@ -21,7 +21,6 @@ import matplotlib.pyplot as plt
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
 from rl.mopa_rollouts import MoPARolloutRunner
-from rl.dataset import HERSampler
 from rl.meta_ppo_agent import MetaPPOAgent
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
@@ -325,7 +324,7 @@ class Trainer(object):
             else:
                 step_per_batch = len(rollout['ac'])
 
-            if self._config.mopa and 'env_step' in info.keys():
+            if 'env_step' in info.keys():
                 env_step_per_batch = int(info['env_step'])
 
             # train an agent
@@ -360,7 +359,7 @@ class Trainer(object):
 
             if env_step_per_batch is not None:
                 env_step += env_step_per_batch
-            if not self._config.mopa:
+            else:
                 env_step = None
             update_iter += 1
 

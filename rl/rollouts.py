@@ -11,6 +11,8 @@ from util.logger import logger
 from util.env import joint_convert, mat2quat, quat_mul, rotation_matrix, quat2mat
 from util.gym import action_size
 from util.info import Info
+from math import ceil
+import copy
 
 
 class Rollout(object):
@@ -27,12 +29,12 @@ class Rollout(object):
     def get(self):
         batch = {}
         batch['ob'] = self._history['ob']
-        batch['ob_next'] = self._history['ob_next']
         batch['ac'] = self._history['ac']
         batch['meta_ac'] = self._history['meta_ac']
         batch['ac_before_activation'] = self._history['ac_before_activation']
         batch['done'] = self._history['done']
         batch['rew'] = self._history['rew']
+        batch['intra_steps'] = self._history['intra_steps']
         self._history = defaultdict(list)
         return batch
 
@@ -99,6 +101,7 @@ class RolloutRunner(object):
             done = False
             ep_len = 0
             ep_rew = 0
+            env_step = 0
             ob = env.reset()
             if config.use_ik_target:
                 ik_env.reset()
@@ -153,26 +156,65 @@ class RolloutRunner(object):
                             pre_converted_ac = np.concatenate((pre_converted_ac, ac['gripper']))
                         converted_ac = OrderedDict([('default', pre_converted_ac)])
                         ob, reward, done, info = env.step(converted_ac)
+                        rollout.add({'done': done, 'rew': reward})
+                        ep_len += 1
+                        step += 1
+                        ep_rew += reward
+                        env_step += 1
+                        meta_len += 1
+                        meta_rew += reward
+                        reward_info.add(info)
                     else:
-                        ob, reward, done, info = env.step(ac)
-                    rollout.add({'done': done, 'rew': reward})
-                    ep_len += 1
-                    step += 1
-                    ep_rew += reward
-                    meta_len += 1
-                    meta_rew += reward
-                    reward_info.add(info)
+                        if config.expand_ac_space:
+                            diff = ac['default'][env.ref_joint_pos_indexes] * config.action_range
+                            out_of_bounds = np.where((diff > env._ac_scale) | (diff < -env._ac_scale))[0]
+                            out_diff = diff[out_of_bounds]
+                            scales = np.where(out_diff > env._ac_scale, out_diff/env._ac_scale, out_diff/(-env._ac_scale))
+                            if len(scales) == 0:
+                                scaling_factor = 1.
+                            else:
+                                scaling_factor = max(max(scales), 1.)
+                            scaled_ac = diff[:len(env.ref_joint_pos_indexes)] / scaling_factor
+                            intra_steps = 0
+                            for j in range(ceil(scaling_factor)):
+                                inter_ac = copy.deepcopy(ac)
+                                if j < int(scaling_factor):
+                                    inter_ac['default'][env.ref_joint_pos_indexes] = scaled_ac / env._ac_scale
+                                else:
+                                    inter_ac['default'][env.ref_joint_pos_indexes] -= scaled_ac*int(scaling_factor)
+                                ob, reward, done, info = env.step(inter_ac)
+                                ep_len += 1
+                                step += 1
+                                env_step += 1
+                                ep_rew += reward
+                                meta_len += 1
+                                meta_rew += reward * config.discount_factor ** j
+                                reward_info.add(info)
+                                if done or ep_len >= max_step:
+                                    break
+                            rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': intra_steps})
+                        else:
+                            ob, reward, done, info = env.step(ac)
+                            rollout.add({'done': done, 'rew': reward})
+                            ep_len += 1
+                            step += 1
+                            env_step += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            meta_rew += reward
+                            reward_info.add(info)
                     if every_steps is not None and step % every_steps == 0:
                         # last frame
                         ll_ob = ob.copy()
-                        rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        ep_info.add({'env_step': env_step})
                         yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
                 if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
                     ll_ob = ob.copy()
-                    rollout.add({'ob_next': ll_ob, 'meta_ac': meta_ac})
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                     meta_rollout.add({'meta_ob': ob})
                     yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
             ep_info.add({'len': ep_len, 'rew': ep_rew})
@@ -187,6 +229,7 @@ class RolloutRunner(object):
                 ll_ob = ob.copy()
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                 meta_rollout.add({'meta_ob': ob})
+                ep_info.add({'env_step': env_step})
                 yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
@@ -200,7 +243,8 @@ class RolloutRunner(object):
 
         rollout = Rollout()
         meta_rollout = MetaRollout()
-        reward_info = defaultdict(list)
+        reward_info = Info()
+        ep_info = Info()
 
         done = False
         ep_len = 0
@@ -256,30 +300,77 @@ class RolloutRunner(object):
                         target_quat = None
                     ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
                     result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat, rot_weight=2.,
-                                  joint_names=env.robot_joints, max_steps=100, tol=1e-3)
+                                  joint_names=env.robot_joints, max_steps=100, tol=1e-2)
                     target_qpos = env.sim.data.qpos.copy()
                     target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
                     pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
                     if 'gripper' in ac.keys():
                         pre_converted_ac = np.concatenate((pre_converted_ac, ac['gripper']))
                     converted_ac = OrderedDict([('default', pre_converted_ac)])
-
                     ob, reward, done, info = env.step(converted_ac)
+                    rollout.add({'done': done, 'rew': reward})
+                    ep_len += 1
+                    ep_rew += reward
+                    meta_len += 1
+                    meta_rew += reward
+                    reward_info.add(info)
                 else:
-                    ob, reward, done, info = env.step(ac)
+                    if config.expand_ac_space:
+                        diff = ac['default'][env.ref_joint_pos_indexes] * config.action_range
+                        out_of_bounds = np.where((diff > env._ac_scale) | (diff < -env._ac_scale))[0]
+                        out_diff = diff[out_of_bounds]
+                        scales = np.where(out_diff > env._ac_scale, out_diff/env._ac_scale, out_diff/(-env._ac_scale))
+                        if len(scales) == 0:
+                            scaling_factor = 1.
+                        else:
+                            scaling_factor = max(max(scales), 1.)
+                        scaled_ac = diff[:len(env.ref_joint_pos_indexes)] / scaling_factor
+                        intra_steps = 0
+                        for j in range(ceil(scaling_factor)):
+                            inter_ac = copy.deepcopy(ac)
+                            if j < int(scaling_factor) or int(scaling_factor) != 1:
+                                inter_ac['default'][env.ref_joint_pos_indexes] = scaled_ac / env._ac_scale
+                            else:
+                                inter_ac['default'][env.ref_joint_pos_indexes] -= scaled_ac*int(scaling_factor)
+                            ob, reward, done, info = env.step(inter_ac)
+                            ep_len += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            meta_rew += reward * config.discount_factor ** j
+                            reward_info.add(info)
+                            contact_force = env.get_contact_force()
+                            total_contact_force += contact_force
+                            if record:
+                                frame_info = info.copy()
+                                frame_info['ac'] = ac['default']
+                                frame_info['contact_force'] = contact_force
+                                if config.use_ik_target:
+                                    frame_info['converted_ac'] = converted_ac['default']
+                                frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
+                                if config.hrl:
+                                    i = int(meta_ac['default'])
+                                    frame_info['meta_ac'] = meta_pi.skills[i]
+                                    for i, k in enumerate(meta_ac.keys()):
+                                        if k != 'default':
+                                            frame_info['meta_'+k] = meta_ac[k]
+                                self._store_frame(env, frame_info)
+                            if done or ep_len >= max_step:
+                                break
+                        rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': intra_steps})
+                    else:
+                        ob, reward, done, info = env.step(ac)
+                        rollout.add({'done': done, 'rew': reward})
+                        ep_len += 1
+                        ep_rew += reward
+                        meta_len += 1
+                        meta_rew += reward
+                        reward_info.add(info)
 
 
                 contact_force = env.get_contact_force()
                 total_contact_force += contact_force
-                rollout.add({'done': done, 'rew': reward})
-                ep_len += 1
-                ep_rew += reward
-                meta_len += 1
-                meta_rew += reward
 
-                for key, value in info.items():
-                    reward_info[key].append(value)
-                if record:
+                if record and not config.expand_ac_space:
                     frame_info = info.copy()
                     frame_info['ac'] = ac['default']
                     frame_info['contact_force'] = contact_force
@@ -301,15 +392,10 @@ class RolloutRunner(object):
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
         meta_rollout.add({'meta_ob': ob})
 
-        ep_info = {'len': ep_len, 'rew': ep_rew, "avg_conntact_force": total_contact_force/ep_len}
-        for key, value in reward_info.items():
-            if isinstance(value[0], (int, float, bool)):
-                if '_mean' in key:
-                    ep_info[key] = np.mean(value)
-                else:
-                    ep_info[key] = np.sum(value)
-
-        return rollout.get(), meta_rollout.get(), ep_info, self._record_frames
+        ep_info.add({'len': ep_len, 'rew': ep_rew, "avg_conntact_force": total_contact_force/ep_len})
+        reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
+        ep_info.add(reward_info_dict)
+        return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
     def _store_frame(self, env, info={}):
         color = (200, 200, 200)

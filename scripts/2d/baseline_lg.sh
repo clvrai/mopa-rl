@@ -2,16 +2,19 @@
 gpu=$1
 seed=$2
 algo='sac'
-prefix="BASELINE.SAC.IK.v3"
+prefix="BASELINE.SAC.ac_range1.0.v7"
 env="pusher-obstacle-hard-v3"
 max_episode_step="400"
-debug="True"
+debug="False"
 reward_type='sparse'
-log_root_dir="./logs"
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
 reward_scale='10.'
 vis_replay="True"
 success_reward='150.'
+expand_ac_space="True"
+action_range='1.0'
+use_smdp_update="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -27,3 +30,6 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
     --success_reward $success_reward \
+    --expand_ac_space $expand_ac_space \
+    --action_range $action_range \
+    --use_smdp_update $use_smdp_update
