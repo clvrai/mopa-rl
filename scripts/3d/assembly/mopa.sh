@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.v2"
+prefix="MoPA-SAC.scale0.1.range1.0"
 gpu=$1
 seed=$2
 algo='sac'
@@ -8,11 +8,11 @@ env="sawyer-assembly-v1"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
-log_root_dir="./logs"
+log_root_dir="/data/jun/projects/hrl-planner/logs"
+# log_root_dir="./logs"
 mopa="True"
 reuse_data="True"
-action_range="0.5"
+action_range="1.0"
 omega='0.5'
 stochastic_eval="True"
 find_collision_free="True"
