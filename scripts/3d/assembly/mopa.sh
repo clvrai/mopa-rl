@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.scale0.1.range1.0"
+prefix="MoPA-SAC.scale1.0.range0.5.v2_2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -12,7 +12,7 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 # log_root_dir="./logs"
 mopa="True"
 reuse_data="True"
-action_range="1.0"
+action_range="0.5"
 omega='0.5'
 stochastic_eval="True"
 find_collision_free="True"
@@ -23,9 +23,10 @@ use_smdp_update="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
-reward_scale="0.1"
+reward_scale="1.0"
 log_indiv_entropy="False"
 use_discount_meta="True"
+is_simplified="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -53,4 +54,5 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
     --log_indiv_entropy $log_indiv_entropy \
-    --use_discount_meta $use_discount_meta
+    --use_discount_meta $use_discount_meta \
+    --is_simplified $is_simplified

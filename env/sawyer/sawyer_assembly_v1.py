@@ -73,7 +73,24 @@ class SawyerAssemblyV1Env(SawyerEnv):
 
     @property
     def static_bodies(self):
-        return ['table', 'furniture', '0_part0', '1_part1', '4_part4', '2_part2']
+        return ['table']
+
+    @property
+    def manipulation_bodies(self):
+        return ['furniture', '0_part0', '1_part1', '4_part4', '2_part2']
+
+    @property
+    def manipulation_geom_ids(self):
+        body_ids = []
+        for body_name in self.manipulation_bodies:
+            body_ids.append(self.sim.model.body_name2id(body_name))
+
+        geom_ids = []
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            if body_id in body_ids:
+                geom_ids.append(geom_id)
+        return geom_ids
+
 
     @property
     def static_geoms(self):
