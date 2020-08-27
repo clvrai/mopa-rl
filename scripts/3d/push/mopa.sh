@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC"
+prefix="MoPA-SAC.scale0.1.range.0.5.reuse10.v2"
 gpu=$1
 seed=$2
 algo='sac'
@@ -23,10 +23,12 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='15'
-reward_scale="0.2"
+max_reuse_data='10'
+reward_scale="0.1"
 log_indiv_entropy="True"
 evaluate_interval="10000"
+is_simplified='False'
+
 
 # variants
 
@@ -59,3 +61,4 @@ python -m rl.main \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
     --use_discount_meta $use_discount_meta \
+    --is_simplified $is_simplified
