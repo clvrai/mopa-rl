@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.scale0.1.range.0.5.reuse10.v2"
+prefix="MoPA-SAC.scale0.5.range.0.5.reuse5.v6"
 gpu=$1
 seed=$2
 algo='sac'
@@ -23,8 +23,8 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='10'
-reward_scale="0.1"
+max_reuse_data='5'
+reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 is_simplified='False'
