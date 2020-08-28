@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.scale0.5.range.0.5.reuse5.v6"
+prefix="MoPA-SAC.scale1.0.range.0.5.reuse15.v7"
 gpu=$1
 seed=$2
 algo='sac'
@@ -8,8 +8,8 @@ env="sawyer-push-obstacle-v2"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
-log_root_dir="/data/jun/projects/hrl-planner/logs"
-# log_root_dir="./logs"
+# log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 mopa="True"
 reuse_data="True"
 action_range="0.5"
@@ -23,8 +23,8 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='5'
-reward_scale="0.5"
+max_reuse_data='15'
+reward_scale="1.0"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 is_simplified='False'

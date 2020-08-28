@@ -38,7 +38,7 @@ class SawyerPushObstacleV2Env(SawyerEnv):
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
         # if self._kwargs['task_level'] == 'easy':
         init_target_qpos = self.sim.data.qpos[self.ref_target_pos_indexes]
-        init_target_qpos += self.np_random.randn(init_target_qpos.shape[0]) * 0.02
+        init_target_qpos += self.np_random.randn(init_target_qpos.shape[0]) * 0.01
         # else:
         #     init_target_qpos = np.random.uniform(low=-3, high=3, size=2)
         self.goal = init_target_qpos
@@ -75,7 +75,7 @@ class SawyerPushObstacleV2Env(SawyerEnv):
             cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
             reward_push = 0.
             reward_reach = 0.
-            if gripper_to_cube < 0.2:
+            if gripper_to_cube < 0.3:
                 reward_reach += 0.1*(1-np.tanh(10*gripper_to_cube))
 
             if cube_to_target < 0.1:
