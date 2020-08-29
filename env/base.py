@@ -137,6 +137,7 @@ class BaseEnv(gym.Env):
         self.action_space = spaces.Dict([
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
+        self.action_space.seed(self._seed)
 
 
         jnt_range = self.sim.model.jnt_range

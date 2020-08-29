@@ -34,6 +34,7 @@ class SawyerEnv(BaseEnv):
         self.action_space = spaces.Dict([
             ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
         ])
+        self.action_space.seed(self._seed)
 
         jnt_range = self.sim.model.jnt_range
         is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
