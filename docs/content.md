@@ -22,13 +22,13 @@ To solve tasks in obstructed environments, we propose Motion Planner Augmented R
 	<div class="w3-col s1 w3-center">
 	</div>
 	<div class="w3-col s5 w3-center">
-		<video height="auto" width="100%" controls>
+		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_push_baseline.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">SAC</div>
 	</div>
 	<div class="w3-col s5 w3-center">
-		<video height="auto" width="100%" controls>
+		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_push_mopa.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">MoPA-SAC</div>
@@ -42,13 +42,13 @@ To solve tasks in obstructed environments, we propose Motion Planner Augmented R
 	<div class="w3-col s1 w3-center">
 	</div>
 	<div class="w3-col s5 w3-center">
-		<video height="auto" width="100%" controls>
+		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_lift_baseline.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">SAC</div>
 	</div>
 	<div class="w3-col s5 w3-center">
-		<video height="auto" width="100%" controls>
+		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_lift_mopa.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">MoPA-SAC</div>
@@ -62,13 +62,13 @@ To solve tasks in obstructed environments, we propose Motion Planner Augmented R
 	<div class="w3-col s1 w3-center">
 	</div>
 	<div class="w3-col s5 w3-center">
-		<video height="auto" width="100%" controls>
+		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_assembly_baseline.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">SAC</div>
 	</div>
 	<div class="w3-col s5 w3-center">
-		<video height="auto" width="100%" controls>
+		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_assembly_mopa.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">MoPA-SAC</div>
@@ -81,7 +81,13 @@ To solve tasks in obstructed environments, we propose Motion Planner Augmented R
 
 ## Quantitative results
 
-![Success Rate](./img/result.png "")
+<!-- ![Success Rate](./img/result.png "") -->
+
+<div class="w3-row-padding">
+    <div "w3-col s12 w3-center">
+        <img src="./img/result.png" alt="Success Rate"/>
+    </div>
+</div>
 
 ----
 
