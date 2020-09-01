@@ -68,7 +68,28 @@ p {
 }
 
 /* narrow screen */
-@media only screen and (max-width: 1100px) {
+@media only screen and (max-width:400px) {
+    .hide-narrow {
+        display: none;
+    }
+    .title{
+        font-size: 0.8em;
+    }
+    .excerpt{
+        font-weight: 300;
+    }
+
+    .method-name {
+        padding-top: 3px;
+        padding-bottom: 10px;
+        font-size: 0.8em;
+        font-weight: 500;
+    }
+}
+
+
+/* narrow screen */
+@media only screen and (min-width: 401px) and (max-width: 1100px) {
     .hide-narrow {
         display: none;
     }
@@ -275,7 +296,7 @@ div#markdown-body code {
 div#markdown-body img, div.slideshow_wrapper img {
     display: block;
     margin: 0 auto;
-    max-width: 80%;
+    max-width: 100%;
     max-height: 400px;
 }
 

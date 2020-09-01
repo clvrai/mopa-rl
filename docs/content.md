@@ -85,7 +85,7 @@ To solve tasks in obstructed environments, we propose Motion Planner Augmented R
 
 <div class="w3-row-padding">
     <div "w3-col s12 w3-center">
-        <img src="./img/result.png" alt="Success Rate"/>
+        <img src="./img/result.png" alt="Success Rate" />
     </div>
 </div>
 
