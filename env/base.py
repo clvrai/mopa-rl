@@ -64,8 +64,6 @@ class BaseEnv(gym.Env):
 
 
         # Load model
-        if 'robosuite' in xml_path:
-            self._reset()
         self._load_model_from_path(xml_path)
 
         self._init_qpos = self.sim.data.qpos.ravel().copy()
