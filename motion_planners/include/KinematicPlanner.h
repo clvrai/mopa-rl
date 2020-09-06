@@ -90,7 +90,7 @@ namespace MotionPlanner
 
             KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, std::string opt, double threshold, double _range, double constructTime, std::vector<int> passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> ignored_contacts, double contact_threshold, double goal_bias, bool allow_approximate, bool is_simplified, double simplified_duration, int seed);
             ~KinematicPlanner();
-            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double min_steps, int attempts);
+            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, int attempts);
             bool isValidState(std::vector<double> state_vec);
             std::string getPlannerStatus();
     };

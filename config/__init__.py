@@ -18,7 +18,7 @@ def argparser():
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",
-                        choices=["sac", "ppo", "ddpg", "td3"])
+                        choices=["sac", "ppo"])
     parser.add_argument("--policy", type=str, default="mlp",
                         choices=["mlp", "cnn"])
     parser.add_argument("--meta_algo", type=str, default="ppo",
@@ -31,7 +31,6 @@ def argparser():
     parser.add_argument("--mopa", type=str2bool, default=False)
     parser.add_argument("--use_discount_meta", type=str2bool, default=False)
     parser.add_argument("--ac_space_type", type=str, default="piecewise", choices=["normal", "piecewise"])
-    parser.add_argument("--add_curr_rew", type=str2bool, default=True)
     parser.add_argument("--use_ik_target", type=str2bool, default=False)
     parser.add_argument("--ik_target", type=str, default="fingertip")
     parser.add_argument("--expand_ac_space", type=str2bool, default=False)
@@ -39,13 +38,7 @@ def argparser():
     # hrl
     parser.add_argument("--hrl", type=str2bool, default=False,
                         help="whether to use HRL or not")
-    parser.add_argument("--primitive_dir", type=str, default=None,
-                        help="path to primitive directory")
     parser.add_argument("--max_meta_len", type=int, default=1)
-
-    parser.add_argument("--ll_type", type=str, default="rl",
-                        help="low level controller choice", choices=["rl", "mp", "mix"])
-    parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=256)
@@ -53,12 +46,7 @@ def argparser():
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
     parser.add_argument("--meta_tanh_policy", type=str2bool, default=False)
-    parser.add_argument("--subgoal_type", type=str, default='joint', choices=['joint', 'cart'])
     parser.add_argument("--activation", type=str, default='tanh')
-
-    parser.add_argument("--kernel_size", nargs='+', default=[3, 3, 3])
-    parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
-    parser.add_argument("--stride", nargs='+', default=[2, 1, 1])
     parser.add_argument("--actor_num_hid_layers", type=int, default=2)
 
     # observation normalization
@@ -68,7 +56,6 @@ def argparser():
     parser.add_argument("--clip_range", type=float, default=5, help="the clip range after normalization of observation")
 
     # motion planning
-    parser.add_argument("--min_path_len", type=int, default=10)
     parser.add_argument("--ignored_contact_geoms", nargs='+', default=None)
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
@@ -94,10 +81,7 @@ def argparser():
     parser.add_argument("--discount_factor", type=float, default=0.99, help="the discount factor")
     parser.add_argument("--lr_actor", type=float, default=3e-4, help="the learning rate of the actor")
     parser.add_argument("--lr_critic", type=float, default=3e-4, help="the learning rate of the critic")
-    parser.add_argument("--lr_alpha", type=float, default=3e-4, help="the learning rate of the alpha")
     parser.add_argument("--polyak", type=float, default=0.995, help="the average coefficient")
-    parser.add_argument("--actor_update_freq", type=int, default=1)
-    parser.add_argument("--critic_target_update_freq", type=int, default=1)
 
     # training
     parser.add_argument("--is_train", type=str2bool, default=True)
@@ -105,7 +89,6 @@ def argparser():
                         help="the times to update the network per epoch")
     parser.add_argument("--batch_size", type=int, default=256,
                         help="the sample batch size")
-    parser.add_argument("--max_grad_norm", type=float, default=None)
     parser.add_argument("--max_global_step", type=int, default=int(3e6))
     parser.add_argument("--gpu", type=int, default=None)
     parser.add_argument("--invalid_planner_rew", type=float, default=0.)
@@ -117,7 +100,6 @@ def argparser():
     parser.add_argument("--alpha", type=float, default=1.0)
     parser.add_argument("--reward_scale", type=float, default=1.0)
     parser.add_argument("--use_smdp_update", type=str2bool, default=False)
-    parser.add_argument("--actor_bias", type=float, default=None)
     parser.add_argument("--discrete_ent_coef", type=float, default=1.)
 
     # ppo

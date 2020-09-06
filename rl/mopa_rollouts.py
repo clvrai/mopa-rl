@@ -136,10 +136,7 @@ class MoPARolloutRunner(object):
                     ac_before_activation = None
                     stds = None
                 else:
-                    if config.hrl:
-                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
-                    else:
-                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 curr_qpos = env.sim.data.qpos.copy()
                 prev_qpos = env.sim.data.qpos.copy()
@@ -296,14 +293,9 @@ class MoPARolloutRunner(object):
                             'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
                         })
                         reward = 0
-                        if config.add_curr_rew:
-                            reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
-                            ep_rew += reward
-                            reward += self._config.invalid_planner_rew
-                        else:
-                            reward += self._config.invalid_planner_rew
-                            ep_rew += reward
-                            info = {}
+                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        ep_rew += reward
+                        reward += self._config.invalid_planner_rew
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, env._terminal, info)
@@ -431,10 +423,7 @@ class MoPARolloutRunner(object):
                 ac_before_activation = None
                 stds = None
             else:
-                if config.hrl:
-                    ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
-                else:
-                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
             curr_qpos = env.sim.data.qpos.copy()
             prev_qpos = env.sim.data.qpos.copy()
@@ -543,14 +532,9 @@ class MoPARolloutRunner(object):
                         counter['invalid'] += 1
                     ll_ob = ob.copy()
                     reward = 0.
-                    if config.add_curr_rew:
-                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
-                        ep_rew += reward
-                        reward += self._config.invalid_planner_rew
-                    else:
-                        reward += self._config.invalid_planner_rew
-                        ep_rew += reward
-                        info = {}
+                    reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
+                    ep_rew += reward
+                    reward += self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, env._terminal, info)
                     rollout.add({'done': done, 'rew': reward})
