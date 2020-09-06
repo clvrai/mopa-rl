@@ -1,6 +1,6 @@
 <mujoco model="sawyer_assembly">
     <asset>
-    <texture file="../robosuite/textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true" />
     <mesh file="../meshes/toy_table/0.stl" name="part0" scale="0.032025927036999993 0.032025927036999993 0.097025927036999993" />
     <mesh file="../meshes/toy_table/4.stl" name="part4" scale="0.047025927036999993 0.047025927036999993 0.047025927036999993" />

@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 prefix="BASELINE"
-env="sawyer-push-obstacle-v2"
+env="sawyer-push-obstacle-v3"
 algo='sac'
 max_episode_step="250"
 debug="False"

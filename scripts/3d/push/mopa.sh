@@ -1,10 +1,10 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.scale1.0.range.0.5.omega0.5.reuse5.v7"
+prefix="MoPA-SAC"
 gpu=$1
 seed=$2
 algo='sac'
-env="sawyer-push-obstacle-v2"
+env="sawyer-push-obstacle-v3"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
@@ -13,7 +13,7 @@ log_root_dir="/data/jun/projects/hrl-planner/logs"
 mopa="True"
 reuse_data="True"
 action_range="0.5"
-omega='0.5'
+omega='0.7'
 stochastic_eval="True"
 find_collision_free="True"
 vis_replay="True"
@@ -23,11 +23,13 @@ use_smdp_update="True"
 use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
-max_reuse_data='5'
-reward_scale="1.0"
+max_reuse_data='15'
+reward_scale="0.5"
 log_indiv_entropy="True"
 evaluate_interval="10000"
 is_simplified='False'
+timelimit='1.5'
+contact_threshold='-0.0002'
 
 
 # variants
@@ -61,4 +63,6 @@ python -m rl.main \
     --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
     --use_discount_meta $use_discount_meta \
-    --is_simplified $is_simplified
+    --is_simplified $is_simplified \
+    --timelimit $timelimit \
+    --contact_threshold $contact_threshold

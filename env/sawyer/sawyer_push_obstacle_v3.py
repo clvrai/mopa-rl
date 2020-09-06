@@ -7,10 +7,10 @@ from env.base import BaseEnv
 from env.sawyer.sawyer import SawyerEnv
 from util.transform_utils import *
 
-class SawyerPushObstacleV2Env(SawyerEnv):
+class SawyerPushObstacleV3Env(SawyerEnv):
     def __init__(self, **kwargs):
         kwargs['camera_name'] = 'zoomview'
-        super().__init__("sawyer_push_obstacle_v2.xml", **kwargs)
+        super().__init__("sawyer_push_obstacle_v3.xml", **kwargs)
         self._get_reference()
 
     def _get_reference(self):
@@ -48,40 +48,39 @@ class SawyerPushObstacleV2Env(SawyerEnv):
 
         return self._get_obs()
 
+    def is_touch(self):
+        touch = False
+        for i in range(self.sim.data.ncon):
+            c = self.sim.data.contact[i]
+            if c.geom1 == self.cube_geom_id:
+                if c.geom2 in self.l_finger_geom_ids or c.geom2 in self.r_finger_geom_ids:
+                    touch = True
+            elif c.geom2 == self.cube_geom_id:
+                if c.geom1 in self.l_finger_geom_ids or c.geom1 in self.r_finger_geom_ids:
+                    touch = True
+        return touch
+
     def compute_reward(self, action):
         reward_type = self._kwargs['reward_type']
         info = {}
         reward = 0
 
-        if reward_type == 'dense':
-            reach_multi = 0.6
-            push_multi = 1.0
-            right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
-            gripper_site_pos = (right_gripper + left_gripper) / 2.
-            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            target_pos = self.sim.data.body_xpos[self.target_id]
-            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
-            cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
-            reward_reach = -gripper_to_cube*reach_multi
-            reward_push = -cube_to_target*push_multi
-            reward += reward_reach + reward_push
-            info = dict(reward_reach=reward_reach, reward_push=reward_push)
-        else:
-            right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
-            gripper_site_pos = (right_gripper + left_gripper) / 2.
-            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            target_pos = self.sim.data.body_xpos[self.target_id]
-            gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
-            cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
-            reward_push = 0.
-            reward_reach = 0.
-            if gripper_to_cube < 0.3:
-                reward_reach += 0.1*(1-np.tanh(5*gripper_to_cube))
+        right_gripper, left_gripper = self.sim.data.get_site_xpos('right_eef'), self.sim.data.get_site_xpos('left_eef')
+        gripper_site_pos = (right_gripper + left_gripper) / 2.
+        cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+        target_pos = self.sim.data.body_xpos[self.target_id]
+        gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
+        cube_to_target = np.linalg.norm(cube_pos[:2]-target_pos[:2])
+        reward_push = 0.
+        reward_reach = 0.
+        if gripper_to_cube < 0.3:
+            reward_reach += 0.1*(1-np.tanh(10*gripper_to_cube))
 
-            if cube_to_target < 0.1:
-                reward_push += 0.3*(1-np.tanh(5*cube_to_target))
-            reward += reward_push + reward_reach
-            info = dict(reward_reach=reward_reach, reward_push=reward_push)
+        # if cube_to_target < 0.1:
+        if cube_to_target < 0.1:
+            reward_push += 0.3*(1-np.tanh(5*cube_to_target))
+        reward += reward_push + reward_reach
+        info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
         if cube_to_target < self._kwargs['distance_threshold']:
             reward += self._kwargs['success_reward']
@@ -113,6 +112,22 @@ class SawyerPushObstacleV2Env(SawyerEnv):
     @property
     def static_bodies(self):
         return ['table', 'bin1']
+
+    @property
+    def left_finger_geoms(self):
+        return ["rightclaw_it"]
+
+    @property
+    def right_finger_geoms(self):
+        return ['leftclaw_it']
+
+    @property
+    def l_finger_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.left_finger_geoms]
+
+    @property
+    def r_finger_geom_ids(self):
+        return [self.sim.model.geom_name2id(name) for name in self.right_finger_geoms]
 
     @property
     def static_geom_ids(self):
