@@ -32,7 +32,6 @@ class Rollout(object):
         batch = {}
         batch['ob'] = self._history['ob']
         batch['ac'] = self._history['ac']
-        batch['meta_ac'] = self._history['meta_ac']
         batch['ac_before_activation'] = self._history['ac_before_activation']
         batch['done'] = self._history['done']
         batch['rew'] = self._history['rew']
@@ -40,37 +39,11 @@ class Rollout(object):
         self._history = defaultdict(list)
         return batch
 
-
-class MetaRollout(object):
-    def __init__(self):
-        self._history = defaultdict(list)
-
-    def add(self, data):
-        for key, value in data.items():
-            self._history[key].append(value)
-
-    def __len__(self):
-        return len(self._history['ob'])
-
-    def get(self):
-        batch = {}
-        batch['ob'] = self._history['meta_ob']
-        batch['ac'] = self._history['meta_ac']
-        batch['ac_before_activation'] = self._history['meta_ac_before_activation']
-        batch['log_prob'] = self._history['meta_log_prob']
-        batch['done'] = self._history['meta_done']
-        batch['rew'] = self._history['meta_rew']
-        # batch['intra_steps'] = self._history['intra_steps']
-        self._history = defaultdict(list)
-        return batch
-
-
 class MoPARolloutRunner(object):
-    def __init__(self, config, env, env_eval, meta_pi, pi):
+    def __init__(self, config, env, env_eval, pi):
         self._config = config
         self._env = env
         self._env_eval = env_eval
-        self._meta_pi = meta_pi
         self._ik_env = gym.make(config.env, **config.__dict__)
         self._pi = pi
 
@@ -90,11 +63,9 @@ class MoPARolloutRunner(object):
         device = config.device
         env = self._env if is_train else self._env_eval
         ik_env = self._ik_env if config.use_ik_target else None
-        meta_pi = self._meta_pi
         pi = self._pi
 
         rollout = Rollout()
-        meta_rollout = MetaRollout()
         reward_info = Info()
         ep_info = Info()
 
@@ -112,18 +83,8 @@ class MoPARolloutRunner(object):
                 ik_env.reset()
 
             # run rollout
-            meta_ac = None
             counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
             while not done and ep_len < max_step:
-                meta_ac, meta_ac_before_activation, meta_log_prob =\
-                        meta_pi.act(ob, is_train=is_train)
-
-                meta_rollout.add({
-                    'meta_ob': ob, 'meta_ac': meta_ac,
-                    'meta_ac_before_activation': meta_ac_before_activation,
-                    'meta_log_prob': meta_log_prob,
-                })
-                meta_len = 0
                 meta_rew = 0
                 env_step = 0
 
@@ -228,23 +189,22 @@ class MoPARolloutRunner(object):
                                 quat_list.append(mat2quat(env.sim.data.get_site_xmat(config.ik_target)))
                             ep_len += 1
                             step += 1
-                            meta_len += 1
                             env_step += 1
                             ep_rew += reward
                             ep_rew_with_penalty += reward
                             reward_info.add(info)
                             if done or ep_len >= max_step:
                                 break
-                        rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                        rollout.add({'ob': prev_ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': i})
 
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            rollout.add({'ob': ll_ob})
                             ep_info.add({'env_step': env_step})
                             env_step = 0
-                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                            yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                         # Resample the trajectory from motion planner
                         if config.reuse_data and len(ob_list) > config.min_reuse_span+2:
@@ -269,7 +229,7 @@ class MoPARolloutRunner(object):
                                 if pi.is_planner_ac(inter_subgoal_ac) and pi.valid_action(inter_subgoal_ac):
                                     if config.discrete_action:
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
-                                    rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
+                                    rollout.add({'ob': ob_list[start], 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                     inter_rew = meta_rew_list[goal] - meta_rew_list[start]
                                     if config.use_discount_meta:
                                         inter_rew *= (config.discount_factor ** (-(start+1)))
@@ -277,10 +237,10 @@ class MoPARolloutRunner(object):
 
                                     if every_steps is not None and step % every_steps == 0:
                                         # last frame
-                                        rollout.add({'ob': ob_list[goal], 'meta_ac': meta_ac})
+                                        rollout.add({'ob': ob_list[goal]})
                                         ep_info.add({'env_step': env_step})
                                         env_step = 0
-                                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                                        yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                     else: # Failure in motion planner
                         if not exact:
@@ -289,35 +249,29 @@ class MoPARolloutRunner(object):
                             counter['invalid'] += 1
                         counter['mp_fail'] += 1
                         ll_ob = ob.copy()
-                        meta_rollout.add({
-                            'meta_ob': ob, 'meta_ac': meta_ac, 'meta_ac_before_activation': meta_ac_before_activation, 'meta_log_prob': meta_log_prob,
-                        })
                         reward = 0
                         reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
                         ep_rew += reward
                         reward += self._config.invalid_planner_rew
                         ep_rew_with_penalty += reward
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                        rollout.add({'ob': ll_ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, env._terminal, info)
-                        meta_rew += reward
                         rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         ep_len += 1
                         step += 1
-                        meta_len += 1
                         env_step += 1
                         reward_info.add(info)
-                        meta_rollout.add({'meta_done': done, 'meta_rew': reward})
                         if every_steps is not None and step % every_steps == 0:
                             # last frame
                             ll_ob = ob.copy()
-                            rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                            rollout.add({'ob': ll_ob, })
                             ep_info.add({'env_step': env_step})
                             env_step = 0
-                            yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                            yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 else: # Direct action execution
                     ll_ob = ob.copy()
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                    rollout.add({'ob': ll_ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     counter['rl'] += 1
                     if not config.use_ik_target:
                         rescaled_ac = OrderedDict([('default', ac['default'].copy())])
@@ -334,21 +288,17 @@ class MoPARolloutRunner(object):
                     step += 1
                     ep_rew += reward
                     ep_rew_with_penalty += reward
-                    meta_len += 1
                     env_step += 1
-                    meta_rew += reward
                     reward_info.add(info)
                     if every_steps is not None and step % every_steps == 0:
                         # last frame
                         ll_ob = ob.copy()
-                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        rollout.add({'ob': ll_ob,})
                         ep_info.add({'env_step': env_step})
                         env_step = 0
-                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                        yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 env._reset_prev_state()
-                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
-                reward_info.add({'meta_rew': meta_rew})
             ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty})
             if counter['mp'] > 0:
                 ep_info.add({"mp_path_len": mp_path_len/counter['mp']})
@@ -364,11 +314,10 @@ class MoPARolloutRunner(object):
             episode += 1
             if every_episodes is not None and episode % every_episodes == 0:
                 ll_ob = ob.copy()
-                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                meta_rollout.add({'meta_ob': ob})
+                rollout.add({'ob': ll_ob})
                 ep_info.add({'env_step': env_step})
                 env_step = 0
-                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
     def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
@@ -376,11 +325,9 @@ class MoPARolloutRunner(object):
         device = config.device
         env = self._env if is_train else self._env_eval
         ik_env = self._ik_env if config.use_ik_target else None
-        meta_pi = self._meta_pi
         pi = self._pi
 
         rollout = Rollout()
-        meta_rollout = MetaRollout()
         reward_info = Info()
         ep_info = Info()
 
@@ -402,19 +349,9 @@ class MoPARolloutRunner(object):
 
         stochastic = is_train or not config.stochastic_eval
         # run rollout
-        meta_ac = None
         total_contact_force = 0.
         counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
         while not done and ep_len < max_step:
-            meta_ac, meta_ac_before_activation, meta_log_prob =\
-                    meta_pi.act(ob, is_train=is_train)
-
-            meta_rollout.add({
-                'meta_ob': ob, 'meta_ac': meta_ac,
-                'meta_ac_before_activation': meta_ac_before_activation,
-                'meta_log_prob': meta_log_prob,
-            })
-            meta_len = 0
             meta_rew = 0
 
             ll_ob = ob.copy()
@@ -497,7 +434,6 @@ class MoPARolloutRunner(object):
                         ep_len += 1
                         ep_rew += reward
                         ep_rew_with_penalty += reward
-                        meta_len += 1
                         reward_info.add(info)
 
                         if record:
@@ -522,7 +458,7 @@ class MoPARolloutRunner(object):
                             self._store_frame(env, frame_info, planner=True)
                         if done or ep_len >= max_step:
                             break
-                    rollout.add({'ob': prev_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                    rollout.add({'ob': prev_ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
                     rollout.add({'done': done, 'rew': meta_rew})
                 else:
                     counter['mp_fail'] += 1
@@ -535,12 +471,11 @@ class MoPARolloutRunner(object):
                     reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
                     ep_rew += reward
                     reward += self._config.invalid_planner_rew
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
+                    rollout.add({'ob': ll_ob, 'ac': ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, env._terminal, info)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     ep_rew_with_penalty += reward
-                    meta_len += 1
                     reward_info.add(info)
 
                     contact_pairs = []
@@ -586,7 +521,6 @@ class MoPARolloutRunner(object):
                 ep_len += 1
                 ep_rew += reward
                 ep_rew_with_penalty += reward
-                meta_len += 1
                 meta_rew += reward
                 reward_info.add(info)
                 rollout.add({'done': done, 'rew': reward, 'rew_with_penalty': ep_rew_with_penalty})
@@ -598,20 +532,18 @@ class MoPARolloutRunner(object):
                     env.reset_visualized_indicator()
                     self._store_frame(env, frame_info)
             env._reset_prev_state()
-            meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
             env.reset_visualized_indicator()
 
         # last frame
         ll_ob = ob.copy()
-        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-        meta_rollout.add({'meta_ob': ob})
+        rollout.add({'ob': ll_ob})
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, "contact_force": total_contact_force, "avg_conntact_force": total_contact_force/ep_len})
         ep_info.add(counter)
         reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
         ep_info.add(reward_info_dict)
         # last frame
-        return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
+        return rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
     def _store_frame(self, env, info={}, planner=False):
         color = (200, 200, 200)
