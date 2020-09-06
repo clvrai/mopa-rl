@@ -95,16 +95,9 @@ class Trainer(object):
                                         ('gripper', spaces.Box(low=np.array([-1.]), high=np.array([1.]), dtype=np.float32))])
 
 
-        if config.hrl:
-            from rl.low_level_agent import LowLevelAgent
-            self._agent = LowLevelAgent(
-                config, ll_ob_space, ac_space, actor, critic,
-                non_limited_idx, subgoal_space,
-            )
-        else:
-            self._agent = get_agent_by_name(config.algo)(
-                config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
-            )
+        self._agent = get_agent_by_name(config.algo)(
+            config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
+        )
 
         self._runner = None
         if config.mopa:
@@ -115,7 +108,6 @@ class Trainer(object):
             self._runner = RolloutRunner(
                 config, self._env, self._env_eval, self._meta_agent, self._agent
             )
-
 
         # setup wandb
         if self._is_chef and self._config.is_train:
@@ -249,11 +241,7 @@ class Trainer(object):
         random_runner = None
         if config.hrl:
             if config.meta_update_target == 'HL':
-                if config.meta_algo == 'sac':
-                    runner = self._runner.run(every_steps=1)
-                    random_runner = self._runner.run(every_steps=1, random_exploration=True)
-                else:
-                    runner = self._runner.run_episode(every_steps=self._config.rollout_length)
+                runner = self._runner.run_episode(every_steps=self._config.rollout_length)
             else:
                 if config.algo == 'sac':
                     runner = self._runner.run(every_steps=1)
