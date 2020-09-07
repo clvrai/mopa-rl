@@ -24,7 +24,7 @@ class PlannerAgent:
         config = self._config
         if timelimit is None:
             timelimit = config.timelimit
-        traj, states, valid, exact = self.planner.plan(start, goal, timelimit, attempts=attempts)
+        traj, states, valid, exact = self.planner.plan(start, goal, timelimit, config.min_path_len+1, attempts=attempts)
         if self._allow_approximate:
             success = valid
         else:

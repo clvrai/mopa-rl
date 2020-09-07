@@ -112,6 +112,9 @@ def make_log_files(config):
     logger.info('Create video directory: %s', config.record_dir)
     os.makedirs(config.record_dir, exist_ok=True)
 
+    if config.primitive_dir is None:
+        config.primitive_dir = config.log_root_dir
+
     if config.is_train:
         # log git diff
         cmds = [

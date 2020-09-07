@@ -1,4 +1,4 @@
-#] SAC training code reference
+# SAC training code reference
 # https://github.com/vitchyr/rlkit/blob/master/rlkit/torch/sac/sac.py
 
 from collections import OrderedDict
@@ -28,8 +28,8 @@ class SACAgent(BaseAgent):
         self._ac_space = ac_space
         self._jnt_indices = jnt_indices
         self._ref_joint_pos_indexes = ref_joint_pos_indexes
-        self._log_alpha = torch.tensor(np.log(config.alpha), requires_grad=True, device=config.device)
-        self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
+        self._log_alpha = [torch.tensor(np.log(config.alpha), requires_grad=True, device=config.device)]
+        self._alpha_optim = [optim.Adam([self._log_alpha[0]], lr=config.lr_actor)]
         self._joint_space = joint_space
         self._is_jnt_limited = is_jnt_limited
         if joint_space is not None:
@@ -41,11 +41,11 @@ class SACAgent(BaseAgent):
         self._build_critic(critic)
         self._network_cuda(config.device)
 
-        self._target_entropy = -action_size(self._actor._ac_space)
+        self._target_entropy = [-action_size(_actor._ac_space) for _actor in self._actors]
 
-        self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_actor)
-        self._critic1_optim = optim.Adam(self._critic1.parameters(), lr=config.lr_critic)
-        self._critic2_optim = optim.Adam(self._critic2.parameters(), lr=config.lr_critic)
+        self._actor_optims = [optim.Adam(_actor.parameters(), lr=config.lr_actor) for _actor in self._actors]
+        self._critic1_optims = [optim.Adam(_critic.parameters(), lr=config.lr_actor) for _critic in self._critics1]
+        self._critic2_optims = [optim.Adam(_critic.parameters(), lr=config.lr_actor) for _critic in self._critics2]
 
         sampler = RandomSampler()
         buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
@@ -65,32 +65,32 @@ class SACAgent(BaseAgent):
                                          is_simplified=config.is_simplified, simplified_duration=config.simplified_duration, allow_approximate=config.allow_approximate, range_=config.range)
             self._simple_planner = PlannerAgent(config, ac_space, non_limited_idx, planner_type=config.simple_planner_type,
                                                 passive_joint_idx=config.passive_joint_idx,
-                                                ignored_contacts=config.ignored_contact_geom_ids, goal_bias=1.0, allow_approximate=False,
-                                                is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration, range_=config.simple_planner_range)
+                                                ignored_contacts=config.ignored_contact_geom_ids, goal_bias=1.0, allow_approximate=False, is_simplified=config.simple_planner_simplified, simplified_duration=config.simple_planner_simplified_duration, range_=config.simple_planner_range)
             self._omega = config.omega
 
 
     def _log_creation(self):
         if self._config.is_chef:
             logger.info('creating a sac agent')
-            logger.info('the Actor has %d parameters', count_parameters(self._actor))
-            logger.info('the critic1 has %d parameters', count_parameters(self._critic1))
-            logger.info('the critic2 has %d parameters', count_parameters(self._critic2))
+            for i, _actor in enumerate(self._actors):
+                logger.info('skill #{} has %d parameters'.format(i + 1), count_parameters(_actor))
+            logger.info('the critic1 has %d parameters', count_parameters(self._critics1[0]))
+            logger.info('the critic2 has %d parameters', count_parameters(self._critics2[0]))
 
     def _build_actor(self, actor):
-        self._actor = actor(self._config, self._ob_space, self._ac_space,
-                               self._config.tanh_policy)
+        self._actors = [actor(self._config, self._ob_space, self._ac_space,
+                               self._config.tanh_policy, bias=self._config.actor_bias)] # num_body_parts, num_skills
 
     def _build_critic(self, critic):
         config = self._config
-        self._critic1 = critic(config, self._ob_space, self._ac_space)
-        self._critic2 = critic(config, self._ob_space, self._ac_space)
+        self._critics1 = [critic(config, self._ob_space, self._ac_space)]
+        self._critics2 = [critic(config, self._ob_space, self._ac_space)]
 
         # build up target networks
-        self._critic1_target = critic(config, self._ob_space, self._ac_space)
-        self._critic2_target = critic(config, self._ob_space, self._ac_space)
-        self._critic1_target.load_state_dict(self._critic1.state_dict())
-        self._critic2_target.load_state_dict(self._critic2.state_dict())
+        self._critic1_targets = [critic(config, self._ob_space, self._ac_space)]
+        self._critic2_targets = [critic(config, self._ob_space, self._ac_space)]
+        self._critic1_targets[0].load_state_dict(self._critics1[0].state_dict())
+        self._critic2_targets[0].load_state_dict(self._critics2[0].state_dict())
 
     def store_episode(self, rollouts):
         self._buffer.store_episode(rollouts)
@@ -224,63 +224,88 @@ class SACAgent(BaseAgent):
 
     def state_dict(self):
         return {
-            'log_alpha': self._log_alpha.cpu().detach().numpy(),
-            'actor_state_dict': self._actor.state_dict(),
-            'critic1_state_dict': self._critic1.state_dict(),
-            'critic2_state_dict': self._critic2.state_dict(),
-            'alpha_optim_state_dict': self._alpha_optim.state_dict(),
-            'actor_optim_state_dict': self._actor_optim.state_dict(),
-            'critic1_optim_state_dict': self._critic1_optim.state_dict(),
-            'critic2_optim_state_dict': self._critic2_optim.state_dict(),
+            'log_alpha': [_log_alpha.cpu().detach().numpy() for _log_alpha in self._log_alpha],
+            'actor_state_dict': [_actor.state_dict() for _actor in self._actors],
+            'critic1_state_dict': [_critic1.state_dict() for _critic1 in self._critics1],
+            'critic2_state_dict': [_critic2.state_dict() for _critic2 in self._critics2],
+            'alpha_optim_state_dict': [_alpha_optim.state_dict() for _alpha_optim in self._alpha_optim],
+            'actor_optim_state_dict': [_actor_optim.state_dict() for _actor_optim in self._actor_optims],
+            'critic1_optim_state_dict': [_critic1_optim.state_dict() for _critic1_optim in self._critic1_optims],
+            'critic2_optim_state_dict': [_critic2_optim.state_dict() for _critic2_optim in self._critic2_optims],
             'ob_norm_state_dict': self._ob_norm.state_dict(),
         }
 
     def load_state_dict(self, ckpt):
-        self._log_alpha.data = torch.tensor(ckpt['log_alpha'], requires_grad=True,
-                                            device=self._config.device)
-        self._actor.load_state_dict(ckpt['actor_state_dict'])
-        self._critic1.load_state_dict(ckpt['critic1_state_dict'])
-        self._critic2.load_state_dict(ckpt['critic2_state_dict'])
-        self._critic1_target.load_state_dict(self._critic1.state_dict())
-        self._critic2_target.load_state_dict(self._critic2.state_dict())
+        for _log_alpha, _log_alpha_ckpt in zip(self._log_alpha, ckpt['log_alpha']):
+            _log_alpha.data = torch.tensor(_log_alpha_ckpt, requires_grad=True,
+                                                device=self._config.device)
+        for _actor, actor_ckpt in zip(self._actors, ckpt['actor_state_dict']):
+            _actor.load_state_dict(actor_ckpt)
+        for _critic1, critic_ckpt in zip(self._critics1, ckpt['critic1_state_dict']):
+            _critic1.load_state_dict(critic_ckpt)
+        for _critic2, critic_ckpt in zip(self._critics2, ckpt['critic2_state_dict']):
+            _critic2.load_state_dict(critic_ckpt)
+
+        for _critic1, _critic1_target in zip(self._critics1, self._critic1_targets):
+            _critic1_target.load_state_dict(_critic1.state_dict())
+        for _critic2, _critic2_target in zip(self._critics2, self._critic2_targets):
+            _critic2_target.load_state_dict(_critic2.state_dict())
+
         self._ob_norm.load_state_dict(ckpt['ob_norm_state_dict'])
         self._network_cuda(self._config.device)
 
-        self._alpha_optim.load_state_dict(ckpt['alpha_optim_state_dict'])
-        self._actor_optim.load_state_dict(ckpt['actor_optim_state_dict'])
-        self._critic1_optim.load_state_dict(ckpt['critic1_optim_state_dict'])
-        self._critic2_optim.load_state_dict(ckpt['critic2_optim_state_dict'])
-        optimizer_cuda(self._alpha_optim, self._config.device)
-        optimizer_cuda(self._actor_optim, self._config.device)
-        optimizer_cuda(self._critic1_optim, self._config.device)
-        optimizer_cuda(self._critic2_optim, self._config.device)
+        for _alpha_optim, _alpha_optim_ckpt in zip(self._alpha_optim, ckpt['alpha_optim_state_dict']):
+            _alpha_optim.load_state_dict(_alpha_optim_ckpt)
+        for _actor_optim, actor_optim_ckpt in zip(self._actor_optims, ckpt['actor_optim_state_dict']):
+            _actor_optim.load_state_dict(actor_optim_ckpt)
+        for _critic_optim, critic_optim_ckpt in zip(self._critic1_optims, ckpt['critic1_optim_state_dict']):
+            _critic_optim.load_state_dict(critic_optim_ckpt)
+        for _critic_optim, critic_optim_ckpt in zip(self._critic1_optims, ckpt['critic2_optim_state_dict']):
+            _critic_optim.load_state_dict(critic_optim_ckpt)
+
+        for _alpha_optim in self._alpha_optim:
+            optimizer_cuda(_alpha_optim, self._config.device)
+        for _actor_optim in self._actor_optims:
+            optimizer_cuda(_actor_optim, self._config.device)
+        for _critic_optim in self._critic1_optims:
+            optimizer_cuda(_critic_optim, self._config.device)
+        for _critic_optim in self._critic2_optims:
+            optimizer_cuda(_critic_optim, self._config.device)
 
     def _network_cuda(self, device):
-        self._actor.to(device)
-        self._critic1.to(device)
-        self._critic2.to(device)
-        self._critic1_target.to(device)
-        self._critic2_target.to(device)
+        for _actor in self._actors:
+            _actor.to(device)
+        for _critic in self._critics1:
+            _critic.to(device)
+        for _critic in self._critics2:
+            _critic.to(device)
+        for _critic_target in self._critic1_targets:
+            _critic_target.to(device)
+        for _critic_target in self._critic2_targets:
+            _critic_target.to(device)
 
     def sync_networks(self):
         if self._config.is_mpi:
-            sync_networks(self._actor)
-            sync_networks(self._critic1)
-            sync_networks(self._critic2)
+            for _actor in self._actors:
+                sync_networks(_actor)
+            for _critic in self._critics1:
+                sync_networks(_critic)
+            for _critic in self._critics2:
+                sync_networks(_critic)
 
     def train(self):
         for i in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions, i)
-            self._soft_update_target_network(self._critic1_target, self._critic1, self._config.polyak)
-            self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
+            self._soft_update_target_network(self._critic1_targets[0], self._critics1[0], self._config.polyak)
+            self._soft_update_target_network(self._critic2_targets[0], self._critics2[0], self._config.polyak)
         return train_info
 
     def act_log(self, ob, meta_ac=None):
         #assert meta_ac is None, "vanilla SAC agent doesn't support meta action input"
         if meta_ac:
             raise NotImplementedError()
-        return self._actor.act_log(ob)
+        return self._actors[0].act_log(ob)
 
     def _update_network(self, transitions, step=0):
         info = {}
@@ -310,24 +335,24 @@ class SACAgent(BaseAgent):
                 info['entropy_'  + key] = entropies[key].mean().cpu().item()
         else:
             actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
-        alpha_loss = -(self._log_alpha.exp() * (log_pi + self._target_entropy).detach()).mean()
+        alpha_loss = -(self._log_alpha[0].exp() * (log_pi + self._target_entropy[0]).detach()).mean()
 
         if self._config.use_automatic_entropy_tuning:
-            self._alpha_optim.zero_grad()
+            self._alpha_optim[0].zero_grad()
             alpha_loss.backward()
-            self._alpha_optim.step()
-            alpha = self._log_alpha.exp()
+            self._alpha_optim[0].step()
+            alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
             info['alpha_loss'] = alpha_loss.cpu().item()
-            info['entropy_alpha'] = alpha.cpu().item()
-            alpha = self._log_alpha.exp()
+            info['entropy_alpha'] = alpha[0].cpu().item()
+            alpha = [_log_alpha.exp() for _log_alpha in self._log_alpha]
         else:
-            alpha = torch.ones(1, device=self._config.device) * self._config.alpha
+            alpha = [torch.ones(1, device=self._config.device) * self._config.alpha for _ in self._log_alpha]
 
 
         # the actor loss
-        entropy_loss = (alpha * log_pi).mean()
-        actor_loss = -torch.min(self._critic1(o, actions_real),
-                                self._critic2(o, actions_real)).mean()
+        entropy_loss = (alpha[0] * log_pi).mean()
+        actor_loss = -torch.min(self._critics1[0](o, actions_real),
+                                self._critics2[0](o, actions_real)).mean()
         info['log_pi'] = log_pi.mean().cpu().item()
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
@@ -339,10 +364,10 @@ class SACAgent(BaseAgent):
                 actions_next, log_pi_next, _ = self.act_log(o_next, meta_ac=meta_ac)
             else:
                 actions_next, log_pi_next = self.act_log(o_next, meta_ac=meta_ac)
-            q_next_value1 = self._critic1_target(o_next, actions_next)
-            q_next_value2 = self._critic2_target(o_next, actions_next)
+            q_next_value1 = self._critic1_targets[0](o_next, actions_next)
+            q_next_value2 = self._critic2_targets[0](o_next, actions_next)
             if meta_ac is None:
-                q_next_value = torch.min(q_next_value1, q_next_value2) - alpha * log_pi_next
+                q_next_value = torch.min(q_next_value1, q_next_value2) - alpha[0] * log_pi_next
             if self._config.use_smdp_update:
                 target_q_value = self._config.reward_scale * rew + \
                     (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value
@@ -358,8 +383,8 @@ class SACAgent(BaseAgent):
         for k, space in self._ac_space.spaces.items():
             if isinstance(space, spaces.Discrete):
                 ac[k] = F.one_hot(ac[k].long(), action_size(self._ac_space[k])).float().squeeze(1)
-        real_q_value1 = self._critic1(o, ac)
-        real_q_value2 = self._critic2(o, ac)
+        real_q_value1 = self._critics1[0](o, ac)
+        real_q_value2 = self._critics2[0](o, ac)
         critic1_loss = 0.5 * (target_q_value - real_q_value1).pow(2).mean()
         critic2_loss = 0.5 * (target_q_value - real_q_value2).pow(2).mean()
 
@@ -373,24 +398,30 @@ class SACAgent(BaseAgent):
         info['critic2_loss'] = critic2_loss.cpu().item()
 
         # update the actor
-        self._actor_optim.zero_grad()
+        for _actor_optim in self._actor_optims:
+            _actor_optim.zero_grad()
         actor_loss.backward()
-        if self._config.is_mpi:
-            sync_grads(self._actor)
-        self._actor_optim.step()
+        for i, _actor in enumerate(self._actors):
+            if self._config.is_mpi:
+                sync_grads(_actor)
+            self._actor_optims[i].step()
 
         # update the critic
-        self._critic1_optim.zero_grad()
+        for _critic1_optim in self._critic1_optims:
+            _critic1_optim.zero_grad()
         critic1_loss.backward()
-        if self._config.is_mpi:
-            sync_grads(self._critic1)
-        self._critic1_optim.step()
+        for i, _critic1 in enumerate(self._critics1):
+            if self._config.is_mpi:
+                sync_grads(_critic1)
+            self._critic1_optims[i].step()
 
-        self._critic2_optim.zero_grad()
+        for _critic2_optim in self._critic2_optims:
+            _critic2_optim.zero_grad()
         critic2_loss.backward()
-        if self._config.is_mpi:
-            sync_grads(self._critic2)
-        self._critic2_optim.step()
+        for i, _critic2 in enumerate(self._critics2):
+            if self._config.is_mpi:
+                sync_grads(_critic2)
+            self._critic2_optims[i].step()
 
         if self._config.is_mpi:
             return mpi_average(info)
