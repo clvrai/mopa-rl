@@ -48,7 +48,7 @@ class SACAgent(BaseAgent):
         self._critic2_optim = optim.Adam(self._critic2.parameters(), lr=config.lr_critic)
 
         sampler = RandomSampler()
-        buffer_keys = ['ob', 'ac', 'done', 'rew']
+        buffer_keys = ['ob', 'ac', 'meta_ac', 'done', 'rew']
         if config.mopa or config.expand_ac_space:
             buffer_keys.append("intra_steps")
         self._buffer = ReplayBuffer(buffer_keys,
@@ -127,7 +127,7 @@ class SACAgent(BaseAgent):
             raise NotImplementedError
 
     # Calls motion planner to plan a path
-    def plan(self, curr_qpos, target_qpos, ac_scale=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
+    def plan(self, curr_qpos, target_qpos, ac_scale=None, meta_ac=None, ob=None, is_train=True, random_exploration=False, ref_joint_pos_indexes=None):
 
         curr_qpos = self.clip_qpos(curr_qpos)
         interpolation = True
@@ -276,7 +276,10 @@ class SACAgent(BaseAgent):
             self._soft_update_target_network(self._critic2_target, self._critic2, self._config.polyak)
         return train_info
 
-    def act_log(self, ob, ):
+    def act_log(self, ob, meta_ac=None):
+        #assert meta_ac is None, "vanilla SAC agent doesn't support meta action input"
+        if meta_ac:
+            raise NotImplementedError()
         return self._actor.act_log(ob)
 
     def _update_network(self, transitions, step=0):
@@ -293,16 +296,20 @@ class SACAgent(BaseAgent):
         if 'intra_steps' in transitions.keys() and self._config.use_smdp_update:
             intra_steps = _to_tensor(transitions['intra_steps'])
 
+        if self._config.hrl:
+            meta_ac = _to_tensor(transitions['meta_ac'])
+        else:
+            meta_ac = None
         done = _to_tensor(transitions['done']).reshape(bs, 1)
         rew = _to_tensor(transitions['rew']).reshape(bs, 1)
 
         # update alpha
         if self._config.log_indiv_entropy:
-            actions_real, log_pi, entropies = self.act_log(o)
+            actions_real, log_pi, entropies = self.act_log(o, meta_ac=meta_ac)
             for key in entropies.keys():
                 info['entropy_'  + key] = entropies[key].mean().cpu().item()
         else:
-            actions_real, log_pi = self.act_log(o)
+            actions_real, log_pi = self.act_log(o, meta_ac=meta_ac)
         alpha_loss = -(self._log_alpha.exp() * (log_pi + self._target_entropy).detach()).mean()
 
         if self._config.use_automatic_entropy_tuning:
@@ -329,12 +336,13 @@ class SACAgent(BaseAgent):
         # calculate the target Q value function
         with torch.no_grad():
             if self._config.log_indiv_entropy:
-                actions_next, log_pi_next, _ = self.act_log(o_next)
+                actions_next, log_pi_next, _ = self.act_log(o_next, meta_ac=meta_ac)
             else:
-                actions_next, log_pi_next = self.act_log(o_next)
+                actions_next, log_pi_next = self.act_log(o_next, meta_ac=meta_ac)
             q_next_value1 = self._critic1_target(o_next, actions_next)
             q_next_value2 = self._critic2_target(o_next, actions_next)
-            q_next_value = torch.min(q_next_value1, q_next_value2) - alpha * log_pi_next
+            if meta_ac is None:
+                q_next_value = torch.min(q_next_value1, q_next_value2) - alpha * log_pi_next
             if self._config.use_smdp_update:
                 target_q_value = self._config.reward_scale * rew + \
                     (1 - done) * (self._config.discount_factor ** (intra_steps+1)) * q_next_value

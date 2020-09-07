@@ -30,6 +30,7 @@ class Rollout(object):
         batch = {}
         batch['ob'] = self._history['ob']
         batch['ac'] = self._history['ac']
+        batch['meta_ac'] = self._history['meta_ac']
         batch['ac_before_activation'] = self._history['ac_before_activation']
         batch['done'] = self._history['done']
         batch['rew'] = self._history['rew']
@@ -37,11 +38,36 @@ class Rollout(object):
         self._history = defaultdict(list)
         return batch
 
+
+class MetaRollout(object):
+    def __init__(self):
+        self._history = defaultdict(list)
+
+    def add(self, data):
+        for key, value in data.items():
+            self._history[key].append(value)
+
+    def __len__(self):
+        return len(self._history['ob'])
+
+    def get(self):
+        batch = {}
+        batch['ob'] = self._history['meta_ob']
+        batch['ac'] = self._history['meta_ac']
+        batch['ac_before_activation'] = self._history['meta_ac_before_activation']
+        batch['log_prob'] = self._history['meta_log_prob']
+        batch['done'] = self._history['meta_done']
+        batch['rew'] = self._history['meta_rew']
+        self._history = defaultdict(list)
+        return batch
+
+
 class RolloutRunner(object):
-    def __init__(self, config, env, env_eval, pi):
+    def __init__(self, config, env, env_eval, meta_pi, pi):
         self._config = config
         self._env = env
         self._env_eval = env_eval
+        self._meta_pi = meta_pi
         self._pi = pi
         self._ik_env = gym.make(config.env, **config.__dict__)
 
@@ -60,9 +86,11 @@ class RolloutRunner(object):
         device = config.device
         env = self._env if is_train else self._env_eval
         ik_env = self._ik_env if config.use_ik_target else None
+        meta_pi = self._meta_pi
         pi = self._pi
 
         rollout = Rollout()
+        meta_rollout = MetaRollout()
         reward_info = Info()
         ep_info = Info()
 
@@ -78,18 +106,186 @@ class RolloutRunner(object):
                 ik_env.reset()
 
             # run rollout
+            meta_ac = None
             while not done and ep_len < max_step:
+                meta_ac, meta_ac_before_activation, meta_log_prob =\
+                        meta_pi.act(ob, is_train=is_train)
+
+                meta_rollout.add({
+                    'meta_ob': ob, 'meta_ac': meta_ac,
+                    'meta_ac_before_activation': meta_ac_before_activation,
+                    'meta_log_prob': meta_log_prob,
+                })
+                meta_len = 0
+                meta_rew = 0
                 env_step = 0
+
+                while not done and ep_len < max_step and meta_len < config.max_meta_len:
+                    ll_ob = ob.copy()
+                    if random_exploration: # Random exploration for SAC
+                        ac = pi._actors[0]._ac_space.sample()
+                        ac_before_activation = None
+                        stds = None
+                    else:
+                        if config.hrl:
+                            ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                        else:
+                            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
+
+                    if config.use_ik_target:
+                        curr_qpos = env.sim.data.qpos.copy()
+                        target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
+                        if len(env.min_world_size) == 2:
+                            target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
+
+                        if 'quat' in ac.keys():
+                            target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
+                            target_quat = target_quat[[3, 0, 1, 1]]
+                            target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
+                        else:
+                            target_quat = None
+                        ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+                        result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat, rot_weight=2.,
+                                      joint_names=env.robot_joints, max_steps=100, tol=1e-2)
+                        target_qpos = env.sim.data.qpos.copy()
+                        target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+                        pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
+                        if 'gripper' in ac.keys():
+                            pre_converted_ac = np.concatenate((pre_converted_ac, ac['gripper']))
+                        converted_ac = OrderedDict([('default', pre_converted_ac)])
+                        ob, reward, done, info = env.step(converted_ac)
+                        rollout.add({'done': done, 'rew': reward})
+                        ep_len += 1
+                        step += 1
+                        ep_rew += reward
+                        env_step += 1
+                        meta_len += 1
+                        meta_rew += reward
+                        reward_info.add(info)
+                    else:
+                        if config.expand_ac_space:
+                            diff = ac['default'][env.ref_joint_pos_indexes] * config.action_range
+                            out_of_bounds = np.where((diff > env._ac_scale) | (diff < -env._ac_scale))[0]
+                            out_diff = diff[out_of_bounds]
+                            scales = np.where(out_diff > env._ac_scale, out_diff/env._ac_scale, out_diff/(-env._ac_scale))
+                            if len(scales) == 0:
+                                scaling_factor = 1.
+                            else:
+                                scaling_factor = max(max(scales), 1.)
+                            scaled_ac = diff[:len(env.ref_joint_pos_indexes)] / scaling_factor
+                            intra_steps = 0
+                            for j in range(ceil(scaling_factor)):
+                                inter_ac = copy.deepcopy(ac)
+                                if j < int(scaling_factor):
+                                    inter_ac['default'][env.ref_joint_pos_indexes] = scaled_ac / env._ac_scale
+                                else:
+                                    inter_ac['default'][env.ref_joint_pos_indexes] -= scaled_ac*int(scaling_factor)
+                                ob, reward, done, info = env.step(inter_ac)
+                                ep_len += 1
+                                step += 1
+                                env_step += 1
+                                ep_rew += reward
+                                meta_len += 1
+                                meta_rew += reward * config.discount_factor ** j
+                                reward_info.add(info)
+                                if done or ep_len >= max_step:
+                                    break
+                            rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': intra_steps})
+                        else:
+                            ob, reward, done, info = env.step(ac)
+                            rollout.add({'done': done, 'rew': reward})
+                            ep_len += 1
+                            step += 1
+                            env_step += 1
+                            ep_rew += reward
+                            meta_len += 1
+                            meta_rew += reward
+                            reward_info.add(info)
+                    if every_steps is not None and step % every_steps == 0:
+                        # last frame
+                        ll_ob = ob.copy()
+                        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                        ep_info.add({'env_step': env_step})
+                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
+                reward_info.add({'meta_rew': meta_rew})
+                if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
+                    ll_ob = ob.copy()
+                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                    meta_rollout.add({'meta_ob': ob})
+                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+            ep_info.add({'len': ep_len, 'rew': ep_rew})
+            reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
+            ep_info.add(reward_info_dict)
+            logger.info('Ep %d rollout: %s', episode,
+                        {k: v for k, v in reward_info_dict.items()
+                         if not 'qpos' in k and np.isscalar(v)})
+
+            episode += 1
+            if every_episodes is not None and episode % every_episodes == 0:
+                ll_ob = ob.copy()
+                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+                meta_rollout.add({'meta_ob': ob})
+                ep_info.add({'env_step': env_step})
+                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+
+
+    def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
+        config = self._config
+        device = config.device
+        env = self._env if is_train else self._env_eval
+        ik_env = self._ik_env if config.use_ik_target else None
+        meta_pi = self._meta_pi
+        pi = self._pi
+
+        rollout = Rollout()
+        meta_rollout = MetaRollout()
+        reward_info = Info()
+        ep_info = Info()
+
+        done = False
+        ep_len = 0
+        ep_rew = 0
+        ob = env.reset()
+        if config.use_ik_target:
+            ik_env.reset()
+        self._record_frames = []
+        if record: self._store_frame(env)
+
+        # buffer to save qpos
+        saved_qpos = []
+
+        # run rollout
+        meta_ac = None
+        total_contact_force = 0.
+        while not done and ep_len < max_step:
+            meta_ac, meta_ac_before_activation, meta_log_prob =\
+                    meta_pi.act(ob, is_train=is_train)
+
+            meta_rollout.add({
+                'meta_ob': ob, 'meta_ac': meta_ac,
+                'meta_ac_before_activation': meta_ac_before_activation,
+                'meta_log_prob': meta_log_prob,
+            })
+            meta_len = 0
+            meta_rew = 0
+
+            while not done and ep_len < max_step and meta_len < config.max_meta_len:
                 ll_ob = ob.copy()
                 if random_exploration: # Random exploration for SAC
-                    ac = pi._actor._ac_space.sample()
+                    ac = env.action_space.sample()
                     ac_before_activation = None
                     stds = None
                 else:
-                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                    if config.hrl:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
+                    else:
+                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
-                rollout.add({'ob': ll_ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
-
+                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 if config.use_ik_target:
                     curr_qpos = env.sim.data.qpos.copy()
                     target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
@@ -114,9 +310,9 @@ class RolloutRunner(object):
                     ob, reward, done, info = env.step(converted_ac)
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
-                    step += 1
                     ep_rew += reward
-                    env_step += 1
+                    meta_len += 1
+                    meta_rew += reward
                     reward_info.add(info)
                 else:
                     if config.expand_ac_space:
@@ -130,20 +326,34 @@ class RolloutRunner(object):
                             scaling_factor = max(max(scales), 1.)
                         scaled_ac = diff[:len(env.ref_joint_pos_indexes)] / scaling_factor
                         intra_steps = 0
-                        meta_rew = 0
                         for j in range(ceil(scaling_factor)):
                             inter_ac = copy.deepcopy(ac)
-                            if j < int(scaling_factor):
+                            if j < int(scaling_factor) or int(scaling_factor) != 1:
                                 inter_ac['default'][env.ref_joint_pos_indexes] = scaled_ac / env._ac_scale
                             else:
                                 inter_ac['default'][env.ref_joint_pos_indexes] -= scaled_ac*int(scaling_factor)
                             ob, reward, done, info = env.step(inter_ac)
                             ep_len += 1
-                            step += 1
-                            env_step += 1
                             ep_rew += reward
+                            meta_len += 1
                             meta_rew += reward * config.discount_factor ** j
                             reward_info.add(info)
+                            contact_force = env.get_contact_force()
+                            total_contact_force += contact_force
+                            if record:
+                                frame_info = info.copy()
+                                frame_info['ac'] = ac['default']
+                                frame_info['contact_force'] = contact_force
+                                if config.use_ik_target:
+                                    frame_info['converted_ac'] = converted_ac['default']
+                                frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
+                                if config.hrl:
+                                    i = int(meta_ac['default'])
+                                    frame_info['meta_ac'] = meta_pi.skills[i]
+                                    for i, k in enumerate(meta_ac.keys()):
+                                        if k != 'default':
+                                            frame_info['meta_'+k] = meta_ac[k]
+                                self._store_frame(env, frame_info)
                             if done or ep_len >= max_step:
                                 break
                         rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': intra_steps})
@@ -151,136 +361,10 @@ class RolloutRunner(object):
                         ob, reward, done, info = env.step(ac)
                         rollout.add({'done': done, 'rew': reward})
                         ep_len += 1
-                        step += 1
-                        env_step += 1
                         ep_rew += reward
+                        meta_len += 1
+                        meta_rew += reward
                         reward_info.add(info)
-                if every_steps is not None and step % every_steps == 0:
-                    # last frame
-                    ll_ob = ob.copy()
-                    rollout.add({'ob': ll_ob})
-                    ep_info.add({'env_step': env_step})
-                    yield rollout.get(), ep_info.get_dict(only_scalar=True)
-
-            ep_info.add({'len': ep_len, 'rew': ep_rew})
-            reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
-            ep_info.add(reward_info_dict)
-            logger.info('Ep %d rollout: %s', episode,
-                        {k: v for k, v in reward_info_dict.items()
-                         if not 'qpos' in k and np.isscalar(v)})
-
-            episode += 1
-            if every_episodes is not None and episode % every_episodes == 0:
-                ll_ob = ob.copy()
-                rollout.add({'ob': ll_ob})
-                ep_info.add({'env_step': env_step})
-                yield rollout.get(), ep_info.get_dict(only_scalar=True)
-
-
-    def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
-        config = self._config
-        device = config.device
-        env = self._env if is_train else self._env_eval
-        ik_env = self._ik_env if config.use_ik_target else None
-        pi = self._pi
-
-        rollout = Rollout()
-        reward_info = Info()
-        ep_info = Info()
-
-        done = False
-        ep_len = 0
-        ep_rew = 0
-        ob = env.reset()
-        if config.use_ik_target:
-            ik_env.reset()
-        self._record_frames = []
-        if record: self._store_frame(env)
-
-        # buffer to save qpos
-        saved_qpos = []
-
-        # run rollout
-        total_contact_force = 0.
-        while not done and ep_len < max_step:
-
-            ll_ob = ob.copy()
-            if random_exploration: # Random exploration for SAC
-                ac = env.action_space.sample()
-                ac_before_activation = None
-                stds = None
-            else:
-                ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
-
-            rollout.add({'ob': ll_ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
-            if config.use_ik_target:
-                curr_qpos = env.sim.data.qpos.copy()
-                target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
-                if len(env.min_world_size) == 2:
-                    target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
-
-                if 'quat' in ac.keys():
-                    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
-                    target_quat = target_quat[[3, 0, 1, 1]]
-                    target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
-                else:
-                    target_quat = None
-                ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
-                result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat, rot_weight=2.,
-                              joint_names=env.robot_joints, max_steps=100, tol=1e-2)
-                target_qpos = env.sim.data.qpos.copy()
-                target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
-                pre_converted_ac = (target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])/env._ac_scale
-                if 'gripper' in ac.keys():
-                    pre_converted_ac = np.concatenate((pre_converted_ac, ac['gripper']))
-                converted_ac = OrderedDict([('default', pre_converted_ac)])
-                ob, reward, done, info = env.step(converted_ac)
-                rollout.add({'done': done, 'rew': reward})
-                ep_len += 1
-                ep_rew += reward
-                reward_info.add(info)
-            else:
-                if config.expand_ac_space:
-                    diff = ac['default'][env.ref_joint_pos_indexes] * config.action_range
-                    out_of_bounds = np.where((diff > env._ac_scale) | (diff < -env._ac_scale))[0]
-                    out_diff = diff[out_of_bounds]
-                    scales = np.where(out_diff > env._ac_scale, out_diff/env._ac_scale, out_diff/(-env._ac_scale))
-                    if len(scales) == 0:
-                        scaling_factor = 1.
-                    else:
-                        scaling_factor = max(max(scales), 1.)
-                    scaled_ac = diff[:len(env.ref_joint_pos_indexes)] / scaling_factor
-                    intra_steps = 0
-                    meta_rew = 0.
-                    for j in range(ceil(scaling_factor)):
-                        inter_ac = copy.deepcopy(ac)
-                        if j < int(scaling_factor) or int(scaling_factor) != 1:
-                            inter_ac['default'][env.ref_joint_pos_indexes] = scaled_ac / env._ac_scale
-                        else:
-                            inter_ac['default'][env.ref_joint_pos_indexes] -= scaled_ac*int(scaling_factor)
-                        ob, reward, done, info = env.step(inter_ac)
-                        ep_len += 1
-                        ep_rew += reward
-                        meta_rew += reward * config.discount_factor ** j
-                        reward_info.add(info)
-                        contact_force = env.get_contact_force()
-                        total_contact_force += contact_force
-                        if record:
-                            frame_info = info.copy()
-                            frame_info['ac'] = ac['default']
-                            frame_info['contact_force'] = contact_force
-                            if config.use_ik_target:
-                                frame_info['converted_ac'] = converted_ac['default']
-                            frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
-                        if done or ep_len >= max_step:
-                            break
-                    rollout.add({'done': done, 'rew': meta_rew, 'intra_steps': intra_steps})
-                else:
-                    ob, reward, done, info = env.step(ac)
-                    rollout.add({'done': done, 'rew': reward})
-                    ep_len += 1
-                    ep_rew += reward
-                    reward_info.add(info)
 
 
                 contact_force = env.get_contact_force()
@@ -293,17 +377,25 @@ class RolloutRunner(object):
                     if config.use_ik_target:
                         frame_info['converted_ac'] = converted_ac['default']
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
+                    if config.hrl:
+                        i = int(meta_ac['default'])
+                        frame_info['meta_ac'] = meta_pi.skills[i]
+                        for i, k in enumerate(meta_ac.keys()):
+                            if k != 'default':
+                                frame_info['meta_'+k] = meta_ac[k]
 
                     self._store_frame(env, frame_info)
+            meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
         ll_ob = ob.copy()
-        rollout.add({'ob': ll_ob})
+        rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
+        meta_rollout.add({'meta_ob': ob})
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, "avg_conntact_force": total_contact_force/ep_len})
         reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
         ep_info.add(reward_info_dict)
-        return rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
+        return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
     def _store_frame(self, env, info={}):
         color = (200, 200, 200)
