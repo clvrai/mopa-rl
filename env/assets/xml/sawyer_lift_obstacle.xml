@@ -8,8 +8,8 @@
         <texture file="../textures/dark-wood.png" name="tex-dark-wood" type="2d" />
         <material name="light-wood" reflectance="0.5" texrepeat="15 15" texture="tex-light-wood" texuniform="true" />
         <material name="dark-wood" reflectance="0.5" texrepeat="5 5" texture="tex-dark-wood" texuniform="true" />
-        <mesh file="../objects/meshes/can.stl" name="can_mesh" />
-        <texture file="../objects/../textures/can.png" name="tex-can" />
+        <mesh file="../robosuite/objects/meshes/can.stl" name="can_mesh" />
+        <texture file="../robosuite/objects/../textures/can.png" name="tex-can" />
         <material name="coke" reflectance="0.7" texrepeat="5 5" texture="tex-can" texuniform="true" />
         <texture file="../textures/granite.png" name="tex-granite" type="2d" />
         <material name="granite" reflectance="0.5" texrepeat="5 5" texture="tex-granite" texuniform="true" />
