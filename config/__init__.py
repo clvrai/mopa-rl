@@ -18,9 +18,13 @@ def argparser():
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",
-                        choices=["sac"])
+                        choices=["sac", "ppo"])
     parser.add_argument("--policy", type=str, default="mlp",
                         choices=["mlp", "cnn"])
+    parser.add_argument("--meta_algo", type=str, default="ppo",
+                        choices=["ppo", "sac"])
+    parser.add_argument("--meta_update_target", type=str, default="LL",
+                        choices=['HL', 'LL', 'both'])
     parser.add_argument("--her", type=str2bool, default=False)
     parser.add_argument("--replay_strategy", type=str, default='future')
     parser.add_argument("--replay_k", type=int, default=4)
@@ -97,6 +101,16 @@ def argparser():
     parser.add_argument("--reward_scale", type=float, default=1.0)
     parser.add_argument("--use_smdp_update", type=str2bool, default=False)
     parser.add_argument("--discrete_ent_coef", type=float, default=1.)
+
+    # ppo
+    parser.add_argument("--clip_param", type=float, default=0.2)
+    parser.add_argument("--value_loss_coeff", type=float, default=0.5)
+    parser.add_argument("--action_loss_coeff", type=float, default=1.0)
+    parser.add_argument("--entropy_loss_coeff", type=float, default=1e-4)
+    parser.add_argument("--rollout_length", type=int, default=1000)
+    parser.add_argument("--gae_lambda", type=float, default=0.95)
+    parser.add_argument("--reward_division", type=float, default=None)
+    parser.add_argument("--ppo_hid_size", type=int, default=64)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1000)

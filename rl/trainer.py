@@ -31,6 +31,9 @@ def get_agent_by_name(algo):
     if algo == "sac":
         from rl.sac_agent import SACAgent
         return SACAgent
+    elif algo == "ppo":
+        from rl.ppo_agent import PPOAgent
+        return PPOAgent
 
 class Trainer(object):
     def __init__(self, config):
@@ -209,6 +212,8 @@ class Trainer(object):
         if config.algo == 'sac':
             runner = self._runner.run(every_steps=1)
             random_runner = self._runner.run(every_steps=1, random_exploration=True)
+        elif config.algo == 'ppo':
+            runner = self._runner.run(every_steps=self._config.rollout_length)
 
         st_time = time()
         st_step = step
