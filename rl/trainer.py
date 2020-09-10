@@ -111,6 +111,8 @@ class Trainer(object):
                 config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
             )
 
+        self._agent._ac_space.seed(config.seed)
+
         self._runner = None
         if config.mopa:
             self._runner = MoPARolloutRunner(
