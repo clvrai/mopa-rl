@@ -31,6 +31,11 @@ def get_agent_by_name(algo):
     if algo == "sac":
         from rl.sac_agent import SACAgent
         return SACAgent
+    elif algo == 'td3':
+        from rl.td3_agent import TD3Agent
+        return TD3Agent
+    else:
+        raise NotImplementedError
 
 class Trainer(object):
     def __init__(self, config):

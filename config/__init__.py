@@ -18,7 +18,7 @@ def argparser():
 
     # training algorithm
     parser.add_argument("--algo", type=str, default="sac",
-                        choices=["sac", "ppo", "ddpg", "td3"])
+                        choices=["sac", "td3"])
     parser.add_argument("--policy", type=str, default="mlp",
                         choices=["mlp", "cnn"])
     parser.add_argument("--meta_algo", type=str, default="ppo",
@@ -120,15 +120,10 @@ def argparser():
     parser.add_argument("--actor_bias", type=float, default=None)
     parser.add_argument("--discrete_ent_coef", type=float, default=1.)
 
-    # ppo
-    parser.add_argument("--clip_param", type=float, default=0.2)
-    parser.add_argument("--value_loss_coeff", type=float, default=0.5)
-    parser.add_argument("--action_loss_coeff", type=float, default=1.0)
-    parser.add_argument("--entropy_loss_coeff", type=float, default=1e-4)
-    parser.add_argument("--rollout_length", type=int, default=1000)
-    parser.add_argument("--gae_lambda", type=float, default=0.95)
-    parser.add_argument("--reward_division", type=float, default=None)
-    parser.add_argument("--ppo_hid_size", type=int, default=64)
+    # td3
+    parser.add_argument("--target_noise", type=float, default=0.2)
+    parser.add_argument("--action_noise", type=float, default=0.1)
+    parser.add_argument("--noise_clip", type=float, default=0.5)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1000)
