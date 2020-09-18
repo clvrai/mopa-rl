@@ -19,7 +19,6 @@ max_reuse_data='30'
 use_smdp_update="True"
 ac_space_type="normal"
 success_reward="150.0"
-log_indiv_entropy="True"
 discrete_action="True"
 
 
@@ -48,4 +47,3 @@ python -m rl.main \
     --use_smdp_update $use_smdp_update \
     --ac_space_type $ac_space_type \
     --use_double_planner $use_double_planner \
-    --log_indiv_entropy $log_indiv_entropy \

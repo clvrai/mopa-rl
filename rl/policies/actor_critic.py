@@ -130,15 +130,7 @@ class Actor(nn.Module):
         #     print(log_probs_.min())
         #     import ipdb; ipdb.set_trace()
         if activations is None:
-            if self._config.log_indiv_entropy:
-                entropies = {}
-                for key, space in self._ac_space.spaces.items():
-                    entropies[key] = mixed_dist.distributions[key].entropy()
-                    if isinstance(space, spaces.Discrete):
-                        entropies[key] *= self._config.discrete_ent_coef
-                return actions, log_probs_, entropies
-            else:
-                return actions, log_probs_
+            return actions, log_probs_
         else:
             ents = mixed_dist.entropy()
             return log_probs_, ents

@@ -280,7 +280,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
             if (isSimplified){
                 psimp_->reduceVertices(p, attempts);
                 psimp_->simplify(p, 5.0);
-                std::cout << "Simplified" << std::endl;
                 p.checkAndRepair(attempts);
             }
             std::vector<ob::State*> &states =  p.getStates();

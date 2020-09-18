@@ -38,36 +38,11 @@ class Rollout(object):
         self._history = defaultdict(list)
         return batch
 
-
-class MetaRollout(object):
-    def __init__(self):
-        self._history = defaultdict(list)
-
-    def add(self, data):
-        for key, value in data.items():
-            self._history[key].append(value)
-
-    def __len__(self):
-        return len(self._history['ob'])
-
-    def get(self):
-        batch = {}
-        batch['ob'] = self._history['meta_ob']
-        batch['ac'] = self._history['meta_ac']
-        batch['ac_before_activation'] = self._history['meta_ac_before_activation']
-        batch['log_prob'] = self._history['meta_log_prob']
-        batch['done'] = self._history['meta_done']
-        batch['rew'] = self._history['meta_rew']
-        self._history = defaultdict(list)
-        return batch
-
-
 class RolloutRunner(object):
-    def __init__(self, config, env, env_eval, meta_pi, pi):
+    def __init__(self, config, env, env_eval, pi):
         self._config = config
         self._env = env
         self._env_eval = env_eval
-        self._meta_pi = meta_pi
         self._pi = pi
         self._ik_env = gym.make(config.env, **config.__dict__)
 
@@ -86,11 +61,9 @@ class RolloutRunner(object):
         device = config.device
         env = self._env if is_train else self._env_eval
         ik_env = self._ik_env if config.use_ik_target else None
-        meta_pi = self._meta_pi
         pi = self._pi
 
         rollout = Rollout()
-        meta_rollout = MetaRollout()
         reward_info = Info()
         ep_info = Info()
 
@@ -108,14 +81,6 @@ class RolloutRunner(object):
             # run rollout
             meta_ac = None
             while not done and ep_len < max_step:
-                meta_ac, meta_ac_before_activation, meta_log_prob =\
-                        meta_pi.act(ob, is_train=is_train)
-
-                meta_rollout.add({
-                    'meta_ob': ob, 'meta_ac': meta_ac,
-                    'meta_ac_before_activation': meta_ac_before_activation,
-                    'meta_log_prob': meta_log_prob,
-                })
                 meta_len = 0
                 meta_rew = 0
                 env_step = 0
@@ -123,14 +88,11 @@ class RolloutRunner(object):
                 while not done and ep_len < max_step and meta_len < config.max_meta_len:
                     ll_ob = ob.copy()
                     if random_exploration: # Random exploration for SAC
-                        ac = pi._actors[0]._ac_space.sample()
+                        ac = pi._actor._ac_space.sample()
                         ac_before_activation = None
                         stds = None
                     else:
-                        if config.hrl:
-                            ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
-                        else:
-                            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
@@ -208,15 +170,13 @@ class RolloutRunner(object):
                         ll_ob = ob.copy()
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                         ep_info.add({'env_step': env_step})
-                        yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                        yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
-                meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
                 reward_info.add({'meta_rew': meta_rew})
                 if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
                     ll_ob = ob.copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                    meta_rollout.add({'meta_ob': ob})
-                    yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                    yield rollout.get(), ep_info.get_dict(only_scalar=True)
             ep_info.add({'len': ep_len, 'rew': ep_rew})
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
@@ -228,9 +188,8 @@ class RolloutRunner(object):
             if every_episodes is not None and episode % every_episodes == 0:
                 ll_ob = ob.copy()
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                meta_rollout.add({'meta_ob': ob})
                 ep_info.add({'env_step': env_step})
-                yield rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True)
+                yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
     def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
@@ -238,11 +197,9 @@ class RolloutRunner(object):
         device = config.device
         env = self._env if is_train else self._env_eval
         ik_env = self._ik_env if config.use_ik_target else None
-        meta_pi = self._meta_pi
         pi = self._pi
 
         rollout = Rollout()
-        meta_rollout = MetaRollout()
         reward_info = Info()
         ep_info = Info()
 
@@ -262,14 +219,6 @@ class RolloutRunner(object):
         meta_ac = None
         total_contact_force = 0.
         while not done and ep_len < max_step:
-            meta_ac, meta_ac_before_activation, meta_log_prob =\
-                    meta_pi.act(ob, is_train=is_train)
-
-            meta_rollout.add({
-                'meta_ob': ob, 'meta_ac': meta_ac,
-                'meta_ac_before_activation': meta_ac_before_activation,
-                'meta_log_prob': meta_log_prob,
-            })
             meta_len = 0
             meta_rew = 0
 
@@ -280,10 +229,7 @@ class RolloutRunner(object):
                     ac_before_activation = None
                     stds = None
                 else:
-                    if config.hrl:
-                        ac, ac_before_activation, stds = pi.act(ll_ob, meta_ac, is_train=is_train, return_stds=True)
-                    else:
-                        ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
 
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                 if config.use_ik_target:
@@ -347,12 +293,6 @@ class RolloutRunner(object):
                                 if config.use_ik_target:
                                     frame_info['converted_ac'] = converted_ac['default']
                                 frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
-                                if config.hrl:
-                                    i = int(meta_ac['default'])
-                                    frame_info['meta_ac'] = meta_pi.skills[i]
-                                    for i, k in enumerate(meta_ac.keys()):
-                                        if k != 'default':
-                                            frame_info['meta_'+k] = meta_ac[k]
                                 self._store_frame(env, frame_info)
                             if done or ep_len >= max_step:
                                 break
@@ -377,25 +317,17 @@ class RolloutRunner(object):
                     if config.use_ik_target:
                         frame_info['converted_ac'] = converted_ac['default']
                     frame_info['std'] = np.array(stds['default'].detach().cpu())[0]
-                    if config.hrl:
-                        i = int(meta_ac['default'])
-                        frame_info['meta_ac'] = meta_pi.skills[i]
-                        for i, k in enumerate(meta_ac.keys()):
-                            if k != 'default':
-                                frame_info['meta_'+k] = meta_ac[k]
 
                     self._store_frame(env, frame_info)
-            meta_rollout.add({'meta_done': done, 'meta_rew': meta_rew})
 
         # last frame
         ll_ob = ob.copy()
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-        meta_rollout.add({'meta_ob': ob})
 
         ep_info.add({'len': ep_len, 'rew': ep_rew, "avg_conntact_force": total_contact_force/ep_len})
         reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
         ep_info.add(reward_info_dict)
-        return rollout.get(), meta_rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
+        return rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
 
     def _store_frame(self, env, info={}):
         color = (200, 200, 200)

@@ -21,25 +21,16 @@ import matplotlib.pyplot as plt
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
 from rl.mopa_rollouts import MoPARolloutRunner
-from rl.meta_ppo_agent import MetaPPOAgent
 from util.logger import logger
 from util.pytorch import get_ckpt_path, count_parameters, to_tensor
 from util.mpi import mpi_sum
 from util.gym import observation_size, action_size
 from util.misc import make_ordered_pair
 
-import line_profiler
-import atexit
-profile = line_profiler.LineProfiler()
-atexit.register(profile.print_stats)
-
 def get_agent_by_name(algo):
     if algo == "sac":
         from rl.sac_agent import SACAgent
         return SACAgent
-    elif algo == "ppo":
-        from rl.ppo_agent import PPOAgent
-        return PPOAgent
 
 class Trainer(object):
     def __init__(self, config):
@@ -83,7 +74,6 @@ class Trainer(object):
         meta_ac_space = joint_space
 
         sampler = None
-        self._meta_agent = MetaPPOAgent(config, ob_space, meta_ac_space, sampler=sampler)
 
         ll_ob_space = ob_space
         if config.mopa:
@@ -100,27 +90,20 @@ class Trainer(object):
                                         ('gripper', spaces.Box(low=np.array([-1.]), high=np.array([1.]), dtype=np.float32))])
 
 
-        if config.hrl:
-            from rl.low_level_agent import LowLevelAgent
-            self._agent = LowLevelAgent(
-                config, ll_ob_space, ac_space, actor, critic,
-                non_limited_idx, subgoal_space,
-            )
-        else:
-            self._agent = get_agent_by_name(config.algo)(
-                config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
-            )
+        self._agent = get_agent_by_name(config.algo)(
+            config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
+        )
 
         self._agent._ac_space.seed(config.seed)
 
         self._runner = None
         if config.mopa:
             self._runner = MoPARolloutRunner(
-                config, self._env, self._env_eval, self._meta_agent, self._agent
+                config, self._env, self._env_eval, self._agent
             )
         else:
             self._runner = RolloutRunner(
-                config, self._env, self._env_eval, self._meta_agent, self._agent
+                config, self._env, self._env_eval, self._agent
             )
 
 
@@ -131,8 +114,6 @@ class Trainer(object):
                 os.environ["WANDB_MODE"] = "dryrun"
 
             tags = [config.env, config.algo, config.reward_type]
-            if config.hrl:
-                tags.append('hrl')
 
             wandb.init(
                 resume=config.run_name,
@@ -148,27 +129,13 @@ class Trainer(object):
     def _save_ckpt(self, ckpt_num, update_iter, env_step):
         ckpt_path = os.path.join(self._config.log_dir, "ckpt_%08d.pt" % ckpt_num)
         state_dict = {"step": ckpt_num, "update_iter": update_iter, "env_step": env_step}
-        state_dict["meta_agent"] = self._meta_agent.state_dict()
         state_dict["agent"] = self._agent.state_dict()
         torch.save(state_dict, ckpt_path)
         logger.warn("Save checkpoint: %s", ckpt_path)
 
         replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
         with gzip.open(replay_path, "wb") as f:
-            if self._config.hrl:
-                if self._config.meta_update_target == "HL":
-                    replay_buffers = {"replay": self._meta_agent.replay_buffer()}
-                elif self._config.meta_update_target == "LL":
-                    replay_buffers = {"replay": self._agent.replay_buffer()}
-                else: # both
-                    if not self._config.meta_oracle:
-                        replay_buffers = {"hl_replay": self._meta_agent.replay_buffer(),
-                                          "ll_replay": self._agent.replay_buffer()}
-                    else:
-                        replay_buffers = {"replay": self._agent.replay_buffer()}
-
-            else:
-                replay_buffers = {"replay": self._agent.replay_buffer()}
+            replay_buffers = {"replay": self._agent.replay_buffer()}
             if self._config.policy == 'cnn':
                 joblib.dump(replay_buffers, f)
             else:
@@ -189,16 +156,7 @@ class Trainer(object):
                 with gzip.open(replay_path, "rb") as f:
                     replay_buffers = pickle.load(f)
                     #replay_buffers = joblib.load(f)
-                    if self._config.hrl:
-                        if self._config.meta_update_target == "HL":
-                            self._meta_agent.load_replay_buffer(replay_buffers["replay"])
-                        elif self._config.meta_update_target == "LL":
-                            self._agent.load_replay_buffer(replay_buffers["replay"])
-                        else: # both
-                            self._meta_agent.load_replay_buffer(replay_buffers["hl_replay"])
-                            self._agent.load_replay_buffer(replay_buffers["ll_replay"])
-                    else:
-                        self._agent.load_replay_buffer(replay_buffers["replay"])
+                    self._agent.load_replay_buffer(replay_buffers["replay"])
 
             return ckpt["step"], ckpt["update_iter"], ckpt['env_step']
         else:
@@ -235,7 +193,6 @@ class Trainer(object):
             if obs is not None:
                 self.log_obs(obs, 'test_ep/obs', step=step)
 
-    # @profile
     def train(self):
         config = self._config
         num_batches = config.num_batches
@@ -254,26 +211,11 @@ class Trainer(object):
         # dummy run for preventing weird
         runner = None
         random_runner = None
-        if config.hrl:
-            if config.meta_update_target == 'HL':
-                if config.meta_algo == 'sac':
-                    runner = self._runner.run(every_steps=1)
-                    random_runner = self._runner.run(every_steps=1, random_exploration=True)
-                else:
-                    runner = self._runner.run_episode(every_steps=self._config.rollout_length)
-            else:
-                if config.algo == 'sac':
-                    runner = self._runner.run(every_steps=1)
-                    random_runner = self._runner.run(every_steps=1, random_exploration=True)
-                else:
-                    runner = self._runner.run(every_steps=self._config.rollout_length)
-
+        if config.algo == 'sac':
+            runner = self._runner.run(every_steps=1)
+            random_runner = self._runner.run(every_steps=1, random_exploration=True)
         else:
-            if config.algo == 'sac':
-                runner = self._runner.run(every_steps=1)
-                random_runner = self._runner.run(every_steps=1, random_exploration=True)
-            elif config.algo == 'ppo':
-                runner = self._runner.run(every_steps=self._config.rollout_length)
+            raise NotImplementedError
 
         st_time = time()
         st_step = step
@@ -286,40 +228,20 @@ class Trainer(object):
         if step == 0:
             if random_runner is not None:
                 while init_step < self._config.start_steps:
-                    rollout, meta_rollout, info = next(random_runner)
+                    rollout, info = next(random_runner)
                     if config.is_mpi:
                         step_per_batch = mpi_sum(len(rollout['ac']))
                     else:
                         step_per_batch = len(rollout['ac'])
                     init_step += step_per_batch
 
-                    if config.hrl:
-                        if (config.meta_update_target == "HL" or \
-                            config.meta_update_target == "both") and not config.meta_oracle:
-                            if len(meta_rollout['ob']) != 0:
-                                self._meta_agent.store_episode(meta_rollout)
-                        if (config.meta_update_target == "LL" or \
-                            config.meta_update_target == "both"):
-                            if len(rollout['ob']) != 0:
-                                self._agent.store_episode(rollout)
-                    else:
-                        self._agent.store_episode(rollout)
+                    self._agent.store_episode(rollout)
 
         while step < config.max_global_step:
             # collect rollouts
             env_step_per_batch = None
-            rollout, meta_rollout, info = next(runner)
-            if config.hrl:
-                if (config.meta_update_target == "HL" or \
-                    config.meta_update_target == "both") and not config.meta_oracle:
-                    if len(meta_rollout['ob']) != 0:
-                        self._meta_agent.store_episode(meta_rollout)
-                if (config.meta_update_target == "LL" or \
-                    config.meta_update_target == "both"):
-                    if len(rollout['ob']) != 0:
-                        self._agent.store_episode(rollout)
-            else:
-                self._agent.store_episode(rollout)
+            rollout, info = next(runner)
+            self._agent.store_episode(rollout)
 
             if config.is_mpi:
                 step_per_batch = mpi_sum(len(rollout['ac']))
@@ -332,31 +254,11 @@ class Trainer(object):
             # train an agent
             if step % config.log_interval == 0:
                 logger.info("Update networks %d", update_iter)
-            if config.hrl:
-                if (config.meta_update_target == "HL" or \
-                    config.meta_update_target == "both") and not config.meta_oracle:
-                    train_info = self._meta_agent.train()
-                    hl_train_info = train_info
-                else:
-                    hl_train_info = None
-                if (config.meta_update_target == "LL" or \
-                    config.meta_update_target == "both"):
-                    train_info = self._agent.train()
-                    ll_train_info = train_info
-                else:
-                    ll_train_info = None
-                if config.meta_update_target == "both":
-                    train_info = {}
-                    train_info.update({k + "_hl": v for k, v in hl_train_info.items()})
-                    train_info.update({k + "_ll": v for k, v in ll_train_info.items()})
-            else:
-                train_info = self._agent.train()
+            train_info = self._agent.train()
 
             if step % config.log_interval == 0:
                 logger.info("Update networks done")
 
-            # if step < config.max_ob_norm_step and self._config.policy != 'cnn':
-            #     self._update_normalizer(rollout, meta_rollout)
             step += step_per_batch
 
             if env_step_per_batch is not None:
@@ -402,9 +304,8 @@ class Trainer(object):
 
         logger.info("Reached %s steps. worker %d stopped.", step, config.rank)
 
-    def _update_normalizer(self, rollout, meta_rollout):
+    def _update_normalizer(self, rollout):
         if self._config.ob_norm:
-            self._meta_agent.update_normalizer(meta_rollout["ob"])
             self._agent.update_normalizer(rollout["ob"])
 
     def _save_success_qpos(self, info, prefix=""):
@@ -431,7 +332,7 @@ class Trainer(object):
         """
         vids = []
         for i in range(self._config.num_record_samples):
-            rollout, meta_rollout, info, frames = \
+            rollout, info, frames = \
                 self._runner.run_episode(is_train=False, record=record)
 
             if record:

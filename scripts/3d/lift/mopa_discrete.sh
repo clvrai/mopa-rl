@@ -24,7 +24,6 @@ step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
 reward_scale="0.5"
-log_indiv_entropy="True"
 evaluate_interval="10000"
 discrete_action="True"
 
@@ -53,6 +52,5 @@ python -m rl.main \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
-    --log_indiv_entropy $log_indiv_entropy \
     --evaluate_interval $evaluate_interval \
     --use_discount_meta $use_discount_meta \
