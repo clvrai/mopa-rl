@@ -231,7 +231,6 @@ class SACAgent(BaseAgent):
             'actor_optim_state_dict': self._actor_optim.state_dict(),
             'critic1_optim_state_dict': self._critic1_optim.state_dict(),
             'critic2_optim_state_dict': self._critic2_optim.state_dict(),
-            'ob_norm_state_dict': self._ob_norm.state_dict(),
         }
 
     def load_state_dict(self, ckpt):
@@ -244,7 +243,6 @@ class SACAgent(BaseAgent):
         self._critic1_target.load_state_dict(self._critic1.state_dict())
         self._critic2_target.load_state_dict(self._critic2.state_dict())
 
-        self._ob_norm.load_state_dict(ckpt['ob_norm_state_dict'])
         self._network_cuda(self._config.device)
 
         self._alpha_optim.load_state_dict(ckpt['alpha_optim_state_dict'])

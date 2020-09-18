@@ -304,28 +304,6 @@ class Trainer(object):
 
         logger.info("Reached %s steps. worker %d stopped.", step, config.rank)
 
-    def _update_normalizer(self, rollout):
-        if self._config.ob_norm:
-            self._agent.update_normalizer(rollout["ob"])
-
-    def _save_success_qpos(self, info, prefix=""):
-        if self._config.save_qpos and info["episode_success"]:
-            path = os.path.join(self._config.record_dir, prefix+"qpos.p")
-            with h5py.File(path, "a") as f:
-                key_id = len(f.keys())
-                num_qpos = len(info["saved_qpos"])
-                for qpos_to_save in info["saved_qpos"]:
-                    f["{}".format(key_id)] = qpos_to_save
-                    key_id += 1
-        if self._config.save_success_qpos and info["episode_success"]:
-            path = os.path.join(self._config.record_dir, prefix+"success_qpos.p")
-            with h5py.File(path, "a") as f:
-                key_id = len(f.keys())
-                num_qpos = len(info["saved_qpos"])
-                for qpos_to_save in info["saved_qpos"][int(num_qpos / 2):]:
-                    f["{}".format(key_id)] = qpos_to_save
-                    key_id += 1
-
     def _evaluate(self, step=None, record=False, idx=None):
         """ Run one rollout if in eval mode
             Run num_record_samples rollouts if in train mode
@@ -348,7 +326,6 @@ class Trainer(object):
                 break
 
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
-        # self._save_success_qpos(info)
         return rollout, info, np.array(vids)
 
     def evaluate(self):

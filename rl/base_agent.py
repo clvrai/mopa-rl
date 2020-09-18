@@ -1,14 +1,8 @@
 from collections import OrderedDict
 
-from rl.normalizer import Normalizer
-
-
 class BaseAgent(object):
     def __init__(self, config, ob_space):
         self._config = config
-        self._ob_norm = Normalizer(ob_space,
-                                   default_clip_range=config.clip_range,
-                                   clip_obs=config.clip_obs)
 
     def normalize(self, ob):
         if self._config.ob_norm:
@@ -16,28 +10,12 @@ class BaseAgent(object):
         return ob
 
     def act(self, ob, is_train=True, return_stds=False):
-        # if self._config.policy == 'mlp':
-        #     ob = self.normalize(ob)
-        if hasattr(self, '_actor'):
-            if return_stds:
-                ac, activation, stds = self._actor.act(ob, is_train=is_train, return_stds=return_stds)
-            else:
-                ac, activation = self._actor.act(ob, is_train=is_train, return_stds=return_stds)
-        else:
-            if return_stds:
-                ac, activation, stds = self._actors[0].act(ob, is_train=is_train, return_stds=return_stds)
-            else:
-                ac, activation = self._actors[0].act(ob, is_train=is_train, return_stds=return_stds)
-
         if return_stds:
+            ac, activation, stds = self._actor.act(ob, is_train=is_train, return_stds=return_stds)
             return ac, activation, stds
         else:
+            ac, activation = self._actor.act(ob, is_train=is_train, return_stds=return_stds)
             return ac, activation
-
-    def update_normalizer(self, obs):
-        if self._config.ob_norm:
-            self._ob_norm.update(obs)
-            self._ob_norm.recompute_stats()
 
     def store_episode(self, rollouts):
         raise NotImplementedError()
