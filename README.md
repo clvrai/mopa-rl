@@ -2,7 +2,7 @@
 [Jun Yamada<sup>1</sup>](https://junjungoal.tech), [Youngwoon Lee<sup>1</sup>](https://youngwoon.github.io), [Gautam Salhotra<sup>2</sup>](https://www.gautamsalhotra.com/), [Karl Pertsch<sup>1</sup>](https://kpertsch.github.io), [Max Pflueger<sup>2</sup>](https://mpflueger.github.io/), [Gaurav S. Sukhatme<sup>2</sup>](http://robotics.usc.edu/~gaurav), [Joseph J. Lim<sup>1</sup>](https://clvrai.com) [Peter Englert<sup>2</sup>](http://www.peter-englert.net/) at [USC CLVR lab<sup>1</sup>](https://clvrai.com) and [USC RESL lab<sup>2</sup>](https://robotics.usc.edu/resl/) <br/>
 
 <p align="center">
-    <img src="docs/img/teaser.gif">
+    <img src="docs/video/teaser.gif">
 </p>
 
 Deep reinforcement learning (RL) agents are able to learn contact-rich manipulation tasks by maximizing a reward signal, but require large amounts of experience, especially in environments with many obstacles that complicate exploration. In contrast, motion planners use explicit models of the agent and environment to plan collision-free paths to faraway goals, but suffer from inaccurate models in tasks that require contacts with the environment. To combine the benefits of both approaches, we propose motion planner augmented RL (MoPA-RL) which augments the action space of an RL agent with the long-horizon planning capabilities of motion planners.
