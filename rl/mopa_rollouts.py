@@ -54,13 +54,10 @@ class MoPARolloutRunner(object):
             ob = env.reset()
             if config.use_ik_target:
                 ik_env.reset()
-
             # run rollout
             meta_ac = None
             counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
             while not done and ep_len < max_step:
-                meta_len = 0
-                meta_rew = 0
                 env_step = 0
 
                 ll_ob = ob.copy()
@@ -101,9 +98,7 @@ class MoPARolloutRunner(object):
                     if pi.isValidState(target_qpos):
                         traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                     else:
-                        success = False
-                        valid = False
-                        exact = True
+                        success, valid, exact = False, False, True
 
                     if success:
                         if interpolation:
@@ -113,12 +108,8 @@ class MoPARolloutRunner(object):
                             counter['mp'] += 1
                             mp_path_len += len(traj)
 
-                        rew_list = []
-                        meta_rew_list = []
-                        ob_list = []
-                        done_list = []
-                        cart_list = []
-                        quat_list = []
+                        meta_rew_list, ob_list, done_list, cart_list, quat_list = [], [], [], [], []
+                        meta_rew = 0
                         for i, next_qpos in enumerate(traj):
                             ll_ob = ob.copy()
                             converted_ac = env.form_action(next_qpos)
@@ -132,14 +123,12 @@ class MoPARolloutRunner(object):
                             meta_rew += (config.discount_factor**i) * reward
                             done_list.append(done)
                             meta_rew_list.append(meta_rew)
-                            rew_list.append(reward)
                             ob_list.append(ob.copy())
                             if config.use_ik_target:
                                 cart_list.append(env.sim.data.get_site_xpos(config.ik_target))
                                 quat_list.append(mat2quat(env.sim.data.get_site_xmat(config.ik_target)))
                             ep_len += 1
                             step += 1
-                            meta_len += 1
                             env_step += 1
                             ep_rew += reward
                             ep_rew_with_penalty += reward
@@ -207,11 +196,9 @@ class MoPARolloutRunner(object):
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, env._terminal, info)
-                        meta_rew += reward
                         rollout.add({'done': done, 'rew': reward, 'intra_steps': 0})
                         ep_len += 1
                         step += 1
-                        meta_len += 1
                         env_step += 1
                         reward_info.add(info)
                         if every_steps is not None and step % every_steps == 0:
@@ -241,9 +228,7 @@ class MoPARolloutRunner(object):
                     step += 1
                     ep_rew += reward
                     ep_rew_with_penalty += reward
-                    meta_len += 1
                     env_step += 1
-                    meta_rew += reward
                     reward_info.add(info)
                     if every_steps is not None and step % every_steps == 0:
                         # last frame
@@ -254,7 +239,6 @@ class MoPARolloutRunner(object):
                         yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 env._reset_prev_state()
-                reward_info.add({'meta_rew': meta_rew})
             ep_info.add({'len': ep_len, 'rew': ep_rew, 'rew_with_penalty': ep_rew_with_penalty})
             if counter['mp'] > 0:
                 ep_info.add({"mp_path_len": mp_path_len/counter['mp']})
@@ -302,8 +286,6 @@ class MoPARolloutRunner(object):
         total_contact_force = 0.
         counter = {'mp': 0, 'rl': 0, 'interpolation': 0, 'mp_fail': 0, 'approximate': 0, 'invalid': 0}
         while not done and ep_len < max_step:
-            meta_len = 0
-            meta_rew = 0
 
             ll_ob = ob.copy()
             ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True, random_exploration=random_exploration)
@@ -340,9 +322,7 @@ class MoPARolloutRunner(object):
                 if pi.isValidState(target_qpos):
                     traj, success, interpolation, valid, exact = pi.plan(curr_qpos, target_qpos, ac_scale=env._ac_scale)
                 else:
-                    success = False
-                    valid = False
-                    exact = True
+                    success, valid, exact = False, False, True
 
                 env.visualize_goal_indicator(target_qpos[env.ref_joint_pos_indexes].copy())
                 env.color_agent()
@@ -351,7 +331,7 @@ class MoPARolloutRunner(object):
                         counter['interpolation'] += 1
                     else:
                         counter['mp'] += 1
-
+                    meta_rew = 0
                     for i, next_qpos in enumerate(traj):
                         ll_ob = ob.copy()
                         converted_ac = env.form_action(next_qpos)
@@ -368,7 +348,6 @@ class MoPARolloutRunner(object):
                         ep_len += 1
                         ep_rew += reward
                         ep_rew_with_penalty += reward
-                        meta_len += 1
                         reward_info.add(info)
 
                         if record:
@@ -411,7 +390,6 @@ class MoPARolloutRunner(object):
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     ep_rew_with_penalty += reward
-                    meta_len += 1
                     reward_info.add(info)
 
                     contact_pairs = []
@@ -447,18 +425,12 @@ class MoPARolloutRunner(object):
                     ob, reward, done, info = env.step(rescaled_ac)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
-                else:
-                    displacement['default'] /= config.omega
-                    if 'gripper' in ac.keys():
-                        displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                     ob, reward, done, info = env.step(displacement)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
                 ep_len += 1
                 ep_rew += reward
                 ep_rew_with_penalty += reward
-                meta_len += 1
-                meta_rew += reward
                 reward_info.add(info)
                 rollout.add({'done': done, 'rew': reward, 'rew_with_penalty': ep_rew_with_penalty})
                 if record:

@@ -20,52 +20,21 @@ def argparser():
     parser.add_argument("--algo", type=str, default="sac",
                         choices=["sac", "td3"])
     parser.add_argument("--policy", type=str, default="mlp",
-                        choices=["mlp", "cnn"])
-    parser.add_argument("--meta_algo", type=str, default="ppo",
-                        choices=["ppo", "sac"])
-    parser.add_argument("--meta_update_target", type=str, default="LL",
-                        choices=['HL', 'LL', 'both'])
-    parser.add_argument("--her", type=str2bool, default=False)
-    parser.add_argument("--replay_strategy", type=str, default='future')
-    parser.add_argument("--replay_k", type=int, default=4)
+                        choices=["mlp"])
     parser.add_argument("--mopa", type=str2bool, default=False)
     parser.add_argument("--use_discount_meta", type=str2bool, default=True)
     parser.add_argument("--ac_space_type", type=str, default="piecewise", choices=["normal", "piecewise"])
-    parser.add_argument("--add_curr_rew", type=str2bool, default=True)
     parser.add_argument("--use_ik_target", type=str2bool, default=False)
     parser.add_argument("--ik_target", type=str, default="fingertip")
     parser.add_argument("--expand_ac_space", type=str2bool, default=False)
-
-    # hrl
-    parser.add_argument("--hrl", type=str2bool, default=False,
-                        help="whether to use HRL or not")
-    parser.add_argument("--primitive_dir", type=str, default=None,
-                        help="path to primitive directory")
-    parser.add_argument("--max_meta_len", type=int, default=1)
-
-    parser.add_argument("--ll_type", type=str, default="rl",
-                        help="low level controller choice", choices=["rl", "mp", "mix"])
-    parser.add_argument("--primitive_skills", nargs='+', default=['skill'])
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=256)
     parser.add_argument("--rl_activation", type=str, default="relu",
                         choices=["relu", "elu", "tanh"])
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
-    parser.add_argument("--meta_tanh_policy", type=str2bool, default=False)
-    parser.add_argument("--subgoal_type", type=str, default='joint', choices=['joint', 'cart'])
     parser.add_argument("--activation", type=str, default='tanh')
-
-    parser.add_argument("--kernel_size", nargs='+', default=[3, 3, 3])
-    parser.add_argument("--conv_dim", nargs='+', default=[32, 64, 32])
-    parser.add_argument("--stride", nargs='+', default=[2, 1, 1])
     parser.add_argument("--actor_num_hid_layers", type=int, default=2)
-
-    # observation normalization
-    parser.add_argument("--ob_norm", type=str2bool, default=True)
-    parser.add_argument("--max_ob_norm_step", type=int, default=int(1e7))
-    parser.add_argument("--clip_obs", type=float, default=200, help="the clip range of observation")
-    parser.add_argument("--clip_range", type=float, default=5, help="the clip range after normalization of observation")
 
     # motion planning
     parser.add_argument("--min_path_len", type=int, default=10)
@@ -128,8 +97,7 @@ def argparser():
     # log
     parser.add_argument("--log_interval", type=int, default=1000)
     parser.add_argument("--vis_replay_interval", type=int, default=10000)
-    parser.add_argument("--evaluate_interval", type=int, default=10)
-    # parser.add_argument("--evaluate_interval", type=int, default=10000)
+    parser.add_argument("--evaluate_interval", type=int, default=10000)
     parser.add_argument("--ckpt_interval", type=int, default=200000)
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,
@@ -149,10 +117,6 @@ def argparser():
     parser.add_argument("--record_caption", type=str2bool, default=True)
     parser.add_argument("--num_record_samples", type=int, default=1,
                         help="number of trajectories to collect during eval")
-    parser.add_argument("--save_qpos", type=str2bool, default=False,
-                        help="save entire qpos history of success rollouts to file (for idle primitive training)")
-    parser.add_argument("--save_success_qpos", type=str2bool, default=True,
-                        help="save later segment of success rollouts to file (for moving and placing primitie trainings)")
 
     # misc
     parser.add_argument("--prefix", type=str, default="test")

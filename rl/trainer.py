@@ -61,7 +61,6 @@ class Trainer(object):
             for geom_id in self._env.static_geom_ids:
                 allowed_collsion_pairs.append(make_ordered_pair(manipulation_geom_id, geom_id))
 
-
         ignored_contact_geom_ids = []
         ignored_contact_geom_ids.extend(allowed_collsion_pairs)
         config.ignored_contact_geom_ids = ignored_contact_geom_ids
@@ -69,7 +68,6 @@ class Trainer(object):
         passive_joint_idx = list(range(len(self._env.sim.data.qpos)))
         [passive_joint_idx.remove(idx) for idx in self._env.ref_joint_pos_indexes]
         config.passive_joint_idx = passive_joint_idx
-
 
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy)
@@ -94,7 +92,6 @@ class Trainer(object):
                 ac_space = spaces.Dict([('default', spaces.Box(low=np.ones(3)*-1, high=np.ones(3), dtype=np.float32)), ('quat', spaces.Box(low=np.ones(4)*-1, high=np.ones(4), dtype=np.float32)),
                                         ('gripper', spaces.Box(low=np.array([-1.]), high=np.array([1.]), dtype=np.float32))])
 
-
         self._agent = get_agent_by_name(config.algo)(
             config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
         )
@@ -110,7 +107,6 @@ class Trainer(object):
             self._runner = RolloutRunner(
                 config, self._env, self._env_eval, self._agent
             )
-
 
         # setup wandb
         if self._is_chef and self._config.is_train:
@@ -141,10 +137,7 @@ class Trainer(object):
         replay_path = os.path.join(self._config.log_dir, "replay_%08d.pkl" % ckpt_num)
         with gzip.open(replay_path, "wb") as f:
             replay_buffers = {"replay": self._agent.replay_buffer()}
-            if self._config.policy == 'cnn':
-                joblib.dump(replay_buffers, f)
-            else:
-                pickle.dump(replay_buffers, f)
+            pickle.dump(replay_buffers, f)
 
     def _load_ckpt(self, ckpt_num=None):
         ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
@@ -195,8 +188,6 @@ class Trainer(object):
                 wandb.log({"test_ep/%s" % k: np.mean(v), 'global_step': env_step}, step=step)
             if vids is not None:
                 self.log_videos(vids.transpose((0, 1, 4, 2, 3)), 'test_ep/video', step=step)
-            if obs is not None:
-                self.log_obs(obs, 'test_ep/obs', step=step)
 
     def train(self):
         config = self._config
@@ -228,7 +219,6 @@ class Trainer(object):
 
         init_step = 0
         init_ep = 0
-
         # If it does not previously learned data and use SAC, then we firstly fill the experieince replay with the specified number of samples
         if step == 0:
             if random_runner is not None:
@@ -274,7 +264,6 @@ class Trainer(object):
 
             if self._is_chef:
                 pbar.update(step_per_batch)
-
                 if update_iter % config.log_interval == 0 or (('env_step' in info.keys() and len(info) > 1) or ('env_step' not in info.keys() and len(info) != 0)):
                     for k, v in info.items():
                         if isinstance(v, list):
@@ -296,11 +285,6 @@ class Trainer(object):
                     logger.info("Evaluate at %d", update_iter)
                     obs = None
                     rollout, info, vids = self._evaluate(step=step, record=config.record)
-                    if self._config.policy == 'cnn':
-                        if self._config.is_rgb:
-                            obs = rollout['ob'][0]['default'].transpose((1, 2, 0))
-                        else:
-                            obs = rollout['ob'][0]['default'][0]
 
                     self._log_test(step, info, vids, obs, env_step=env_step)
 
@@ -426,12 +410,5 @@ class Trainer(object):
         assert len(vids[0].shape) == 4 and vids[0].shape[1] == 3
         assert isinstance(vids[0], np.ndarray)
         log_dict = {name: [wandb.Video(vid, fps=fps, format="mp4") for vid in vids]}
-        wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
-
-    def log_obs(self, obs, name, step=None):
-        if self._config.is_rgb:
-            log_dict = {name: [wandb.Image(obs)]}
-        else:
-            log_dict = {name: [wandb.Image(obs, mode='L')]}
         wandb.log(log_dict) if step is None else wandb.log(log_dict, step=step)
 

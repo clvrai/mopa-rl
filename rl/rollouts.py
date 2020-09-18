@@ -11,9 +11,6 @@ from util.logger import logger
 from util.env import joint_convert, mat2quat, quat_mul, rotation_matrix, quat2mat
 from util.gym import action_size
 from util.info import Info
-from math import ceil
-import copy
-
 
 class Rollout(object):
     def __init__(self):
@@ -77,17 +74,14 @@ class RolloutRunner(object):
             ob = env.reset()
             if config.use_ik_target:
                 ik_env.reset()
-
             # run rollout
             meta_ac = None
             while not done and ep_len < max_step:
-                meta_len = 0
-                meta_rew = 0
                 env_step = 0
                 ll_ob = ob.copy()
                 ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True, random_exploration=random_exploration)
                 rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
-                if config.use_ik_target:
+                if config.use_ik_target: # IK
                     converted_ac = self._cart2joint_ac(env, ik_env, ac)
                     ob, reward, done, info = env.step(converted_ac)
                     rollout.add({'done': done, 'rew': reward})
@@ -95,21 +89,19 @@ class RolloutRunner(object):
                     step += 1
                     ep_rew += reward
                     env_step += 1
-                    meta_len += 1
-                    meta_rew += reward
                     reward_info.add(info)
                 else:
-                    if config.expand_ac_space:
+                    if config.expand_ac_space: # large action space
                         diff = ac['default'][env.ref_joint_pos_indexes] * config.action_range
                         actions = pi.interpolate_ac(ac, env._ac_scale, diff)
                         intra_steps = 0
+                        meta_rew = 0
                         for j, inter_ac in enumerate(actions):
                             ob, reward, done, info = env.step(inter_ac)
                             ep_len += 1
                             step += 1
                             env_step += 1
                             ep_rew += reward
-                            meta_len += 1
                             meta_rew += reward * config.discount_factor ** j
                             reward_info.add(info)
                             if done or ep_len >= max_step:
@@ -122,20 +114,12 @@ class RolloutRunner(object):
                         step += 1
                         env_step += 1
                         ep_rew += reward
-                        meta_len += 1
-                        meta_rew += reward
                         reward_info.add(info)
                 if every_steps is not None and step % every_steps == 0:
                     # last frame
                     ll_ob = ob.copy()
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                     ep_info.add({'env_step': env_step})
-                    yield rollout.get(), ep_info.get_dict(only_scalar=True)
-
-                reward_info.add({'meta_rew': meta_rew})
-                if every_steps is not None and step % every_steps == 0 and config.meta_update_target == 'HL':
-                    ll_ob = ob.copy()
-                    rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
                     yield rollout.get(), ep_info.get_dict(only_scalar=True)
             ep_info.add({'len': ep_len, 'rew': ep_rew})
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
@@ -174,8 +158,6 @@ class RolloutRunner(object):
         meta_ac = None
         total_contact_force = 0.
         while not done and ep_len < max_step:
-            meta_len = 0
-            meta_rew = 0
 
             ll_ob = ob.copy()
             ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True, random_exploration=random_exploration)
@@ -187,19 +169,17 @@ class RolloutRunner(object):
                 rollout.add({'done': done, 'rew': reward})
                 ep_len += 1
                 ep_rew += reward
-                meta_len += 1
-                meta_rew += reward
                 reward_info.add(info)
             else:
                 if config.expand_ac_space:
                     diff = ac['default'][env.ref_joint_pos_indexes] * config.action_range
                     actions = pi.interpolate_ac(ac, env._ac_scale, diff)
                     intra_steps = 0
+                    meta_rew = 0
                     for j, inter_ac in enumerate(actions):
                         ob, reward, done, info = env.step(inter_ac)
                         ep_len += 1
                         ep_rew += reward
-                        meta_len += 1
                         meta_rew += reward * config.discount_factor ** j
                         reward_info.add(info)
                         contact_force = env.get_contact_force()
@@ -220,8 +200,6 @@ class RolloutRunner(object):
                     rollout.add({'done': done, 'rew': reward})
                     ep_len += 1
                     ep_rew += reward
-                    meta_len += 1
-                    meta_rew += reward
                     reward_info.add(info)
 
 
