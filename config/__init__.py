@@ -29,7 +29,7 @@ def argparser():
     parser.add_argument("--replay_strategy", type=str, default='future')
     parser.add_argument("--replay_k", type=int, default=4)
     parser.add_argument("--mopa", type=str2bool, default=False)
-    parser.add_argument("--use_discount_meta", type=str2bool, default=False)
+    parser.add_argument("--use_discount_meta", type=str2bool, default=True)
     parser.add_argument("--ac_space_type", type=str, default="piecewise", choices=["normal", "piecewise"])
     parser.add_argument("--add_curr_rew", type=str2bool, default=True)
     parser.add_argument("--use_ik_target", type=str2bool, default=False)
@@ -128,7 +128,8 @@ def argparser():
     # log
     parser.add_argument("--log_interval", type=int, default=1000)
     parser.add_argument("--vis_replay_interval", type=int, default=10000)
-    parser.add_argument("--evaluate_interval", type=int, default=10000)
+    parser.add_argument("--evaluate_interval", type=int, default=10)
+    # parser.add_argument("--evaluate_interval", type=int, default=10000)
     parser.add_argument("--ckpt_interval", type=int, default=200000)
     parser.add_argument("--log_root_dir", type=str, default="log")
     parser.add_argument("--wandb", type=str2bool, default=False,

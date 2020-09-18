@@ -18,6 +18,8 @@ from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 from util.gym import action_size, observation_size
 from gym import spaces
+from math import ceil
+import copy
 
 class SACAgent(BaseAgent):
     def __init__(self, config, ob_space, ac_space,
@@ -220,6 +222,26 @@ class SACAgent(BaseAgent):
 
         return np.array(traj), success, valid, exact
 
+    def interpolate_ac(self, ac, ac_scale, diff):
+    # def simple_interpolate(self, curr_qpos, target_qpos, ac_scale, use_planner=False):
+        out_of_bounds = np.where((diff > ac_scale) | (diff < -ac_scale))[0]
+        out_diff = diff[out_of_bounds]
+        scales = np.where(out_diff > ac_scale, out_diff/ac_scale, out_diff/(-ac_scale))
+        if len(scales) == 0:
+            scaling_factor = 1.
+        else:
+            scaling_factor = max(max(scales), 1.)
+        scaled_ac = diff[:len(self._ref_joint_pos_indexes)] / scaling_factor
+        actions = []
+        for j in range(ceil(scaling_factor)):
+            inter_ac = copy.deepcopy(ac)
+            if j < int(scaling_factor):
+                inter_ac['default'][self._ref_joint_pos_indexes] = scaled_ac / ac_scale
+            else:
+                inter_ac['default'][self._ref_joint_pos_indexes] -= scaled_ac*int(scaling_factor)
+
+            actions.append(inter_ac)
+        return actions
 
     def state_dict(self):
         return {

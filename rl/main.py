@@ -137,14 +137,8 @@ if __name__ == '__main__':
     parser = argparser()
     args, unparsed = parser.parse_known_args()
 
-    if 'reacher' in args.env:
-        from config.reacher import add_arguments
-    elif 'pusher' in args.env:
+    if 'pusher' in args.env:
         from config.pusher import add_arguments
-    elif 'mover' in args.env:
-        from config.mover import add_arguments
-    elif 'robosuite' in args.env:
-        from config.robosuite import add_arguments
     elif 'sawyer' in args.env:
         from config.sawyer import add_arguments
     else:

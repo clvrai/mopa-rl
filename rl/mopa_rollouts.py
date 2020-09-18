@@ -22,7 +22,6 @@ class MoPARolloutRunner(object):
         self._ik_env = gym.make(config.env, **config.__dict__)
         self._pi = pi
 
-
     def run(self, max_step=10000, is_train=True, random_exploration=False, every_steps=None, every_episodes=None):
         """
         Collects trajectories and yield every @every_steps/@every_episodes.
@@ -65,15 +64,7 @@ class MoPARolloutRunner(object):
                 env_step = 0
 
                 ll_ob = ob.copy()
-                if random_exploration: # Random exploration for SAC
-                    ac = pi._ac_space.sample()
-                    for k, space in pi._ac_space.spaces.items():
-                        if isinstance(space, spaces.Discrete):
-                            ac[k] = np.array([ac[k]])
-                    ac_before_activation = None
-                    stds = None
-                else:
-                    ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+                ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True, random_exploration=random_exploration)
 
                 curr_qpos = env.sim.data.qpos.copy()
                 prev_qpos = env.sim.data.qpos.copy()
@@ -85,22 +76,9 @@ class MoPARolloutRunner(object):
 
                 # MoPA+IK
                 if config.use_ik_target:
-                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
-                    if len(env.min_world_size) == 2:
-                        target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
-                    if 'quat' in ac.keys():
-                        target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
-                        target_quat = target_quat[[3, 0, 1, 1]]
-                        target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
-                    else:
-                        target_quat = None
-                    ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
-                    result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
-                                  joint_names=env.robot_joints, max_steps=100, tol=1e-2)
-                    target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
-                    target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                    displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
-                    # inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                    target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'],
+                                          env.min_world_size, env.max_world_size)
+                    displacement = self._cart2dispalcement(env, ik_env, ac, curr_qpos, target_cart)
 
                 # Check if the action is for motion planner or direct action execution
                 if (not config.discrete_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
@@ -151,11 +129,7 @@ class MoPARolloutRunner(object):
                                     if 'gripper' in ac.keys():
                                         converted_ac['default'][len(env.ref_joint_pos_indexes):] = ac['gripper']
                             ob, reward, done, info = env.step(converted_ac, is_planner=True)
-
-                            if self._config.use_discount_meta:
-                                meta_rew += (config.discount_factor**i) * reward # the last reward is more important
-                            else:
-                                meta_rew += reward
+                            meta_rew += (config.discount_factor**i) * reward
                             done_list.append(done)
                             meta_rew_list.append(meta_rew)
                             rew_list.append(reward)
@@ -197,7 +171,8 @@ class MoPARolloutRunner(object):
                                 pairs.append((start, goal))
                                 if not config.use_ik_target:
                                     inter_subgoal_ac = env.form_action(traj[goal], traj[start])
-                                    inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)], env._ac_scale)
+                                    inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)] = pi.invert_displacement(inter_subgoal_ac['default'][:len(env.ref_joint_pos_indexes)],
+                                                                                                                          env._ac_scale)
                                 else: # IK
                                     inter_subgoal_ac = OrderedDict([('default', (cart_list[goal]-cart_list[start])/config.action_range)])
                                     if 'quat' in ac.keys():
@@ -208,8 +183,7 @@ class MoPARolloutRunner(object):
                                         inter_subgoal_ac['ac_type'] = ac['ac_type']
                                     rollout.add({'ob': ob_list[start], 'meta_ac': meta_ac, 'ac': inter_subgoal_ac, 'ac_before_activation': ac_before_activation})
                                     inter_rew = meta_rew_list[goal] - meta_rew_list[start]
-                                    if config.use_discount_meta:
-                                        inter_rew *= (config.discount_factor ** (-(start+1)))
+                                    inter_rew *= (config.discount_factor ** (-(start+1)))
                                     rollout.add({'done': done_list[goal], 'rew': inter_rew, 'intra_steps': goal-start-1})
 
                                     if every_steps is not None and step % every_steps == 0:
@@ -227,14 +201,9 @@ class MoPARolloutRunner(object):
                         counter['mp_fail'] += 1
                         ll_ob = ob.copy()
                         reward = 0
-                        if config.add_curr_rew:
-                            reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
-                            ep_rew += reward
-                            reward += self._config.invalid_planner_rew
-                        else:
-                            reward += self._config.invalid_planner_rew
-                            ep_rew += reward
-                            info = {}
+                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
+                        ep_rew += reward
+                        reward += self._config.invalid_planner_rew
                         ep_rew_with_penalty += reward
                         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': ac_before_activation})
                         done, info, _ = env._after_step(reward, env._terminal, info)
@@ -297,14 +266,7 @@ class MoPARolloutRunner(object):
             logger.info('Ep %d rollout: %s %s', episode,
                         {k: v for k, v in reward_info_dict.items()
                          if not 'qpos' in k and np.isscalar(v)}, {k: v for k, v in counter.items()})
-
             episode += 1
-            if every_episodes is not None and episode % every_episodes == 0:
-                ll_ob = ob.copy()
-                rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-                ep_info.add({'env_step': env_step})
-                env_step = 0
-                yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
 
     def run_episode(self, max_step=10000, is_train=True, record=False, random_exploration=False):
@@ -344,12 +306,7 @@ class MoPARolloutRunner(object):
             meta_rew = 0
 
             ll_ob = ob.copy()
-            if random_exploration: # Random exploration for SAC
-                ac = env.action_space.sample()
-                ac_before_activation = None
-                stds = None
-            else:
-                ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True)
+            ac, ac_before_activation, stds = pi.act(ll_ob, is_train=is_train, return_stds=True, random_exploration=random_exploration)
 
             curr_qpos = env.sim.data.qpos.copy()
             prev_qpos = env.sim.data.qpos.copy()
@@ -361,21 +318,9 @@ class MoPARolloutRunner(object):
                 is_planner = bool(ac['ac_type'][0])
 
             if config.use_ik_target:
-                target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'], env.min_world_size, env.max_world_size)
-                if len(env.min_world_size) == 2:
-                    target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
-                if 'quat' in ac.keys():
-                    target_quat = mat2quat(env.sim.data.get_site_xmat(config.ik_target))
-                    target_quat = target_quat[[3, 0, 1, 1]]
-                    target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
-                else:
-                    target_quat = None
-                ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
-                result = qpos_from_site_pose(ik_env, config.ik_target, target_pos=target_cart, target_quat=target_quat,
-                              joint_names=env.robot_joints, max_steps=100, tol=1e-2)
-                target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
-                target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
-                displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
+                target_cart = np.clip(env.sim.data.get_site_xpos(config.ik_target)[:len(env.min_world_size)] + config.action_range * ac['default'],
+                                      env.min_world_size, env.max_world_size)
+                displacement = self._cart2dispalcement(env, ik_env, ac, curr_qpos, target_cart)
 
             if (not config.discrete_action and pi.is_planner_ac(ac) and not config.use_ik_target) or is_planner or (config.use_ik_target and pi.is_planner_ac(displacement)):
                 if not config.use_ik_target:
@@ -458,14 +403,9 @@ class MoPARolloutRunner(object):
                         counter['invalid'] += 1
                     ll_ob = ob.copy()
                     reward = 0.
-                    if config.add_curr_rew:
-                        reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
-                        ep_rew += reward
-                        reward += self._config.invalid_planner_rew
-                    else:
-                        reward += self._config.invalid_planner_rew
-                        ep_rew += reward
-                        info = {}
+                    reward, info  = env.compute_reward(np.zeros(env.sim.model.nu))
+                    ep_rew += reward
+                    reward += self._config.invalid_planner_rew
                     rollout.add({'ob': ll_ob, 'meta_ac': meta_ac, 'ac': ac, 'ac_before_activation': None})
                     done, info, _ = env._after_step(reward, env._terminal, info)
                     rollout.add({'done': done, 'rew': reward})
@@ -534,13 +474,31 @@ class MoPARolloutRunner(object):
         # last frame
         ll_ob = ob.copy()
         rollout.add({'ob': ll_ob, 'meta_ac': meta_ac})
-
         ep_info.add({'len': ep_len, 'rew': ep_rew, "contact_force": total_contact_force, "avg_conntact_force": total_contact_force/ep_len})
         ep_info.add(counter)
         reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
         ep_info.add(reward_info_dict)
         # last frame
         return rollout.get(), ep_info.get_dict(only_scalar=True), self._record_frames
+
+    def _cart2dispalcement(self, env, ik_env, ac, curr_qpos, target_cart):
+        if len(env.min_world_size) == 2:
+            target_cart = np.concatenate((target_cart, np.array([env.sim.data.get_site_xpos(config.ik_target)[2]])))
+        if 'quat' in ac.keys():
+            target_quat = mat2quat(env.sim.data.get_site_xmat(self._config.ik_target))
+            target_quat = target_quat[[3, 0, 1, 1]]
+            target_quat = quat_mul(target_quat, (ac['quat']/np.linalg.norm(ac['quat'])).astype(np.float64))
+        else:
+            target_quat = None
+        ik_env.set_state(curr_qpos.copy(), env.data.qvel.copy())
+        result = qpos_from_site_pose(ik_env, self._config.ik_target, target_pos=target_cart, target_quat=target_quat,
+                      joint_names=env.robot_joints, max_steps=100, tol=1e-2)
+        target_qpos = env.sim.data.qpos.copy()
+        target_qpos[env.ref_joint_pos_indexes] = result.qpos[env.ref_joint_pos_indexes].copy()
+        target_qpos = np.clip(target_qpos, env._jnt_minimum[env.jnt_indices], env._jnt_maximum[env.jnt_indices])
+        displacement = OrderedDict([('default', target_qpos[env.ref_joint_pos_indexes]-curr_qpos[env.ref_joint_pos_indexes])])
+        return displacement
+
 
     def _store_frame(self, env, info={}, planner=False):
         color = (200, 200, 200)
