@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC"
+prefix="MoPA-SAC.omega0.7"
 gpu=$1
 seed=$2
 algo='sac'
@@ -12,7 +12,7 @@ log_root_dir="./logs"
 mopa="True"
 reuse_data="True"
 action_range="0.5"
-omega='0.5'
+omega='0.7'
 stochastic_eval="True"
 find_collision_free="True"
 vis_replay="True"

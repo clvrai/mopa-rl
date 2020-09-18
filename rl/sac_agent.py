@@ -246,7 +246,7 @@ class SACAgent(BaseAgent):
     def state_dict(self):
         return {
             'log_alpha': self._log_alpha.cpu().detach().numpy(),
-            'actor_state_dict': [_actor.state_dict() for _actor in self._actors],
+            'actor_state_dict': self._actor.state_dict(),
             'critic1_state_dict': self._critic1.state_dict(),
             'critic2_state_dict': self._critic2.state_dict(),
             'alpha_optim_state_dict': self._alpha_optim.state_dict(),

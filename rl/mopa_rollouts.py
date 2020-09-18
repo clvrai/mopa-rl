@@ -425,6 +425,10 @@ class MoPARolloutRunner(object):
                     ob, reward, done, info = env.step(rescaled_ac)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force
+                else:
+                    displacement['default'] /= config.omega
+                    if 'gripper' in ac.keys():
+                        displacement['default'] = np.concatenate((displacement['default'], ac['gripper']))
                     ob, reward, done, info = env.step(displacement)
                     contact_force = env.get_contact_force()
                     total_contact_force += contact_force

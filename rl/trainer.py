@@ -92,6 +92,7 @@ class Trainer(object):
                 ac_space = spaces.Dict([('default', spaces.Box(low=np.ones(3)*-1, high=np.ones(3), dtype=np.float32)), ('quat', spaces.Box(low=np.ones(4)*-1, high=np.ones(4), dtype=np.float32)),
                                         ('gripper', spaces.Box(low=np.array([-1.]), high=np.array([1.]), dtype=np.float32))])
 
+        ac_space.seed(config.seed)
         self._agent = get_agent_by_name(config.algo)(
             config, ob_space, ac_space, actor, critic, non_limited_idx, self._env.ref_joint_pos_indexes, self._env.joint_space, self._env._is_jnt_limited, self._env.jnt_indices
         )

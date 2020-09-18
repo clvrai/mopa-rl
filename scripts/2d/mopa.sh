@@ -20,7 +20,6 @@ find_collision_free="True"
 max_reuse_data='30'
 ac_space_type="piecewise"
 success_reward="150.0"
-log_indiv_entropy="True"
 
 
 python -m rl.main \
@@ -44,5 +43,4 @@ python -m rl.main \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
     --ac_space_type $ac_space_type \
-    --log_indiv_entropy $log_indiv_entropy \
     --use_smdp_update $use_smdp_update
