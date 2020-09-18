@@ -142,7 +142,7 @@ Log directories:
   - `replay_*.pt`: Stored replay buffers (every ckpt_interval)
 
 ## Reference
-- PyTorch implementation of PPO and SAC: https://github.com/clvrai/coordination
+- PyTorch implementation of SAC: https://github.com/clvrai/coordination
 
 ## Trouble shooting
 
