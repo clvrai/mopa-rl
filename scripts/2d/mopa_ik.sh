@@ -9,7 +9,6 @@ max_episode_step="400"
 debug="False"
 reward_type='sparse'
 log_root_dir="./logs"
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
 mopa="True"
 reward_scale="0.2"
 reuse_data="True"

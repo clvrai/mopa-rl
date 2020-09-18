@@ -8,7 +8,6 @@ max_episode_step="400"
 debug="True"
 reward_type='sparse'
 log_root_dir="./logs"
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
 reward_scale='10.'
 vis_replay="True"
 success_reward='150.'

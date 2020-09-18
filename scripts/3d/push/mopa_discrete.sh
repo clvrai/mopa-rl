@@ -3,11 +3,10 @@
 prefix="MoPA=SAC.discrete"
 gpu=$1
 seed=$2
-env="sawyer-push-obstacle-v2"
+env="sawyer-push-obstacle-v3"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
-# log_root_dir="/data/jun/projects/hrl-planner/logs"
 log_root_dir="./logs"
 mopa="True"
 alpha="1.0"

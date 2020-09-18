@@ -2,14 +2,13 @@
 gpu=$1
 seed=$2
 algo='sac'
-prefix="BASELINE.SAC.IK.v3"
+prefix="BASELINE.SAC.IK"
 env="pusher-obstacle-hard-v3"
 gpu=$gpu
 max_episode_step="400"
 debug="False"
 reward_type='sparse'
-# log_root_dir="./logs"
-log_root_dir="/data/jun/projects/hrl-planner/logs"
+log_root_dir="./logs"
 reward_scale='10.'
 vis_replay="True"
 success_reward='150.'
