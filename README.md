@@ -169,7 +169,8 @@ sudo apt install ./pybind11-dev_2.2.4-2_all.deb
 
 ## Reference
 - PyTorch implementation of SAC: https://github.com/clvrai/coordination
-- Sawyer MuJoCo environment:
+- Sawyer MuJoCo environment: https://github.com/StanfordVL/robosuite
+- Sawyer assets: https://github.com/vikashplus/sawyer_sim
 
 
 ## Citation
