@@ -5,9 +5,6 @@ from numbers import Number
 import numpy as np
 from gym.spaces import Box
 import mujoco_py
-
-import metaworld.envs.mujoco.utils.rotation as mjrot
-
 ENV_ASSET_DIR = os.path.join(os.path.dirname(__file__), "../env/assets")
 
 
@@ -108,10 +105,21 @@ def concatenate_box_spaces(*spaces):
     high = np.concatenate([space.high for space in spaces])
     return Box(low=low, high=high, dtype=np.float32)
 
+def quat2axisangle(quat):
+    theta = 0;
+    axis = np.array([0, 0, 1]);
+    sin_theta = np.linalg.norm(quat[1:])
+
+    if (sin_theta > 0.0001):
+        theta = 2 * np.arcsin(sin_theta)
+        theta *= 1 if quat[0] >= 0 else -1
+        axis = quat[1:] / sin_theta
+
+    return axis, theta
 
 def quat_to_zangle(quat):
     q = quat_mul(quat_inv(quat_create(np.array([0, 1.0, 0]), np.pi / 2)), quat)
-    ax, angle = mjrot.quat2axisangle(q)
+    ax, angle = quat2axisangle(q)
     return angle
 
 
