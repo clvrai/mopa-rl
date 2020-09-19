@@ -173,10 +173,10 @@ def argparser():
         help="set it True if you want to use wandb",
     )
     parser.add_argument(
-        "--entity", type=str, default=None, help="Set an entity name for wandb"
+        "--entity", type=str, default="clvr", help="Set an entity name for wandb"
     )
     parser.add_argument(
-        "--project", type=str, default=None, help="set a project name for wandb"
+        "--project", type=str, default="hrl-planner", help="set a project name for wandb"
     )
     parser.add_argument("--group", type=str, default=None)
     parser.add_argument("--vis_replay", type=str2bool, default=True)

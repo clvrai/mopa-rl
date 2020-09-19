@@ -4,8 +4,6 @@ seed=$2
 
 prefix="MoPA-SAC"
 env="sawyer-lift-obstacle-v0"
-entity='clvr'
-project='hrl-planner'
 algo='sac'
 max_episode_step="250"
 debug="False"
@@ -32,8 +30,6 @@ evaluate_interval="10000"
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
-    --entity $entity \
-    --project $project \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

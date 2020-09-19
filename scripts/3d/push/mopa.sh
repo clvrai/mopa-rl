@@ -3,8 +3,6 @@ gpu=$1
 seed=$2
 
 prefix="MoPA-SAC"
-entity='clvr'
-project='hrl-planner'
 algo='sac'
 env="sawyer-push-obstacle-v3"
 max_episode_step="250"
@@ -38,8 +36,6 @@ contact_threshold='-0.0002'
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
-    --entity $entity \
-    --project $project \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

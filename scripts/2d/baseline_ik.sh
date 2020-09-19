@@ -7,7 +7,6 @@ env="pusher-obstacle-hard-v3"
 gpu=$gpu
 max_episode_step="400"
 debug="False"
-reward_type='sparse'
 log_root_dir="./logs"
 reward_scale='10.'
 vis_replay="True"
@@ -25,7 +24,6 @@ python -m rl.main \
     --debug $debug \
     --algo $algo \
     --seed $seed \
-    --reward_type $reward_type \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
     --success_reward $success_reward \

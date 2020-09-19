@@ -2,8 +2,6 @@
 gpu=$1
 seed=$2
 
-entity='clvr'
-project='hrl-planner'
 algo='sac'
 prefix="MoPA-SAC"
 env="pusher-obstacle-hard-v3"
@@ -26,8 +24,6 @@ success_reward="150.0"
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
-    --entity $entity \
-    --project $project \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

@@ -2,8 +2,6 @@
 gpu=$1
 seed=$2
 
-entity='clvr'
-project='hrl-planner'
 prefix="MoPA-SAC.omega0.7"
 algo='sac'
 env="sawyer-assembly-v1"
@@ -29,8 +27,6 @@ use_discount_meta="True"
 python -m rl.main \
     --log_root_dir $log_root_dir \
     --wandb True \
-    --entity $entity \
-    --project $project \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \
