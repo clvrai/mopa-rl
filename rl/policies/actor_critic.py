@@ -6,9 +6,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from gym import spaces
 
-from rl.policies.distributions import FixedCategorical, FixedNormal, \
-    MixedDistribution, FixedGumbelSoftmax
-from rl.policies.utils import MLP
+from rl.policies.distributions import (
+    FixedCategorical,
+    FixedNormal,
+    MixedDistribution,
+    FixedGumbelSoftmax,
+)
 from util.pytorch import to_tensor
 
 
@@ -35,8 +38,10 @@ class Actor(nn.Module):
                     stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
-                if self._config.meta_algo == 'sac' or self._config.algo == 'sac':
-                    dists[k] = FixedGumbelSoftmax(torch.tensor(self._config.temperature), logits=means[k])
+                if self._config.meta_algo == "sac" or self._config.algo == "sac":
+                    dists[k] = FixedGumbelSoftmax(
+                        torch.tensor(self._config.temperature), logits=means[k]
+                    )
                 else:
                     dists[k] = FixedCategorical(logits=means[k])
 
@@ -47,21 +52,18 @@ class Actor(nn.Module):
         else:
             activations = mixed_dist.sample()
 
-
         if return_log_prob:
             log_probs = mixed_dist.log_probs(activations)
 
         for k, space in self._ac_space.spaces.items():
             z = activations[k]
             if self._tanh and isinstance(space, spaces.Box):
-                # action_scale = to_tensor((self._ac_space[k].high), self._config.device).detach()
-                # action = torch.tanh(z) * action_scale
                 action = torch.tanh(z)
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
-                    # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=1, keepdim=True)
-                    log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
-                    # log_det_jacobian = torch.log((1-torch.tanh(z).pow(2))+1e-6).sum(dim=1, keepdim=True)
+                    log_det_jacobian = 2 * (np.log(2.0) - z - F.softplus(-2.0 * z)).sum(
+                        dim=-1, keepdim=True
+                    )
                     log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -94,13 +96,14 @@ class Actor(nn.Module):
                     stds[k] = torch.zeros_like(means[k])
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
-                if self._config.meta_algo == 'sac' or self._config.algo == 'sac':
-                    dists[k] = FixedGumbelSoftmax(torch.tensor(self._config.temperature), logits=means[k])
+                if self._config.meta_algo == "sac" or self._config.algo == "sac":
+                    dists[k] = FixedGumbelSoftmax(
+                        torch.tensor(self._config.temperature), logits=means[k]
+                    )
                 else:
                     dists[k] = FixedCategorical(logits=means[k])
 
         mixed_dist = MixedDistribution(dists)
-
 
         activations_ = mixed_dist.rsample() if activations is None else activations
         for k in activations_.keys():
@@ -111,12 +114,11 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations_[k]
             if self._tanh and isinstance(space, spaces.Box):
-                # action_scale = to_tensor((self._ac_space[k].high), self._config.device).detach()
                 action = torch.tanh(z)
-                # action = torch.tanh(z)
                 # follow the Appendix C. Enforcing Action Bounds
-                # log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=1, keepdim=True)
-                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                log_det_jacobian = 2 * (np.log(2.0) - z - F.softplus(-2.0 * z)).sum(
+                    dim=-1, keepdim=True
+                )
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -154,9 +156,13 @@ class Actor(nn.Module):
         for k, space in self._ac_space.spaces.items():
             z = activations_[k]
             if self._tanh and isinstance(space, spaces.Box):
-                action = torch.tanh(z) * to_tensor((self._ac_space[k].high), self._config.device)
+                action = torch.tanh(z) * to_tensor(
+                    (self._ac_space[k].high), self._config.device
+                )
                 # follow the Appendix C. Enforcing Action Bounds
-                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                log_det_jacobian = 2 * (np.log(2.0) - z - F.softplus(-2.0 * z)).sum(
+                    dim=-1, keepdim=True
+                )
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -164,12 +170,13 @@ class Actor(nn.Module):
             actions[k] = action
 
         ents = mixed_dist.entropy()
-        #print(torch.cat(list(log_probs.values()), -1))
         log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
         if log_probs_.min() < -100:
             print(ob)
             print(log_probs_.min())
-            import ipdb; ipdb.set_trace()
+            import ipdb
+
+            ipdb.set_trace()
         if activations is None:
             return actions, log_probs_
         else:
@@ -180,4 +187,3 @@ class Critic(nn.Module):
     def __init__(self, config):
         super().__init__()
         self._config = config
-

@@ -1,13 +1,14 @@
 import math
+
 import numpy as np
 from pyquaternion import Quaternion
 
 
 PI = np.pi
-EPS = np.finfo(float).eps * 4.
+EPS = np.finfo(float).eps * 4.0
 
 
-def sample_quat(low=0, high=2*np.pi):
+def sample_quat(low=0, high=2 * np.pi):
     """Samples quaternions of random rotations along the z-axis."""
     rot_angle = np.random.uniform(high=high, low=low)
     return [np.cos(rot_angle / 2), 0, 0, np.sin(rot_angle / 2)]
@@ -61,7 +62,7 @@ def lookat_to_quat(forward, up):
         quaternion[2] = (m01 - m10) * num
         return quaternion
 
-    if ((m00 >= m11) and (m00 >= m22)):
+    if (m00 >= m11) and (m00 >= m22):
         num7 = np.sqrt(((1 + m00) - m11) - m22)
         num4 = 0.5 / num7
         quaternion[0] = 0.5 * num7
@@ -73,7 +74,7 @@ def lookat_to_quat(forward, up):
     if m11 > m22:
         num6 = np.sqrt(((1 + m11) - m00) - m22)
         num3 = 0.5 / num6
-        quaternion[0] = (m10+ m01) * num3
+        quaternion[0] = (m10 + m01) * num3
         quaternion[1] = 0.5 * num6
         quaternion[2] = (m21 + m12) * num3
         quaternion[3] = (m20 - m02) * num3
@@ -95,9 +96,9 @@ def forward_vector_from_quat(quat):
     qy = quat[2]
     qz = quat[3]
 
-    x = 2 * (qx * qy + qw * qz)#
+    x = 2 * (qx * qy + qw * qz)  #
     y = 1 - 2 * (qx * qx + qz * qz)
-    z = 2 * (qy * qz - qw * qx)#
+    z = 2 * (qy * qz - qw * qx)  #
     return np.array([x, y, z])
 
 
@@ -121,7 +122,7 @@ def right_vector_from_quat(quat):
 
     x = 1 - 2 * (qy * qy + qz * qz)
     y = 2 * (qx * qy - qw * qz)
-    z = 2 * (qx * qz + qw * qy)#
+    z = 2 * (qx * qz + qw * qy)  #
     return np.array([x, y, z])
 
 
@@ -137,4 +138,3 @@ def l2_dist(a, b):
 
 def cos_dist(a, b):
     return np.dot(a, b) / np.linalg.norm(a) / np.linalg.norm(b)
-

@@ -1,4 +1,4 @@
-from collections import defaultdict, Counter, OrderedDict
+from collections import defaultdict
 from time import time
 
 import numpy as np
@@ -45,23 +45,31 @@ class ReplayBuffer:
 
     def load_state_dict(self, state_dict):
         self._buffers = state_dict
-        self._current_size = len(self._buffers['ac'])
+        self._current_size = len(self._buffers["ac"])
+
 
 class RandomSampler:
     def sample_func(self, episode_batch, batch_size_in_transitions):
-        rollout_batch_size = len(episode_batch['ac'])
+        rollout_batch_size = len(episode_batch["ac"])
         batch_size = batch_size_in_transitions
         episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
-        t_samples = [np.random.randint(len(episode_batch['ac'][episode_idx])) for episode_idx in episode_idxs]
+        t_samples = [
+            np.random.randint(len(episode_batch["ac"][episode_idx]))
+            for episode_idx in episode_idxs
+        ]
 
         transitions = {}
         for key in episode_batch.keys():
-            transitions[key] = \
-                [episode_batch[key][episode_idx][t] for episode_idx, t in zip(episode_idxs, t_samples)]
+            transitions[key] = [
+                episode_batch[key][episode_idx][t]
+                for episode_idx, t in zip(episode_idxs, t_samples)
+            ]
 
-        if 'ob_next' not in episode_batch.keys():
-            transitions['ob_next'] = [
-                episode_batch['ob'][episode_idx][t + 1] for episode_idx, t in zip(episode_idxs, t_samples)]
+        if "ob_next" not in episode_batch.keys():
+            transitions["ob_next"] = [
+                episode_batch["ob"][episode_idx][t + 1]
+                for episode_idx, t in zip(episode_idxs, t_samples)
+            ]
 
         new_transitions = {}
         for k, v in transitions.items():
@@ -79,40 +87,55 @@ class RandomSampler:
 class HERSampler:
     def __init__(self, replay_strategy, replay_k, reward_func=None):
         self.replay_strategy = replay_strategy
-        if self.replay_strategy == 'future':
-            self.future_p = 1 - (1./1+replay_k)
+        if self.replay_strategy == "future":
+            self.future_p = 1 - (1.0 / 1 + replay_k)
         else:
             self.future_p = 0
         self.reward_func = reward_func
 
     def sample_func(self, episode_batch, batch_size_in_transitions):
-        rollout_batch_size = len(episode_batch['ac'])
+        rollout_batch_size = len(episode_batch["ac"])
         batch_size = batch_size_in_transitions
 
         # select which rollouts and which timesteps to be used
         episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
-        t_samples = [np.random.randint(len(episode_batch['ac'][episode_idx])) for episode_idx in episode_idxs]
+        t_samples = [
+            np.random.randint(len(episode_batch["ac"][episode_idx]))
+            for episode_idx in episode_idxs
+        ]
 
         transitions = {}
         for key in episode_batch.keys():
-            transitions[key] = \
-                [episode_batch[key][episode_idx][t] for episode_idx, t in zip(episode_idxs, t_samples)]
+            transitions[key] = [
+                episode_batch[key][episode_idx][t]
+                for episode_idx, t in zip(episode_idxs, t_samples)
+            ]
 
-        transitions['ob_next'] = [
-            episode_batch['ob'][episode_idx][t + 1] for episode_idx, t in zip(episode_idxs, t_samples)]
-        transitions['r'] = np.zeros((batch_size, ))
+        transitions["ob_next"] = [
+            episode_batch["ob"][episode_idx][t + 1]
+            for episode_idx, t in zip(episode_idxs, t_samples)
+        ]
+        transitions["r"] = np.zeros((batch_size,))
 
         # hindsight experience replay
         for i, (episode_idx, t) in enumerate(zip(episode_idxs, t_samples)):
             replace_goal = np.random.uniform() < self.future_p
             if replace_goal:
-                future_t = np.random.randint(t + 1, len(episode_batch['ac'][episode_idx]) + 1)
-                future_ag = episode_batch['ag'][episode_idx][future_t]
-                if self.reward_func(episode_batch['ag'][episode_idx][t], future_ag, None) < 0:
-                    transitions['g'][i] = future_ag
+                future_t = np.random.randint(
+                    t + 1, len(episode_batch["ac"][episode_idx]) + 1
+                )
+                future_ag = episode_batch["ag"][episode_idx][future_t]
+                if (
+                    self.reward_func(
+                        episode_batch["ag"][episode_idx][t], future_ag, None
+                    )
+                    < 0
+                ):
+                    transitions["g"][i] = future_ag
 
-            transitions['r'][i] = self.reward_func(
-                episode_batch['ag'][episode_idx][t + 1], transitions['g'][i], None)
+            transitions["r"][i] = self.reward_func(
+                episode_batch["ag"][episode_idx][t + 1], transitions["g"][i], None
+            )
 
         new_transitions = {}
         for k, v in transitions.items():

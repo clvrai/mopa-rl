@@ -1,12 +1,13 @@
-import os, sys
+import collections
 
 import numpy as np
-import collections
 from dm_control.mujoco.wrapper import mjbindings
+
 
 IKResult = collections.namedtuple(
     'IKResult', ['qpos', 'err_norm', 'steps', 'success']
 )
+
 
 def indexer(env, names):
     indices = []
@@ -14,7 +15,6 @@ def indexer(env, names):
         indices.append(env.sim.model.joint_name2id(name))
 
     return indices
-
 
 
 def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_names=None,
@@ -119,11 +119,6 @@ def qpos_from_site_pose(env, site, target_pos=None, target_quat=None, joint_name
             ##env.set_state(env.sim.data.qpos+update_nv, np.ones(len(env.sim.data.qvel))*0.01)
             #env.step(update_nv[:-2])
     return IKResult(qpos = env.sim.data.qpos, err_norm=err_norm, steps=steps, success=success)
-
-
-
-
-
 
 
 def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, joint_names=None,
@@ -236,8 +231,6 @@ def qpos_from_site_pose_sampling(env, site, target_pos=None, target_quat=None, j
             tried += 1
 
 
-
-
 def nullspace_method(jac_joints, delta, regularization_strength=0.0, collision=0.0):
     hess_approx = jac_joints.T.dot(jac_joints)
     joint_delta = jac_joints.T.dot(delta)
@@ -246,8 +239,3 @@ def nullspace_method(jac_joints, delta, regularization_strength=0.0, collision=0
         return np.linalg.solve(hess_approx, joint_delta)
     else:
         return np.linalg.lstsq(hess_approx, joint_delta, rcond=-1)[0]
-
-
-
-
-

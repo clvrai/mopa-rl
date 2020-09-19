@@ -4,11 +4,12 @@ NOTE: convention for quaternions is (x, y, z, w)
 """
 
 import math
+
 import numpy as np
 
 
 PI = np.pi
-EPS = np.finfo(float).eps * 4.
+EPS = np.finfo(float).eps * 4.0
 
 # axis sequences for Euler angles
 _NEXT_AXIS = [1, 2, 0, 1]
@@ -278,6 +279,8 @@ def mat2euler(rmat, axes="sxyz"):
         firstaxis, parity, repetition, frame = _AXES2TUPLE[axes.lower()]
     except (AttributeError, KeyError):
         firstaxis, parity, repetition, frame = axes
+
+
 def quat2mat(quaternion):
     """
     Converts given quaternion (x, y, z, w) to matrix.
@@ -354,15 +357,15 @@ def _skew_symmetric_translation(pos_A_in_B):
     """
     return np.array(
         [
-            0.,
+            0.0,
             -pos_A_in_B[2],
             pos_A_in_B[1],
             pos_A_in_B[2],
-            0.,
+            0.0,
             -pos_A_in_B[0],
             -pos_A_in_B[1],
             pos_A_in_B[0],
-            0.,
+            0.0,
         ]
     ).reshape((3, 3))
 

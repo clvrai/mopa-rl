@@ -105,7 +105,6 @@ class PusherObstacleHardV3Env(BaseEnv):
     def body_names(self):
         return ['body0', 'body1', 'body2', 'body3', 'fingertip']
 
-
     @property
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
@@ -134,7 +133,6 @@ class PusherObstacleHardV3Env(BaseEnv):
     @property
     def static_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.static_geoms]
-
 
     def initialize_joints(self):
         while True:
@@ -253,6 +251,4 @@ class PusherObstacleHardV3Env(BaseEnv):
         self._prev_state = np.copy(desired_state)
         reward, info = self.compute_reward(action)
 
-
         return self._get_obs(), reward, self._terminal, info
-

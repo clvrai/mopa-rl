@@ -17,11 +17,8 @@ from gym.utils import seeding, EzPickle
 
 import env.transform_utils as T
 from util.logger import logger
+
 np.set_printoptions(suppress=True)
-# import line_profiler
-# import atexit
-# profile = line_profiler.LineProfiler()
-# atexit.register(profile.print_stats)
 
 
 class BaseEnv(gym.Env):
@@ -29,42 +26,40 @@ class BaseEnv(gym.Env):
 
     def __init__(self, xml_path, **kwargs):
         """ Initializes class with configuration. """
-        print("Creating env")
         # default env config
         self._env_config = {
-            "frame_skip": kwargs['frame_skip'],
-            "ctrl_reward": kwargs['ctrl_reward_coef'],
+            "frame_skip": kwargs["frame_skip"],
+            "ctrl_reward": kwargs["ctrl_reward_coef"],
             "init_randomness": 1e-5,
-            "max_episode_steps": kwargs['max_episode_steps'],
+            "max_episode_steps": kwargs["max_episode_steps"],
             "unstable_penalty": 0,
-            "reward_type": kwargs['reward_type'],
-            "distance_threshold": kwargs['distance_threshold'],
+            "reward_type": kwargs["reward_type"],
+            "distance_threshold": kwargs["distance_threshold"],
         }
 
         logger.setLevel(logging.INFO)
 
-        self.render_mode = 'no' # ['no', 'human', 'rgb_array']
-        self._screen_width = kwargs['screen_width']
-        self._screen_height = kwargs['screen_height']
-        self._seed = kwargs['seed']
+        self.render_mode = "no"  # ['no', 'human', 'rgb_array']
+        self._screen_width = kwargs["screen_width"]
+        self._screen_height = kwargs["screen_height"]
+        self._seed = kwargs["seed"]
         self.seed(self._seed)
         self._gym_disable_underscore_compat = True
-        self._kp = kwargs['kp']
-        self._kd = kwargs['kd']
-        self._ki = kwargs['ki']
-        self._frame_dt = kwargs['frame_dt']
-        self._ctrl_reward_coef = kwargs['ctrl_reward_coef']
-        self._camera_name = kwargs['camera_name']
+        self._kp = kwargs["kp"]
+        self._kd = kwargs["kd"]
+        self._ki = kwargs["ki"]
+        self._frame_dt = kwargs["frame_dt"]
+        self._ctrl_reward_coef = kwargs["ctrl_reward_coef"]
+        self._camera_name = kwargs["camera_name"]
         self._kwargs = kwargs
 
-        if 'box_to_target_coef' in kwargs:
-            self._box_to_target_coef = kwargs['box_to_target_coef']
-        if 'end_effector_to_box_coef' in kwargs:
-            self._end_effector_to_box_coef = kwargs['end_effector_to_box_coef']
-
+        if "box_to_target_coef" in kwargs:
+            self._box_to_target_coef = kwargs["box_to_target_coef"]
+        if "end_effector_to_box_coef" in kwargs:
+            self._end_effector_to_box_coef = kwargs["end_effector_to_box_coef"]
 
         # Load model
-        if 'robosuite' in xml_path:
+        if "robosuite" in xml_path:
             self._reset()
         self._load_model_from_path(xml_path)
 
@@ -86,16 +81,23 @@ class BaseEnv(gym.Env):
         is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
         jnt_minimum = np.full(len(is_jnt_limited), fill_value=-np.inf, dtype=np.float)
         jnt_maximum = np.full(len(is_jnt_limited), fill_value=np.inf, dtype=np.float)
-        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[
+            is_jnt_limited
+        ].T
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
         self._is_jnt_limited = is_jnt_limited
         self._jnt_minimum = jnt_minimum
         self._jnt_maximum = jnt_maximum
 
-        self.joint_space = spaces.Dict([
-            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
-        ])
+        self.joint_space = spaces.Dict(
+            [
+                (
+                    "default",
+                    spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32),
+                )
+            ]
+        )
 
     def _load_model(self):
         pass
@@ -104,11 +106,13 @@ class BaseEnv(gym.Env):
         pass
 
     def _load_model_from_path(self, xml_path):
-        if not xml_path.startswith('/'):
-            xml_path = os.path.join(os.path.dirname(__file__), 'assets', 'xml', xml_path)
+        if not xml_path.startswith("/"):
+            xml_path = os.path.join(
+                os.path.dirname(__file__), "assets", "xml", xml_path
+            )
 
         if not os.path.exists(xml_path):
-            raise IOError('Model file ({}) does not exist'.format(xml_path))
+            raise IOError("Model file ({}) does not exist".format(xml_path))
 
         model = mujoco_py.load_model_from_path(xml_path)
 
@@ -119,8 +123,8 @@ class BaseEnv(gym.Env):
         self.xml_path = xml_path
 
         # State
-        logger.info('initial qpos: {}'.format(self.sim.data.qpos.ravel()))
-        logger.info('initial qvel: {}'.format(self.sim.data.qvel.ravel()))
+        logger.info("initial qpos: {}".format(self.sim.data.qpos.ravel()))
+        logger.info("initial qvel: {}".format(self.sim.data.qvel.ravel()))
 
         # Action
         num_actions = self.sim.model.nu
@@ -132,27 +136,32 @@ class BaseEnv(gym.Env):
 
         self._minimum = minimum
         self._maximum = maximum
-        logger.info('is_limited: {}'.format(is_limited))
-        logger.info('control_range: {}'.format(control_range[is_limited].T))
-        self.action_space = spaces.Dict([
-            ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
-        ])
+        logger.info("is_limited: {}".format(is_limited))
+        logger.info("control_range: {}".format(control_range[is_limited].T))
+        self.action_space = spaces.Dict(
+            [("default", spaces.Box(low=minimum, high=maximum, dtype=np.float32))]
+        )
         self.action_space.seed(self._seed)
-
 
         jnt_range = self.sim.model.jnt_range
         is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
         jnt_minimum = np.full(len(is_jnt_limited), fill_value=-np.inf, dtype=np.float)
         jnt_maximum = np.full(len(is_jnt_limited), fill_value=np.inf, dtype=np.float)
-        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[
+            is_jnt_limited
+        ].T
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
         self._is_jnt_limited = is_jnt_limited
 
-
-        self.joint_space = spaces.Dict([
-            ('default', spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32))
-        ])
+        self.joint_space = spaces.Dict(
+            [
+                (
+                    "default",
+                    spaces.Box(low=jnt_minimum, high=jnt_maximum, dtype=np.float32),
+                )
+            ]
+        )
 
         # Camera
         # self._obs_camera_name = 'cam1'
@@ -179,7 +188,7 @@ class BaseEnv(gym.Env):
         self._prev_state = None
         self.sim.reset()
         self._reset_internal()
-        if self.render_mode == 'human':
+        if self.render_mode == "human":
             self._viewer = self._get_viewer()
             self._viewer_reset()
         ob = self._reset()
@@ -192,9 +201,11 @@ class BaseEnv(gym.Env):
 
     def _get_control(self, state, prev_state, target_vel):
         alpha = 0.95
-        p_term = self._kp * (state - self.sim.data.qpos[:self.sim.model.nu])
-        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[:self.sim.model.nu])
-        self._i_term = alpha * self._i_term + self._ki * (prev_state - self.sim.data.qpos[:self.sim.model.nu])
+        p_term = self._kp * (state - self.sim.data.qpos[: self.sim.model.nu])
+        d_term = self._kd * (target_vel * 0 - self.sim.data.qvel[: self.sim.model.nu])
+        self._i_term = alpha * self._i_term + self._ki * (
+            prev_state - self.sim.data.qpos[: self.sim.model.nu]
+        )
         action = p_term + d_term + self._i_term
 
         return action
@@ -224,7 +235,13 @@ class BaseEnv(gym.Env):
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, OrderedDict):
-            action = np.concatenate([action[key] for key in self.action_space.spaces.keys() if key is not 'ac_type'])
+            action = np.concatenate(
+                [
+                    action[key]
+                    for key in self.action_space.spaces.keys()
+                    if key is not "ac_type"
+                ]
+            )
 
         self._pre_action(action)
         ob, reward, done, info = self._step(action, is_planner)
@@ -239,18 +256,39 @@ class BaseEnv(gym.Env):
 
     def clip_qpos(self, qpos):
         tmp_pos = qpos.copy()
-        if np.any(qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]) or np.any(qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]):
+        if np.any(
+            qpos[self._is_jnt_limited] < self._jnt_minimum[self._is_jnt_limited]
+        ) or np.any(
+            qpos[self._is_jnt_limited] > self._jnt_maximum[self._is_jnt_limited]
+        ):
             new_qpos = np.clip(qpos.copy(), self._jnt_minimum, self._jnt_maximum)
-            new_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[np.invert(self._is_jnt_limited)]
+            new_qpos[np.invert(self._is_jnt_limited)] = tmp_pos[
+                np.invert(self._is_jnt_limited)
+            ]
             return new_qpos
         return qpos
 
-
     def _after_step(self, reward, terminal, info):
-        if np.any(self.sim.data.qpos[self._is_jnt_limited[self.jnt_indices]] < self._jnt_minimum[self.jnt_indices][self._is_jnt_limited[self.jnt_indices]]) or np.any(self.sim.data.qpos[self._is_jnt_limited[self.jnt_indices]] > self._jnt_maximum[self.jnt_indices][self._is_jnt_limited[self.jnt_indices]]):
+        if np.any(
+            self.sim.data.qpos[self._is_jnt_limited[self.jnt_indices]]
+            < self._jnt_minimum[self.jnt_indices][
+                self._is_jnt_limited[self.jnt_indices]
+            ]
+        ) or np.any(
+            self.sim.data.qpos[self._is_jnt_limited[self.jnt_indices]]
+            > self._jnt_maximum[self.jnt_indices][
+                self._is_jnt_limited[self.jnt_indices]
+            ]
+        ):
             tmp_pos = self.sim.data.qpos.copy()
-            new_pos = np.clip(self.sim.data.qpos.copy(), self._jnt_minimum[self.jnt_indices], self._jnt_maximum[self.jnt_indices])
-            new_pos[np.invert(self._is_jnt_limited[self.jnt_indices])] = tmp_pos[np.invert(self._is_jnt_limited[self.jnt_indices])]
+            new_pos = np.clip(
+                self.sim.data.qpos.copy(),
+                self._jnt_minimum[self.jnt_indices],
+                self._jnt_maximum[self.jnt_indices],
+            )
+            new_pos[np.invert(self._is_jnt_limited[self.jnt_indices])] = tmp_pos[
+                np.invert(self._is_jnt_limited[self.jnt_indices])
+            ]
             self.set_state(new_pos, self.sim.data.qvel.ravel())
 
         step_log = dict(info)
@@ -299,24 +337,30 @@ class BaseEnv(gym.Env):
     def _set_camera_rotation(self, cam_id, target_pos):
         cam_pos = self.sim.model.cam_pos[cam_id]
         forward = target_pos - cam_pos
-        up = [forward[0], forward[1], (forward[0]**2 + forward[1]**2) / (-forward[2])]
+        up = [
+            forward[0],
+            forward[1],
+            (forward[0] ** 2 + forward[1] ** 2) / (-forward[2]),
+        ]
         if forward[0] == 0 and forward[1] == 0:
             up = [0, 1, 0]
         q = T.lookat_to_quat(-forward, up)
-        self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to='wxyz')
+        self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to="wxyz")
 
-    def render(self, mode='human', close=False):
-        self._render_callback() # sim.forward()
+    def render(self, mode="human", close=False):
+        self._render_callback()  # sim.forward()
 
-        if mode == 'rgb_array':
-            camera_obs = self.sim.render(camera_name=self._camera_name,
-                                         width=self._screen_width,
-                                         height=self._screen_height,
-                                         depth=False)
+        if mode == "rgb_array":
+            camera_obs = self.sim.render(
+                camera_name=self._camera_name,
+                width=self._screen_width,
+                height=self._screen_height,
+                depth=False,
+            )
             camera_obs = camera_obs[::-1, :, :] / 255.0
-            assert np.sum(camera_obs) > 0, 'rendering image is blank'
+            assert np.sum(camera_obs) > 0, "rendering image is blank"
             return camera_obs
-        elif mode == 'human':
+        elif mode == "human":
             self._get_viewer().render()
             return None
         return None
@@ -349,7 +393,9 @@ class BaseEnv(gym.Env):
             # self.sim.forward()
             self.sim.step()
         except Exception as e:
-            logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
+            logger.warn(
+                "[!] Warning: Simulation is unstable. The episode is terminated."
+            )
             logger.warn(e)
             logger.warn(traceback.format_exc())
             self.reset()
@@ -358,20 +404,27 @@ class BaseEnv(gym.Env):
     def form_action(self, next_qpos, curr_qpos=None):
         if curr_qpos is None:
             curr_qpos = self.sim.data.qpos.copy()
-        joint_ac = next_qpos[self.ref_joint_pos_indexes] - curr_qpos[self.ref_joint_pos_indexes]
-        ac = OrderedDict([('default', joint_ac)])
+        joint_ac = (
+            next_qpos[self.ref_joint_pos_indexes]
+            - curr_qpos[self.ref_joint_pos_indexes]
+        )
+        ac = OrderedDict([("default", joint_ac)])
         return ac
 
     def form_hindsight_action(self, prev_qpos, skill=None):
-        joint_ac = self.sim.data.qpos.copy()[self.ref_joint_pos_indexes] - prev_qpos[self.ref_joint_pos_indexes]
-        ac = OrderedDict([('default', joint_ac)])
+        joint_ac = (
+            self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+            - prev_qpos[self.ref_joint_pos_indexes]
+        )
+        ac = OrderedDict([("default", joint_ac)])
         return ac
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.sim.model.nq,) and qvel.shape == (self.sim.model.nv,)
         old_state = self.sim.get_state()
-        new_state = mujoco_py.MjSimState(old_state.time, qpos, qvel,
-                                         old_state.act, old_state.udd_state)
+        new_state = mujoco_py.MjSimState(
+            old_state.time, qpos, qvel, old_state.act, old_state.udd_state
+        )
         self.sim.set_state(new_state)
         self.sim.forward()
 
@@ -468,7 +521,7 @@ class BaseEnv(gym.Env):
         body_idx1 = self.sim.model.body_name2id(name)
         for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
-                self.sim.model.geom_rgba[geom_idx, 0:len(color)] = color
+                self.sim.model.geom_rgba[geom_idx, 0 : len(color)] = color
 
     def _get_color(self, name):
         body_idx1 = self.sim.model.body_name2id(name)
@@ -480,7 +533,7 @@ class BaseEnv(gym.Env):
     def _mass_center(self):
         mass = np.expand_dims(self.sim.model.body_mass, axis=1)
         xpos = self.data.xipos
-        return (np.sum(mass * xpos, 0) / np.sum(mass))
+        return np.sum(mass * xpos, 0) / np.sum(mass)
 
     def on_collision(self, ref_name, geom_name=None):
         mjcontacts = self.data.contact
@@ -490,13 +543,14 @@ class BaseEnv(gym.Env):
             g1 = self.sim.model.geom_id2name(ct.geom1)
             g2 = self.sim.model.geom_id2name(ct.geom2)
             if g1 is None or g2 is None:
-                continue # geom_name can be None
+                continue  # geom_name can be None
             if geom_name is not None:
-                if (g1.find(ref_name) >= 0 or g2.find(ref_name) >= 0) and \
-                    (g1.find(geom_name) >= 0 or g2.find(geom_name) >= 0):
+                if (g1.find(ref_name) >= 0 or g2.find(ref_name) >= 0) and (
+                    g1.find(geom_name) >= 0 or g2.find(geom_name) >= 0
+                ):
                     return True
             else:
-                if (g1.find(ref_name) >= 0 or g2.find(ref_name) >= 0):
+                if g1.find(ref_name) >= 0 or g2.find(ref_name) >= 0:
                     return True
         return False
 
@@ -507,8 +561,9 @@ class BaseEnv(gym.Env):
         for i in range(ncon):
             c = self.sim.data.contact[i]
             print(c.geom1, c.geom2, geom1_id, geom2_id)
-            if (c.geom1 == geom1_id and c.geom2 == geom2_id) or \
-                    (c.geom1 == geom2_id and c.geom2 == geom1_id):
+            if (c.geom1 == geom1_id and c.geom2 == geom2_id) or (
+                c.geom1 == geom2_id and c.geom2 == geom1_id
+            ):
                 return True
         return False
 
@@ -516,15 +571,16 @@ class BaseEnv(gym.Env):
         mjcontacts = self.data.contact
         ncon = self.data.ncon
         # total_contact_force = np.zeros(6, dtype=np.float64)
-        total_contact_force = 0.
+        total_contact_force = 0.0
         for i in range(ncon):
             contact = mjcontacts[i]
             c_array = np.zeros(6, dtype=np.float64)
-            mujoco_py.functions.mj_contactForce(self.sim.model, self.sim.data, i, c_array)
+            mujoco_py.functions.mj_contactForce(
+                self.sim.model, self.sim.data, i, c_array
+            )
             total_contact_force += np.sum(np.abs(c_array))
 
         return total_contact_force
-
 
     def _check_contact(self):
         return False
@@ -533,7 +589,7 @@ class BaseEnv(gym.Env):
         return False
 
     def her_compute_reward(self, achieved_goal, goal, info):
-        return -np.linalg.norm(achieved_goal-goal)
+        return -np.linalg.norm(achieved_goal - goal)
 
     def find_contacts(self, geoms_1, geoms_2):
         """
