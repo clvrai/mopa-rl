@@ -43,9 +43,7 @@ class PlannerAgent:
         config = self._config
         if timelimit is None:
             timelimit = config.timelimit
-        traj, states, valid, exact = self.planner.plan(
-            start, goal, timelimit
-        )
+        traj, states, valid, exact = self.planner.plan(start, goal, timelimit)
         success = valid and exact
 
         if success:

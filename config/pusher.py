@@ -11,7 +11,7 @@ def add_arguments(parser):
         type=str,
         default="dense",
         choices=["sparse"],
-        help="reward type"
+        help="reward type",
     )
     parser.add_argument("--distance_threshold", type=float, default=0.05)
     parser.add_argument("--max_episode_steps", type=int, default=150)

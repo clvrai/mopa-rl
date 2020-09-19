@@ -130,7 +130,9 @@ class MoPARolloutRunner(object):
                         ]
 
                     # Invalid target joint state handling
-                    if config.invalid_target_handling and not pi.isValidState(target_qpos):
+                    if config.invalid_target_handling and not pi.isValidState(
+                        target_qpos
+                    ):
                         trial = 0
                         while (
                             not pi.isValidState(target_qpos)
@@ -221,15 +223,10 @@ class MoPARolloutRunner(object):
                             yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                         # Resample the trajectory from motion planner
-                        if (
-                            config.reuse_data
-                            and len(ob_list) > 3
-                        ):
+                        if config.reuse_data and len(ob_list) > 3:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
-                                start = np.random.randint(
-                                    low=0, high=len(ob_list) - 2
-                                )
+                                start = np.random.randint(low=0, high=len(ob_list) - 2)
                                 if start + 1 > len(ob_list) - 1:
                                     continue
                                 goal = np.random.randint(
@@ -379,9 +376,7 @@ class MoPARolloutRunner(object):
                         yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
                 env._reset_prev_state()
-            ep_info.add(
-                {"len": ep_len, "rew": ep_rew}
-            )
+            ep_info.add({"len": ep_len, "rew": ep_rew})
             if counter["mp"] > 0:
                 ep_info.add({"mp_path_len": mp_path_len / counter["mp"]})
             if counter["interpolation"] > 0:

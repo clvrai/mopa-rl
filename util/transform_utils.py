@@ -44,8 +44,10 @@ _AXES2TUPLE = {
 
 _TUPLE2AXES = dict((v, k) for k, v in _AXES2TUPLE.items())
 
+
 def norm(x):
     return x / np.linalg.norm(x)
+
 
 def lookat_to_quat(forward, up):
     vector = norm(forward)
@@ -97,6 +99,7 @@ def lookat_to_quat(forward, up):
     quaternion[2] = 0.5 * num5
     quaternion[3] = (m01 - m10) * num2
     return quaternion
+
 
 def convert_quat(q, to="xyzw"):
     """

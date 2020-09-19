@@ -165,7 +165,9 @@ class Trainer(object):
                 os.environ["WANDB_MODE"] = "dryrun"
 
             tags = [config.env, config.algo, config.reward_type]
-            assert config.entity != None and config.project != None, "Entity and Project name must be specified"
+            assert (
+                config.entity != None and config.project != None
+            ), "Entity and Project name must be specified"
 
             wandb.init(
                 resume=config.run_name,
@@ -369,8 +371,8 @@ class Trainer(object):
         logger.info("Reached %s steps. worker %d stopped.", step, config.rank)
 
     def _evaluate(self, step=None, record=False, idx=None):
-        """ Run one rollout if in eval mode
-            Run num_record_samples rollouts if in train mode
+        """Run one rollout if in eval mode
+        Run num_record_samples rollouts if in train mode
         """
         vids = []
         for i in range(self._config.num_record_samples):

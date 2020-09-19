@@ -74,7 +74,11 @@ def rotation_matrix(angle, direction, point=None):
 
 
 def create_stats_ordered_dict(
-    name, data, stat_prefix=None, always_show_all_stats=True, exclude_max_min=False,
+    name,
+    data,
+    stat_prefix=None,
+    always_show_all_stats=True,
+    exclude_max_min=False,
 ):
     if stat_prefix is not None:
         name = "{} {}".format(stat_prefix, name)
@@ -87,7 +91,10 @@ def create_stats_ordered_dict(
     if isinstance(data, tuple):
         ordered_dict = OrderedDict()
         for number, d in enumerate(data):
-            sub_dict = create_stats_ordered_dict("{0}_{1}".format(name, number), d,)
+            sub_dict = create_stats_ordered_dict(
+                "{0}_{1}".format(name, number),
+                d,
+            )
             ordered_dict.update(sub_dict)
         return ordered_dict
 
@@ -103,7 +110,10 @@ def create_stats_ordered_dict(
         return OrderedDict({name: float(data)})
 
     stats = OrderedDict(
-        [(name + " Mean", np.mean(data)), (name + " Std", np.std(data)),]
+        [
+            (name + " Mean", np.mean(data)),
+            (name + " Std", np.std(data)),
+        ]
     )
     if not exclude_max_min:
         stats[name + " Max"] = np.max(data)
@@ -190,10 +200,10 @@ def zangle_to_quat(zangle):
 
 def quat_create(axis, angle):
     """
-        Create a quaternion from an axis and angle.
-        :param axis The three dimensional axis
-        :param angle The angle in radians
-        :return: A 4-d array containing the components of a quaternion.
+    Create a quaternion from an axis and angle.
+    :param axis The three dimensional axis
+    :param angle The angle in radians
+    :return: A 4-d array containing the components of a quaternion.
     """
     quat = np.zeros([4], dtype="float")
     mujoco_py.functions.mju_axisAngle2Quat(quat, axis, angle)
@@ -202,9 +212,9 @@ def quat_create(axis, angle):
 
 def quat_inv(quat):
     """
-        Invert a quaternion, represented by a 4d array.
-        :param A quaternion (4-d array). Must not be the zero quaternion (all elements equal to zero)
-        :return: A 4-d array containing the components of a quaternion.
+    Invert a quaternion, represented by a 4d array.
+    :param A quaternion (4-d array). Must not be the zero quaternion (all elements equal to zero)
+    :return: A 4-d array containing the components of a quaternion.
     """
     d = 1.0 / np.sum(quat ** 2)
     return d * np.array([1.0, -1.0, -1.0, -1.0]) * quat
@@ -212,7 +222,7 @@ def quat_inv(quat):
 
 def quat_mul(quat1, quat2):
     """
-        Multiply two quaternions, both represented as 4-d arrays.
+    Multiply two quaternions, both represented as 4-d arrays.
     """
     prod_quat = np.zeros([4], dtype="float")
     mujoco_py.functions.mju_mulQuat(prod_quat, quat1, quat2)

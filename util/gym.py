@@ -11,6 +11,7 @@ def observation_size(observation_space):
     elif isinstance(observation_space, spaces.Box):
         return np.product(observation_space.shape)
 
+
 def action_size(action_space):
     if isinstance(action_space, spaces.Dict):
         return sum([action_size(value) for key, value in action_space.spaces.items()])
