@@ -6,8 +6,8 @@ from gym.envs.registration import register
 # register all environments to use
 register(id="pusher-v0", entry_point="env.pusher:PusherEnv", kwargs={})
 register(
-    id="pusher-obstacle-hard-v3",
-    entry_point="env.pusher:PusherObstacleHardV3Env",
+    id="pusher-obstacle-v0",
+    entry_point="env.pusher:PusherObstacleEnv",
     kwargs={},
 )
 
@@ -30,17 +30,7 @@ register(
 
 register(id="sawyer-push-v0", entry_point="env.sawyer:SawyerPushEnv", kwargs={})
 register(
-    id="sawyer-push-obstacle-easy-v0",
-    entry_point="env.sawyer:SawyerPushObstacleEasyEnv",
-    kwargs={},
-)
-register(
-    id="sawyer-push-obstacle-v2",
-    entry_point="env.sawyer:SawyerPushObstacleV2Env",
-    kwargs={},
-)
-register(
-    id="sawyer-push-obstacle-v3",
-    entry_point="env.sawyer:SawyerPushObstacleV3Env",
+    id="sawyer-push-obstacle-v0",
+    entry_point="env.sawyer:SawyerPushObstacleEnv",
     kwargs={},
 )

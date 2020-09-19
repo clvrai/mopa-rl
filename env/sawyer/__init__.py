@@ -1,6 +1,5 @@
 from env.sawyer.sawyer_push import SawyerPushEnv
-from env.sawyer.sawyer_push_obstacle_v2 import SawyerPushObstacleV2Env
-from env.sawyer.sawyer_push_obstacle_v3 import SawyerPushObstacleV3Env
+from env.sawyer.sawyer_push_obstacle import SawyerPushObstacleEnv
 from env.sawyer.sawyer_lift import SawyerLiftEnv
 from env.sawyer.sawyer_assembly import SawyerAssemblyEnv
 from env.sawyer.sawyer_assembly_v1 import SawyerAssemblyV1Env

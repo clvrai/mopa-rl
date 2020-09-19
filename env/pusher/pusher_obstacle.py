@@ -7,11 +7,11 @@ from gym import spaces
 from env.base import BaseEnv
 
 
-class PusherObstacleHardV3Env(BaseEnv):
+class PusherObstacleEnv(BaseEnv):
     """ Pusher with Obstacles environment. """
 
     def __init__(self, **kwargs):
-        super().__init__("pusher_obstacle_hard_v3.xml", **kwargs)
+        super().__init__("pusher_obstacle.xml", **kwargs)
         self.obstacle_names = list(
             filter(lambda x: re.search(r"obstacle", x), self.sim.model.body_names)
         )
