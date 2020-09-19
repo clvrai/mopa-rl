@@ -9,7 +9,7 @@ from util.env import joint_convert
 
 
 class SamplingBasedPlanner:
-    def __init__(self, config, xml_path, num_actions, non_limited_idx, planner_type=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, allow_approximate=False, is_simplified=False, simplified_duration=0.1, range_=None):
+    def __init__(self, config, xml_path, num_actions, non_limited_idx, planner_type=None, passive_joint_idx=[], glue_bodies=[], ignored_contacts=[], contact_threshold=0.0, goal_bias=0.05, is_simplified=False, simplified_duration=0.1, range_=None):
         self.config = config
         if planner_type is None:
             planner_type = config.planner_type
@@ -25,7 +25,6 @@ class SamplingBasedPlanner:
                                           ignored_contacts,
                                           contact_threshold,
                                           goal_bias,
-                                          allow_approximate,
                                           is_simplified,
                                           simplified_duration,
                                           config.seed)

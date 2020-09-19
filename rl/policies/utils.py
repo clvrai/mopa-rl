@@ -61,7 +61,6 @@ class MLP(nn.Module):
         hid_dims=[],
         last_activation=False,
         activation="relu",
-        bias=None,
     ):
         super().__init__()
         if activation == "relu":
@@ -87,10 +86,7 @@ class MLP(nn.Module):
             prev_dim = d
         fc.append(nn.Linear(prev_dim, output_dim))
         fc[-1].weight.data.uniform_(-1e-3, 1e-3)
-        if bias is None:
-            fc[-1].bias.data.uniform_(-1e-3, 1e-3)
-        else:
-            fc[-1].bias.data.fill_(bias)
+        fc[-1].bias.data.uniform_(-1e-3, 1e-3)
         if last_activation:
             fc.append(activation_fn)
         self.fc = nn.Sequential(*fc)

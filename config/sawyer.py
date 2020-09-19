@@ -22,24 +22,6 @@ def add_arguments(parser):
 
     # observations
     parser.add_argument(
-        "--robot_ob",
-        type=str2bool,
-        default=True,
-        help="includes agent state in observation",
-    )
-    parser.add_argument(
-        "--object_ob",
-        type=str2bool,
-        default=True,
-        help="includes object pose in observation",
-    )
-    parser.add_argument(
-        "--visual_ob",
-        type=str2bool,
-        default=False,
-        help="includes camera image in observation",
-    )
-    parser.add_argument(
         "--frame_skip", type=int, default=1, help="Numer of skip frames"
     )
     parser.add_argument("--action_repeat", type=int, default=5)

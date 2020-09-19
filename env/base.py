@@ -15,7 +15,8 @@ import gym
 from gym import spaces, error
 from gym.utils import seeding, EzPickle
 
-import env.transform_utils as T
+# import env.transform_utils as T
+import util.transform_utils as T
 from util.logger import logger
 
 np.set_printoptions(suppress=True)
@@ -58,9 +59,6 @@ class BaseEnv(gym.Env):
         if "end_effector_to_box_coef" in kwargs:
             self._end_effector_to_box_coef = kwargs["end_effector_to_box_coef"]
 
-        # Load model
-        if "robosuite" in xml_path:
-            self._reset()
         self._load_model_from_path(xml_path)
 
         self._init_qpos = self.sim.data.qpos.ravel().copy()

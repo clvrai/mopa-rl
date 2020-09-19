@@ -54,7 +54,6 @@ class MoPARolloutRunner(object):
             ep_rew = 0
             mp_path_len = 0
             interpolation_path_len = 0
-            ep_rew_with_penalty = 0
             ob = env.reset()
             if config.use_ik_target:
                 ik_env.reset()
@@ -131,7 +130,7 @@ class MoPARolloutRunner(object):
                         ]
 
                     # Invalid target joint state handling
-                    if config.find_collision_free and not pi.isValidState(target_qpos):
+                    if config.invalid_target_handling and not pi.isValidState(target_qpos):
                         trial = 0
                         while (
                             not pi.isValidState(target_qpos)
@@ -148,6 +147,9 @@ class MoPARolloutRunner(object):
                     else:
                         success, valid, exact = False, False, True
 
+                    if not random_exploration:
+                        print("")
+                        print(len(traj))
                     if success:
                         if interpolation:
                             counter["interpolation"] += 1
@@ -197,7 +199,6 @@ class MoPARolloutRunner(object):
                             step += 1
                             env_step += 1
                             ep_rew += reward
-                            ep_rew_with_penalty += reward
                             reward_info.add(info)
                             if done or ep_len >= max_step:
                                 break
@@ -222,17 +223,17 @@ class MoPARolloutRunner(object):
                         # Resample the trajectory from motion planner
                         if (
                             config.reuse_data
-                            and len(ob_list) > config.min_reuse_span + 2
+                            and len(ob_list) > 3
                         ):
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
                                 start = np.random.randint(
-                                    low=0, high=len(ob_list) - config.min_reuse_span - 1
+                                    low=0, high=len(ob_list) - 2
                                 )
-                                if start + config.min_reuse_span > len(ob_list) - 1:
+                                if start + 1 > len(ob_list) - 1:
                                     continue
                                 goal = np.random.randint(
-                                    low=start + config.min_reuse_span, high=len(ob_list)
+                                    low=start + 1, high=len(ob_list)
                                 )
                                 if (start, goal) in pairs:
                                     continue
@@ -316,8 +317,6 @@ class MoPARolloutRunner(object):
                         reward = 0
                         reward, info = env.compute_reward(np.zeros(env.sim.model.nu))
                         ep_rew += reward
-                        reward += self._config.invalid_planner_rew
-                        ep_rew_with_penalty += reward
                         rollout.add(
                             {
                                 "ob": ll_ob,
@@ -369,7 +368,6 @@ class MoPARolloutRunner(object):
                     ep_len += 1
                     step += 1
                     ep_rew += reward
-                    ep_rew_with_penalty += reward
                     env_step += 1
                     reward_info.add(info)
                     if every_steps is not None and step % every_steps == 0:
@@ -382,7 +380,7 @@ class MoPARolloutRunner(object):
 
                 env._reset_prev_state()
             ep_info.add(
-                {"len": ep_len, "rew": ep_rew, "rew_with_penalty": ep_rew_with_penalty}
+                {"len": ep_len, "rew": ep_rew}
             )
             if counter["mp"] > 0:
                 ep_info.add({"mp_path_len": mp_path_len / counter["mp"]})
@@ -424,7 +422,6 @@ class MoPARolloutRunner(object):
         done = False
         ep_len = 0
         ep_rew = 0
-        ep_rew_with_penalty = 0
         ob = env.reset()
         if config.use_ik_target:
             ik_env.reset()
@@ -506,7 +503,7 @@ class MoPARolloutRunner(object):
                         np.invert(env._is_jnt_limited[env.jnt_indices])
                     ] = tmp_target_qpos[np.invert(env._is_jnt_limited[env.jnt_indices])]
 
-                if config.find_collision_free and not pi.isValidState(target_qpos):
+                if config.invalid_target_handling and not pi.isValidState(target_qpos):
                     trial = 0
                     while (
                         not pi.isValidState(target_qpos) and trial < config.num_trials
@@ -551,7 +548,6 @@ class MoPARolloutRunner(object):
                         meta_rew += reward
                         ep_len += 1
                         ep_rew += reward
-                        ep_rew_with_penalty += reward
                         reward_info.add(info)
 
                         if record:
@@ -599,7 +595,6 @@ class MoPARolloutRunner(object):
                     reward = 0.0
                     reward, info = env.compute_reward(np.zeros(env.sim.model.nu))
                     ep_rew += reward
-                    reward += self._config.invalid_planner_rew
                     rollout.add(
                         {
                             "ob": ll_ob,
@@ -611,7 +606,6 @@ class MoPARolloutRunner(object):
                     done, info, _ = env._after_step(reward, env._terminal, info)
                     rollout.add({"done": done, "rew": reward})
                     ep_len += 1
-                    ep_rew_with_penalty += reward
                     reward_info.add(info)
 
                     contact_pairs = []
@@ -660,13 +654,11 @@ class MoPARolloutRunner(object):
                     total_contact_force += contact_force
                 ep_len += 1
                 ep_rew += reward
-                ep_rew_with_penalty += reward
                 reward_info.add(info)
                 rollout.add(
                     {
                         "done": done,
                         "rew": reward,
-                        "rew_with_penalty": ep_rew_with_penalty,
                     }
                 )
                 if record:

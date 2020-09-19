@@ -183,31 +183,15 @@ class PusherObstacleHardV3Env(BaseEnv):
     def compute_reward(self, action):
         info = {}
         reward_type = self._env_config['reward_type']
-        # reward_ctrl = self._ctrl_reward(action)
-        reach_multi = 0.3
-        move_multi = 0.9
-        if reward_type == 'dense':
-            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            # reward_reach = (1-np.tanh(10.0*dist_box_to_gripper)) * reach_multi
-            reward_reach = -dist_box_to_gripper * reach_multi
-            reward_move  = -self._get_distance('box', 'target') * move_multi
-            # reward_move = (1-np.tanh(10.0*self._get_distance('box', 'target'))) * move_multi
-            # reward_ctrl = self._ctrl_reward(action)
-
-            reward = reward_reach + reward_move
-
-            # info = dict(reward_reach=reward_reach, reward_move=reward_move, reward_ctrl=reward_ctrl)
-            info = dict(reward_reach=reward_reach, reward_move=reward_move)
-        else:
-            reward_reach = 0.
-            reward_push = 0.
-            dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
-            if dist_box_to_gripper < 0.1:
-                reward_reach += 0.1*(1-np.tanh(5*dist_box_to_gripper))
-            if self._get_distance('box', 'target') < 0.1:
-                reward_push += 0.3 * (1-np.tanh(5*self._get_distance('box', 'target')))
-            reward = reward_reach + reward_push
-            info = dict(reward_reach=reward_reach, reward_push=reward_push)
+        reward_reach = 0.
+        reward_push = 0.
+        dist_box_to_gripper = np.linalg.norm(self._get_pos('box')-self.sim.data.get_site_xpos('fingertip'))
+        if dist_box_to_gripper < 0.1:
+            reward_reach += 0.1*(1-np.tanh(5*dist_box_to_gripper))
+        if self._get_distance('box', 'target') < 0.1:
+            reward_push += 0.3 * (1-np.tanh(5*self._get_distance('box', 'target')))
+        reward = reward_reach + reward_push
+        info = dict(reward_reach=reward_reach, reward_push=reward_push)
 
         if self._get_distance('box', 'target') < self._env_config['distance_threshold']:
             self._success = True

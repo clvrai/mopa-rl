@@ -42,7 +42,7 @@ using namespace MotionPlanner;
 KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, std::string Opt,
                  double Threshold, double _Range, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies,
                  std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias,
-                 bool Allow_approximate, bool is_simplified, double simplified_duration, int seed)
+                 bool is_simplified, double simplified_duration, int seed)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
@@ -56,7 +56,6 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     glue_bodies = Glue_bodies;
     ignored_contacts = Ignored_contacts;
     planner_status = "none";
-    allow_approximate = Allow_approximate;
     isSimplified = is_simplified;
     simplifiedDuration = simplified_duration;
 
@@ -179,7 +178,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     }
 
     ss->setStartAndGoalStates(start_ss, goal_ss, threshold);
-    if (!ss->getStateValidityChecker()->isValid(goal_ss.get()) && !allow_approximate){
+    if (!ss->getStateValidityChecker()->isValid(goal_ss.get())){
         std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
         return failedSolutions;
     }
@@ -190,7 +189,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     planner_status = solved.asString();
 
     if (bool(solved)){
-        if (ss->haveExactSolutionPath() || allow_approximate) {
+        if (ss->haveExactSolutionPath()) {
             og::PathGeometric p = ss->getSolutionPath();
             if (isSimplified){
                 psimp_->simplify(p, 5.0);
@@ -247,20 +246,11 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         }
     }
 
-    if (allow_approximate){
-        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -5));
-        return failedSolutions;
-    } else {
-        std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -4));
-        return failedSolutions;
-    }
+    std::vector<std::vector<double> > failedSolutions(1, std::vector<double>(start_vec.size(), -4));
+    return failedSolutions;
 }
 
 bool KinematicPlanner::isValidState(std::vector<double> state_vec){
-    if (allow_approximate){
-        return true;
-    }
-
     if (algo == "rrt"){
         ss->getPlanner()->as<og::RRTstar>()->clear();
     } else if (algo == "rrt_connect"){

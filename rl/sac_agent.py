@@ -93,7 +93,6 @@ class SACAgent(BaseAgent):
                 ignored_contacts=config.ignored_contact_geom_ids,
                 is_simplified=config.is_simplified,
                 simplified_duration=config.simplified_duration,
-                allow_approximate=config.allow_approximate,
                 range_=config.range,
             )
             self._simple_planner = PlannerAgent(
@@ -104,7 +103,6 @@ class SACAgent(BaseAgent):
                 passive_joint_idx=config.passive_joint_idx,
                 ignored_contacts=config.ignored_contact_geom_ids,
                 goal_bias=1.0,
-                allow_approximate=False,
                 is_simplified=config.simple_planner_simplified,
                 simplified_duration=config.simple_planner_simplified_duration,
                 range_=config.simple_planner_range,
@@ -128,7 +126,6 @@ class SACAgent(BaseAgent):
             self._ob_space,
             self._ac_space,
             self._config.tanh_policy,
-            bias=self._config.actor_bias,
         )
 
     def _build_critic(self, critic):
@@ -212,21 +209,16 @@ class SACAgent(BaseAgent):
 
         curr_qpos = self.clip_qpos(curr_qpos)
         interpolation = True
-        if self._config.interpolate_type == "planner":
-            traj, success, valid, exact = self._simple_planner.plan(
-                curr_qpos, target_qpos, self._config.simple_planner_timelimit
-            )
-        else:
-            traj, success, valid, exact = self.simple_interpolate(
-                curr_qpos, target_qpos, ac_scale
-            )
+        traj, success, valid, exact = self.simple_interpolate(
+            curr_qpos, target_qpos, ac_scale
+        )
         if not success:
-            if not exact or self._config.allow_approximate:
+            if not exact:
                 traj, success, valid, exact = self._planner.plan(
                     curr_qpos, target_qpos, self._config.timelimit
                 )
                 interpolation = False
-                if self._config.use_interpolation and success:
+                if self._config.interpolation and success:
                     new_traj = []
                     start = curr_qpos
                     for i in range(len(traj)):
@@ -236,35 +228,15 @@ class SACAgent(BaseAgent):
                         ) or np.any(
                             diff[: len(self._ref_joint_pos_indexes)] > ac_scale
                         ):
-                            if self._config.interpolate_type == "planner":
-                                (
-                                    inner_traj,
-                                    inner_success,
-                                    inner_valid,
-                                    inner_exact,
-                                ) = self._simple_planner.plan(
-                                    start,
-                                    traj[i],
-                                    self._config.simple_planner_timelimit,
-                                )
-                                if inner_success:
-                                    new_traj.extend(inner_traj)
-                            else:
-                                inner_traj, _, _, _ = self.simple_interpolate(
-                                    start, traj[i], ac_scale, use_planner=True
-                                )
-                                new_traj.extend(inner_traj)
+                            inner_traj, _, _, _ = self.simple_interpolate(
+                                start, traj[i], ac_scale, use_planner=True
+                            )
+                            new_traj.extend(inner_traj)
                         else:
                             new_traj.append(traj[i])
                         start = traj[i]
                     traj = np.array(new_traj)
 
-        return traj, success, interpolation, valid, exact
-
-    def interpolate(self, curr_qpos, target_qpos):
-        traj, success, valid, exact = self._simple_planner.plan(
-            curr_qpos, target_qpos, self._config.simple_planner_timelimit
-        )
         return traj, success, interpolation, valid, exact
 
     def clip_qpos(self, curr_qpos):
@@ -351,7 +323,6 @@ class SACAgent(BaseAgent):
         return np.array(traj), success, valid, exact
 
     def interpolate_ac(self, ac, ac_scale, diff):
-        # def simple_interpolate(self, curr_qpos, target_qpos, ac_scale, use_planner=False):
         out_of_bounds = np.where((diff > ac_scale) | (diff < -ac_scale))[0]
         out_diff = diff[out_of_bounds]
         scales = np.where(

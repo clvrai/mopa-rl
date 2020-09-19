@@ -61,11 +61,6 @@ class Trainer(object):
 
         allowed_collsion_pairs = []
         for manipulation_geom_id in self._env.manipulation_geom_ids:
-            if config.allow_manipulation_collision:
-                for geom_id in self._env.agent_geom_ids:
-                    allowed_collsion_pairs.append(
-                        make_ordered_pair(manipulation_geom_id, geom_id)
-                    )
             for geom_id in self._env.static_geom_ids:
                 allowed_collsion_pairs.append(
                     make_ordered_pair(manipulation_geom_id, geom_id)
@@ -170,13 +165,14 @@ class Trainer(object):
                 os.environ["WANDB_MODE"] = "dryrun"
 
             tags = [config.env, config.algo, config.reward_type]
+            assert config.entity != None and config.project != None, "Entity and Project name must be specified"
 
             wandb.init(
                 resume=config.run_name,
-                project="hrl-planner",
+                project=config.project,
                 config={k: v for k, v in config.__dict__.items() if k not in exclude},
                 dir=config.log_dir,
-                entity="clvr",
+                entity=config.entity,
                 notes=config.notes,
                 tags=tags,
                 group=config.group,

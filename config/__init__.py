@@ -13,23 +13,30 @@ def argparser():
     parser.add_argument(
         "--env", type=str, default="reacher-obstacle-v0", help="environment name"
     )
-    parser.add_argument("--env_args", type=str, default=None, help="arguments for environment")
-    parser.add_argument("--terminal", type=str2bool, default=True)
 
     # training algorithm
-    parser.add_argument("--algo", type=str, default="sac", choices=["sac", "td3"], help="algorithm")
+    parser.add_argument("--algo", type=str, default="sac", choices=["sac", "td3"])
     parser.add_argument("--policy", type=str, default="mlp", choices=["mlp"])
     parser.add_argument("--mopa", type=str2bool, default=False)
-    parser.add_argument("--use_discount_meta", type=str2bool, default=True)
     parser.add_argument(
         "--ac_space_type",
         type=str,
         default="piecewise",
         choices=["normal", "piecewise"],
+        help="Action space type for MoPA"
     )
-    parser.add_argument("--use_ik_target", type=str2bool, default=False)
-    parser.add_argument("--ik_target", type=str, default="fingertip")
-    parser.add_argument("--expand_ac_space", type=str2bool, default=False)
+    parser.add_argument("--use_ik_target",
+                        type=str2bool,
+                        default=False,
+                        help="Enable cartasian action space for inverse kienmatics")
+    parser.add_argument("--ik_target",
+                        type=str,
+                        default="fingertip",
+                        help="reference location for inverse kinematics")
+    parser.add_argument("--expand_ac_space",
+                        type=str2bool,
+                        default=False,
+                        help="enable larger action space for SAC")
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=256)
@@ -37,30 +44,44 @@ def argparser():
         "--rl_activation", type=str, default="relu", choices=["relu", "elu", "tanh"]
     )
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
-    parser.add_argument("--activation", type=str, default="tanh")
     parser.add_argument("--actor_num_hid_layers", type=int, default=2)
 
     # motion planning
-    parser.add_argument("--ignored_contact_geoms", nargs="+", default=None)
-    parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
-    parser.add_argument("--allow_approximate", type=str2bool, default=False)
-    parser.add_argument("--allow_invalid", type=str2bool, default=False)
-    parser.add_argument("--find_collision_free", type=str2bool, default=False)
-    parser.add_argument("--use_double_planner", type=str2bool, default=False)
-    parser.add_argument("--num_trials", type=int, default=100)
-    parser.add_argument("--use_interpolation", type=str2bool, default=True)
-    parser.add_argument(
-        "--interpolate_type", type=str, default="simple", choices=["planner", "simple"]
-    )
+    parser.add_argument("--invalid_target_handling",
+                        type=str2bool,
+                        default=False,
+                        help="enable invalid target handling")
+    parser.add_argument("--num_trials",
+                        type=int,
+                        default=100,
+                        help="number of trials for invalid target handling")
+    parser.add_argument("--interpolation", type=str2bool, default=True)
 
-    # single policy
-    parser.add_argument("--omega", type=float, default=1.0)
-    parser.add_argument("--reuse_data", type=str2bool, default=False)
-    parser.add_argument("--max_reuse_data", type=int, default=30)
-    parser.add_argument("--min_reuse_span", type=int, default=1)
-    parser.add_argument("--action_range", type=float, default=1.0)
-    parser.add_argument("--discrete_action", type=str2bool, default=False)
-    parser.add_argument("--stochastic_eval", type=str2bool, default=False)
+    # MoPA
+    parser.add_argument("--omega",
+                        type=float,
+                        default=1.0,
+                        help="threshold of direct action execution and motion planner")
+    parser.add_argument("--reuse_data",
+                        type=str2bool,
+                        default=False,
+                        help="enable reuse of data")
+    parser.add_argument("--max_reuse_data",
+                        type=int,
+                        default=30,
+                        help="maximum number of reused samples")
+    parser.add_argument("--action_range",
+                        type=float,
+                        default=1.0,
+                        help="range of radian")
+    parser.add_argument("--discrete_action",
+                        type=str2bool,
+                        default=False,
+                        help="enable discrete action to choose motion planner or direct action execution")
+    parser.add_argument("--stochastic_eval",
+                        type=str2bool,
+                        default=False,
+                        help="eval an agent with a stochastic policy")
 
     # off-policy rl
     parser.add_argument(
@@ -97,18 +118,21 @@ def argparser():
     )
     parser.add_argument("--max_global_step", type=int, default=int(3e6))
     parser.add_argument("--gpu", type=int, default=None)
-    parser.add_argument("--invalid_planner_rew", type=float, default=0.0)
 
     # sac
-    parser.add_argument("--start_steps", type=int, default=1e4)
+    parser.add_argument("--start_steps",
+                        type=int,
+                        default=1e4,
+                        help="number of samples collected before training")
     parser.add_argument(
         "--temperature", type=float, default=1.0, help="Temperature for Gumbel Softmax"
     )
-    parser.add_argument("--use_automatic_entropy_tuning", type=str2bool, default=True)
     parser.add_argument("--alpha", type=float, default=1.0)
     parser.add_argument("--reward_scale", type=float, default=1.0)
-    parser.add_argument("--use_smdp_update", type=str2bool, default=False)
-    parser.add_argument("--actor_bias", type=float, default=None)
+    parser.add_argument("--use_smdp_update",
+                        type=str2bool,
+                        default=False,
+                        help="update a policy under semi-markov decision process")
     parser.add_argument("--discrete_ent_coef", type=float, default=1.0)
 
     # td3
@@ -127,6 +151,18 @@ def argparser():
         type=str2bool,
         default=False,
         help="set it True if you want to use wandb",
+    )
+    parser.add_argument(
+        "--entity",
+        type=str,
+        default=None,
+        help="Set an entity name for wandb"
+    )
+    parser.add_argument(
+        "--project",
+        type=str,
+        default=None,
+        help="set a project name for wandb"
     )
     parser.add_argument("--group", type=str, default=None)
     parser.add_argument("--vis_replay", type=str2bool, default=True)

@@ -17,7 +17,6 @@ class PlannerAgent:
         goal_bias=0.05,
         is_simplified=False,
         simplified_duration=0.1,
-        allow_approximate=False,
         range_=None,
     ):
 
@@ -32,7 +31,6 @@ class PlannerAgent:
             ignored_contacts=ignored_contacts,
             contact_threshold=config.contact_threshold,
             goal_bias=goal_bias,
-            allow_approximate=allow_approximate,
             is_simplified=is_simplified,
             simplified_duration=simplified_duration,
             range_=range_,
@@ -40,7 +38,6 @@ class PlannerAgent:
 
         self._is_simplified = is_simplified
         self._simplified_duration = simplified_duration
-        self._allow_approximate = allow_approximate
 
     def plan(self, start, goal, timelimit=None, attempts=15):
         config = self._config
@@ -49,10 +46,7 @@ class PlannerAgent:
         traj, states, valid, exact = self.planner.plan(
             start, goal, timelimit
         )
-        if self._allow_approximate:
-            success = valid
-        else:
-            success = valid and exact
+        success = valid and exact
 
         if success:
             return traj[1:], success, valid, exact
