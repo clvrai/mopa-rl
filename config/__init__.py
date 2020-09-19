@@ -8,16 +8,16 @@ def argparser():
         "MoPA-RL", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument("--date", type=str, default=None)
+    parser.add_argument("--date", type=str, default=None, help="experiment date")
     # environment
     parser.add_argument(
         "--env", type=str, default="reacher-obstacle-v0", help="environment name"
     )
-    parser.add_argument("--env_args", type=str, default=None)
+    parser.add_argument("--env_args", type=str, default=None, help="arguments for environment")
     parser.add_argument("--terminal", type=str2bool, default=True)
 
     # training algorithm
-    parser.add_argument("--algo", type=str, default="sac", choices=["sac", "td3"])
+    parser.add_argument("--algo", type=str, default="sac", choices=["sac", "td3"], help="algorithm")
     parser.add_argument("--policy", type=str, default="mlp", choices=["mlp"])
     parser.add_argument("--mopa", type=str2bool, default=False)
     parser.add_argument("--use_discount_meta", type=str2bool, default=True)
@@ -41,7 +41,6 @@ def argparser():
     parser.add_argument("--actor_num_hid_layers", type=int, default=2)
 
     # motion planning
-    parser.add_argument("--min_path_len", type=int, default=10)
     parser.add_argument("--ignored_contact_geoms", nargs="+", default=None)
     parser.add_argument("--allow_manipulation_collision", type=str2bool, default=False)
     parser.add_argument("--allow_approximate", type=str2bool, default=False)
@@ -96,7 +95,6 @@ def argparser():
     parser.add_argument(
         "--batch_size", type=int, default=256, help="the sample batch size"
     )
-    parser.add_argument("--max_grad_norm", type=float, default=None)
     parser.add_argument("--max_global_step", type=int, default=int(3e6))
     parser.add_argument("--gpu", type=int, default=None)
     parser.add_argument("--invalid_planner_rew", type=float, default=0.0)
@@ -160,8 +158,5 @@ def argparser():
     parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--seed", type=int, default=1234, help="random seed")
     parser.add_argument("--debug", type=str2bool, default=False)
-    parser.add_argument("--debug_render", type=str2bool, default=False)
-
-    parser.add_argument("--comment", nargs="+", default=None)
 
     return parser

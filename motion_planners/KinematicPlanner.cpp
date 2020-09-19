@@ -10,23 +10,10 @@
 #include <string>
 
 
-#include <ompl/control/SimpleSetup.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathSimplifier.h>
-#include <ompl/control/planners/est/EST.h>
-#include <ompl/control/planners/kpiece/KPIECE1.h>
-#include <ompl/control/planners/pdst/PDST.h>
-#include <ompl/control/planners/sst/SST.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/sst/SST.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/prm/LazyPRMstar.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/util/RandomNumbers.h>
 
@@ -52,21 +39,19 @@ namespace og = ompl::geometric;
 using namespace MotionPlanner;
 
 
-KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, double SST_selection_radius, double SST_pruning_radius, std::string Opt,
-                 double Threshold, double _Range, double constructTime, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias, bool Allow_approximate, bool is_simplified, double simplified_duration, int seed)
+KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, int NUM_actions, std::string Opt,
+                 double Threshold, double _Range, std::vector<int> Passive_joint_idx, std::vector<std::string> Glue_bodies,
+                 std::vector<std::pair<int, int>> Ignored_contacts, double contact_threshold, double goal_bias,
+                 bool Allow_approximate, bool is_simplified, double simplified_duration, int seed)
 {
     // std::string xml_filename = XML_filename;
     ompl::msg::setLogLevel(ompl::msg::LOG_NONE); // OMPL logging
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEBUG); // OMPL logging
     xml_filename = XML_filename;
     algo = Algo;
-    sst_selection_radius = SST_selection_radius;
-    sst_pruning_radius = SST_pruning_radius;
     num_actions = NUM_actions;
     opt = Opt;
     threshold = Threshold;
-    constructTime = constructTime;
-    is_construct = true;
     passive_joint_idx = Passive_joint_idx;
     glue_bodies = Glue_bodies;
     ignored_contacts = Ignored_contacts;
@@ -89,14 +74,10 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     std::cout << "Loading MuJoCo config from: " << xml_filename << std::endl;
     if (!mj->loadXML(xml_filename)) {
         std::cerr << "Could not load XML model file" << std::endl;
-        // return solutions;
-        //return -1;
     }
 // Make data
     if (!mj->makeData()) {
         std::cerr << "Could not allocate mjData" << std::endl;
-        // return solutions;
-        //return -1;
     }
 
     // Setup OMPL environment
@@ -105,18 +86,9 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     msvc = std::make_shared<MjOmpl::MujocoStateValidityChecker>(si, mj, passive_joint_idx, false, ignored_contacts, contact_threshold);
     si->setStateValidityChecker(msvc);
     si->setStateValidityCheckingResolution(0.005);
-    // si->setStateValidityCheckingResolution(0.01);
 
     rrt_planner = std::make_shared<og::RRTstar>(si);
-    rrt_sharp_planner = std::make_shared<og::RRTsharp>(si);
-    sst_planner = std::make_shared<og::SST>(si);
-    pdst_planner = std::make_shared<og::PDST>(si);
-    est_planner = std::make_shared<og::EST>(si);
-    kpiece_planner = std::make_shared<og::KPIECE1>(si);
     rrt_connect_planner = std::make_shared<og::RRTConnect>(si);
-    prm_star_planner = std::make_shared<og::PRMstar>(si);
-    lazy_prm_star_planner = std::make_shared<og::LazyPRMstar>(si);
-    spars_planner = std::make_shared<og::SPARS>(si);
     psimp_ = std::make_shared<og::PathSimplifier>(si);
     _range = _Range;
 
@@ -125,48 +97,12 @@ KinematicPlanner::KinematicPlanner(std::string XML_filename, std::string Algo, i
     si->setup();
     ss = std::make_shared<og::SimpleSetup>(si);
 
-    if (algo == "sst") {
-        sst_planner->setSelectionRadius(sst_selection_radius); // default 0.2
-        sst_planner->setPruningRadius(sst_pruning_radius); // default 0.1
-        sst_planner->setRange(_range);
-        sst_planner->setGoalBias(goal_bias);
-        ss->setPlanner(sst_planner);
-
-        std::cout << "Using SST planner with selection radius ["
-             << sst_selection_radius
-             << "] and pruning radius ["
-             << sst_pruning_radius
-             << "]" << std::endl;
-    } else if (algo == "pdst") {
-        ss->setPlanner(pdst_planner);
-    } else if (algo == "est") {
-        est_planner->setRange(_range);
-        ss->setPlanner(est_planner);
-        est_planner->setup();
-    } else if (algo == "kpiece") {
-        kpiece_planner->setRange(_range);
-        ss->setPlanner(kpiece_planner);
-    } else if (algo == "rrt"){
+    if (algo == "rrt"){
         rrt_planner->setRange(_range);
         ss->setPlanner(rrt_planner);
-    } else if (algo == "rrt_sharp"){
-        rrt_sharp_planner->setRange(_range);
-        ss->setPlanner(rrt_sharp_planner);
     } else if (algo == "rrt_connect"){
         rrt_connect_planner->setRange(_range);
         ss->setPlanner(rrt_connect_planner);
-    } else if (algo == "prm_star"){
-        ss->setPlanner(prm_star_planner);
-        ss->setup();
-        ss->getPlanner()->as<og::PRMstar>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
-    } else if (algo == "lazy_prm_star"){
-        lazy_prm_star_planner->setRange(_range);
-        ss->setPlanner(lazy_prm_star_planner);
-        ss->setup();
-    } else if (algo == "spars"){
-        ss->setPlanner(spars_planner);
-        ss->setup();
-        ss->getPlanner()->as<og::SPARS>()->constructRoadmap(ob::timedPlannerTerminationCondition(constructTime));
     }
 
     if (opt == "maximize_min_clearance") {
@@ -188,7 +124,7 @@ KinematicPlanner::~KinematicPlanner(){
 }
 
 std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> start_vec, std::vector<double> goal_vec,
-                                                            double timelimit, double min_steps, int attempts) {
+                                                            double timelimit) {
     ss->clear();
     if (start_vec.size() != mj->m->nq) {
         std::cerr << "ERROR: start vector has dimension: " << start_vec.size()
@@ -198,26 +134,10 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         std::cerr << "ERROR: goal vector has dimension: " << goal_vec.size()
              << " which should be nq: " << mj->m->nq;
     }
-    if (algo == "sst") {
-        ss->getPlanner()->as<og::SST>()->clear();
-    } else if (algo == "pdst") {
-        ss->getPlanner()->as<og::PDST>()->clear();
-    } else if (algo == "est") {
-        ss->getPlanner()->as<og::EST>()->clear();
-    } else if (algo == "kpiece") {
-        ss->getPlanner()->as<og::KPIECE1>()->clear();
-    } else if (algo == "rrt"){
+    if (algo == "rrt"){
         ss->getPlanner()->as<og::RRTstar>()->clear();
-    } else if (algo == "sst"){
-        ss->getPlanner()->as<og::SST>()->clear();
     } else if (algo == "rrt_connect"){
         ss->getPlanner()->as<og::RRTConnect>()->clear();
-    } else if (algo == "prm_star"){
-        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
-    } else if (algo == "lazy_prm_star"){
-        ss->getPlanner()->as<og::LazyPRMstar>()->clearQuery();
-    } else if (algo == "spars"){
-        ss->getPlanner()->as<og::SPARS>()->clearQuery();
     }
 
     // split start_vec/goal_vec in active and passive dimensions
@@ -229,11 +149,9 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         if (MjOmpl::isActiveJoint(i, passive_joint_idx)) {
             start_vec_active.push_back(start_vec[i]);
             goal_vec_active.push_back(goal_vec[i]);
-            // std::cout << "joint i " << i << " active " << start_vec[i] << std::endl;
         } else {
             start_vec_passive.push_back(start_vec[i]);
             goal_vec_passive.push_back(goal_vec[i]);
-            // std::cout << "joint i " << i << " passive " << start_vec[i] << std::endl;
         }
     }
 
@@ -249,9 +167,6 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
     MjOmpl::copyPassiveStateToMujoco(start_vec_passive, mj->m, mj->d, passive_joint_idx);
 
     msvc->addGlueTransformation(glue_bodies);
-
-    // std::cout << "Maximum Extent " << si->getMaximumExtent() << std::endl;
-    // std::cout << "Resolution " << si->getStateValidityCheckingResolution() << std::endl;
 
     // Set active start and goal states
     ob::ScopedState<> start_ss(ss->getStateSpace());
@@ -278,9 +193,7 @@ std::vector<std::vector<double> > KinematicPlanner::plan(std::vector<double> sta
         if (ss->haveExactSolutionPath() || allow_approximate) {
             og::PathGeometric p = ss->getSolutionPath();
             if (isSimplified){
-                psimp_->reduceVertices(p, attempts);
                 psimp_->simplify(p, 5.0);
-                p.checkAndRepair(attempts);
             }
             std::vector<ob::State*> &states =  p.getStates();
             int n = states.size();
@@ -348,26 +261,10 @@ bool KinematicPlanner::isValidState(std::vector<double> state_vec){
         return true;
     }
 
-    if (algo == "sst") {
-        ss->getPlanner()->as<og::SST>()->clear();
-    } else if (algo == "pdst") {
-        ss->getPlanner()->as<og::PDST>()->clear();
-    } else if (algo == "est") {
-        ss->getPlanner()->as<og::EST>()->clear();
-    } else if (algo == "kpiece") {
-        ss->getPlanner()->as<og::KPIECE1>()->clear();
-    } else if (algo == "rrt"){
+    if (algo == "rrt"){
         ss->getPlanner()->as<og::RRTstar>()->clear();
-    } else if (algo == "sst"){
-        ss->getPlanner()->as<og::SST>()->clear();
     } else if (algo == "rrt_connect"){
         ss->getPlanner()->as<og::RRTConnect>()->clear();
-    } else if (algo == "prm_star"){
-        ss->getPlanner()->as<og::PRMstar>()->clearQuery();
-    } else if (algo == "lazy_prm_star"){
-        ss->getPlanner()->as<og::LazyPRMstar>()->clearQuery();
-    } else if (algo == "spars"){
-        ss->getPlanner()->as<og::SPARS>()->clearQuery();
     }
 
     // split start_vec/goal_vec in active and passive dimensions

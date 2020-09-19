@@ -17,12 +17,9 @@ class SamplingBasedPlanner:
             range_ = config.range
         self.planner = PyKinematicPlanner(xml_path.encode('utf-8'),
                                           planner_type.encode('utf-8'), num_actions,
-                                          config.sst_selection_radius,
-                                          config.sst_selection_radius,
                                           config.planner_objective.encode('utf-8'),
                                           config.threshold,
                                           range_,
-                                          config.construct_time,
                                           passive_joint_idx,
                                           glue_bodies,
                                           ignored_contacts,
@@ -43,12 +40,12 @@ class SamplingBasedPlanner:
     def isValidState(self, state):
         return self.planner.isValidState(state)
 
-    def plan(self, start, goal, timelimit=1., min_steps=10, attempts=15):
+    def plan(self, start, goal, timelimit=1.):
         valid_state = True
         exact = True
         converted_start = self.convert_nonlimited(start.copy())
         converted_goal = self.convert_nonlimited(goal.copy())
-        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit, min_steps, attempts))
+        states = np.array(self.planner.plan(converted_start, converted_goal, timelimit))
 
         if np.unique(states).size == 1:
             if states[0][0] == -5:

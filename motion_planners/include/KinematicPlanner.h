@@ -14,20 +14,8 @@
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathSimplifier.h>
-#include <ompl/control/planners/est/EST.h>
-#include <ompl/control/planners/kpiece/KPIECE1.h>
-#include <ompl/control/planners/pdst/PDST.h>
-#include <ompl/control/planners/sst/SST.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/sst/SST.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/prm/LazyPRMstar.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/PathSimplifier.h>
 
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
@@ -55,8 +43,6 @@ namespace MotionPlanner
             std::string xml_filename;
             std::string algo;
             int num_actions;
-            double sst_selection_radius;
-            double sst_pruning_radius;
             std::string opt;
             double threshold;
             double _range;
@@ -65,20 +51,10 @@ namespace MotionPlanner
             std::shared_ptr<ob::SpaceInformation> si;
             std::shared_ptr<MjOmpl::MujocoStatePropagator> mj_state_prop;
             std::shared_ptr<og::RRTstar> rrt_planner;
-            std::shared_ptr<og::RRTsharp> rrt_sharp_planner;
-            std::shared_ptr<og::SST> sst_planner;
-            std::shared_ptr<og::PDST> pdst_planner;
-            std::shared_ptr<og::EST> est_planner;
-            std::shared_ptr<og::KPIECE1> kpiece_planner;
             std::shared_ptr<og::RRTConnect> rrt_connect_planner;
-            std::shared_ptr<og::PRMstar> prm_star_planner;
-            std::shared_ptr<og::LazyPRMstar> lazy_prm_star_planner;
-            std::shared_ptr<og::SPARS> spars_planner;
             std::shared_ptr<og::SimpleSetup> ss;
             std::shared_ptr<MjOmpl::MujocoStateValidityChecker> msvc;
             std::shared_ptr<og::PathSimplifier> psimp_;
-            double constructTime;
-            bool is_construct;
             std::vector<int> passive_joint_idx;
             std::vector<std::string> glue_bodies;
             std::vector<std::pair<int,int>> ignored_contacts;
@@ -88,9 +64,9 @@ namespace MotionPlanner
             double simplifiedDuration;
             int seed;
 
-            KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, double sst_selection_radius, double sst_pruning_radius, std::string opt, double threshold, double _range, double constructTime, std::vector<int> passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> ignored_contacts, double contact_threshold, double goal_bias, bool allow_approximate, bool is_simplified, double simplified_duration, int seed);
+            KinematicPlanner(std::string xml_filename, std::string algo, int num_actions, std::string opt, double threshold, double _range, std::vector<int> passive_joint_idx, std::vector<std::string> Glue_bodies, std::vector<std::pair<int, int>> ignored_contacts, double contact_threshold, double goal_bias, bool allow_approximate, bool is_simplified, double simplified_duration, int seed);
             ~KinematicPlanner();
-            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit, double min_steps, int attempts);
+            std::vector<std::vector<double> > plan(std::vector<double> start_vec, std::vector<double> goal_vec, double timelimit);
             bool isValidState(std::vector<double> state_vec);
             std::string getPlannerStatus();
     };
