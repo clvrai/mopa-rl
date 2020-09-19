@@ -3,7 +3,7 @@ gpu=$1
 seed=$2
 
 algo='sac'
-prefix="MoPA-SAC"
+prefix="MoPA-SAC.debug"
 env="pusher-obstacle-hard-v3"
 max_episode_step="400"
 debug="False"
@@ -20,7 +20,7 @@ find_collision_free="True"
 max_reuse_data='30'
 ac_space_type="piecewise"
 success_reward="150.0"
-log_indiv_entropy="True"
+start_steps='100'
 
 
 python -m rl.main \
@@ -44,5 +44,5 @@ python -m rl.main \
     --find_collision_free $find_collision_free \
     --max_reuse_data $max_reuse_data \
     --ac_space_type $ac_space_type \
-    --log_indiv_entropy $log_indiv_entropy \
-    --use_smdp_update $use_smdp_update
+    --use_smdp_update $use_smdp_update \
+    --start_steps $start_steps
