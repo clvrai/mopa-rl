@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC.omega0.7"
+prefix="MoPA-SAC"
 algo='sac'
 env="sawyer-assembly-v1"
 max_episode_step="250"
@@ -14,7 +14,7 @@ reuse_data="True"
 action_range="0.5"
 omega='0.7'
 stochastic_eval="True"
-find_collision_free="True"
+invalid_target_handling="True"
 vis_replay="True"
 plot_type='3d'
 ac_space_type="piecewise"
@@ -22,7 +22,6 @@ use_smdp_update="True"
 success_reward="150.0"
 max_reuse_data='15'
 reward_scale="1.0"
-use_discount_meta="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -40,7 +39,7 @@ python -m rl.main \
     --action_range $action_range \
     --omega $omega \
     --stochastic_eval $stochastic_eval \
-    --find_collision_free $find_collision_free \
+    --invalid_target_handling $invalid_target_handling \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
@@ -48,4 +47,3 @@ python -m rl.main \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
-    --use_discount_meta $use_discount_meta \

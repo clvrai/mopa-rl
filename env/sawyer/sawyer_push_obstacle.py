@@ -4,10 +4,10 @@ from env.sawyer.sawyer import SawyerEnv
 from util.transform_utils import *
 
 
-class SawyerPushObstacleV3Env(SawyerEnv):
+class SawyerPushObstacleEnv(SawyerEnv):
     def __init__(self, **kwargs):
         kwargs["camera_name"] = "zoomview"
-        super().__init__("sawyer_push_obstacle_v3.xml", **kwargs)
+        super().__init__("sawyer_push_obstacle.xml", **kwargs)
         self._get_reference()
 
     def _get_reference(self):
