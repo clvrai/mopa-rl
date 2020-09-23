@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC"
+prefix="MoPA-SAC.v5_3"
 env="sawyer-lift-obstacle-v0"
 algo='sac'
 max_episode_step="250"
@@ -18,12 +18,13 @@ vis_replay="True"
 plot_type='3d'
 ac_space_type="piecewise"
 use_smdp_update="True"
-step_size="0.02"
 success_reward="150.0"
 add_curr_rew="True"
 max_reuse_data='15'
 reward_scale="0.5"
 evaluate_interval="10000"
+ckpt_interval='10000'
+# timelimit="1.5"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -45,8 +46,9 @@ python -m rl.main \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
     --ac_space_type $ac_space_type \
-    --step_size $step_size \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
     --evaluate_interval $evaluate_interval \
+    --ckpt_interval $ckpt_interval \
+    # --timelimit $timelimit

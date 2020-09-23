@@ -202,7 +202,6 @@ class Trainer(object):
         if ckpt_path is not None:
             logger.warn("Load checkpoint %s", ckpt_path)
             ckpt = torch.load(ckpt_path)
-            self._meta_agent.load_state_dict(ckpt["meta_agent"])
             self._agent.load_state_dict(ckpt["agent"])
 
             if self._config.is_train:

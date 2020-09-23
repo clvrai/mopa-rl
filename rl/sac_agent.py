@@ -200,11 +200,6 @@ class SACAgent(BaseAgent):
         curr_qpos,
         target_qpos,
         ac_scale=None,
-        meta_ac=None,
-        ob=None,
-        is_train=True,
-        random_exploration=False,
-        ref_joint_pos_indexes=None,
     ):
 
         curr_qpos = self.clip_qpos(curr_qpos)
@@ -373,13 +368,13 @@ class SACAgent(BaseAgent):
 
         self._alpha_optim.load_state_dict(ckpt["alpha_optim_state_dict"])
         self._actor_optim.load_state_dict(ckpt["actor_optim_state_dict"])
-        self._critic_optim.load_state_dict(ckpt["critic1_optim_state_dict"])
-        self._critic_optim.load_state_dict(ckpt["critic2_optim_state_dict"])
+        self._critic1_optim.load_state_dict(ckpt["critic1_optim_state_dict"])
+        self._critic2_optim.load_state_dict(ckpt["critic2_optim_state_dict"])
 
         optimizer_cuda(self._alpha_optim, self._config.device)
         optimizer_cuda(self._actor_optim, self._config.device)
-        optimizer_cuda(self._critic_optim, self._config.device)
-        optimizer_cuda(self._critic_optim, self._config.device)
+        optimizer_cuda(self._critic1_optim, self._config.device)
+        optimizer_cuda(self._critic2_optim, self._config.device)
 
     def _network_cuda(self, device):
         self._actor.to(device)
