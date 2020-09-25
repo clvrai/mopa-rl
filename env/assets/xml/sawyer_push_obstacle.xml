@@ -43,7 +43,7 @@
             <!-- <inertial pos="0 0 0" mass="250" diaginertia="1000 1000 1000"/> -->
             <!-- <inertial pos="0 0 0" mass="150" diaginertia="1000 1000 1000"/> -->
             <!-- <geom contype="1" density="100" conaffinity="1" friction="0.95 0.3 0.1" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.03 0.03 0.03" type="box" solimp="0.99 0.99 0.01" solref="0.001 1"/> -->
-            <geom contype="1" density="300" conaffinity="1" friction="0.95 0.3 0.1" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.03 0.03 0.03" type="box" solimp="0.99 0.99 0.01" solref="0.001 1"/>
+            <geom contype="1" density="300" conaffinity="1" friction="0.95 0.3 0.1" condim="4" group="1" name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.03 0.03 0.03" type="box"/>
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
             <joint name="cube" type="free" damping="0.0005"/>
         </body>

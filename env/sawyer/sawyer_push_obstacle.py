@@ -36,7 +36,7 @@ class SawyerPushObstacleEnv(SawyerEnv):
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.0
         init_target_qpos = self.sim.data.qpos[self.ref_target_pos_indexes]
-        # init_target_qpos += self.np_random.randn(init_target_qpos.shape[0]) * 0.01
+        init_target_qpos += self.np_random.uniform(low=-0.01, high=0.01, size=init_target_qpos.shape[0])
         self.goal = init_target_qpos
         self.sim.data.qpos[self.ref_target_pos_indexes] = self.goal
         self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.0

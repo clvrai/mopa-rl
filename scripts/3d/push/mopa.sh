@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC.density300"
+prefix="MoPA-SAC.scale0.8.range0.5.randomized.goal.v2"
 algo='sac'
 env="sawyer-push-obstacle-v0"
 max_episode_step="250"
@@ -11,7 +11,7 @@ reward_type='sparse'
 log_root_dir="./logs"
 mopa="True"
 reuse_data="True"
-action_range="1.0"
+action_range="0.5"
 omega='0.7'
 stochastic_eval="True"
 invalid_target_handling="True"
@@ -21,7 +21,7 @@ ac_space_type="piecewise"
 use_smdp_update="True"
 success_reward="150.0"
 max_reuse_data='15'
-reward_scale="0.2"
+reward_scale="0.8"
 evaluate_interval="10000"
 timelimit='2.0'
 # contact_threshold='-0.0002'
