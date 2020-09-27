@@ -37,7 +37,7 @@
         <geom conaffinity="0" contype="0" group="1" material="dark-wood" pos="-0.2 0 0.05" size="0.01 0.18 0.2" type="box" />
     </body>
 
-        <body name="cube" pos="0.90 0.0 0.88">
+        <body name="cube" pos="0.92 0.0 0.88">
             <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
             <!-- <inertial pos="0 0 0" mass="500" diaginertia="1000 1000 1000"/> -->
             <!-- <inertial pos="0 0 0" mass="250" diaginertia="1000 1000 1000"/> -->
@@ -47,7 +47,7 @@
             <site name="cube" pos="0 0 0" rgba="1 0 0 1" size="0.002 0.002 0.002" type="sphere" />
             <joint name="cube" type="free" damping="0.0005"/>
         </body>
-        <body name="target" pos="1.02 0.0 0.85">
+        <body name="target" pos="1.04 0.0 0.85">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-.3 .3" stiffness="0" type="slide"/>
             <geom conaffinity="0" contype="0" group="0" name="target" pos="0 0 0" rgba="0.2 0.8 0.2 1" size=".030 .001 .001" type="cylinder"/>

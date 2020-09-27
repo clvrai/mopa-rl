@@ -82,7 +82,7 @@ class SawyerPushObstacleEnv(SawyerEnv):
         cube_to_target = np.linalg.norm(cube_pos[:2] - target_pos[:2])
         reward_push = 0.0
         reward_reach = 0.0
-        if gripper_to_cube < 0.15:
+        if gripper_to_cube < 0.1:
             # reward_reach += 0.1 * (1 - np.tanh(5 * gripper_to_cube))
             reward_reach += 0.1 * (1 - np.tanh(10 * gripper_to_cube))
 
