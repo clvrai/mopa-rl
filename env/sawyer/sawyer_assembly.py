@@ -72,6 +72,10 @@ class SawyerAssemblyEnv(SawyerEnv):
         return []
 
     @property
+    def dof(self):
+        return 7
+
+    @property
     def static_geom_ids(self):
         body_ids = []
         for body_name in self.static_bodies:

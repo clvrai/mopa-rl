@@ -10,6 +10,10 @@ class SawyerPushObstacleEnv(SawyerEnv):
         super().__init__("sawyer_push_obstacle.xml", **kwargs)
         self._get_reference()
 
+    @property
+    def dof(self):
+        return 7
+
     def _get_reference(self):
         super()._get_reference()
 

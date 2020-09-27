@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC.scale0.8.range0.5.random"
+prefix="MoPA-SAC.scale0.8.range0.5.dof.7"
 algo='sac'
 env="sawyer-push-obstacle-v0"
 max_episode_step="250"
