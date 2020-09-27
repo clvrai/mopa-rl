@@ -9,11 +9,14 @@
 ====================================================== -->
     <camera pos="0 0 3.2" name="topview" />
     <camera mode="fixed" name="frontview" pos="3.16 0.0 2.15" quat="0.56 0.43 0.43 0.56" />
+    <camera mode="fixed" name="zoomview" pos="2.56 0.0 1.25" quat="0.5 0.47 0.47 0.5" />
+    <camera mode="fixed" name="visview" pos="1.86 0.0 2.85" quat="0.76 0.23 0.23 0.76" />
     <!-- <camera mode="fixed" name="frontview" pos="3.16 0.0 1.95" quat="0.56 0.43 0.43 0.56" /> -->
 
     <camera mode="fixed" name="birdview" pos="0.36000000000000004 0.0 3.0" quat="0.7071 0 0 0.7071" />
 
     <camera mode="fixed" name="agentview" pos="1.06 0.0 1.35" quat="0.653 0.271 0.271 0.653" />
+
 
     <body name="base" pos="0 0 .95" childclass='sawyer'>
         <site name="basesite" pos="0 0 0" size="0.01" />
@@ -92,14 +95,14 @@
                                         <joint name="right_j6" pos="0 0 0" axis="0 0 1" range="-4.7124 4.7124"/>
                                         <geom class="sawyer_viz" mesh="l6"/>
                                         <geom size="0.055 0.025" pos="0 0.015 -0.01" type="cylinder" class="sawyer_col" />
-<!--                                         <body name="right_ee_attchment" pos="0 0 0.0245" quat="0.707107 0 0 0.707107" childclass="sawyer_gripper"> -->
-<!--                                             <site name="grip_site" pos="0 0 0" size="0.01" type="sphere"/> -->
-<!--                                              -->
-<!-- <!&#45;&#45;  ================= BEGIN GRIPPER ================= /&#45;&#45;> -->
-<!--                                             <include file="./common/gripper_chain.xml"/> -->
-<!-- <!&#45;&#45;  ================= END GRIPPER ================= /&#45;&#45;> -->
-<!--  -->
-<!--                                         </body> -->
+                                        <body name="right_ee_attchment" pos="0 0 0.0245" quat="0.707107 0 0 0.707107" childclass="sawyer_gripper">
+                                            <site name="grip_site" pos="0 0 0" size="0.01" type="sphere"/>
+
+<!--  ================= BEGIN GRIPPER ================= /-->
+                                            <include file="./common/gripper_chain.xml"/>
+<!--  ================= END GRIPPER ================= /-->
+
+                                        </body>
                                     </body>
                                 </body>
                             </body>

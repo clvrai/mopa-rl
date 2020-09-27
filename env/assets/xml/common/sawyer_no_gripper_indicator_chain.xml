@@ -83,14 +83,14 @@
                                         <joint name="right_j6_indicator" pos="0 0 0" axis="0 0 1" range="-4.7124 4.7124"/>
                                         <geom class="sawyer_viz_indicator" mesh="l6"/>
                                         <geom size="0.055 0.025" pos="0 0.015 -0.01" type="cylinder" class="sawyer_col_indicator" />
-<!--                                         <body name="right_ee_attchment_indicator" pos="0 0 0.0245" quat="0.707107 0 0 0.707107" childclass="sawyer_gripper_indicator"> -->
-<!--                                             <site name="grip_site_indicator" pos="0 0 0" size="0.01" type="sphere"/> -->
-<!--  -->
-<!-- <!&#45;&#45;  ================= BEGIN GRIPPER ================= /&#45;&#45;> -->
-<!--                                             <include file="./common/gripper_indicator_chain.xml"/> -->
-<!-- <!&#45;&#45;  ================= END GRIPPER ================= /&#45;&#45;> -->
-<!--  -->
-<!--                                         </body> -->
+                                        <body name="right_ee_attchment_indicator" pos="0 0 0.0245" quat="0.707107 0 0 0.707107" childclass="sawyer_gripper_indicator">
+                                            <site name="grip_site_indicator" pos="0 0 0" size="0.01" type="sphere"/>
+
+<!--  ================= BEGIN GRIPPER ================= /-->
+                                            <include file="./common/gripper_indicator_chain.xml"/>
+<!--  ================= END GRIPPER ================= /-->
+
+                                        </body>
                                     </body>
                                 </body>
                             </body>
