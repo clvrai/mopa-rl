@@ -13,7 +13,7 @@ mopa="True"
 reuse_data="True"
 action_range="0.5"
 stochastic_eval="True"
-find_collision_free="True"
+invalid_target_handling="True"
 vis_replay="True"
 plot_type='3d'
 ac_space_type="normal"
@@ -41,7 +41,7 @@ python -m rl.main \
     --action_range $action_range \
     --discrete_action $discrete_action \
     --stochastic_eval $stochastic_eval \
-    --find_collision_free $find_collision_free \
+    --invalid_target_handling $invalid_target_handling \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \

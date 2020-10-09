@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC.scale0.8.range0.5.dof.7"
+prefix="MoPA-SAC"
 algo='sac'
 env="sawyer-push-obstacle-v0"
 max_episode_step="250"
@@ -24,8 +24,6 @@ max_reuse_data='15'
 reward_scale="0.8"
 evaluate_interval="10000"
 timelimit='2.0'
-# is_simplified="True"
-# contact_threshold='-0.0002'
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -53,5 +51,3 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --evaluate_interval $evaluate_interval \
     --timelimit $timelimit \
-    # --is_simplified $is_simplified
-    # --contact_threshold $contact_threshold \

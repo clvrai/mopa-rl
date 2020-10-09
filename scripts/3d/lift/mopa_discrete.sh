@@ -1,6 +1,6 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC.discret"
+prefix="MoPA-SAC.discrete"
 env="sawyer-lift-obstacle-v0"
 gpu=$1
 seed=$2
@@ -13,12 +13,11 @@ mopa="True"
 reuse_data="True"
 action_range="0.5"
 stochastic_eval="True"
-find_collision_free="True"
+invalid_target_handling="True"
 vis_replay="True"
 plot_type='3d'
 ac_space_type="normal"
 use_smdp_update="True"
-use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
@@ -42,7 +41,7 @@ python -m rl.main \
     --action_range $action_range \
     --discrete_action $discrete_action \
     --stochastic_eval $stochastic_eval \
-    --find_collision_free $find_collision_free \
+    --invalid_target_handling $invalid_target_handling \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
@@ -52,4 +51,3 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
     --evaluate_interval $evaluate_interval \
-    --use_discount_meta $use_discount_meta \

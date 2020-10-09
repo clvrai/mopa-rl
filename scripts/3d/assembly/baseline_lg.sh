@@ -1,7 +1,7 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-prefix="BASELINE.action_range0.5"
+prefix="BASELINE.SAC.LG"
 env="sawyer-assembly-v1"
 data='08.09'
 algo='sac'

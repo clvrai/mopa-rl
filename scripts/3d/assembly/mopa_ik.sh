@@ -13,11 +13,10 @@ mopa="True"
 reuse_data="True"
 action_range="0.2"
 stochastic_eval="True"
-find_collision_free="True"
+invalid_target_handling="True"
 vis_replay="True"
 plot_type='3d'
 use_smdp_update="True"
-use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
@@ -41,7 +40,7 @@ python -m rl.main \
     --reuse_data $reuse_data \
     --action_range $action_range \
     --stochastic_eval $stochastic_eval \
-    --find_collision_free $find_collision_free \
+    --invalid_target_handling $invalid_target_handling \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
@@ -52,4 +51,3 @@ python -m rl.main \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \
     --omega $omega \
-    --use_discount_meta $use_discount_meta \
