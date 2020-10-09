@@ -83,11 +83,8 @@ class SawyerPushObstacleEnv(SawyerEnv):
         reward_push = 0.0
         reward_reach = 0.0
         if gripper_to_cube < 0.1:
-            # reward_reach += 0.1 * (1 - np.tanh(5 * gripper_to_cube))
             reward_reach += 0.1 * (1 - np.tanh(10 * gripper_to_cube))
 
-        # if cube_to_target < 0.1:
-        # if gripper_to_cube < 0.05:
         if cube_to_target < 0.1:
             reward_push += 0.5 * (1 - np.tanh(5 * cube_to_target))
         reward += reward_push + reward_reach
@@ -183,9 +180,6 @@ class SawyerPushObstacleEnv(SawyerEnv):
                 self._ac_scale,
             )
         desired_state = self._prev_state + rescaled_ac
-        # arm_action = desired_state
-        # gripper_action = self._gripper_format_action(np.array([action[-1]]))
-        # converted_action = np.concatenate([arm_action, gripper_action])
 
         n_inner_loop = int(self._frame_dt / self.dt)
         for _ in range(n_inner_loop):
@@ -204,7 +198,6 @@ class SawyerPushObstacleEnv(SawyerEnv):
                 ] = self.sim.data.qfrc_bias[
                     self.ref_target_indicator_joint_pos_indexes
                 ].copy()
-            # self._do_simulation(converted_action)
             self._do_simulation(desired_state)
 
         self._prev_state = np.copy(desired_state)
