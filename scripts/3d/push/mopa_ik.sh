@@ -1,27 +1,26 @@
 #<!/bin/bash -x
 
-prefix="MoPA-SAC"
+prefix="MoPA-SAC.IK"
 gpu=$1
 seed=$2
 algo='sac'
-env="sawyer-push-obstacle-v3"
+env="sawyer-push-obstacle-v0"
 max_episode_step="250"
-debug="True"
+debug="False"
 reward_type='sparse'
 log_root_dir="./logs"
 mopa="True"
 reuse_data="True"
 action_range="0.1"
 stochastic_eval="True"
-find_collision_free="True"
+invalid_target_handling="True"
 vis_replay="True"
 plot_type='3d'
 use_smdp_update="True"
-use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 max_reuse_data='15'
-reward_scale="0.2"
+reward_scale="1.0"
 use_ik_target="True"
 ik_target="grip_site"
 omega='0.05'
@@ -38,10 +37,9 @@ python -m rl.main \
     --seed $seed \
     --reward_type $reward_type \
     --mopa $mopa \
-    --reuse_data_type $reuse_data_type \
     --action_range $action_range \
     --stochastic_eval $stochastic_eval \
-    --find_collision_free $find_collision_free \
+    --invalid_target_handling $invalid_target_handling \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
@@ -51,5 +49,4 @@ python -m rl.main \
     --reward_scale $reward_scale \
     --use_ik_target $use_ik_target \
     --ik_target $ik_target \
-    --use_discount_meta $use_discount_meta \
     --omega $omega
