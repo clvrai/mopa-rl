@@ -4,7 +4,7 @@ prefix="MoPA=SAC.discrete"
 algo='sac'
 gpu=$1
 seed=$2
-env="sawyer-push-obstacle-v0"
+env="SawyerPushObstacle-v0"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'

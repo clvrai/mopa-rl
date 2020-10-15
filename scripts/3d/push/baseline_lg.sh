@@ -1,8 +1,8 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-prefix="BASELINE.LG.action_range0.5"
-env="sawyer-push-obstacle-v0"
+prefix="BASELINE.LG"
+env="SawyerPushObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"

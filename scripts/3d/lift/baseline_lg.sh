@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 prefix="BASELINE.action_range0.5.v8"
-env="sawyer-lift-obstacle-v0"
+env="SawyerLiftObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"

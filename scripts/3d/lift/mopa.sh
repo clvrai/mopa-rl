@@ -2,8 +2,8 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC.v5_3"
-env="sawyer-lift-obstacle-v0"
+prefix="MoPA-SAC"
+env="SawyerLiftObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"

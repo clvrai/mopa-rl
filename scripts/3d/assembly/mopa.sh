@@ -4,7 +4,7 @@ seed=$2
 
 prefix="MoPA-SAC"
 algo='sac'
-env="sawyer-assembly-v1"
+env="SawyerAssemblyObstacle-v0"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'

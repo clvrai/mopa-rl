@@ -1,7 +1,7 @@
 #<!/bin/bash -x
 
 prefix="MoPA-SAC.discrete"
-env="sawyer-lift-obstacle-v0"
+env="SawyerLiftObstacle-v0"
 gpu=$1
 seed=$2
 algo='sac'

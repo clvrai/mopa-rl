@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 prefix="BASELINE"
-env="sawyer-assembly-v1"
+env="SawyerAssemblyObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"

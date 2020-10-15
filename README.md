@@ -83,7 +83,7 @@ python setup.py build_ext --inplace
 
 - PusherObstacle-v0 (2D Push)
 - SawyerPush-v0 (Sawyer Push without obstacle)
-- SawyerPush-obstacle-v0
+- SawyerPushObstacle-v0
 - SawyerLift-v0 (Sawyer Lift without obstacle)
 - SawyerLiftObstacle-v0
 - SawyerAssembly-v0 (Sawyer Assembly without obstacles)

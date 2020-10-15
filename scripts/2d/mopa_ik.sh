@@ -4,7 +4,7 @@ seed=$2
 
 algo='sac'
 prefix="MoPA-SAC.IK"
-env="pusher-obstacle-v0"
+env="PusherObstacle-v0"
 max_episode_step="400"
 debug="False"
 reward_type='sparse'
