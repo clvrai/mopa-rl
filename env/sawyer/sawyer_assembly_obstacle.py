@@ -3,9 +3,9 @@ import numpy as np
 from env.sawyer.sawyer import SawyerEnv
 
 
-class SawyerAssemblyV1Env(SawyerEnv):
+class SawyerAssemblyObstacleEnv(SawyerEnv):
     def __init__(self, **kwargs):
-        super().__init__("sawyer_assembly_v1.xml", **kwargs)
+        super().__init__("sawyer_assembly_obstacle.xml", **kwargs)
         self._get_reference()
 
     def _get_reference(self):

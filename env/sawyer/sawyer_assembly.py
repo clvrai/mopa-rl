@@ -5,6 +5,7 @@ from env.sawyer.sawyer import SawyerEnv
 
 class SawyerAssemblyEnv(SawyerEnv):
     def __init__(self, **kwargs):
+        kwargs["camera_name"] = "topview"
         super().__init__("sawyer_assembly.xml", **kwargs)
         self._get_reference()
 
@@ -70,10 +71,6 @@ class SawyerAssemblyEnv(SawyerEnv):
     @property
     def static_geoms(self):
         return []
-
-    @property
-    def dof(self):
-        return 7
 
     @property
     def static_geom_ids(self):
