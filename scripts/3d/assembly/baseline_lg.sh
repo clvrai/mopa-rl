@@ -1,8 +1,8 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-prefix="BASELINE.action_range0.5"
-env="sawyer-assembly-v1"
+prefix="BASELINE.SAC.LG"
+env="SawyerAssemblyObstacle-v0"
 data='08.09'
 algo='sac'
 max_episode_step="250"
@@ -19,7 +19,6 @@ use_smdp_update="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

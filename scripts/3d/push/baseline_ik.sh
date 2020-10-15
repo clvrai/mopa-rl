@@ -2,8 +2,8 @@
 gpu=$1
 seed=$2
 
-prefix="BASELINE"
-env="sawyer-push-obstacle-v3"
+prefix="BASELINE.IK"
+env="SawyerPushObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"
@@ -19,7 +19,6 @@ action_range="0.001"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

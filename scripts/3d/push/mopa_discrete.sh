@@ -1,37 +1,36 @@
 #<!/bin/bash -x
 
 prefix="MoPA=SAC.discrete"
+algo='sac'
 gpu=$1
 seed=$2
-env="sawyer-push-obstacle-v3"
+env="SawyerPushObstacle-v0"
 max_episode_step="250"
 debug="False"
 reward_type='sparse'
 log_root_dir="./logs"
 mopa="True"
-alpha="1.0"
 reuse_data="True"
-action_range="1.0"
+action_range="0.5"
 invalid_planner_rew="-0.0"
 stochastic_eval="True"
-find_collision_free="True"
+invalid_target_handling="True"
 vis_replay="True"
 plot_type='3d'
 ac_space_type="piecewise"
 use_smdp_update="True"
-use_discount_meta="True"
 step_size="0.02"
 success_reward="150.0"
 discount_factor='0.99'
 max_reuse_data='15'
-reward_scale="0.5"
+reward_scale="1.0"
 evaluate_interval="10000"
 discrete_action="True"
+omega='0.0'
 
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \
@@ -43,9 +42,9 @@ python -m rl.main \
     --mopa $mopa \
     --reuse_data $reuse_data \
     --action_range $action_range \
-    --discrete_action $extended_action \
+    --discrete_action $discrete_action \
     --stochastic_eval $stochastic_eval \
-    --find_collision_free $find_collision_free \
+    --invalid_target_handling $invalid_target_handling \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --use_smdp_update $use_smdp_update \
@@ -55,4 +54,4 @@ python -m rl.main \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
     --evaluate_interval $evaluate_interval \
-    --use_discount_meta $use_discount_meta \
+    --omega $omega

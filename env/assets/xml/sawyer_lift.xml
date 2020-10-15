@@ -10,8 +10,6 @@
         <mesh file="../objects/meshes/can.stl" name="can_mesh" />
         <texture file="../objects/../textures/can.png" name="tex-can" />
         <material name="coke" reflectance="0.7" texrepeat="5 5" texture="tex-can" texuniform="true" />
-        <texture file="../textures/granite.png" name="tex-granite" type="2d" />
-        <material name="granite" reflectance="0.5" texrepeat="5 5" texture="tex-granite" texuniform="true" />
     </asset>
     <worldbody>
     <body name="bin1" pos="0.65 -0.0 0.8">

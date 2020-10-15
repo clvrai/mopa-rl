@@ -3,11 +3,10 @@ gpu=$1
 seed=$2
 algo='sac'
 prefix="BASELINE.SAC.IK"
-env="pusher-obstacle-hard-v3"
+env="PusherObstacle-v0"
 gpu=$gpu
 max_episode_step="400"
 debug="False"
-reward_type='sparse'
 log_root_dir="./logs"
 reward_scale='10.'
 vis_replay="True"
@@ -17,7 +16,6 @@ action_range="0.01"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \
@@ -25,7 +23,6 @@ python -m rl.main \
     --debug $debug \
     --algo $algo \
     --seed $seed \
-    --reward_type $reward_type \
     --reward_scale $reward_scale \
     --vis_replay $vis_replay \
     --success_reward $success_reward \

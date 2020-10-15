@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 prefix="BASELINE"
-env="sawyer-assembly-v1"
+env="SawyerAssemblyObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"
@@ -18,7 +18,6 @@ action_range="0.001"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

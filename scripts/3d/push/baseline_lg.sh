@@ -1,8 +1,8 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-prefix="BASELINE.actin_range0.5.v8"
-env="sawyer-push-obstacle-v3"
+prefix="BASELINE.LG"
+env="SawyerPushObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"
@@ -18,7 +18,6 @@ use_smdp_update="True"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

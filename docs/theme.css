@@ -347,3 +347,7 @@ span.env-name {
     color: #4285f4;
 }
 
+div#markdown-body {
+    margin-top: -22px;
+}
+

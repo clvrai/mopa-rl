@@ -1,11 +1,8 @@
-import re
-from collections import OrderedDict
-
 import numpy as np
-from gym import spaces
-from env.base import BaseEnv
+
 from env.sawyer.sawyer import SawyerEnv
 from util.transform_utils import *
+
 
 class SawyerLiftEnv(SawyerEnv):
     def __init__(self, **kwargs):
@@ -23,21 +20,19 @@ class SawyerLiftEnv(SawyerEnv):
         self.cube_geom_id = self.sim.model.geom_name2id("cube")
         self.cube_site_id = self.sim.model.site_name2id("cube")
 
-
     def _reset(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
-        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
-        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.0
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.0
         self.sim.forward()
 
         return self._get_obs()
 
-
     def initialize_joints(self):
         init_qpos = self.init_qpos + np.random.randn(self.init_qpos.shape[0]) * 0.02
         self.sim.data.qpos[self.ref_joint_pos_indexes] = init_qpos
-        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.
+        self.sim.data.qvel[self.ref_joint_vel_indexes] = 0.0
         self.sim.forward()
 
     @property
@@ -58,20 +53,40 @@ class SawyerLiftEnv(SawyerEnv):
 
     @property
     def gripper_bodies(self):
-        return ["clawGripper", "rightclaw", 'leftclaw',
-                'right_gripper_base', 'right_gripper', 'r_gripper_l_finger_tip', 'r_gripper_r_finger_tip']
+        return [
+            "clawGripper",
+            "rightclaw",
+            "leftclaw",
+            "right_gripper_base",
+            "right_gripper",
+            "r_gripper_l_finger_tip",
+            "r_gripper_r_finger_tip",
+        ]
+
     @property
     def gripper_indicator_bodies(self):
-        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator',
-                'right_gripper_base_indicator', 'r_gripper_l_finger_tip_indicator', 'r_gripper_r_finger_tip_indicator']
+        return [
+            "clawGripper_indicator",
+            "rightclaw_indicator",
+            "leftclaw_indicator",
+            "right_gripper_base_indicator",
+            "r_gripper_l_finger_tip_indicator",
+            "r_gripper_r_finger_tip_indicator",
+        ]
+
     @property
     def gripper_target_bodies(self):
-        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target',
-                'right_gripper_base_target', 'r_gripper_l_finger_tip_target', 'r_gripper_r_finger_tip_target']
-
+        return [
+            "clawGripper_target",
+            "rightclaw_target",
+            "leftclaw_target",
+            "right_gripper_base_target",
+            "r_gripper_l_finger_tip_target",
+            "r_gripper_r_finger_tip_target",
+        ]
 
     def compute_reward(self, action):
-        reward_type = self._kwargs['reward_type']
+        reward_type = self._kwargs["reward_type"]
         info = {}
         reward = 0
 
@@ -79,11 +94,11 @@ class SawyerLiftEnv(SawyerEnv):
         grasp_mult = 0.35
         lift_mult = 0.5
 
-        reward_reach = 0.
+        reward_reach = 0.0
         gripper_site_pos = self.sim.data.get_site_xpos("grip_site")
         cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-        gripper_to_cube = np.linalg.norm(cube_pos-gripper_site_pos)
-        reward_reach = (1-np.tanh(10*gripper_to_cube)) * reach_mult
+        gripper_to_cube = np.linalg.norm(cube_pos - gripper_site_pos)
+        reward_reach = (1 - np.tanh(10 * gripper_to_cube)) * reach_mult
 
         touch_left_finger = False
         touch_right_finger = False
@@ -102,19 +117,24 @@ class SawyerLiftEnv(SawyerEnv):
         has_grasp = touch_right_finger and touch_left_finger
         reward_grasp = int(has_grasp) * grasp_mult
 
-        reward_lift = 0.
+        reward_lift = 0.0
         object_z_locs = self.sim.data.body_xpos[self.cube_body_id][2]
-        if reward_grasp > 0.:
+        if reward_grasp > 0.0:
             z_target = self._get_pos("bin1")[2] + 0.45
-            z_dist = np.maximum(z_target-object_z_locs, 0.)
-            reward_lift = grasp_mult + (1-np.tanh(15*z_dist)) * (lift_mult-grasp_mult)
+            z_dist = np.maximum(z_target - object_z_locs, 0.0)
+            reward_lift = grasp_mult + (1 - np.tanh(15 * z_dist)) * (
+                lift_mult - grasp_mult
+            )
 
         reward += max(reward_reach, reward_grasp, reward_lift)
-        info = dict(reward_reach=reward_reach, reward_grasp=reward_grasp,
-                    reward_lift=reward_lift)
+        info = dict(
+            reward_reach=reward_reach,
+            reward_grasp=reward_grasp,
+            reward_lift=reward_lift,
+        )
 
-        if reward_grasp > 0. and np.abs(z_target - object_z_locs) < 0.05:
-            reward += self._kwargs['success_reward']
+        if reward_grasp > 0.0 and np.abs(z_target - object_z_locs) < 0.05:
+            reward += self._kwargs["success_reward"]
             self._success = True
             self._terminal = True
         else:
@@ -133,12 +153,11 @@ class SawyerLiftEnv(SawyerEnv):
         gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
         di["gripper_to_cube"] = gripper_site_pos - cube_pos
 
-
         return di
 
     @property
     def static_bodies(self):
-        return ['table', 'bin1']
+        return ["table", "bin1"]
 
     @property
     def static_geoms(self):
@@ -158,12 +177,11 @@ class SawyerLiftEnv(SawyerEnv):
 
     @property
     def manipulation_geom(self):
-        return ['cube']
+        return ["cube"]
 
     @property
     def manipulation_geom_ids(self):
         return [self.sim.model.geom_name2id(name) for name in self.manipulation_geom]
-
 
     def _step(self, action, is_planner=False):
         """
@@ -178,24 +196,26 @@ class SawyerLiftEnv(SawyerEnv):
             self._i_term = np.zeros_like(self.mujoco_robot.dof)
 
         if is_planner:
-            rescaled_ac = np.clip(action[:self.robot_dof], -self._ac_scale, self._ac_scale)
+            rescaled_ac = np.clip(
+                action[: self.robot_dof], -self._ac_scale, self._ac_scale
+            )
         else:
-            rescaled_ac = action[:self.robot_dof] * self._ac_scale
+            rescaled_ac = action[: self.robot_dof] * self._ac_scale
         desired_state = self._prev_state + rescaled_ac
         arm_action = desired_state
         gripper_action = self._gripper_format_action(np.array([action[-1]]))
         converted_action = np.concatenate([arm_action, gripper_action])
 
-        n_inner_loop = int(self._frame_dt/self.dt)
+        n_inner_loop = int(self._frame_dt / self.dt)
         for _ in range(n_inner_loop):
-            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
+            self.sim.data.qfrc_applied[
+                self.ref_joint_vel_indexes
+            ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
 
             if self.use_robot_indicator:
                 self.sim.data.qfrc_applied[
                     self.ref_indicator_joint_pos_indexes
-                ] = self.sim.data.qfrc_bias[
-                    self.ref_indicator_joint_pos_indexes
-                ].copy()
+                ] = self.sim.data.qfrc_bias[self.ref_indicator_joint_pos_indexes].copy()
 
             if self.use_target_robot_indicator:
                 self.sim.data.qfrc_applied[

@@ -2,7 +2,7 @@
 gpu=$1
 seed=$2
 prefix="BASELINE.action_range0.5.v8"
-env="sawyer-lift-obstacle-v0"
+env="SawyerLiftObstacle-v0"
 algo='sac'
 max_episode_step="250"
 debug="False"
@@ -18,7 +18,6 @@ action_range="0.5"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

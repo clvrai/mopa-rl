@@ -31,4 +31,3 @@ def mpi_sum(x):
         return {k: _mpi_sum(np.array(x[k])) for k in keys}
     else:
         return _mpi_sum(np.array(x))
-

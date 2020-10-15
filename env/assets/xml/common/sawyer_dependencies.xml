@@ -21,9 +21,9 @@
         <mesh name="l4" file="../meshes/sawyer/l4.stl" />
         <mesh name="l5" file="../meshes/sawyer/l5.stl" />
         <mesh name="l6" file="../meshes/sawyer/l6.stl" />
-        <mesh file="../grippers/meshes/two_finger_gripper/electric_gripper_base.STL" name="electric_gripper_base" />
-        <mesh file="../grippers/meshes/two_finger_gripper/standard_narrow.STL" name="standard_narrow" />
-        <mesh file="../grippers/meshes/two_finger_gripper/half_round_tip.STL" name="half_round_tip" />
+        <mesh file="../meshes/two_finger_gripper/electric_gripper_base.STL" name="electric_gripper_base" />
+        <mesh file="../meshes/two_finger_gripper/standard_narrow.STL" name="standard_narrow" />
+        <mesh file="../meshes/two_finger_gripper/half_round_tip.STL" name="half_round_tip" />
     </asset>
 
     <contact>

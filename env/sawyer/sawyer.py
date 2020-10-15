@@ -1,23 +1,20 @@
-import os
-import time
-import logging
-import traceback
 from collections import OrderedDict
-from util.transform_utils import *
 
 try:
     import mujoco_py
 except ImportError as e:
     raise Exception("{}. (need to install mujoco_py)".format(e))
 
-import scipy.misc
 import numpy as np
 import gym
-from gym import spaces, error
+from gym import spaces
 
-from util.logger import logger
-np.set_printoptions(suppress=True)
 from env.base import BaseEnv
+from util.logger import logger
+from util.transform_utils import *
+
+np.set_printoptions(suppress=True)
+
 
 class SawyerEnv(BaseEnv):
     def __init__(self, xml_path, **kwargs):
@@ -31,16 +28,18 @@ class SawyerEnv(BaseEnv):
 
         self._minimum = minimum
         self._maximum = maximum
-        self.action_space = spaces.Dict([
-            ('default', spaces.Box(low=minimum, high=maximum, dtype=np.float32))
-        ])
+        self.action_space = spaces.Dict(
+            [("default", spaces.Box(low=minimum, high=maximum, dtype=np.float32))]
+        )
         self.action_space.seed(self._seed)
 
         jnt_range = self.sim.model.jnt_range
         is_jnt_limited = self.sim.model.jnt_limited.astype(np.bool)
         jnt_minimum = np.full(len(is_jnt_limited), fill_value=-np.inf, dtype=np.float)
         jnt_maximum = np.full(len(is_jnt_limited), fill_value=np.inf, dtype=np.float)
-        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[is_jnt_limited].T
+        jnt_minimum[is_jnt_limited], jnt_maximum[is_jnt_limited] = jnt_range[
+            is_jnt_limited
+        ].T
         jnt_minimum[np.invert(is_jnt_limited)] = -3.14
         jnt_maximum[np.invert(is_jnt_limited)] = 3.14
         self.use_robot_indicator = kwargs["use_robot_indicator"]
@@ -50,18 +49,20 @@ class SawyerEnv(BaseEnv):
         self._prev_state = None
         self._i_term = None
         self.reset_visualized_indicator()
-        self.min_world_size = [-1.2, -1.2, 0.]
-        self.max_world_size = [1.2, 1.2, 2.]
+        self.min_world_size = [-1.2, -1.2, 0.0]
+        self.max_world_size = [1.2, 1.2, 2.0]
 
-        self._agent_colors = [self.sim.model.geom_rgba[idx].copy() for idx in self.agent_geom_ids]
+        self._agent_colors = [
+            self.sim.model.geom_rgba[idx].copy() for idx in self.agent_geom_ids
+        ]
 
     @property
     def action_spec(self):
         """
         Action lower/upper limits per dimension.
         """
-        low = np.ones(self.dof) * -1.
-        high = np.ones(self.dof) * 1.
+        low = np.ones(self.dof) * -1.0
+        high = np.ones(self.dof) * 1.0
         return low, high
 
     @property
@@ -69,7 +70,7 @@ class SawyerEnv(BaseEnv):
         observation = self._get_obs()
         observation_space = OrderedDict()
         for k, v in observation.items():
-            observation_space[k] = spaces.Box(low=-1., high=1, shape=v.shape)
+            observation_space[k] = spaces.Box(low=-1.0, high=1, shape=v.shape)
         observation_space = spaces.Dict(observation_space)
         return observation_space
 
@@ -107,16 +108,15 @@ class SawyerEnv(BaseEnv):
 
     @property
     def gripper_bodies(self):
-        return ["clawGripper", "rightclaw", 'leftclaw']
+        return ["clawGripper", "rightclaw", "leftclaw"]
 
     @property
     def gripper_target_bodies(self):
-        return ["clawGripper_target", "rightclaw_target", 'leftclaw_target']
+        return ["clawGripper_target", "rightclaw_target", "leftclaw_target"]
 
     @property
     def gripper_indicator_bodies(self):
-        return ["clawGripper_indicator", "rightclaw_indicator", 'leftclaw_indicator']
-
+        return ["clawGripper_indicator", "rightclaw_indicator", "leftclaw_indicator"]
 
     @property
     def gripper_init_qpos(self):
@@ -143,18 +143,22 @@ class SawyerEnv(BaseEnv):
 
         if self.use_robot_indicator:
             self.ref_indicator_joint_pos_indexes = [
-                self.sim.model.get_joint_qpos_addr(x) for x in self.robot_indicator_joints
+                self.sim.model.get_joint_qpos_addr(x)
+                for x in self.robot_indicator_joints
             ]
             self.ref_indicator_joint_vel_indexes = [
-                self.sim.model.get_joint_qvel_addr(x) for x in self.robot_indicator_joints
+                self.sim.model.get_joint_qvel_addr(x)
+                for x in self.robot_indicator_joints
             ]
 
         if self.use_target_robot_indicator:
             self.ref_target_indicator_joint_pos_indexes = [
-                self.sim.model.get_joint_qpos_addr(x) for x in self.target_robot_indicator_joints
+                self.sim.model.get_joint_qpos_addr(x)
+                for x in self.target_robot_indicator_joints
             ]
             self.ref_target_indicator_joint_vel_indexes = [
-                self.sim.model.get_joint_qvel_addr(x) for x in self.target_robot_indicator_joints
+                self.sim.model.get_joint_qvel_addr(x)
+                for x in self.target_robot_indicator_joints
             ]
 
         self.ref_joint_pos_indexes = [
@@ -163,7 +167,6 @@ class SawyerEnv(BaseEnv):
         self.ref_joint_vel_indexes = [
             self.sim.model.get_joint_qvel_addr(x) for x in self.robot_joints
         ]
-
 
         # indices for grippers in qpos, qvel
         self.ref_gripper_joint_pos_indexes = [
@@ -217,7 +220,7 @@ class SawyerEnv(BaseEnv):
     def reset_visualized_indicator(self):
         for idx in self.indicator_agent_geom_ids + self.target_indicator_agent_geom_ids:
             color = self.sim.model.geom_rgba[idx]
-            color[-1] = 0.
+            color[-1] = 0.0
             self.sim.model.geom_rgba[idx] = color
 
     def color_agent(self):
@@ -247,7 +250,9 @@ class SawyerEnv(BaseEnv):
     def target_indicator_agent_geom_ids(self):
         if self.use_target_robot_indicator:
             body_ids = []
-            for body_name in self.target_robot_indicator_bodies + self.gripper_target_bodies:
+            for body_name in (
+                self.target_robot_indicator_bodies + self.gripper_target_bodies
+            ):
                 body_ids.append(self.sim.model.body_name2id(body_name))
 
             geom_ids = []
@@ -262,7 +267,9 @@ class SawyerEnv(BaseEnv):
     def indicator_agent_geom_ids(self):
         if self.use_robot_indicator:
             body_ids = []
-            for body_name in self.robot_indicator_bodies + self.gripper_indicator_bodies:
+            for body_name in (
+                self.robot_indicator_bodies + self.gripper_indicator_bodies
+            ):
                 body_ids.append(self.sim.model.body_name2id(body_name))
 
             geom_ids = []
@@ -276,20 +283,32 @@ class SawyerEnv(BaseEnv):
     def form_action(self, next_qpos, curr_qpos=None):
         if curr_qpos is None:
             curr_qpos = self.sim.data.qpos.copy()
-        joint_ac = next_qpos[self.ref_joint_pos_indexes] - curr_qpos[self.ref_joint_pos_indexes]
+        joint_ac = (
+            next_qpos[self.ref_joint_pos_indexes]
+            - curr_qpos[self.ref_joint_pos_indexes]
+        )
         if self.dof == 8:
-            gripper = next_qpos[self.ref_gripper_joint_pos_indexes] - curr_qpos[self.ref_gripper_joint_pos_indexes]
+            gripper = (
+                next_qpos[self.ref_gripper_joint_pos_indexes]
+                - curr_qpos[self.ref_gripper_joint_pos_indexes]
+            )
             gripper_ac = gripper[0]
-            ac = OrderedDict([('default', np.concatenate([joint_ac, [gripper_ac]]))])
+            ac = OrderedDict([("default", np.concatenate([joint_ac, [gripper_ac]]))])
         else:
-            ac = OrderedDict([('default', joint_ac)])
+            ac = OrderedDict([("default", joint_ac)])
         return ac
 
     def form_hindsight_action(self, prev_qpos, skill=None):
-        joint_ac = self.sim.data.qpos.copy()[self.ref_joint_pos_indexes] - prev_qpos[self.ref_joint_pos_indexes]
-        gripper = self.sim.data.qpos.copy()[self.ref_gripper_joint_pos_indexes] - prev_qpos[self.ref_gripper_joint_pos_indexes]
+        joint_ac = (
+            self.sim.data.qpos.copy()[self.ref_joint_pos_indexes]
+            - prev_qpos[self.ref_joint_pos_indexes]
+        )
+        gripper = (
+            self.sim.data.qpos.copy()[self.ref_gripper_joint_pos_indexes]
+            - prev_qpos[self.ref_gripper_joint_pos_indexes]
+        )
         gripper_ac = gripper[0]
-        ac = OrderedDict([('default', np.concatenate([joint_ac, [gripper_ac]]))])
+        ac = OrderedDict([("default", np.concatenate([joint_ac, [gripper_ac]]))])
         return ac
 
     def compute_reward(self, action):
@@ -316,10 +335,6 @@ class SawyerEnv(BaseEnv):
             self.sim.data.get_body_xquat("right_ee_attchment"), to="xyzw"
         )
 
-        # add in gripper information
-        # robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
-
-        # di["robot-state"] = np.concatenate(robot_states)
         return di
 
     def _gripper_format_action(self, gripper_ac):
@@ -339,23 +354,23 @@ class SawyerEnv(BaseEnv):
             self._i_term = np.zeros_like(self.mujoco_robot.dof)
 
         if is_planner:
-            rescaled_ac = action[:self.robot_dof]
+            rescaled_ac = action[: self.robot_dof]
         else:
-            rescaled_ac = action[:self.robot_dof] * self._ac_scale
+            rescaled_ac = action[: self.robot_dof] * self._ac_scale
         desired_state = self._prev_state + rescaled_ac
         arm_action = desired_state
         gripper_action = self._gripper_format_action(np.array([action[-1]]))
         converted_action = np.concatenate([arm_action, gripper_action])
 
-        n_inner_loop = int(self._frame_dt/self.dt)
+        n_inner_loop = int(self._frame_dt / self.dt)
         for _ in range(n_inner_loop):
-            self.sim.data.qfrc_applied[self.ref_joint_vel_indexes] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
+            self.sim.data.qfrc_applied[
+                self.ref_joint_vel_indexes
+            ] = self.sim.data.qfrc_bias[self.ref_joint_vel_indexes].copy()
             if self.use_robot_indicator:
                 self.sim.data.qfrc_applied[
                     self.ref_indicator_joint_pos_indexes
-                ] = self.sim.data.qfrc_bias[
-                    self.ref_indicator_joint_pos_indexes
-                ].copy()
+                ] = self.sim.data.qfrc_bias[self.ref_indicator_joint_pos_indexes].copy()
 
             if self.use_target_robot_indicator:
                 self.sim.data.qfrc_applied[

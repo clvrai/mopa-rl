@@ -4,7 +4,7 @@
 
     <meta charset="UTF-8">
     <meta property="og:title" content=MoPA-RL>
-    <meta property="og:description" content="Jun et al. Motion Planner Augmented Reinforcement Learning .">
+    <meta property="og:description" content="Yamada et al. Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments">
     <meta property="og:url" content="">
     <meta property="og:image" content="">
     <meta property="og:type" content="website">
@@ -57,21 +57,6 @@
                 const content_html = converter.makeHtml(data);
                 $("#markdown-body").html(content_html);
             });
-        })
-
-        $(document).ready(function() {
-            $('.slideshow').slick({
-                slidesToShow: 1,
-                slidesToScroll: 1,
-                autoplay: true,
-                autoplaySpeed: 2000,
-                dots: true,
-                arrows: false,
-                infinite: true,
-                fade: true,
-                speed: 300,
-                cssEase: 'linear'
-            });
         });
 
     </script>
@@ -83,7 +68,7 @@
             <div class="w3-cell-row" style="width: 90%; margin: auto; max-width: 1600px; margin-top: 80px; margin-bottom: 40px">
                 <div class="w3-container w3-cell w3-cell-middle">
                     <div class="title">Motion Planner Augmented Reinforcement Learning</div>
-                    <div class="title">for Robot Manipulation in obstructed Environments</div>
+                    <div class="title">for Robot Manipulation in Obstructed Environments</div>
                     <!-- Author -->
                 <div class="w3-row-padding">
                     <div class="authorship-container">
@@ -98,7 +83,7 @@
                             <li><a href="http://www.peter-englert.net/" target="_blank"><i class="far fa-user"></i> Peter Englert<sup>2</sup> </a></li>
                         </ul>
                         <span class="school"><a href="https://clvrai.com/" target="_blank"><i class="fas fa-university"></i> Cognitive Learning for Vision and Robotics (CLVR), USC<sup>1</sup> </a></span>
-                        <span class="school"><a href="https://clvrai.com/" target="_blank"><i class="fas fa-university"></i> Robotics Embedded Systems Laboratory (RESL), USC<sup>2</sup> </a></span>
+                        <span class="school"><a href="https://robotics.usc.edu/resl/" target="_blank"><i class="fas fa-university"></i> Robotics Embedded Systems Laboratory (RESL), USC<sup>2</sup> </a></span>
                     </div>
                     <div class="w3-card-4 w3-round-large furniture-grid" style="width: 80%; max-width: 700px">
                             <img width="100%" height="100%" src="img/teaser.png">
@@ -130,7 +115,8 @@
                         <li><a href="https://viterbi-web.usc.edu/~limjj/" target="_blank"><i class="far fa-user"></i> Joseph J. Lim</a></li>
                         <li><a href="http://www.peter-englert.net/" target="_blank"><i class="far fa-user"></i> Peter Englert</a></li>
                     </ul>
-                    <span class="school"><a href="https://clvrai.com/" target="_blank"><i class="fas fa-university"></i> Cognitive Learning for Vision and Robotics (CLVR), USC</a></span>
+                    <span class="school"><a href="https://clvrai.com/" target="_blank"><i class="fas fa-university"></i> Cognitive Learning for Vision and Robotics (CLVR), USC</a></span> <br/>
+                    <span class="school"><a href="https://robotics.usc.edu/resl/" target="_blank"><i class="fas fa-university"></i> Robotics Embedded Systems Laboratory (RESL), USC</a></span>
                 </div>
 
             </div>
@@ -150,46 +136,14 @@
         <!-- Main Body -->
         <div class="main-body">
             <div class="w3-container">
-                <div class="w3-content" style="max-width:1000px">
-
+                <div class="w3-content" style="max-width:1000px;">
                     <!-- Links -->
                     <div class="link-container">
                         <ul class="horizontal-list">
-                            <li><button class="w3-button waves-effect waves-light w3-card-4 grey lighten-2 w3-round-large"><i class="fas fa-file-alt"></i> <a href="https://openreview.net/forum?id=ryxB2lBtvH" target="_blank"> Paper </a></button></li>
-                            <li><button class="w3-button waves-effect waves-light w3-card-4 grey lighten-2 w3-round-large"><i class="fas fa-code"></i> <a href="https://github.com/clvrai/coordination" target="_blank"> Code </a></button></li>
-                            <!-- <li><button class="w3&#45;button waves&#45;effect waves&#45;light w3&#45;card&#45;4 grey lighten&#45;2 w3&#45;round&#45;large"><i class="fas fa&#45;file&#45;powerpoint"></i> <a href="https://clvrai.com/assets/ICLR2020_5mins.pdf" target="_blank"> Slide </a></button></li> -->
+                            <li><button class="w3-button waves-effect waves-light w3-card-4 grey lighten-2 w3-round-large"><i class="fas fa-file-alt"></i> <a href="" target="_blank"> Paper </a></button></li>
+                            <li><button class="w3-button waves-effect waves-light w3-card-4 grey lighten-2 w3-round-large"><i class="fas fa-code"></i> <a href="https://github.com/clvrai/mopa-rl" target="_blank"> Code </a></button></li>
                         </ul>
                     </div>
-
-                    <!-- <!&#45;&#45; Motivation &#45;&#45;> -->
-                    <!-- <div class="slideshow_wrapper"> -->
-                    <!--     <h2>Motivation</h2> -->
-                    <!--     <p style="text&#45;align:justify"> -->
-                    <!--       When mastering a complex manipulation task, humans often decompose the task into sub&#45;skills of their body parts, practice the sub&#45;skills independently, and then execute the sub&#45;skills together. Similarly, a robot with multiple end&#45;effectors can efficiently learn to perform complex tasks by coordinating sub&#45;skills of each end&#45;effector. -->
-                    <!--     </p> -->
-                    <!--     <figure> -->
-                    <!--         <img src="./img/website_motivation_figure2.png" alt="Motivation illustration" title="Motivation illustration"> -->
-                    <!--         <figcaption> Motivation illustration </figcaption> -->
-                    <!--     </figure> -->
-                    <!-- </div> -->
-                    <!--  -->
-                    <!-- <hr> -->
-                    <!--  -->
-                    <!-- <!&#45;&#45; Slideshow &#45;&#45;> -->
-                    <!-- <div class="slideshow_wrapper"> -->
-                    <!--     <h2>Problem</h2> -->
-                    <!--     <div class="slideshow"> -->
-                    <!--         <div><img src="./img/teaser_0.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_1.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_2.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_3.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_4.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_5.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_6.png" /></div> -->
-                    <!--         <div><img src="./img/teaser_7.png" /></div> -->
-                    <!--     </div> -->
-                    <!-- </div> -->
-
                     <!-- Markdown Body -->
                     <div id="markdown-body"></div>
                 </div>
@@ -198,7 +152,7 @@
 
         <!-- Footer -->
         <footer class="w3-center w3-light-grey w3-padding-32 w3-small">
-            <p style="color: grey">The authors would like to thank Karl Pertsch and many members of the USC CLVR lab and USC RESL for helpful discussion.</br> &copy; Copyright 2020, CLVR, USC.</p>
+            <p style="color: grey">The authors would like to thank many members of the CLVR lab and RESL for helpful discussion.</br> &copy; Copyright 2020, CLVR, USC.</p>
         </footer>
 
     </body>
