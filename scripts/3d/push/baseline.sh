@@ -18,7 +18,6 @@ action_range="0.001"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
-    --wandb True \
     --prefix $prefix \
     --env $env \
     --gpu $gpu \

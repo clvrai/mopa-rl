@@ -10,9 +10,7 @@ register(
     kwargs={},
 )
 
-register(
-    id="SawyerAssembly-v0", entry_point="env.sawyer:SawyerAssemblyEnv", kwargs={}
-)
+register(id="SawyerAssembly-v0", entry_point="env.sawyer:SawyerAssemblyEnv", kwargs={})
 register(
     id="SawyerAssemblyObstacle-v0",
     entry_point="env.sawyer:SawyerAssemblyObstacleEnv",
