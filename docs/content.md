@@ -5,7 +5,7 @@
 
 ![Architecture](./img/method.png "")
 
-To solve tasks in obstructed environments, we propose motion planner augmented reinforcement learning (<b>MoPA-RL</b>). Our framework consists of an <b>RL policy</b> and <b>motion planner</b>. The motion planner is integrated into the RL policy by enlarging the action space. If a sampled action from the RL policy is in the original action space, an agent directly executes the action to the environment, otherwise the motion planner computes a path to move the agent to faraway points. MoPA-RL has three benefits:
+To solve tasks in obstructed environments, we propose motion planner augmented reinforcement learning (<b>MoPA-RL</b>). Our framework consists of an <b>RL policy</b> and a <b>motion planner</b>. The motion planner is integrated into the RL policy by enlarging the action space. If a sampled action from the RL policy is in the original action space, an agent directly executes the action to the environment, otherwise the motion planner computes a path to move the agent to faraway points. MoPA-RL has three benefits:
 <ul>
 <li>Add motion planning capabilities to any RL agent with joint space control</li>
 <li>Allow an agent to freely switch between MP and direct action execution  by controlling the scale of action</li>
@@ -17,7 +17,7 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 ## Videos
 
 <span class="env-name"><b>Sawyer Push</b></span>
-- Sawyer arm is required to find a path to reach an object inside of a box, and push it to a goal position.
+<p>Sawyer arm is required to find a path to reach an object inside of a box, and push it to a goal position.</p><br>
 <div class="w3-row-padding">
 	<div class="w3-col s3 w3-center">
 	</div>
@@ -37,7 +37,7 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 	</div>
 </div>
 <span class="env-name"><b>Sawyer Lift</b></span>
-- Sawyer arm needs to find a path to get inside a box, grasp a can and take it out from the box.
+<p>Sawyer arm needs to find a path to get inside a box, grasp a can and take it out from the box.</p><br>
 <div class="w3-row-padding">
 	<div class="w3-col s3 w3-center">
 	</div>
@@ -57,7 +57,7 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 	</div>
 </div>
 <span class="env-name"><b>Sawyer Assembly</b></span>
-- Sawyer arm with an attached table leg needs to avoid other legs to reach a hole of the table, and insert the pole to assemble the table.
+<p>Sawyer arm with an attached table leg needs to avoid other legs to reach a hole of the table, and insert the pole to assemble the table.</p><br>
 <div class="w3-row-padding">
 	<div class="w3-col s3 w3-center">
 	</div>
@@ -87,6 +87,7 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
     <div class="w3-col s1 w3-center"></div>
     <div class="w3-col s10 w3-center">
         <img src="./img/result.png" alt="Success Rate" />
+        <p>Success rates of our MoPA-SAC (green) and several baselines averaged over 4 seeds. Our approach can leverage the motion planner to converge with fewer environment steps than thebaseline. Both SAC and ours are trained for the same number of environment steps.</p>
     </div>
     <div class="w3-col s1 w3-center"></div>
 </div>
