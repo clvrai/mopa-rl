@@ -20,7 +20,7 @@ formatter = colorlog.ColoredFormatter(
     style="%",
 )
 
-logger = colorlog.getLogger("hrl-planner")
+logger = colorlog.getLogger("MoPA-RL")
 logger.setLevel(logging.DEBUG)
 
 # fh = logging.FileHandler('log')
