@@ -11,13 +11,12 @@ register(
     kwargs={},
 )
 
-register(id="sawyer-assembly-v0", entry_point="env.sawyer:SawyerAssemblyEnv", kwargs={})
 register(
-    id="sawyer-assembly-v1", entry_point="env.sawyer:SawyerAssemblyV1Env", kwargs={}
+    id="sawyer-assembly-v0", entry_point="env.sawyer:SawyerAssemblyEnv", kwargs={}
 )
 register(
-    id="sawyer-assembly-easy-v0",
-    entry_point="env.sawyer:SawyerAssemblyEasyEnv",
+    id="sawyer-assembly-obstacle-v0",
+    entry_point="env.sawyer:SawyerAssemblyObstacleEnv",
     kwargs={},
 )
 

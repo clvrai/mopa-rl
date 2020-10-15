@@ -79,6 +79,15 @@ cd ./mopa-rl/motion_planner
 python setup.py build_ext --inplace
 ```
 
+## Available Environments
+
+- pusher-obstacle-v0 (2D Push)
+- sawyer-push-v0 (Sawyer Push without obstacle)
+- sawyer-push-obstacle-v0
+- sawyer-lift-v0 (Sawyer Lift without obstacle)
+- sawyer-lift-obstacle-v0
+- sawyer-assembly-v0 (Sawyer Assembly without obstacles)
+- sawyer-assembly-obstacle-v0
 
 ## How to run experiments
 0. Launch a virtual display (only for a headless server)
