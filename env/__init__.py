@@ -4,7 +4,6 @@ from gym.envs.registration import register
 
 
 # register all environments to use
-register(id="Pusher-v0", entry_point="env.pusher:PusherEnv", kwargs={})
 register(
     id="PusherObstacle-v0",
     entry_point="env.pusher:PusherObstacleEnv",

@@ -1,4 +1,0 @@
-<mujoco model="pusher">
-    <include file="./common/pusher_gripper.xml" />
-</mujoco>
-

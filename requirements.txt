@@ -1,4 +1,5 @@
 numpy
+matplotlib
 torch
 wandb
 requests

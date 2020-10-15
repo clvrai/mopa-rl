@@ -14,6 +14,7 @@ def add_arguments(parser):
             "rrt",
             "rrt_connect",
         ],
+        help="planner type"
     )
     parser.add_argument(
         "--simple_planner_type",
@@ -23,6 +24,7 @@ def add_arguments(parser):
             "rrt",
             "rrt_connect",
         ],
+        help="planner type for simple planner"
     )
     parser.add_argument(
         "--planner_objective",
@@ -34,13 +36,15 @@ def add_arguments(parser):
             "state_cost_integral",
             "constraint",
         ],
+        help="planner objective function"
     )
-    parser.add_argument("--threshold", type=float, default=0.0)
-    parser.add_argument("--is_simplified", type=str2bool, default=False)
-    parser.add_argument("--simplified_duration", type=float, default=0.01)
-    parser.add_argument("--simple_planner_simplified", type=str2bool, default=False)
+    parser.add_argument("--threshold", type=float, default=0.0, help="threshold for optimization objective")
+    parser.add_argument("--is_simplified", type=str2bool, default=False, help="enable simplification of planned trajectory')
+    parser.add_argument("--simplified_duration", type=float, default=0.01, help="duration of simplification of planned trajectory")
+    parser.add_argument("--simple_planner_simplified", type=str2bool, default=False, help="enable simplification of planned trajectory for simple planner")
     parser.add_argument(
-        "--simple_planner_simplified_duration", type=float, default=0.01
+        "--simple_planner_simplified_duration", type=float, default=0.01,
+        'duration of simplification of planned trajectory for simple planner'
     )
 
 

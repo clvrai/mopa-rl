@@ -122,7 +122,6 @@ class Actor(nn.Module):
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
-                log_probs[k] *= self._config.discrete_ent_coef
 
             actions[k] = action
 
