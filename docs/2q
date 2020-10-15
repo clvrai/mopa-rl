@@ -212,6 +212,7 @@ div#markdown-body h1 {
     padding-top: 10px;
     padding-bottom: 0px;
     font-size: 2em;
+    margin-top: -25px;
 }
 
 div#markdown-body h2, div.slideshow_wrapper h2  {
@@ -345,9 +346,5 @@ span.env-name {
 
 .slick-active button {
     color: #4285f4;
-}
-
-div#markdown-body {
-    margin-top: -22px;
 }
 
