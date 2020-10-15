@@ -46,7 +46,7 @@ def add_arguments(parser):
         "--ki", type=float, default=0.1, help="i term for a PID controller"
     )
     parser.add_argument(
-        "--frame_dt", type=float, default=1.0, help="dt between each frame"
+        "--frame_dt", type=float, default=1.0, help="delta t between each frame"
     )
     parser.add_argument(
         "--ctrl_reward_coef", type=float, default=0, help="control reward coefficient"
@@ -101,8 +101,8 @@ def get_default_config():
     parser = argparse.ArgumentParser("Default Configuration for 2D Pusher Environment")
     add_argument(parser)
 
-    parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--debug", type=str2bool, default=False)
+    parser.add_argument("--seed", type=int, default=1234, help="random seed")
+    parser.add_argument("--debug", type=str2bool, default=False, help="enable debugging")
 
     config = parser.parse_args([])
     return config

@@ -133,19 +133,10 @@ def argparser():
         "--lr_critic", type=float, default=3e-4, help="the learning rate of the critic"
     )
     parser.add_argument(
-        "--lr_alpha", type=float, default=3e-4, help="the learning rate of the alpha"
-    )
-    parser.add_argument(
         "--polyak", type=float, default=0.995, help="the average coefficient"
     )
     parser.add_argument(
         "--actor_update_freq", type=int, default=1, help="frequency of actor update"
-    )
-    parser.add_argument(
-        "--critic_target_update_freq",
-        type=int,
-        default=1,
-        help="frequency of critic target update",
     )
 
     # training
