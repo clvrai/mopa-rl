@@ -86,12 +86,8 @@ def run(config):
         trainer.train()
         logger.info("Finish training")
     else:
-        if config.ll_type == "mix" and config.subgoal_predictor:
-            trainer.mp_evaluate()
-            logger.info("Finish evaluating")
-        else:
-            trainer.evaluate()
-            logger.info("Finish evaluating")
+        trainer.evaluate()
+        logger.info("Finish evaluating")
 
 
 def make_log_files(config):
@@ -140,9 +136,9 @@ if __name__ == "__main__":
     parser = argparser()
     args, unparsed = parser.parse_known_args()
 
-    if "pusher" in args.env:
+    if "Pusher" in args.env:
         from config.pusher import add_arguments
-    elif "sawyer" in args.env:
+    elif "Sawyer" in args.env:
         from config.sawyer import add_arguments
     else:
         raise ValueError("args.env (%s) is not supported" % args.env)

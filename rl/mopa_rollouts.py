@@ -149,6 +149,8 @@ class MoPARolloutRunner(object):
                     else:
                         success, valid, exact = False, False, True
 
+                    if not random_exploration:
+                        print(len(traj))
                     if success:
                         if interpolation:
                             counter["interpolation"] += 1
