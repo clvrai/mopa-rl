@@ -31,7 +31,7 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_push_mopa.mp4" type="video/mp4">
 		</video>
-		<div class="method-name">MoPA-SAC</div>
+		<div class="method-name">MoPA-SAC (Ours)</div>
 	</div>
 	<div class="w3-col s3 w3-center">
 	</div>
@@ -39,41 +39,49 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 <span class="env-name"><b>Sawyer Lift</b></span>
 <p>Sawyer arm needs to find a path to get inside a box, grasp a can and take it out from the box.</p><br>
 <div class="w3-row-padding">
-	<div class="w3-col s3 w3-center">
-	</div>
-	<div class="w3-col s3 w3-center">
+	<!-- <div class="w3-col s3 w3-center"> -->
+	<!-- </div> -->
+	<div class="w3-col s4 w3-center">
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_lift_baseline.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">SAC</div>
 	</div>
-	<div class="w3-col s3 w3-center">
+	<div class="w3-col s4 w3-center">
+		<video height="auto" width="100%" controls autoplay loop muted>
+		  <source src="./video/sawyer_lift_baseline_lg.mp4" type="video/mp4">
+		</video>
+		<div class="method-name">SAC Large</div>
+	</div>
+	<div class="w3-col s4 w3-center">
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_lift_mopa.mp4" type="video/mp4">
 		</video>
-		<div class="method-name">MoPA-SAC</div>
+		<div class="method-name">MoPA-SAC (Ours)</div>
 	</div>
-	<div class="w3-col s3 w3-center">
-	</div>
+	<!-- <div class="w3-col s3 w3-center"> -->
+	<!-- </div> -->
 </div>
 <span class="env-name"><b>Sawyer Assembly</b></span>
 <p>Sawyer arm with an attached table leg needs to avoid other legs to reach a hole of the table, and insert the pole to assemble the table.</p><br>
 <div class="w3-row-padding">
-	<div class="w3-col s3 w3-center">
-	</div>
-	<div class="w3-col s3 w3-center">
+	<div class="w3-col s4 w3-center">
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_assembly_baseline.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">SAC</div>
 	</div>
-	<div class="w3-col s3 w3-center">
+	<div class="w3-col s4 w3-center">
+		<video height="auto" width="100%" controls autoplay loop muted>
+		  <source src="./video/sawyer_assembly_baseline_lg.mp4" type="video/mp4">
+		</video>
+		<div class="method-name">SAC Large</div>
+	</div>
+	<div class="w3-col s4 w3-center">
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_assembly_mopa.mp4" type="video/mp4">
 		</video>
-		<div class="method-name">MoPA-SAC</div>
-	</div>
-	<div class="w3-col s3 w3-center">
+		<div class="method-name">MoPA-SAC (Ours)</div>
 	</div>
 </div>
 
@@ -86,7 +94,7 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 <div class="w3-row-padding">
     <div class="w3-col s1 w3-center"></div>
     <div class="w3-col s10 w3-center">
-        <img src="./img/result.png" alt="Success Rate" />
+        <img src="./img/result.png"/>
         <p>Success rates of our MoPA-SAC (green) and several baselines averaged over 4 seeds. Our approach can leverage the motion planner to converge with fewer environment steps than thebaseline. Both SAC and ours are trained for the same number of environment steps.</p>
     </div>
     <div class="w3-col s1 w3-center"></div>
