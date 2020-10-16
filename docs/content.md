@@ -19,21 +19,23 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 <span class="env-name"><b>Sawyer Push</b></span>
 <p>Sawyer arm is required to find a path to reach an object inside of a box, and push it to a goal position.</p><br>
 <div class="w3-row-padding">
-	<div class="w3-col s3 w3-center">
-	</div>
-	<div class="w3-col s3 w3-center">
+	<div class="w3-col s4 w3-center">
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_push_baseline.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">SAC</div>
 	</div>
-	<div class="w3-col s3 w3-center">
+	<div class="w3-col s4 w3-center">
+		<video height="auto" width="100%" controls autoplay loop muted>
+		  <source src="./video/sawyer_push_baseline_lg.mp4" type="video/mp4">
+		</video>
+		<div class="method-name">SAC Large</div>
+	</div>
+	<div class="w3-col s4 w3-center">
 		<video height="auto" width="100%" controls autoplay loop muted>
 		  <source src="./video/sawyer_push_mopa.mp4" type="video/mp4">
 		</video>
 		<div class="method-name">MoPA-SAC (Ours)</div>
-	</div>
-	<div class="w3-col s3 w3-center">
 	</div>
 </div>
 <span class="env-name"><b>Sawyer Lift</b></span>
