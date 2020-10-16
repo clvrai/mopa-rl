@@ -3,7 +3,7 @@
 
 ## Overview
 
-![Architecture](./img/method.png "")
+![MoPA-RL Framework](./img/method.png "")
 
 To solve tasks in obstructed environments, we propose motion planner augmented reinforcement learning (<b>MoPA-RL</b>). Our framework consists of an <b>RL policy</b> and a <b>motion planner</b>. The motion planner is integrated into the RL policy by enlarging the action space. If a sampled action from the RL policy is in the original action space, an agent directly executes the action to the environment, otherwise the motion planner computes a path to move the agent to faraway points. MoPA-RL has three benefits:
 <ul>
@@ -96,8 +96,8 @@ To solve tasks in obstructed environments, we propose motion planner augmented r
 <div class="w3-row-padding">
     <div class="w3-col s1 w3-center"></div>
     <div class="w3-col s10 w3-center">
-        <img src="./img/result.png"/>
         <p>Success rates of our MoPA-SAC (green) and several baselines averaged over 4 seeds. Our approach can leverage the motion planner to converge with fewer environment steps than thebaseline. Both SAC and ours are trained for the same number of environment steps.</p>
+        <img src="./img/result.png"/>
     </div>
     <div class="w3-col s1 w3-center"></div>
 </div>
