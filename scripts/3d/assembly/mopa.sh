@@ -2,7 +2,10 @@
 gpu=$1
 seed=$2
 
-prefix="MoPA-SAC"
+wandb='True'
+project='hrl-planner'
+entity='clvr'
+prefix="MoPA-SAC.thicker.goal0.02"
 algo='sac'
 env="SawyerAssemblyObstacle-v0"
 max_episode_step="250"
@@ -46,3 +49,6 @@ python -m rl.main \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
     --reward_scale $reward_scale \
+    --wandb $wandb \
+    --entity $entity \
+    --project $project
