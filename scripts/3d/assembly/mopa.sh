@@ -5,7 +5,7 @@ seed=$2
 wandb='True'
 project='hrl-planner'
 entity='clvr'
-prefix="MoPA-SAC.thicker.goal0.02"
+prefix="MoPA-SAC.thicker.fixed.scale0.8"
 algo='sac'
 env="SawyerAssemblyObstacle-v0"
 max_episode_step="250"
@@ -24,7 +24,7 @@ ac_space_type="piecewise"
 use_smdp_update="True"
 success_reward="150.0"
 max_reuse_data='15'
-reward_scale="1.0"
+reward_scale="0.8"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
