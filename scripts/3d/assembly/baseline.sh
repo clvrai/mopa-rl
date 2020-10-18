@@ -1,7 +1,10 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-prefix="BASELINE"
+wandb="True"
+project="hrl-planner"
+entity="clvr"
+prefix="BASELINE.thick"
 env="SawyerAssemblyObstacle-v0"
 algo='sac'
 max_episode_step="250"
@@ -12,9 +15,6 @@ vis_replay="True"
 plot_type='3d'
 success_reward='150.'
 reward_scale="10."
-use_ik_target="False"
-ik_target="grip_site"
-action_range="0.001"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -30,6 +30,7 @@ python -m rl.main \
     --plot_type $plot_type \
     --success_reward $success_reward \
     --reward_scale $reward_scale \
-    --use_ik_target $use_ik_target \
-    --ik_target $ik_target \
-    --action_range $action_range
+    --wandb $wandb \
+    --entity $entity \
+    --project $project
+
