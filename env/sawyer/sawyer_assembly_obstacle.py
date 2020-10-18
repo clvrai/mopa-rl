@@ -48,7 +48,8 @@ class SawyerAssemblyObstacleEnv(SawyerEnv):
                 # reward_reach += 0.4 * (1-np.tanh(15*dist))
                 reward_reach += 0.4 * (1 - np.tanh(15 * dist_to_hole_bottom))
             reward += reward_reach
-        if dist_to_hole_bottom < 0.02:
+        dist_to_hole = np.linalg.norm(pegHeadPos - hole)
+        if dist_to_hole_bottom < 0.04 and dist_to_hole < 0.08:
             reward += self._kwargs["success_reward"]
             self._success = True
             self._terminal = True
