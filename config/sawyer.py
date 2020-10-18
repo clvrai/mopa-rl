@@ -34,7 +34,7 @@ def add_arguments(parser):
     parser.add_argument(
         "--camera_name",
         type=str,
-        default="topview",
+        default="visview",
         help="camera name in an environment",
     )
 
