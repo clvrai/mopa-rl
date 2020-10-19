@@ -81,9 +81,9 @@ python setup.py build_ext --inplace
 
 ## Available environments
 
- PusherObstacle-v0 | SawyerPushObstacle-v0 | SawyerLiftObstacle-v0 | SawyerAssemblyObstacle-v0
-- | - | - | -
-![2D Push](docs/img/2D_push.png) | ![Sawyer Push](docs/img/sawyer_push.png) | ![Sawyer Lift](docs/img/sawyer_lift.png) | ![Sawyer Assembly](docs/img/sawyer_assembly.png)
+| PusherObstacle-v0 | SawyerPushObstacle-v0 | SawyerLiftObstacle-v0 | SawyerAssemblyObstacle-v0 |
+| - | - | - | - |
+| ![2D Push](docs/img/2D_push.png) | ![Sawyer Push](docs/img/sawyer_push.png) | ![Sawyer Lift](docs/img/sawyer_lift.png) | ![Sawyer Assembly](docs/img/sawyer_assembly.png) |
 
 ## How to run experiments
 0. Launch a virtual display (only for a headless server)
