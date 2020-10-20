@@ -79,15 +79,11 @@ cd ./mopa-rl/motion_planner
 python setup.py build_ext --inplace
 ```
 
-## Available Environments
+## Available environments
 
-- PusherObstacle-v0 (2D Push)
-- SawyerPush-v0 (Sawyer Push without obstacle)
-- SawyerPushObstacle-v0
-- SawyerLift-v0 (Sawyer Lift without obstacle)
-- SawyerLiftObstacle-v0
-- SawyerAssembly-v0 (Sawyer Assembly without obstacles)
-- SawyerAssemblyObstacle-v0
+| PusherObstacle-v0 | SawyerPushObstacle-v0 | SawyerLiftObstacle-v0 | SawyerAssemblyObstacle-v0 |
+| - | - | - | - |
+| ![2D Push](docs/img/2D_push.png) | ![Sawyer Push](docs/img/sawyer_push.png) | ![Sawyer Lift](docs/img/sawyer_lift.png) | ![Sawyer Assembly](docs/img/sawyer_assembly.png) |
 
 ## How to run experiments
 0. Launch a virtual display (only for a headless server)
@@ -176,7 +172,7 @@ sudo apt install ./pybind11-dev_2.2.4-2_all.deb
 ```
 
 
-## Reference
+## References
 - PyTorch implementation of SAC: https://github.com/clvrai/coordination
 - Sawyer MuJoCo environment: https://github.com/StanfordVL/robosuite
 - Sawyer assets: https://github.com/vikashplus/sawyer_sim
@@ -184,7 +180,7 @@ sudo apt install ./pybind11-dev_2.2.4-2_all.deb
 
 ## Citation
 ```
-@inproceedings{yamada2020mopa,
+@inproceedings{yamada2020mopa-rl,
   title={Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments},
   author={Jun Yamada and Youngwoon Lee and Gautam Salhotra and Karl Pertsch and Max Pflueger and Gaurav S. Sukhatme and Joseph J. Lim and Peter Englert},
   booktitle={Conference on Robot Learning},
