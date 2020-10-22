@@ -12,9 +12,6 @@ vis_replay="True"
 plot_type='3d'
 success_reward='150.'
 reward_scale="10."
-use_ik_target="False"
-ik_target="grip_site"
-action_range="0.001"
 
 python -m rl.main \
     --log_root_dir $log_root_dir \
@@ -29,7 +26,4 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --success_reward $success_reward \
-    --reward_scale $reward_scale \
-    --use_ik_target $use_ik_target \
-    --ik_target $ik_target \
-    --action_range $action_range
+    --reward_scale $reward_scale

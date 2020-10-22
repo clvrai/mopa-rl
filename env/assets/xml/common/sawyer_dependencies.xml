@@ -55,7 +55,7 @@
                 <geom rgba="0. 0.4 0. 0.5" group="0" contype="0" conaffinity="0"/>
             </default>
             <default class='sawyer_viz_target'>
-                <geom type="mesh" contype="0" conaffinity="0" group="0" rgba="0. 0.4 0. 0.2"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="0" rgba="0. 0.4 0. 0.5"/>
             </default>
 
 

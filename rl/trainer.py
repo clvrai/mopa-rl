@@ -159,7 +159,7 @@ class Trainer(object):
             self._runner = RolloutRunner(config, self._env, self._env_eval, self._agent)
 
         # setup wandb
-        if self._is_chef and self._config.is_train:
+        if self._is_chef and self._config.is_train and self._config.wandb:
             exclude = ["device"]
             if config.debug:
                 os.environ["WANDB_MODE"] = "dryrun"
