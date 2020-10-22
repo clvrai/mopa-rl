@@ -1,10 +1,7 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-wandb="True"
-project="hrl-planner"
-entity="clvr"
-prefix="BASELINE.v3"
+prefix="BASELINE"
 env="SawyerAssemblyObstacle-v0"
 algo='sac'
 max_episode_step="250"
@@ -29,8 +26,4 @@ python -m rl.main \
     --vis_replay $vis_replay \
     --plot_type $plot_type \
     --success_reward $success_reward \
-    --reward_scale $reward_scale \
-    --wandb $wandb \
-    --entity $entity \
-    --project $project
-
+    --reward_scale $reward_scale

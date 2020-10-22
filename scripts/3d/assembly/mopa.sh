@@ -2,10 +2,7 @@
 gpu=$1
 seed=$2
 
-wandb='True'
-project='hrl-planner'
-entity='clvr'
-prefix="MoPA-SAC.v5"
+prefix="MoPA-SAC"
 algo='sac'
 env="SawyerAssemblyObstacle-v0"
 max_episode_step="250"
@@ -23,7 +20,7 @@ plot_type='3d'
 ac_space_type="piecewise"
 use_smdp_update="True"
 success_reward="150.0"
-max_reuse_data='15'
+max_reuse_data='30'
 reward_scale="1.0"
 
 python -m rl.main \
@@ -48,7 +45,4 @@ python -m rl.main \
     --ac_space_type $ac_space_type \
     --success_reward $success_reward \
     --max_reuse_data $max_reuse_data \
-    --reward_scale $reward_scale \
-    --wandb $wandb \
-    --entity $entity \
-    --project $project
+    --reward_scale $reward_scale
