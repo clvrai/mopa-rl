@@ -20,7 +20,7 @@ plot_type='3d'
 ac_space_type="piecewise"
 use_smdp_update="True"
 success_reward="150.0"
-max_reuse_data='30'
+max_reuse_data='15'
 reward_scale="1.0"
 
 python -m rl.main \
