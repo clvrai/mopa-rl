@@ -204,7 +204,7 @@ class SawyerEnv(BaseEnv):
             self.sim.data.qpos[self.ref_target_indicator_joint_pos_indexes] = qpos
             for idx in self.target_indicator_agent_geom_ids:
                 color = self.sim.model.geom_rgba[idx]
-                color[-1] = 0.2
+                color[-1] = 0.5
                 self.sim.model.geom_rgba[idx] = color
             self.sim.forward()
 
