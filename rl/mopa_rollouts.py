@@ -149,8 +149,6 @@ class MoPARolloutRunner(object):
                     else:
                         success, valid, exact = False, False, True
 
-                    if not random_exploration:
-                        print(len(traj))
                     if success:
                         if interpolation:
                             counter["interpolation"] += 1
@@ -225,7 +223,7 @@ class MoPARolloutRunner(object):
                         if config.reuse_data and len(ob_list) > 3:
                             pairs = []
                             for _ in range(min(len(ob_list), config.max_reuse_data)):
-                                start = np.random.randint(low=0, high=len(ob_list) - 2)
+                                start = np.random.randint(low=0, high=len(ob_list) - 1)
                                 if start + 1 > len(ob_list) - 1:
                                     continue
                                 goal = np.random.randint(

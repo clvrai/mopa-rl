@@ -1,7 +1,6 @@
 #!/bin/bash -x
 gpu=$1
 seed=$2
-
 prefix="BASELINE.IK"
 env="SawyerAssemblyObstacle-v0"
 algo='sac'
