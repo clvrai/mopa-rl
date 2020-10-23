@@ -1,7 +1,7 @@
 # Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments
 
-[Jun Yamada](https://junjungoal.tech), [Youngwoon Lee](https://youngwoon.github.io), [Gautam Salhotra](https://www.gautamsalhotra.com/), [Karl Pertsch](https://kpertsch.github.io), [Max Pflueger](https://mpflueger.github.io/), [Gaurav S. Sukhatme](http://robotics.usc.edu/~gaurav), [Joseph J. Lim](https://viterbi-web.usc.edu/~limjj/), [Peter Englert](http://www.peter-englert.net/) at [USC CLVR](https://clvrai.com) and [USC RESL](https://robotics.usc.edu/resl/) <br/>
-[[Project website](https://clvrai.com/mopa-rl)] [[Paper]()]
+[Jun Yamada](https://junjungoal.tech)\*, [Youngwoon Lee](https://youngwoon.github.io)\*, [Gautam Salhotra](https://www.gautamsalhotra.com/), [Karl Pertsch](https://kpertsch.github.io), [Max Pflueger](https://mpflueger.github.io/), [Gaurav S. Sukhatme](http://robotics.usc.edu/~gaurav), [Joseph J. Lim](https://viterbi-web.usc.edu/~limjj/), [Peter Englert](http://www.peter-englert.net/) at [USC CLVR](https://clvrai.com) and [USC RESL](https://robotics.usc.edu/resl/) <br/>
+[[Project website](https://clvrai.com/mopa-rl)] [[Paper](https://arxiv.org/abs/2010.11940)]
 
 This project is a PyTorch implementation of [Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments](https://clvrai.com/mopa-rl), which is published in CoRL 2020.
 
