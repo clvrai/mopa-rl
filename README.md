@@ -1,9 +1,8 @@
 # Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments
 
-[Jun Yamada](https://junjungoal.tech)\*, [Youngwoon Lee](https://youngwoon.github.io)\*, [Gautam Salhotra](https://www.gautamsalhotra.com/), [Karl Pertsch](https://kpertsch.github.io), [Max Pflueger](https://mpflueger.github.io/), [Gaurav S. Sukhatme](http://robotics.usc.edu/~gaurav), [Joseph J. Lim](https://viterbi-web.usc.edu/~limjj/), [Peter Englert](http://www.peter-englert.net/) at [USC CLVR](https://clvrai.com) and [USC RESL](https://robotics.usc.edu/resl/) <br/>
 [[Project website](https://clvrai.com/mopa-rl)] [[Paper](https://arxiv.org/abs/2010.11940)]
 
-This project is a PyTorch implementation of [Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments](https://clvrai.com/mopa-rl), which is published in CoRL 2020.
+This project is a PyTorch implementation of [Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments](https://clvrai.com/mopa-rl), published in CoRL 2020.
 
 
 <p align="center">
@@ -179,11 +178,16 @@ sudo apt install ./pybind11-dev_2.2.4-2_all.deb
 
 
 ## Citation
+If you find this useful, please cite
 ```
-@inproceedings{yamada2020mopa-rl,
+@inproceedings{yamada2020mopa,
   title={Motion Planner Augmented Reinforcement Learning for Robot Manipulation in Obstructed Environments},
   author={Jun Yamada and Youngwoon Lee and Gautam Salhotra and Karl Pertsch and Max Pflueger and Gaurav S. Sukhatme and Joseph J. Lim and Peter Englert},
   booktitle={Conference on Robot Learning},
   year={2020}
 }
 ```
+
+## Authors
+[Jun Yamada](https://junjungoal.tech)\*, [Youngwoon Lee](https://youngwoon.github.io)\*, [Gautam Salhotra](https://www.gautamsalhotra.com/), [Karl Pertsch](https://kpertsch.github.io), [Max Pflueger](https://mpflueger.github.io/), [Gaurav S. Sukhatme](http://robotics.usc.edu/~gaurav), [Joseph J. Lim](https://viterbi-web.usc.edu/~limjj/), and [Peter Englert](http://www.peter-englert.net/) at [USC CLVR](https://clvrai.com) and [USC RESL](https://robotics.usc.edu/resl/)
+(\*Equal contribution)
