@@ -351,7 +351,8 @@ class Trainer(object):
                     )
                     st_time = time()
                     st_step = step
-                    self._log_train(step, train_info, ep_info, env_step=env_step)
+                    if self._config.wandb:
+                        self._log_train(step, train_info, ep_info, env_step=env_step)
                     ep_info = defaultdict(list)
 
                 ## Evaluate both MP and RL
@@ -362,7 +363,8 @@ class Trainer(object):
                         step=step, record=config.record
                     )
 
-                    self._log_test(step, info, vids, obs, env_step=env_step)
+                    if self._config.wandb:
+                        self._log_test(step, info, vids, obs, env_step=env_step)
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter, env_step)
