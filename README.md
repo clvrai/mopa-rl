@@ -189,5 +189,5 @@ If you find this useful, please cite
 ```
 
 ## Authors
-[Jun Yamada](https://junjungoal.tech)\*, [Youngwoon Lee](https://youngwoon.github.io)\*, [Gautam Salhotra](https://www.gautamsalhotra.com/), [Karl Pertsch](https://kpertsch.github.io), [Max Pflueger](https://mpflueger.github.io/), [Gaurav S. Sukhatme](http://robotics.usc.edu/~gaurav), [Joseph J. Lim](https://viterbi-web.usc.edu/~limjj/), and [Peter Englert](http://www.peter-englert.net/) at [USC CLVR](https://clvrai.com) and [USC RESL](https://robotics.usc.edu/resl/)
+[Jun Yamada](https://junjungoal.github.io/)\*, [Youngwoon Lee](https://youngwoon.github.io)\*, [Gautam Salhotra](https://www.gautamsalhotra.com/), [Karl Pertsch](https://kpertsch.github.io), [Max Pflueger](https://mpflueger.github.io/), [Gaurav S. Sukhatme](http://robotics.usc.edu/~gaurav), [Joseph J. Lim](https://viterbi-web.usc.edu/~limjj/), and [Peter Englert](http://www.peter-englert.net/) at [USC CLVR](https://clvrai.com) and [USC RESL](https://robotics.usc.edu/resl/)
 (\*Equal contribution)
