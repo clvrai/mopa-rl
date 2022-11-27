@@ -189,7 +189,7 @@ class MujocoStateValidityChecker : public ompl::base::StateValidityChecker {
     {
     }
 
-    bool addGlueTransformation(const std::vector<std::string> &glue_bodies) {
+    void addGlueTransformation(const std::vector<std::string> &glue_bodies) {
         if (glue_bodies.size() > 0) {
             if (glue_transformation) {
               delete glue_transformation;
